@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import os
+
 from tornado.web import StaticFileHandler
 
 import settings
@@ -8,7 +10,11 @@ from backend.views import *
 
 # static prefix
 urls = [
-    (settings.STATIC_PREFIX, StaticFileHandler, {"path": settings.STATIC_DIR})
+    (
+        os.path.join(settings.STATIC_PREFIX, "(.*)"),
+        StaticFileHandler,
+        {"path": settings.STATIC_DIR}
+    )
 ]
 
 # user, authentication, privilege and role
