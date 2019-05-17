@@ -34,7 +34,7 @@ def runserver():
         urls,
         debug=settings.DEBUG,
         autoreload=True,
-        static_path=os.path.join(os.path.dirname(__file__), "static"),
+        static_path=os.path.join(settings.SETTINGS_FILE_DIR, "downloads"),
     )
     enable_pretty_logging()
     app.listen(settings.WEB_PORT)

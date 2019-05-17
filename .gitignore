@@ -172,6 +172,6 @@ venv.bak/
 .mypy_cache/
 
 
-static/export/*.xls
-static/export/*.xlsx
-static/export/*.csv
+downloads/export/*.xls
+downloads/export/*.xlsx
+downloads/export/*.csv

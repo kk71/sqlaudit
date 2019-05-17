@@ -33,8 +33,8 @@ JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1")
 JWT_EXPIRE_SEC = env_get("JWT_EXPIRE_SEC", 3600, int)
 UPLOAD_TO = env_get("UPLOAD_TO", "/tmp")
-EXPORT_TO = path.join(SETTINGS_FILE_DIR, "static/export")
-EXPORT_URL_WITHOUT_PREFIX = "/static/export"
+EXPORT_TO = path.join(SETTINGS_FILE_DIR, "downloads/export")
+EXPORT_URL_WITHOUT_PREFIX = "/downloads/export"
 
 
 # celery settings
