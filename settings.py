@@ -32,9 +32,11 @@ WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1")
 JWT_EXPIRE_SEC = env_get("JWT_EXPIRE_SEC", 3600, int)
-UPLOAD_TO = env_get("UPLOAD_TO", "/tmp")
-EXPORT_TO = path.join(SETTINGS_FILE_DIR, "downloads/export")
-EXPORT_URL_WITHOUT_PREFIX = "/downloads/export"
+UPLOAD_DIR = env_get("UPLOAD_DIR", "/tmp")
+STATIC_DIR = path.join(SETTINGS_FILE_DIR, "downloads")
+STATIC_PREFIX = "/downloads"
+EXPORT_DIR = path.join(STATIC_DIR, "export")
+EXPORT_PREFIX = "/downloads/export"
 
 
 # celery settings

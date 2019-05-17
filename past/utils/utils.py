@@ -466,7 +466,7 @@ def create_sqlhealthy_xlsx(filename, data):
 
 def create_worklist_xlsx(filename, parame_dict):
 
-    path = os.path.join(settings.EXPORT_TO, filename)
+    path = os.path.join(settings.EXPORT_DIR, filename)
     wb = xlsxwriter.Workbook(path)
     ws = wb.add_worksheet('任务工单详情')
     ws.set_column(0, 2, 20)

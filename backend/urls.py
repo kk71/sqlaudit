@@ -1,10 +1,18 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from tornado.web import StaticFileHandler
+
+import settings
 from backend.views import *
 
 
-# user, authentication, privilege and role
+# static prefix
 urls = [
+    (settings.STATIC_PREFIX, StaticFileHandler, {"path": settings.STATIC_DIR})
+]
+
+# user, authentication, privilege and role
+urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
     (r"/api/role/permission", permisson.SystemPermissionHandler),

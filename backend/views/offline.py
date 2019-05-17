@@ -230,7 +230,7 @@ class ExportTicketHandler(AuthReq):
             }
         )
         past.utils.utils.create_worklist_xlsx(filename, parame_dict)
-        self.resp({"url": path.join(settings.EXPORT_URL_WITHOUT_PREFIX, filename)})
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
 class SQLUploadHandler(AuthReq):
@@ -286,7 +286,7 @@ class SQLUploadHandler(AuthReq):
 
         elif filename.split('.')[-1].lower() in ['xls', "xlsx", "csv", "xlt"]:
             # excel doc or csv
-            the_xls_filepath = path.join(settings.UPLOAD_TO, filename)
+            the_xls_filepath = path.join(settings.UPLOAD_DIR, filename)
             with open(the_xls_filepath, "wb") as z:
                 z.write(file_object.body)
             excel = xlrd.open_workbook(the_xls_filepath)
@@ -424,7 +424,7 @@ class ExportSubTicketHandler(SubTicketHandler):
             # 写导出文档的地方参考旧代码
 
             filename = f"export_sub_ticket_{arrow.now().timestamp}.xlsx"
-            full_filename = path.join(settings.EXPORT_TO, filename)
+            full_filename = path.join(settings.EXPORT_DIR, filename)
             wb = xlsxwriter.Workbook(full_filename)
             ws = wb.add_worksheet('子工单报告')
             ws.set_column(0, 2, 20)
@@ -466,7 +466,7 @@ class ExportSubTicketHandler(SubTicketHandler):
                 ws.write(row_num, 11, sub_ticket.error_msg, format_text)
                 ws.write(row_num, 12, sub_ticket.comments, format_text)
             wb.close()
-            self.resp({"url": path.join(settings.EXPORT_URL_WITHOUT_PREFIX, filename)})
+            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
 class SubTicketSQLPlanHandler(AuthReq):
