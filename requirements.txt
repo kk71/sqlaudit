@@ -1,0 +1,16 @@
+mongoengine==0.17
+cx-Oracle==7.1
+redis
+celery
+arrow
+schema
+tornado==6.0
+pyJWT
+xlrd
+click
+prettytable
+sqlalchemy==1.3
+ipython
+sqlparse==0.3
+chardet
+xlsxwriter
