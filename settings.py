@@ -9,7 +9,7 @@ from os import environ
 from os import path
 
 
-SETTINGS_FILE_DIR = path.dirname(__file__)
+SETTINGS_FILE_DIR = path.dirname(path.realpath(__file__))
 ALL_ENV_VARS = list()
 
 
