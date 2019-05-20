@@ -144,6 +144,7 @@ class RiskRuleHandler(AuthReq):
             self.resp(ret, **p)
 
     def post(self):
+        """增加风险规则"""
         params = self.get_json_args(Schema({
             "risk_name": scm_unempty_str,
             "severity": scm_str,

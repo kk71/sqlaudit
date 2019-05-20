@@ -187,7 +187,7 @@ class AuthReq(BaseReq):
             self.current_user = None
             self.resp_unauthorized(msg="token已过期，请重新登录。")
             return
-        print(f'* {self.current_user} - {now_timestamp - data["timestamp"]}s to expire - {token}')
+        print(f'* {self.current_user} - {settings.JWT_EXPIRE_SEC - (now_timestamp - data["timestamp"])}s to expire - {token}')
 
     def prepare(self) -> Optional[Awaitable[None]]:
         self.get_current_user()
