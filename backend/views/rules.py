@@ -16,11 +16,18 @@ class RuleRepoHandler(AuthReq):
     def get(self):
         """规则库列表"""
         params = self.get_query_args(Schema({
+            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
-        rules = Rule.objects().all()
-        items, p = self.paginate(rules, **params)
+        keyword = params.pop("keyword")
+        p = self.pop_p(params)
+        rules = Rule.objects(**params)
+        if keyword:
+            rules = self.query_keyword(rules, keyword,
+                                       "db_model", "rule_desc", "rule_name", "rule_summary")
+        items, p = self.paginate(rules, **p)
         self.resp([i.to_dict() for i in items], **p)
 
     def post(self):
@@ -113,13 +120,15 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
+            Optional("risk_sql_dimension"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         keyword = params.pop("keyword")
+        p = self.pop_p(params)
         with make_session() as session:
-            q = session.query(RiskSQLRule)
+            q = session.query(RiskSQLRule).filter_by(**params)
             if keyword:
                 mq = Rule.objects()  # search in mongo
                 rule_name_list_in_m = self.query_keyword(mq, keyword,
@@ -137,7 +146,7 @@ class RiskRuleHandler(AuthReq):
                 q = q.filter(RiskSQLRule.rule_name.in_(
                     rule_name_list_in_m + rule_name_list_in_o))
 
-            risk_rules, p = self.paginate(q, **params)
+            risk_rules, p = self.paginate(q, **p)
             ret = []
             for risk_rule in risk_rules:
                 ret.append(self.risk_rule_object_to_dict(risk_rule))
@@ -149,7 +158,8 @@ class RiskRuleHandler(AuthReq):
             "risk_name": scm_unempty_str,
             "severity": scm_str,
             "rule_name": scm_unempty_str,
-            "optimized_advice": scm_str
+            "optimized_advice": scm_str,
+            "risk_sql_dimension": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         with make_session() as session:
             risk_rule = RiskSQLRule(**params)
@@ -166,7 +176,8 @@ class RiskRuleHandler(AuthReq):
             Optional("risk_name"): scm_unempty_str,
             Optional("severity"): scm_str,
             Optional("rule_name"): scm_unempty_str,
-            Optional("optimized_advice"): scm_str
+            Optional("optimized_advice"): scm_str,
+            Optional("risk_sql_dimension"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         risk_sql_rule_id = params.pop("risk_sql_rule_id")
         with make_session() as session:

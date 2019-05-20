@@ -112,6 +112,7 @@ class BaseReq(RequestHandler):
 
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):
+        """分页"""
         if isinstance(query, M_Query):
             items = query.skip((page - 1) * per_page).limit(per_page)
         elif isinstance(query, S_Query):
@@ -126,6 +127,11 @@ class BaseReq(RequestHandler):
         if total % per_page > 0:
             pages += 1
         return items, {"page": page, "per_page": per_page, "total": total, "pages": pages}
+
+    @staticmethod
+    def pop_p(query_dict) -> dict:
+        """弹出分页相关的两个字段"""
+        return {"page": query_dict.pop("page"), "per_page": query_dict.pop("per_page")}
 
     @staticmethod
     def query_keyword(q, l, *args) -> Union[M_Query, S_Query]:
