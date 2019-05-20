@@ -384,11 +384,10 @@ class SubTicketHandler(AuthReq):
 
             Optional(object): object
         }))
-        page = params.pop("page")
-        per_page = params.pop("per_page")
+        p = self.pop_p(params)
         with make_session() as session:
             q = self.filter_sub_ticket(session)
-            items, p = self.paginate(q, page, per_page)
+            items, p = self.paginate(q, **p)
             self.resp([i.to_dict() for i in items], **p)
 
 
