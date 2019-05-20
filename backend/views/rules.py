@@ -9,7 +9,7 @@ from backend.utils.schema_utils import *
 from backend.views.base import *
 from backend.models.oracle import *
 from backend.models.mongo import *
-from backend.utils import rule_utils
+from backend.utils import rule_utils, cmdb_utils
 
 
 class RuleRepoHandler(AuthReq):
@@ -26,7 +26,7 @@ class RuleRepoHandler(AuthReq):
     def post(self):
         """新增规则"""
         params = self.get_json_args(Schema({
-            "db_type": scm_one_of_choices(rule_utils.ALL_SUPPORTED_DB),
+            "db_type": scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
             "db_model": scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
             "exclude_obj_type": [scm_unempty_str],
             "input_parms": [
@@ -63,7 +63,7 @@ class RuleRepoHandler(AuthReq):
         params = self.get_json_args(Schema({
             "rule_name": self.scm_with_em(scm_unempty_str, e="规则名称不能为空"),
 
-            Optional("db_type"): scm_one_of_choices(rule_utils.ALL_SUPPORTED_DB),
+            Optional("db_type"): scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
             Optional("db_model"): scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
             Optional("exclude_obj_type"): [scm_unempty_str],
             Optional("input_parms"): [
@@ -98,3 +98,18 @@ class RuleRepoHandler(AuthReq):
     # def delete(self):
     #     """删除规则"""
     #     self.resp_created()
+
+
+class RiskRuleHandler(AuthReq):
+
+    def get(self):
+        self.resp()
+
+    def post(self):
+        self.resp_created()
+
+    def patch(self):
+        self.resp_created()
+
+    def delete(self):
+        self.resp_created()

@@ -155,6 +155,7 @@ class AuthReq(BaseReq):
 
     def get_current_user(self) -> NoReturn:
         token = self.request.headers.get("token", None)
+        print(f"* TOKEN {token}")
         try:
             if not token:
                 raise Exception("No token is present.")

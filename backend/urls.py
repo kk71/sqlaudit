@@ -26,7 +26,8 @@ urls += [
 
 # rule and risk rules
 urls += [
-    (r"/api/rule/repo/rules", rules.RuleRepoHandler),
+    (r"/api/rule/rules", rules.RuleRepoHandler),
+    (r"/api/rule/risk_rules", rules.RiskRuleHandler),
 ]
 
 # CMDB
@@ -47,5 +48,8 @@ urls += [
 
 # online audit
 urls += [
-    # (r"/api/online/", ),
+    (r"/api/online/risk/list", online.RiskListHandler),
+    (r"/api/online/risk/detail", online.RiskDetailHandler),
+    (r"/api/online/risk/export", online.RiskReportExportHandler),
+    (r"/api/online/plan", online.SQLPlanHandler),
 ]
