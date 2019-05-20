@@ -155,7 +155,6 @@ class AuthReq(BaseReq):
 
     def get_current_user(self) -> NoReturn:
         token = self.request.headers.get("token", None)
-        print(f"* TOKEN {token}")
         try:
             if not token:
                 raise Exception("No token is present.")
@@ -164,6 +163,7 @@ class AuthReq(BaseReq):
             self.current_user = None
             self.resp_unauthorized()
             return
+        now_timestamp = arrow.now().timestamp
         try:
             data = Schema({
                 "login_user": scm_unempty_str,
@@ -171,7 +171,6 @@ class AuthReq(BaseReq):
                 scm_Optional(object): object  # 兼容未来可能增加的字段
             }).validate(payload)
             # 验证token的超时
-            now_timestamp = arrow.now().timestamp
             if now_timestamp - data["timestamp"] > settings.JWT_EXPIRE_SEC:
                 raise TokenHasExpiredException()
             self.current_user: str = data["login_user"]
@@ -183,7 +182,7 @@ class AuthReq(BaseReq):
             self.current_user = None
             self.resp_unauthorized(msg="token已过期，请重新登录。")
             return
-        print(f'* Login as {self.current_user}, with {now_timestamp - data["timestamp"]} to expire.')
+        print(f'* {self.current_user} - {now_timestamp - data["timestamp"]}s to expire - {token}')
 
     def prepare(self) -> Optional[Awaitable[None]]:
         self.get_current_user()
