@@ -24,6 +24,7 @@ class AuthHandler(BaseReq):
                 params["status"] = 1
                 user = session.query(User).filter_by(**params).first()
                 if not user:
+                    user = session.query(User).filter_by(login_user=params["login_user"]).first()
                     user.last_login_failure_time = datetime.now().date()
                     user.login_retry_counts += 1
                     session.add(user)
@@ -45,6 +46,8 @@ class AuthHandler(BaseReq):
                 content = user.to_dict()
                 content["token"] = token.decode("ascii")
                 self.resp_created(content)
+                return
+            self.resp_unauthorized(msg="用户名错误。")
 
 
 class UserHandler(BaseReq):

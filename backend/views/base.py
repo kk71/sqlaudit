@@ -106,6 +106,9 @@ class BaseReq(RequestHandler):
     def resp_not_found(self, msg: str = "not found", content: Union[dict, list] = None, **kwargs) -> NoReturn:
         self.resp(msg=msg, content=content, status_code=404, **kwargs)
 
+    def resp_unauthorized(self, msg: str = "please login before any operations") -> NoReturn:
+        self.resp(msg=msg, status_code=401)
+
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):
         if isinstance(query, M_Query):
@@ -149,9 +152,6 @@ class AuthReq(BaseReq):
     """a request handler with authenticating"""
     def __init__(self, *args, **kwargs):
         super(AuthReq, self).__init__(*args, **kwargs)
-
-    def resp_unauthorized(self, msg: str = "please login before any operations") -> NoReturn:
-        self.resp(msg=msg, status_code=401)
 
     def get_current_user(self) -> NoReturn:
         token = self.request.headers.get("token", None)
