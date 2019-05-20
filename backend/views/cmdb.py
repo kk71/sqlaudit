@@ -15,6 +15,7 @@ class CMDBHandler(AuthReq):
 
     def get(self):
         params = self.get_query_args(Schema({
+            Optional("cmdb_id"): scm_int,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
             Optional("keyword", default=None): scm_unempty_str,
@@ -22,8 +23,9 @@ class CMDBHandler(AuthReq):
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
+        p = {"page": params.pop("page"), "per_page": params.pop("per_page")}
         with make_session() as session:
-            q = session.query(CMDB)
+            q = session.query(CMDB).filter_by(**params)
             if keyword:
                 q = self.query_keyword(q, keyword,
                                    CMDB.cmdb_id,
@@ -36,7 +38,7 @@ class CMDBHandler(AuthReq):
             if current:
                 current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-            items, p = self.paginate(q, **params)
+            items, p = self.paginate(q, **p)
             self.resp([i.to_dict() for i in items], **p)
 
     def check_for_cmdb_integrity(self, session):
