@@ -102,14 +102,89 @@ class RuleRepoHandler(AuthReq):
 
 class RiskRuleHandler(AuthReq):
 
+    @classmethod
+    def risk_rule_object_to_dict(cls, risk_rule_obj):
+        risk_rule_dict = risk_rule_obj.to_dict()
+        rule_dict = Rule.objects(rule_name=risk_rule_obj.rule_name).get().to_dict(
+            # 只拿mongo的rule的以下字段
+            iter_if=lambda x: x in ("rule_desc", "rule_name"))
+        return {**risk_rule_dict, **rule_dict}
+
     def get(self):
-        self.resp()
+        """风险规则列表"""
+        params = self.get_query_args(Schema({
+            Optional("keyword", default=None): scm_str,
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
+        }))
+        keyword = params.pop("keyword")
+        with make_session() as session:
+            q = session.query(RiskSQLRule)
+            if keyword:
+                mq = Rule.objects()  # search in mongo
+                rule_name_list_in_m = self.query_keyword(mq, keyword,
+                                                  "db_model",
+                                                  "rule_desc",
+                                                  "rule_name",
+                                                  "rule_summary").values_list("rule_name", flat=True)
+                # search in oracle
+                rule_name_list_in_o = [i[0] for i in self.query_keyword(q, keyword,
+                                                       RiskSQLRule.risk_name,
+                                                       RiskSQLRule.severity,
+                                                       RiskSQLRule.rule_name,
+                                                       RiskSQLRule.optimized_advice).\
+                    with_entities(RiskSQLRule.rule_name).all()]
+                q = q.filter(RiskSQLRule.rule_name.in_(
+                    rule_name_list_in_m + rule_name_list_in_o))
+
+            risk_rules, p = self.paginate(q, **params)
+            ret = []
+            for risk_rule in risk_rules:
+                ret.append(self.risk_rule_object_to_dict(risk_rule))
+            self.resp(ret, **p)
 
     def post(self):
-        self.resp_created()
+        params = self.get_json_args(Schema({
+            "risk_name": scm_unempty_str,
+            "severity": scm_str,
+            "rule_name": scm_unempty_str,
+            "optimized_advice": scm_str
+        }))
+        with make_session() as session:
+            risk_rule = RiskSQLRule(**params)
+            session.add(risk_rule)
+            session.commit()
+            session.refresh(risk_rule)
+            self.resp_created(self.risk_rule_object_to_dict(risk_rule))
 
     def patch(self):
-        self.resp_created()
+        """修改风险规则"""
+        params = self.get_json_args(Schema({
+            "risk_sql_rule_id": scm_int,
+
+            Optional("risk_name"): scm_unempty_str,
+            Optional("severity"): scm_str,
+            Optional("rule_name"): scm_unempty_str,
+            Optional("optimized_advice"): scm_str
+        }))
+        risk_sql_rule_id = params.pop("risk_sql_rule_id")
+        with make_session() as session:
+            risk_rule = session.query(RiskSQLRule).\
+                filter_by(risk_sql_rule_id=risk_sql_rule_id).first()
+            if not risk_rule:
+                self.resp_not_found(f"未找到风险规则id={risk_sql_rule_id}")
+                return
+            risk_rule.from_dict(params)
+            session.add(risk_rule)
+            session.commit()
+            session.refresh(risk_rule)
+            self.resp_created(self.risk_rule_object_to_dict(risk_rule))
 
     def delete(self):
-        self.resp_created()
+        """删除风险规则"""
+        params = self.get_json_args(Schema({
+            "risk_sql_rule_id": scm_int,
+        }))
+        with make_session() as session:
+            session.query(RiskSQLRule).filter_by(**params).delete()
+        self.resp_created(msg="已删除")

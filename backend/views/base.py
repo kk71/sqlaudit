@@ -9,6 +9,7 @@ from tornado.web import RequestHandler
 from schema import Schema, SchemaError, Or
 from schema import Optional as scm_Optional
 from mongoengine import QuerySet as M_Query
+from mongoengine import Q
 from sqlalchemy.orm.query import Query as S_Query
 from sqlalchemy import and_, or_
 
@@ -143,7 +144,11 @@ class BaseReq(RequestHandler):
             return q.filter(or_(*to_or))
 
         elif isinstance(q, M_Query):
-            assert NotImplementedError
+            to_query = Q()
+            for s in args:
+                to_query = to_query | Q(**{f"{s}__": l})
+            return q.filter(to_query)
+
         else:
             assert 0
 

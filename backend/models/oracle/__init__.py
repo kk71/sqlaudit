@@ -17,5 +17,6 @@ __ALL__ = [
     "DataPrivilege",
     "WorkList",
     "SubWorkList",
-    "OSQLPlan"
+    "OSQLPlan",
+    "RiskSQLRule",
 ]

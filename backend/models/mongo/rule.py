@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, ListField, DictField
+from mongoengine import StringField, IntField, FloatField, ListField, DictField, ObjectIdField
 from backend.models.mongo.utils import BaseDoc
 
 
