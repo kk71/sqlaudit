@@ -64,6 +64,6 @@ def import_from_json_file(filename: str):
     rules_to_import = []
     for rule in rules:
         the_rule = Rule()
-        the_rule.from_dict(rule)
+        the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", ))
         rules_to_import.append(the_rule)
     Rule.objects.insert(rules_to_import)

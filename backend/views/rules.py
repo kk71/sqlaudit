@@ -114,7 +114,7 @@ class RiskRuleHandler(AuthReq):
         risk_rule_dict = risk_rule_obj.to_dict()
         rule_dict = Rule.objects(rule_name=risk_rule_obj.rule_name).get().to_dict(
             # 只拿mongo的rule的以下字段
-            iter_if=lambda x: x in ("rule_desc", "rule_name"))
+            iter_if=lambda k, v: k in ("rule_desc", "rule_name"))
         return {**risk_rule_dict, **rule_dict}
 
     def get(self):

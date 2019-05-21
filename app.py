@@ -65,7 +65,7 @@ a session object with both autocommit and autoflush on is created named ss.
 
 
 @click.command()
-@click.option("--filename", help="the json filename")
+@click.option("--filename", help="the json filename", default="./files/rule.json")
 def importrules(filename):
     """import rules from a json file"""
     from backend.utils import rule_utils
