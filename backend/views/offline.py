@@ -311,6 +311,14 @@ class SQLUploadHandler(AuthReq):
         else:
             self.resp_bad_req(msg="文件不是SQL脚本，Excel文档或者CSV文档的任何一种。")
 
+    def get(self):
+        """获取上传的临时sql数据"""
+        self.resp()
+
+    def patch(self):
+        """编辑上传的临时sql数据"""
+        self.resp_created()
+
 
 class SubTicketHandler(AuthReq):
 

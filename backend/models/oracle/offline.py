@@ -48,6 +48,16 @@ class SubWorkList(BaseModel):
     id = Column("ID", Integer, Sequence("SEQ_T_SUB_WORK_LIST"), primary_key=True)
 
 
+class WorkListAnalyseTemp(BaseModel):
+    __tablename__ = "T_WORKLIST_ANALYSE_TEMP"
+
+    id = Column("ID", Integer, Sequence("SEQ_T_WORKLIST_ANALYSE_TEMP"), primary_key=True)
+    session_id = Column("SESSION_ID", String, nullable=False)
+    sql_text = Column("SQL_TEXT", CLOB)
+    comments = Column("COMMENTS", String)
+    analyse_date = Column("ANALYSE_DATE", DATE)
+
+
 class OSQLPlan(BaseModel):
     __tablename__ = "T_SQL_PLAN"
 
