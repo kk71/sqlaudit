@@ -57,13 +57,16 @@ def import_from_json_file(filename: str):
     """
     从json文件导入规则至mongodb
     :param filename:
-    :return:
+    :return: 导入数, 总共数
     """
     with open(filename, "r") as z:
         rules = json.load(z)
     rules_to_import = []
     for rule in rules:
+        if Rule.objects(rule_name=rule["rule_name"]).first():
+            continue
         the_rule = Rule()
         the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", ))
         rules_to_import.append(the_rule)
     Rule.objects.insert(rules_to_import)
+    return len(rules_to_import), len(rules)

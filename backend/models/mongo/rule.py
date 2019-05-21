@@ -19,8 +19,11 @@ class Rule(BaseDoc):
     rule_status = StringField()
     rule_summary = StringField()
     rule_type = StringField()
+    rule_type_detail = StringField()  # 极少数包含此字段
     solution = ListField()
     weight = FloatField()
+    obj_info_type = StringField()  # 极少数包含此字段
+    output_datas = ListField()  # 极少数包含此字段
 
     meta = {
         "collection": "rule"
