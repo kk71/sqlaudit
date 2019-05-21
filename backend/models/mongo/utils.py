@@ -21,13 +21,13 @@ class BaseDoc(DynamicDocument):
         """update a record by given dict,
         with an iter function(mostly a lambda) to judge whether applies the change"""
         for k, v in d.items():
-            if k not in self.to_mongo().keys():
-                # warn develop
-                print(f"warning: a key({k}) not in the document model is inserting into mongodb.")
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
+            if k not in dir(self):  # TODO is it strict?
+                # warn develop
+                print(f"warning: a key({k}) not in the document model is inserting into mongodb.")
             setattr(self, k, v)
 
     def to_dict(self,
