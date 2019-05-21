@@ -24,3 +24,7 @@ class Results(BaseDoc):
     #     ],
     #     "scores": the score(a float) of this rule for the result
     # }
+
+    meta = {
+        "collection": "results"
+    }

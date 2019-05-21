@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import re
+import json
 
 from backend.models.mongo import *
 
@@ -41,7 +42,7 @@ def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
     return violate
 
 
-def format_rule_result_detail(rule_object, record):
+def format_rule_result_detail(rule_object, record: list):
     """
     格式化输出规则分析结果(即风险详情)的信息。信息来源与mongodb.results.(rule_name).records
     :return:
@@ -50,3 +51,19 @@ def format_rule_result_detail(rule_object, record):
     risk_detail = ', '.join([': '.join([
         output_params[index]['parm_desc'], str(value)]) for index, value in enumerate(record)])
     return risk_detail
+
+
+def import_from_json_file(filename: str):
+    """
+    从json文件导入规则至mongodb
+    :param filename:
+    :return:
+    """
+    with open(filename, "r") as z:
+        rules = json.load(z)
+    rules_to_import = []
+    for rule in rules:
+        the_rule = Rule()
+        the_rule.from_dict(rule)
+        rules_to_import.append(the_rule)
+    Rule.objects.insert(rules_to_import)

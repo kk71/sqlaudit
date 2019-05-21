@@ -17,7 +17,7 @@ class RiskListHandler(AuthReq):
         """风险列表"""
         params = self.get_query_args(Schema({
             Optional("type", default="ALL"): scm_one_of_choices(["ALL"] +
-                                                                rule_utils.ALL_RULE_TYPE),
+                                                                list(rule_utils.ALL_RULE_TYPE)),
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_str,
@@ -59,7 +59,7 @@ class RiskListHandler(AuthReq):
             if date_end:
                 result_q = result_q.filter(create_date__lt=date_end)
             risky_rules = Rule.objects(
-                rule_name__in=[i[0] for i in risk_rule_q.with_enties(RiskSQLRule.rule_name)],
+                rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
                 db_model=cmdb.db_model  # Notice: must filter db_model in rules!
             )
             risk_rule_rule_name_optimization_advice_dict = dict(risk_rule_q.with_entities(

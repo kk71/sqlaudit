@@ -23,7 +23,7 @@ class BaseDoc(DynamicDocument):
         for k, v in d.items():
             if k not in self.to_mongo().keys():
                 # warn develop
-                print("warning: a key not in the doc is inserting into mongo.")
+                print(f"warning: a key({k}) not in the document model is inserting into mongodb.")
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
                 continue
             if iter_by:
