@@ -2,6 +2,8 @@
 
 import re
 
+from backend.models.mongo import *
+
 
 # 业务类型
 
@@ -37,3 +39,14 @@ def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
         if module.execute_rule(sql=sql, **args):
             violate = True
     return violate
+
+
+def format_rule_result_detail(rule_object, record):
+    """
+    格式化输出规则分析结果(即风险详情)的信息。信息来源与mongodb.results.(rule_name).records
+    :return:
+    """
+    output_params = rule_object.output_parms
+    risk_detail = ', '.join([': '.join([
+        output_params[index]['parm_desc'], str(value)]) for index, value in enumerate(record)])
+    return risk_detail

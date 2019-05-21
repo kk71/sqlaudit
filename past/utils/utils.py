@@ -239,38 +239,6 @@ def get_random_str(length=10):
     return ''.join([random.choice(lib) for _ in range(length)])
 
 
-def get_available_schema(cmdb_id, odb=None):
-    msg = None
-    schemas = []
-    try:
-        schemas = get_schema(cmdb_id, odb)
-    except cx_Oracle.DatabaseError as err:
-        print(str(err))
-        msg = "无法连接到目标主机"
-    return schemas, msg
-
-
-def get_schema(cmdb_id, odb=None):
-    sql = f"""SELECT * FROM T_CMDB WHERE cmdb_id = {cmdb_id}"""
-    cmdb = OracleHelper.select_dict(sql, one=True)
-    odb = OracleOB(cmdb['ip_address'], cmdb['port'], cmdb['user_name'], cmdb['password'], cmdb['service_name'])
-    sql = """
-        SELECT username
-        FROM dba_users
-        WHERE username  NOT IN (
-         'SYS', 'OUTLN', 'SYSTEM', 'CTXSYS', 'DBSNMP','DIP','ORACLE_OCM','APPQOSSYS','WMSYS','EXFSYS','CTXSYS','ANONYMOUS',
-         'LOGSTDBY_ADMINISTRATOR', 'ORDSYS','XDB','XS$NULL','SI_INFORMTN_SCHEMA','ORDDATA','OLAPSYS','MDDATA','SPATIAL_WFS_ADMIN_USR',
-         'ORDPLUGINS', 'OEM_MONITOR', 'WKSYS', 'WKPROXY','SPATIAL_CSW_ADMIN_USR','SPATIAL_CSW_ADMIN_USR','SYSMAN','MGMT_VIEW','FLOWS_FILES',
-         'WK_TEST', 'WKUSER', 'MDSYS', 'LBACSYS', 'DMSYS','APEX_030200','APEX_PUBLIC_USER','OWBSYS','OWBSYS_AUDIT','OSE$HTTP$ADMIN',
-         'WMSYS', 'OLAPDBA', 'OLAPSVR', 'OLAP_USER','SCOTT','AURORA$JIS$UTILITY$','BLAKE','JONES','ADAMS','CLARK','MTSSYS',
-         'OLAPSYS', 'EXFSYS', 'SYSMAN', 'MDDATA','AURORA$ORB$UNAUTHENTICATED', 'SI_INFORMTN_SCHEMA', 'XDB', 'ODM')
-        ORDER BY username ASC
-        """
-
-    users = [x[0] for x in odb.select(sql, one=False)]
-    return users
-
-
 def mktime(str_time, format=None):
     format = format or "%Y-%m-%d"
     return int(time.mktime(time.strptime(str_time, format)))

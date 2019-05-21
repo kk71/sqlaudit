@@ -7,8 +7,10 @@ from .plan import *
 from .rule import *
 from .stat import *
 from .txt import *
+from .results import *
 
 __ALL__ = [
     "Rule",
-    "SQLPlan"
+    "SQLPlan",
+    "Results",
 ]
