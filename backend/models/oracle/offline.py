@@ -55,7 +55,7 @@ class WorkListAnalyseTemp(BaseModel):
     session_id = Column("SESSION_ID", String, nullable=False)
     sql_text = Column("SQL_TEXT", CLOB)
     comments = Column("COMMENTS", String)
-    analyse_date = Column("ANALYSE_DATE", DATE)
+    analyse_date = Column("ANALYSE_DATE", DATE, default=datetime.now)
 
 
 class OSQLPlan(BaseModel):

@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import uuid
+import random
 from os import path
 from collections import OrderedDict
 
@@ -78,18 +80,17 @@ class TicketHandler(AuthReq):
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
             "task_name": scm_unempty_str,
-            # 以下输入结构应该与sql脚本excel文档parse的接口返回一致，方便前端对接
-            "sqls": [{
-                "sql_text": scm_unempty_str,
-                "comments": scm_str
-            }],
+            "session_id": scm_unempty_str
         }))
-        sqls = params.pop("sqls")
+        session_id = params.pop("session_id")
         with make_session() as session:
             ticket = WorkList(**params)
             session.add(ticket)
             session.commit()
             session.refresh(ticket)
+            wlats = session.query(WorkListAnalyseTemp).\
+                filter(WorkListAnalyseTemp.session_id == session_id).all()
+            sqls = [i.to_dict(iter_if=lambda k, v: k in ("sql_text", "comments")) for i in wlats]
             offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
@@ -235,6 +236,12 @@ class ExportTicketHandler(AuthReq):
 
 class SQLUploadHandler(AuthReq):
 
+    @staticmethod
+    def get_unique_random_session_id():
+        """生成随机唯一的session id"""
+        session_id = uuid.uuid4().hex
+        return session_id
+
     def post(self):
         """上传一个sql文件，或者一个excel的sql文件"""
         if not len(self.request.files) or not self.request.files.get("file"):
@@ -274,15 +281,12 @@ class SQLUploadHandler(AuthReq):
             body = body.replace("\"", "'")
             formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
-            ret = {
-                "sqls": [
-                    {
-                        "sql_text": x,
-                        "comments": ""
-                    } for x in formatted_sqls if x
-                ]
-            }
-            self.resp(ret)
+            sqls = [
+                {
+                    "sql_text": x,
+                    "comments": ""
+                } for x in formatted_sqls if x
+            ]
 
         elif filename.split('.')[-1].lower() in ['xls', "xlsx", "csv", "xlt"]:
             # excel doc or csv
@@ -298,26 +302,71 @@ class SQLUploadHandler(AuthReq):
             database_name = sheet.row_values(0)[1]
             sql = [[x for x in sheet.row_values(row)[:2]] for row in range(3, sheet.nrows)]
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
-            ret = {
-                "sqls": [
-                    {
-                        "sql_text": x[0],
-                        "comments": x[1]
-                    } for x in sql
-                ]
-            }
-            self.resp(ret)
+            sqls = [
+                {
+                    "sql_text": x[0],
+                    "comments": x[1]
+                } for x in sql
+            ]
 
         else:
             self.resp_bad_req(msg="文件不是SQL脚本，Excel文档或者CSV文档的任何一种。")
+            return
+        with make_session() as session:
+            session_id = self.get_unique_random_session_id()
+            to_add = [
+                WorkListAnalyseTemp(session_id=session_id, **i) for i in sqls
+            ]
+            session.add_all(to_add)
+            self.resp_created({"session_id": session_id})
 
     def get(self):
         """获取上传的临时sql数据"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "session_id": scm_str,
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
+            Optional("keyword", default=None): scm_str
+        }))
+        keyword = params.pop("keyword")
+        p = self.pop_p(params)
+        with make_session() as session:
+            q = session.query(WorkListAnalyseTemp).filter_by(**params)
+            if keyword:
+                q = self.query_keyword(q, keyword,
+                                       WorkListAnalyseTemp.sql_text,
+                                       WorkListAnalyseTemp.comments)
+            sqls, p = self.paginate(q, **p)
+            self.resp([sql.to_dict() for sql in sqls], **p)
 
     def patch(self):
         """编辑上传的临时sql数据"""
-        self.resp_created()
+        params = self.get_json_args(Schema({
+            "session_id": scm_str,
+            Optional("sql_text"): scm_unempty_str,
+            Optional("comments"): scm_str,
+            Optional("delete", default=False): scm_bool
+        }))
+        session_id = params.pop("session_id")
+        delete = params.pop("delete")
+        with make_session() as session:
+            wlat = session.query(WorkListAnalyseTemp).filter_by(session_id=session_id).first()
+            if not wlat:
+                self.resp_bad_req(msg=f"找不到编号为{session_id}的临时sql session")
+            if delete:
+                session.delete(wlat)
+                session.commit()
+                self.resp_created(msg="sql已删除。")
+            else:
+                wlat.from_dict(params)
+                session.add(wlat)
+                session.commit()
+                session.refresh(wlat)
+                self.resp_created(wlat.to_dict())
+
+    # def delete(self):
+    #     """手动删除临时数据"""
+    #     self.resp_created()
 
 
 class SubTicketHandler(AuthReq):
