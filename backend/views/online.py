@@ -26,7 +26,10 @@ class RiskListHandler(AuthReq):
             Optional("date_end", default=None): scm_date,
 
             Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int
+            Optional("per_page", default=10): scm_int,
+
+            # for risk sqls
+            Optional(object): object
         }))
         rule_type = params.pop("type")
         cmdb_id = params.pop("cmdb_id")
