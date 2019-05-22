@@ -63,8 +63,6 @@ def import_from_json_file(filename: str):
         rules = json.load(z)
     rules_to_import = []
     for rule in rules:
-        if Rule.objects(rule_name=rule["rule_name"]).first():
-            continue
         the_rule = Rule()
         the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", ))
         rules_to_import.append(the_rule)

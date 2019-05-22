@@ -89,7 +89,7 @@ class RiskListHandler(AuthReq):
             rst = []
             for result in results:
                 for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
-                    if not getattr(result, risky_rule_name):
+                    if not getattr(result, risky_rule_name, None):
                         continue  # 规则key不存在，或者值直接是个空dict
                     if not getattr(result, risky_rule_name).get("records", None):
                         continue  # 规则key存在，值非空，但是其下records的值为空
@@ -119,7 +119,7 @@ class RiskListHandler(AuthReq):
                                 }
                             }
                         ]
-                        agg_rest = Results.objects.aggregate(*to_aggregate)
+                        agg_rest = list(Results.objects.aggregate(*to_aggregate))
                         risky_rule_apperance[risky_rule_name] = {
                             "first_appearance": agg_rest[0]['first_appearance']
                             if agg_rest else "",

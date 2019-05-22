@@ -67,7 +67,7 @@ a session object with both autocommit and autoflush on is created named ss.
 @click.command()
 @click.option("--filename", help="the json filename", default="./files/rule.json")
 def importrules(filename):
-    """import rules from a json file, deduplicate"""
+    """import rules from a json file, NOT deduplicate"""
     from backend.utils import rule_utils
     print(f"going to import rule from {filename}...")
     imported_num, all_num = rule_utils.import_from_json_file(filename)
