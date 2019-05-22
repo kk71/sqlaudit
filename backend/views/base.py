@@ -118,10 +118,15 @@ class BaseReq(RequestHandler):
             items = query.skip((page - 1) * per_page).limit(per_page)
         elif isinstance(query, S_Query):
             items = query.limit(per_page).offset((page - 1) * per_page).all()
+        elif isinstance(query, (list, tuple)):
+            page -= 1
+            items = query[page*per_page:page*per_page+per_page]
         else:
-            assert 0  # permanently not support list or tuple
+            assert 0
         if page == 1 and len(items) < per_page:
             total = len(items)
+        elif isinstance(query, (list, tuple)):
+            total = len(query)
         else:
             total = query.order_by(None).count()  # this is so bad
         pages = total // per_page

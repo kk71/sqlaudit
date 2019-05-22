@@ -136,8 +136,8 @@ class RiskListHandler(AuthReq):
                                 risky_rule_name],
                             **risky_rule_apperance[risky_rule_name]
                         })
-
-        self.resp(rst)
+            rst_this_page, p = self.paginate(rst, **p)
+        self.resp(rst_this_page, **p)
 
 
 class RiskReportExportHandler(AuthReq):
