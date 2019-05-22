@@ -94,7 +94,7 @@ class TicketHandler(AuthReq):
             offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
-    def path(self):
+    def patch(self):
         """更新工单的审阅状态"""
         params = self.get_json_args(Schema({
             "work_list_id": scm_int,
