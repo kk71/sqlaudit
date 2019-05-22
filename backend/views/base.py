@@ -96,6 +96,7 @@ class BaseReq(RequestHandler):
         self.finish(json.dumps(resp_structure_base, ensure_ascii=False))
 
     def resp_created(self, *args, **kwargs) -> NoReturn:
+        kwargs["status_code"] = 201
         self.resp(*args, **kwargs)
 
     def resp_bad_req(self, msg: str = "bad request") -> NoReturn:

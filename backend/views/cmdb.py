@@ -148,3 +148,10 @@ class SchemaHandler(AuthReq):
                     filter_by(cmdb_id=cmdb_id).\
                     with_entities(DataPrivilege.schema_name)
                 self.resp(list({i.schema_name for i in schema_names}))
+
+    def post(self):
+        """编辑管控数据库的schema"""
+        params = self.get_json_args(Schema({
+
+        }))
+        self.resp_created()

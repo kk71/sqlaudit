@@ -104,11 +104,13 @@ class RiskListHandler(AuthReq):
                                     ]
                                 }
                             },
-                            {"$group": {
-                                '_id': risky_rule_name,
-                                "first_appearance": {"$min": "$create_date"},
-                                "last_appearance": {"$max": "$create_date"}
-                            }},
+                            {
+                                "$group": {
+                                    '_id': risky_rule_name,
+                                    "first_appearance": {"$min": "$create_date"},
+                                    "last_appearance": {"$max": "$create_date"}
+                                }
+                            },
                             {
                                 "$project": {
                                     '_id': 0,
@@ -117,7 +119,7 @@ class RiskListHandler(AuthReq):
                                 }
                             }
                         ]
-                        agg_rest = Results.objects.aggragate(to_aggregate)
+                        agg_rest = Results.objects.aggregate(*to_aggregate)
                         risky_rule_apperance[risky_rule_name] = {
                             "first_appearance": agg_rest[0]['first_appearance']
                             if agg_rest else "",
