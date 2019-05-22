@@ -648,6 +648,10 @@
 	"max_score": 3,
 	"output_parms": [
 		{
+			"parm_desc": "用户名",
+			"parm_name": "owner"
+		},
+		{
 			"parm_desc": "表名称",
 			"parm_name": "table_name"
 		},
@@ -3748,6 +3752,10 @@
 	"input_parms": [],
 	"max_score": 3,
 	"output_parms": [
+		{
+			"parm_desc": "用户名",
+			"parm_name": "owner"
+		},
 		{
 			"parm_desc": "表名称",
 			"parm_name": "table_name"
