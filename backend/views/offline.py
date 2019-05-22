@@ -342,17 +342,17 @@ class SQLUploadHandler(AuthReq):
     def patch(self):
         """编辑上传的临时sql数据"""
         params = self.get_json_args(Schema({
-            "session_id": scm_str,
+            "id": scm_str,
             Optional("sql_text"): scm_unempty_str,
             Optional("comments"): scm_str,
             Optional("delete", default=False): scm_bool
         }))
-        session_id = params.pop("session_id")
+        wlat_id = params.pop("id")
         delete = params.pop("delete")
         with make_session() as session:
-            wlat = session.query(WorkListAnalyseTemp).filter_by(session_id=session_id).first()
+            wlat = session.query(WorkListAnalyseTemp).filter_by(id=wlat_id).first()
             if not wlat:
-                self.resp_bad_req(msg=f"找不到编号为{session_id}的临时sql session")
+                self.resp_bad_req(msg=f"找不到编号为{wlat_id}的临时sql session")
             if delete:
                 session.delete(wlat)
                 session.commit()

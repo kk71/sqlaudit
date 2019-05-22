@@ -11,6 +11,7 @@ __all__ = [
     "scm_str_with_no_lr_spaces",
     "scm_something_split_str",
     "scm_dot_split_str",
+    "scm_dot_split_int",
     "scm_subset_of_choices",
     "scm_one_of_choices",
     "scm_date",
@@ -25,8 +26,9 @@ scm_int = Use(int)
 scm_float = Use(float)
 scm_unempty_str = And(scm_str, lambda x: len(x.strip()) > 0)
 scm_str_with_no_lr_spaces = And(scm_str, Use(lambda x: x.strip()))
-scm_something_split_str = lambda splitter: Use(lambda x: [i.strip() for i in x.split(splitter) if i.strip()])
-scm_dot_split_str = scm_something_split_str(",")
+scm_something_split_str = lambda splitter, p=scm_any: Use(lambda x: [p.validate(i.strip()) for i in x.split(splitter) if i.strip()])
+scm_dot_split_str = scm_something_split_str(",", scm_unempty_str)
+scm_dot_split_int = scm_something_split_str(",", scm_int)
 scm_subset_of_choices = lambda choices: lambda subset: set(subset).issubset(set(choices))
 scm_one_of_choices = lambda choices, p=scm_any: lambda x: p.validate(x) in choices
 scm_date = Use(lambda x: arrow.get(x, ['MM/DD/YYYY', 'YYYY-MM-DD']).date())

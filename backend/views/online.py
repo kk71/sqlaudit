@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 from schema import Schema, Optional
+from mongoengine import Q
 
 from .base import AuthReq
 from backend.utils.schema_utils import *
@@ -20,7 +21,7 @@ class RiskListHandler(AuthReq):
                                                                 list(rule_utils.ALL_RULE_TYPE)),
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
-            Optional("risk_sql_rule_id", default=None): scm_dot_split_str,
+            Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
 
@@ -69,12 +70,18 @@ class RiskListHandler(AuthReq):
             risky_rule_name_object_dict = {risky_rule.rule_name:
                                                risky_rule for risky_rule in risky_rules.all()}
             if not risky_rule_name_object_dict:
-                self.resp_not_found(msg="无任何风险规则。")
+                self.resp(msg="无任何风险规则。")
                 return
+
+            # 过滤出包含问题的结果
+            Qs = None
             for risky_rule_name in risky_rule_name_object_dict.keys():
-                # 过滤出包含问题的结果
-                result_q = result_q | result_q.filter(
-                    **{f"{risky_rule_name}__records__nin": [None, []]})
+                if not Qs:
+                    Qs = Q(**{f"{risky_rule_name}__records__nin": [None, []]})
+                else:
+                    Qs = Qs | Q(**{f"{risky_rule_name}__records__nin": [None, []]})
+            if Qs:
+                result_q = result_q.filter(Qs)
 
             # results, p = self.paginate(result_q, **p)
             results = result_q.all()
