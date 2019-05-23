@@ -112,7 +112,7 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
-            # Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
@@ -153,7 +153,7 @@ class RiskRuleHandler(AuthReq):
             Optional("db_type", default=cmdb_utils.DB_ORACLE): scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
             "db_model": scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
             "rule_name": scm_unempty_str,
-            # "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         with make_session() as session:
             risk_rule = RiskSQLRule(**params)
