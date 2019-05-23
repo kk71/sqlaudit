@@ -28,7 +28,6 @@ class ObjectRiskListHandler(AuthReq):
 
             Optional(object): object
         }))
-        rule_type = params.pop("type")
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         risk_sql_rule_id_list = params.pop("risk_sql_rule_id")
@@ -46,11 +45,10 @@ class ObjectRiskListHandler(AuthReq):
                                       f"操作名为{schema_name}的schema。")
                 return
 
-        risk_rule_q = session.query(RiskSQLRule)
-        result_q = Results.objects(cmdb_id=cmdb_id, schema_name=schema_name)
-        if rule_type not in (None, "ALL"):
-            risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_type == rule_type)
-            result_q = result_q.filter(rule_type=rule_type)
+        risk_rule_q = session.query(RiskSQLRule).\
+            filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ)
+        result_q = Results.objects(
+            cmdb_id=cmdb_id, schema_name=schema_name, rule_type=rule_utils.RULE_TYPE_OBJ)
         if risk_sql_rule_id_list:
             risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                              in_(risk_sql_rule_id_list))

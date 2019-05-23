@@ -20,7 +20,7 @@ class RiskSQLRule(BaseModel):
     db_type = Column("DB_TYPE", String)
     db_model = Column("DB_MODEL", String)
     rule_name = Column("RULE_NAME", String)
-    rule_type = Column("RULE_TYPE", String)
+    rule_type = Column("RULE_TYPE", String)  # 不做唯一性考虑，只是冗余字段
 
     def get_3_key(self) -> tuple:
         return self.db_type, self.db_model, self.rule_name
@@ -31,4 +31,4 @@ class DataHealth(BaseModel):
 
     database_name = Column("DATABASE_NAME", String)
     health_score = Column("HEALTH_SCORE", Integer)
-    collect_date = Column("COLLECT_DATE", DATE ,primary_key=True)
+    collect_date = Column("COLLECT_DATE", DATE, primary_key=True)
