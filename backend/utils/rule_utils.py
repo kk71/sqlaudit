@@ -26,6 +26,10 @@ RULE_TYPE_SQLPLAN = "SQLPAN"
 RULE_TYPE_SQLSTAT = "SQLSTAT"
 ALL_RULE_TYPE = (RULE_TYPE_OBJ, RULE_TYPE_TEXT, RULE_TYPE_SQLPLAN, RULE_TYPE_SQLSTAT)
 
+# 定位一条规则的字段们
+
+RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name", "rule_type")
+
 
 def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
     """sql文本规则的读取"""
@@ -68,3 +72,20 @@ def import_from_json_file(filename: str):
         rules_to_import.append(the_rule)
     Rule.objects.insert(rules_to_import)
     return len(rules_to_import), len(rules)
+
+
+def merge_risk_rule_and_rule(
+        risk_rule_object, rule_object=None, rule_keys=("rule_desc", "rule_name")) -> dict:
+    """
+    merge rule_object to risk_rule object
+    :param risk_rule_object:
+    :param rule_object:
+    :param risk_rule_keys:
+    :param rule_keys:
+    """
+    risk_rule_dict = risk_rule_object.to_dict()
+    if not rule_object:
+        rule_object = Rule.objects(**risk_rule_object.
+                                   to_dict(iter_if=lambda k, v: k in RULE_ALLOCATING_KEYS)).first()
+    rule_dict = rule_object.to_dict(iter_if=lambda k, v: k in rule_keys)
+    return {**risk_rule_dict, **rule_dict}

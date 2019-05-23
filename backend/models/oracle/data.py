@@ -18,7 +18,7 @@ class RiskSQLRule(BaseModel):
     optimized_advice = Column("OPTIMIZED_ADVICE", String)
     # the following allocates a rule
     db_type = Column("DB_TYPE", String)
-    db_model = Column("DB_TYPE", String)
+    db_model = Column("DB_MODEL", String)
     rule_name = Column("RULE_NAME", String)
     rule_type = Column("RULE_TYPE", String)
 

@@ -109,21 +109,6 @@ class RuleRepoHandler(AuthReq):
 
 class RiskRuleHandler(AuthReq):
 
-    @classmethod
-    def risk_rule_object_to_dict(cls, risk_rule_obj):
-        risk_rule_dict = risk_rule_obj.to_dict()
-        rule_dict = Rule.objects(
-            rule_name=risk_rule_obj.rule_name,
-            rule_type=risk_rule_obj.rule_type,
-            db_type=cmdb_utils.DB_ORACLE,
-            # db_model=
-
-            # TODO shouldn't use .first
-        ).first().to_dict(
-            # 只拿mongo的rule的以下字段
-            iter_if=lambda k, v: k in ("rule_desc", "rule_name"))
-        return {**risk_rule_dict, **rule_dict}
-
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
@@ -156,7 +141,7 @@ class RiskRuleHandler(AuthReq):
             risk_rules, p = self.paginate(q, **p)
             ret = []
             for risk_rule in risk_rules:
-                ret.append(self.risk_rule_object_to_dict(risk_rule))
+                ret.append(rule_utils.merge_risk_rule_and_rule(risk_rule))
             self.resp(ret, **p)
 
     def post(self):
@@ -164,8 +149,10 @@ class RiskRuleHandler(AuthReq):
         params = self.get_json_args(Schema({
             "risk_name": scm_unempty_str,
             "severity": scm_str,
-            "rule_name": scm_unempty_str,
             "optimized_advice": scm_str,
+            Optional("db_type", default=cmdb_utils.DB_ORACLE): scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
+            "db_model": scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
+            "rule_name": scm_unempty_str,
             "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         with make_session() as session:
@@ -173,7 +160,7 @@ class RiskRuleHandler(AuthReq):
             session.add(risk_rule)
             session.commit()
             session.refresh(risk_rule)
-            self.resp_created(self.risk_rule_object_to_dict(risk_rule))
+            self.resp_created(rule_utils.merge_risk_rule_and_rule(risk_rule))
 
     def patch(self):
         """修改风险规则"""
@@ -182,9 +169,7 @@ class RiskRuleHandler(AuthReq):
 
             Optional("risk_name"): scm_unempty_str,
             Optional("severity"): scm_str,
-            Optional("rule_name"): scm_unempty_str,
             Optional("optimized_advice"): scm_str,
-            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         risk_sql_rule_id = params.pop("risk_sql_rule_id")
         with make_session() as session:
@@ -197,7 +182,7 @@ class RiskRuleHandler(AuthReq):
             session.add(risk_rule)
             session.commit()
             session.refresh(risk_rule)
-            self.resp_created(self.risk_rule_object_to_dict(risk_rule))
+            self.resp_created(rule_utils.merge_risk_rule_and_rule(risk_rule))
 
     def delete(self):
         """删除风险规则"""
