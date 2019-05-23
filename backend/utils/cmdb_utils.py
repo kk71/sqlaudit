@@ -70,3 +70,39 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     # TODO 需要判断 cx_Oracle.DatabaseError
     return schemas
 
+
+def get_latest_health_score_cmdb(session, user_login=None):
+    """
+    获取用户可见的cmdb最新的health score排名
+    :param session:
+    :param user_login: 当前登录用户名，如果不给，则表示返回全部数据库的排名
+    :return: [{"connect_name": str, "health_score": int, "collect_date": datetime}, ...]
+    """
+    # TODO 这个函数可做缓存
+
+    if user_login:
+        all_connect_names: set = {i["connect_name"] for i in get_current_cmdb(session, user_login)}
+    else:
+        all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().with_entities(CMDB.connect_name)}
+    dh_objects = session.query(DataHealth).filter_by().order_by(DataHealth.collect_date.desc()).all()
+    ret = []
+    for dh in dh_objects:
+        if dh.database_name not in {i["connect_name"] for i in ret}:
+            ret.append({
+                "connect_name": dh.database_name,
+                "health_score": dh.health_score,
+                "collect_date": dh.collect_date
+            })
+        if len(ret) == len(all_connect_names):
+            break
+    if len(ret) != len(all_connect_names):
+        # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
+        collected_connect_names: set = {i["connect_name"] for i in ret}
+        for cn in all_connect_names:
+            if cn not in collected_connect_names:
+                ret.append({
+                    "connect_name": cn,
+                    "health_score": None,
+                    "collect_date": None
+                })
+    return ret

@@ -18,3 +18,11 @@ class RiskSQLRule(BaseModel):
     severity = Column("SEVERITY", String)
     rule_name = Column("RULE_NAME", String)  # refer to mongodb.rule.rule_name
     optimized_advice = Column("OPTIMIZED_ADVICE", String)
+
+
+class DataHealth(BaseModel):
+    __tablename__ = "T_DATA_HEALTH"
+
+    database_name = Column("DATABASE_NAME", String)
+    health_score = Column("HEALTH_SCORE", Integer)
+    collect_date = Column("COLLECT_DATE", DATE ,primary_key=True)

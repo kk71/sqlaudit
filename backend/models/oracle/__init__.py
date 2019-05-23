@@ -19,5 +19,6 @@ __ALL__ = [
     "SubWorkList",
     "OSQLPlan",
     "RiskSQLRule",
-    "WorkListAnalyseTemp"
+    "WorkListAnalyseTemp",
+    "DataHealth"
 ]

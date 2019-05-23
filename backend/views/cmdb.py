@@ -38,8 +38,17 @@ class CMDBHandler(AuthReq):
             if current:
                 current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-            items, p = self.paginate(q, **p)
-            self.resp([i.to_dict() for i in items], **p)
+                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, self.current_user)
+            else:
+                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
+            db_data_health, p = self.paginate(all_db_data_health, **p)
+            ret = []
+            for data_health in db_data_health:
+                ret.append({
+                    **q.filter(CMDB.connect_name == data_health["connect_name"]).first().to_dict(),
+                    "data_health": data_health
+                })
+            self.resp(ret, **p)
 
     def check_for_cmdb_integrity(self, session):
         """检查cmdb的数据的统一形制"""
