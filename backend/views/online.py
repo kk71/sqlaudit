@@ -2,6 +2,7 @@
 
 from os import path
 from collections import defaultdict
+from types import FunctionType
 
 import arrow
 import xlsxwriter
@@ -18,8 +19,8 @@ from backend.models.oracle import *
 
 class ObjectRiskListHandler(AuthReq):
 
-    def get_list(self, session):
-        params = self.get_query_args(Schema({
+    def get_list(self, session, query_parser: FunctionType):
+        params = query_parser(Schema({
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
@@ -151,7 +152,7 @@ class ObjectRiskListHandler(AuthReq):
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            rst = self.get_list(session)
+            rst = self.get_list(session, self.get_query_args)
             if rst is None:
                 return
             rst_this_page, p = self.paginate(rst, **p)
@@ -172,7 +173,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
         with make_session() as session:
             if export_type == "all_filtered":
-                object_list = self.get_list(session)
+                object_list = self.get_list(session, self.get_json_args)
                 if object_list is None:
                     return
 
@@ -199,7 +200,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
                 assert 0
 
             heads = ['对象名称', "风险等级", '风险点', '风险详情', '最早出现时间', '最后出现时间', '优化建议']
-            filename = f"export_obj_rick_{arrow.now().timestamp}.xlsx"
+            filename = f"export_obj_rick_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
             full_filename = path.join(settings.EXPORT_DIR, filename)
             wb = xlsxwriter.Workbook(full_filename)
             ws = wb.add_worksheet('风险对象报告')
