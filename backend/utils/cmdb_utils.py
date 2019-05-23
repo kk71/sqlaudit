@@ -97,8 +97,9 @@ def get_latest_health_score_cmdb(session, user_login=None):
             break
     # sort
     ret = sorted(ret, key=lambda x: x["health_score"], reverse=True)
+
+    # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
     if len(ret) != len(all_connect_names):
-        # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
         collected_connect_names: set = {i["connect_name"] for i in ret}
         for cn in all_connect_names:
             if cn not in collected_connect_names:

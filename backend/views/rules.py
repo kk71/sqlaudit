@@ -114,7 +114,7 @@ class RiskRuleHandler(AuthReq):
         risk_rule_dict = risk_rule_obj.to_dict()
         rule_dict = Rule.objects(
             rule_name=risk_rule_obj.rule_name,
-            rule_type=risk_rule_obj.risk_sql_dimension,
+            rule_type=risk_rule_obj.rule_type,
             db_type=cmdb_utils.DB_ORACLE,
             # db_model=
 
@@ -127,7 +127,7 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
-            Optional("risk_sql_dimension"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
@@ -166,7 +166,7 @@ class RiskRuleHandler(AuthReq):
             "severity": scm_str,
             "rule_name": scm_unempty_str,
             "optimized_advice": scm_str,
-            "risk_sql_dimension": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         with make_session() as session:
             risk_rule = RiskSQLRule(**params)
@@ -184,7 +184,7 @@ class RiskRuleHandler(AuthReq):
             Optional("severity"): scm_str,
             Optional("rule_name"): scm_unempty_str,
             Optional("optimized_advice"): scm_str,
-            Optional("risk_sql_dimension"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
         }))
         risk_sql_rule_id = params.pop("risk_sql_rule_id")
         with make_session() as session:

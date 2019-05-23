@@ -48,8 +48,10 @@ urls += [
 
 # online audit
 urls += [
-    (r"/api/online/risk/list", online.RiskListHandler),
-    (r"/api/online/risk/detail", online.RiskDetailHandler),
-    (r"/api/online/risk/export", online.RiskReportExportHandler),
-    (r"/api/online/plan", online.SQLPlanHandler),
+    (r"/api/online/object", online.ObjectRiskListHandler),
+    (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
+    (r"/api/online/sql", online.SQLRiskListHandler),
+    (r"/api/online/sql/detail", online.SQLRiskDetailHandler),
+    (r"/api/online/sql/export", online.SQLRiskReportExportHandler),
+    (r"/api/online/sql/plan", online.SQLPlanHandler),
 ]
