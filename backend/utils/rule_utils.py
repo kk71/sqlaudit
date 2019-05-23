@@ -95,16 +95,16 @@ def merge_risk_rule_and_rule(
 
 def get_rules_dict() -> dict:
     """
-    parse all rules into a dict with four-key indexing
+    parse all rules into a dict with 3-key indexing
     """
     # TODO make it cached
-    return {(r.db_type, r.db_model, r.rule_name, r.rule_type): r for r in Rule.objects().all()}
+    return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.objects().all()}
 
 
 def get_risk_rules_dict(session) -> dict:
     """
-    parse all risk rules into a dict with four-key indexing
+    parse all risk rules into a dict with 3-key indexing
     """
     # TODO make it cached
     risk_rule_list = list(session.query(RiskSQLRule).filter_by().all())
-    return {(r.db_type, r.db_model, r.rule_name, r.rule_type): r for r in risk_rule_list}
+    return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}

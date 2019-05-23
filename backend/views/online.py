@@ -20,8 +20,6 @@ class ObjectRiskListHandler(AuthReq):
 
     def get_list(self, session):
         params = self.get_query_args(Schema({
-            Optional("type", default="ALL"): scm_one_of_choices(["ALL"] +
-                                                                list(rule_utils.ALL_RULE_TYPE)),
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
@@ -62,7 +60,8 @@ class ObjectRiskListHandler(AuthReq):
             result_q = result_q.filter(create_date__lt=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
-            db_model=cmdb.db_model  # Notice: must filter db_model in rules!
+            db_model=cmdb.db_model,
+            db_type=cmdb_utils.DB_ORACLE
         )
         risk_rules_dict = rule_utils.get_risk_rules_dict(session)
         risky_rule_name_object_dict = {risky_rule.rule_name:
@@ -87,7 +86,7 @@ class ObjectRiskListHandler(AuthReq):
         rst = []
         for result in results:
             for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
-                risk_rule_object = risk_rules_dict[risky_rule_object.get_four_key()]
+                risk_rule_object = risk_rules_dict[risky_rule_object.get_3_key()]
 
                 # risky_rule_object is a record of Rule from mongodb
 

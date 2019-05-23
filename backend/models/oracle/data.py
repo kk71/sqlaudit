@@ -20,10 +20,10 @@ class RiskSQLRule(BaseModel):
     db_type = Column("DB_TYPE", String)
     db_model = Column("DB_MODEL", String)
     rule_name = Column("RULE_NAME", String)
-    rule_type = Column("RULE_TYPE", String)
+    # rule_type = Column("RULE_TYPE", String)  # TODO 暂时不用
 
-    def get_four_key(self) -> tuple:
-        return self.db_type, self.db_model, self.rule_name, self.db_type
+    def get_3_key(self) -> tuple:
+        return self.db_type, self.db_model, self.rule_name
 
 
 class DataHealth(BaseModel):

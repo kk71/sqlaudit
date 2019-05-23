@@ -28,9 +28,9 @@ class Rule(BaseDoc):
     meta = {
         "collection": "rule",
         'indexes': [
-            {'fields': ("db_type", "db_model", "rule_name", "rule_type"), 'unique': True}
+            {'fields': ("db_type", "db_model", "rule_name"), 'unique': True}
         ]
     }
 
-    def get_four_key(self) -> tuple:
-        return self.db_type, self.db_model, self.rule_name, self.db_type
+    def get_3_key(self) -> tuple:
+        return self.db_type, self.db_model, self.rule_name
