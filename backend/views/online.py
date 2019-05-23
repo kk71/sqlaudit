@@ -155,6 +155,8 @@ class ObjectRiskListHandler(AuthReq):
 
         with make_session() as session:
             rst = self.get_list(session)
+            if rst is None:
+                return
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
 
@@ -174,6 +176,8 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
         with make_session() as session:
             if export_type == "all_filtered":
                 object_list = self.get_list(session)
+                if object_list is None:
+                    return
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
