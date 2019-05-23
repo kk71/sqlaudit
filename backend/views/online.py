@@ -64,7 +64,7 @@ class ObjectRiskListHandler(AuthReq):
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model  # Notice: must filter db_model in rules!
         )
-        risk_rules_dict = rule_utils.get_risk_rules_dict()
+        risk_rules_dict = rule_utils.get_risk_rules_dict(session)
         risky_rule_name_object_dict = {risky_rule.rule_name:
                                            risky_rule for risky_rule in risky_rules.all()}
         if not risky_rule_name_object_dict:
