@@ -87,14 +87,16 @@ def get_latest_health_score_cmdb(session, user_login=None):
     dh_objects = session.query(DataHealth).filter_by().order_by(DataHealth.collect_date.desc()).all()
     ret = []
     for dh in dh_objects:
+        dh_dict = dh.to_dict()
         if dh.database_name not in {i["connect_name"] for i in ret}:
             ret.append({
-                "connect_name": dh.database_name,
-                "health_score": dh.health_score,
-                "collect_date": dh.collect_date
+                "connect_name": dh_dict.pop("database_name"),
+                **dh_dict
             })
         if len(ret) == len(all_connect_names):
             break
+    # sort
+    ret = sorted(ret, key=lambda x: x["health_score"], reverse=True)
     if len(ret) != len(all_connect_names):
         # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
         collected_connect_names: set = {i["connect_name"] for i in ret}
