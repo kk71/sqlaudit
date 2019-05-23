@@ -4,6 +4,8 @@ import re
 import json
 
 from backend.models.mongo import *
+from backend.utils import cmdb_utils
+from backend.models.oracle import RiskSQLRule
 
 
 # 业务类型
@@ -89,3 +91,20 @@ def merge_risk_rule_and_rule(
                                    to_dict(iter_if=lambda k, v: k in RULE_ALLOCATING_KEYS)).first()
     rule_dict = rule_object.to_dict(iter_if=lambda k, v: k in rule_keys)
     return {**risk_rule_dict, **rule_dict}
+
+
+def get_rules_dict() -> dict:
+    """
+    parse all rules into a dict with four-key indexing
+    """
+    # TODO make it cached
+    return {(r.db_type, r.db_model, r.rule_name, r.rule_type): r for r in Rule.objects().all()}
+
+
+def get_risk_rules_dict(session) -> dict:
+    """
+    parse all risk rules into a dict with four-key indexing
+    """
+    # TODO make it cached
+    risk_rule_list = list(session.query(RiskSQLRule).filter_by().all())
+    return {(r.db_type, r.db_model, r.rule_name, r.rule_type): r for r in risk_rule_list}

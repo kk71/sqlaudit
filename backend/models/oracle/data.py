@@ -22,6 +22,9 @@ class RiskSQLRule(BaseModel):
     rule_name = Column("RULE_NAME", String)
     rule_type = Column("RULE_TYPE", String)
 
+    def get_four_key(self) -> tuple:
+        return self.db_type, self.db_model, self.rule_name, self.db_type
+
 
 class DataHealth(BaseModel):
     __tablename__ = "T_DATA_HEALTH"

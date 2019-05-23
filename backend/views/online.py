@@ -64,10 +64,7 @@ class ObjectRiskListHandler(AuthReq):
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model  # Notice: must filter db_model in rules!
         )
-        risk_rule_rule_name_optimization_advice_dict = dict(risk_rule_q.with_entities(
-            RiskSQLRule.rule_name,
-            RiskSQLRule.optimized_advice
-        ))
+        risk_rules_dict = rule_utils.get_risk_rules_dict()
         risky_rule_name_object_dict = {risky_rule.rule_name:
                                            risky_rule for risky_rule in risky_rules.all()}
         if not risky_rule_name_object_dict:
@@ -90,6 +87,12 @@ class ObjectRiskListHandler(AuthReq):
         rst = []
         for result in results:
             for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
+                risk_rule_object = risk_rules_dict[risky_rule_object.get_four_key()]
+
+                # risky_rule_object is a record of Rule from mongodb
+
+                # risk_rule_object is a record of RiskSQLRule from oracle
+
                 if not getattr(result, risky_rule_name, None):
                     continue  # 规则key不存在，或者值直接是个空dict
                 if not getattr(result, risky_rule_name).get("records", None):
@@ -133,8 +136,8 @@ class ObjectRiskListHandler(AuthReq):
                         "rule_desc": risky_rule_object.rule_desc,
                         "risk_detail": rule_utils.format_rule_result_detail(
                             risky_rule_object, record),
-                        "optimized_advice": risk_rule_rule_name_optimization_advice_dict[
-                            risky_rule_name],
+                        "optimized_advice": risk_rule_object.optimized_advice,
+                        "severity": risk_rule_object.severity,
                         **risky_rule_appearance[risky_rule_name]
                     })
         return rst
@@ -181,7 +184,8 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
                             "risk_detail": scm_unempty_str,
                             "optimized_advice": scm_unempty_str,
                             "first_appearance": scm_unempty_str,
-                            "last_appearance": scm_unempty_str
+                            "last_appearance": scm_unempty_str,
+                            "severity": scm_unempty_str,
                         }
                     ],
 
@@ -193,7 +197,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
             else:
                 assert 0
 
-            heads = ['对象名称', '风险点', '风险详情', '最早出现时间', '最后出现时间', '优化建议']
+            heads = ['对象名称', "风险等级", '风险点', '风险详情', '最早出现时间', '最后出现时间', '优化建议']
             filename = f"export_obj_rick_{arrow.now().timestamp}.xlsx"
             full_filename = path.join(settings.EXPORT_DIR, filename)
             wb = xlsxwriter.Workbook(full_filename)
@@ -219,11 +223,12 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
             for row_num, row in enumerate(object_list):  # [[], ...]
                 row_num += 1
                 ws.write(row_num, 0, row["object_name"], content_format)
-                ws.write(row_num, 0, row["rule_desc"], content_format)
-                ws.write(row_num, 0, row["risk_detail"], content_format)
-                ws.write(row_num, 0, row["optimized_advice"], content_format)
-                ws.write(row_num, 0, row["first_appearance"], content_format)
-                ws.write(row_num, 0, row["last_appearance"], content_format)
+                ws.write(row_num, 1, row["severity"], content_format)
+                ws.write(row_num, 2, row["rule_desc"], content_format)
+                ws.write(row_num, 3, row["risk_detail"], content_format)
+                ws.write(row_num, 4, row["optimized_advice"], content_format)
+                ws.write(row_num, 5, row["first_appearance"], content_format)
+                ws.write(row_num, 6, row["last_appearance"], content_format)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
