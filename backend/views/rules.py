@@ -112,7 +112,14 @@ class RiskRuleHandler(AuthReq):
     @classmethod
     def risk_rule_object_to_dict(cls, risk_rule_obj):
         risk_rule_dict = risk_rule_obj.to_dict()
-        rule_dict = Rule.objects(rule_name=risk_rule_obj.rule_name).get().to_dict(
+        rule_dict = Rule.objects(
+            rule_name=risk_rule_obj.rule_name,
+            rule_type=risk_rule_obj.risk_sql_dimension,
+            db_type=cmdb_utils.DB_ORACLE,
+            # db_model=
+
+            # TODO shouldn't use .first
+        ).first().to_dict(
             # 只拿mongo的rule的以下字段
             iter_if=lambda k, v: k in ("rule_desc", "rule_name"))
         return {**risk_rule_dict, **rule_dict}

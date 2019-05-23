@@ -26,5 +26,8 @@ class Rule(BaseDoc):
     output_datas = ListField()  # 极少数包含此字段
 
     meta = {
-        "collection": "rule"
+        "collection": "rule",
+        'indexes': [
+            {'fields': ("db_type", "db_model", "rule_name", "rule_type"), 'unique': True}
+        ]
     }

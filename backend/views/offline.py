@@ -37,7 +37,7 @@ class TicketHandler(AuthReq):
         work_list_status = params.pop("work_list_status")
         with make_session() as session:
             q = session.query(WorkList)
-            if work_list_status is not None:
+            if work_list_status is not None:  # take care of the value 0!
                 q = q.filter_by(work_list_status=work_list_status)
             if keyword:
                 q = self.query_keyword(q, keyword,
