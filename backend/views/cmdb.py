@@ -41,13 +41,24 @@ class CMDBHandler(AuthReq):
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, self.current_user)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
-            db_data_health, p = self.paginate(all_db_data_health, **p)
             ret = []
-            for data_health in db_data_health:
-                ret.append({
-                    **q.filter(CMDB.connect_name == data_health["connect_name"]).first().to_dict(),
-                    "data_health": data_health
-                })
+            if "cmdb_id" in params.keys():
+                p = {}
+                cmdb_dict = q.first().to_dict()
+                for data_health in all_db_data_health:
+                    if data_health["connect_name"] == cmdb_dict["connect_name"]:
+                        ret.append({
+                            **cmdb_dict,
+                            "data_health": data_health
+                        })
+                        break
+            else:
+                db_data_health, p = self.paginate(all_db_data_health, **p)
+                for data_health in db_data_health:
+                    ret.append({
+                        **q.filter(CMDB.connect_name == data_health["connect_name"]).first().to_dict(),
+                        "data_health": data_health
+                    })
             self.resp(ret, **p)
 
     def check_for_cmdb_integrity(self, session):
