@@ -96,7 +96,7 @@ def get_latest_health_score_cmdb(session, user_login=None):
         if len(ret) == len(all_connect_names):
             break
     # sort
-    ret = sorted(ret, key=lambda x: x["health_score"], reverse=True)
+    ret = sorted(ret, key=lambda x: x["health_score"])
 
     # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
     if len(ret) != len(all_connect_names):

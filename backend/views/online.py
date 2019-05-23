@@ -20,6 +20,7 @@ from backend.models.oracle import *
 class ObjectRiskListHandler(AuthReq):
 
     def get_list(self, session, query_parser: FunctionType):
+        # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
         params = query_parser(Schema({
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
