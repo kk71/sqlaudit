@@ -4,6 +4,9 @@ import re
 
 import sqlparse
 
+from backend.models.mongo import SQLText
+
+
 SQL_DML = 0
 SQL_DDL = 1
 ALL_SQL_TYPE = (SQL_DML, SQL_DDL)
@@ -255,3 +258,34 @@ def parse_sql_file(sql_contents, sql_keyword):
 
     return new_sql_list
 
+
+def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
+    """
+    计算sql文本的统计信息
+    :param cmdb_id:
+    :param etl_date_gte: etl时间晚于
+    :return: {sql_id: {}}
+    """
+    # TODO use cache
+    match_case = {
+        'cmdb_id': cmdb_id,
+        # 'etl_date': {"$gte": , "$lt": }
+    }
+    if etl_date_gte:
+        match_case["etl_date"] = {}
+        match_case["etl_date"]["$gte"] = etl_date_gte
+    to_aggregate = [
+        {
+            "$match": match_case
+        },
+        {
+            "$group": {
+                "_id": "$sql_id",
+                "first_appearance": {"$min": "$etl_date"},
+                "last_appearance": {"$max": "$etl_date"},
+                "count": {"$sum": 1}
+            }
+        }
+    ]
+    ret = SQLText.objects.aggregate(to_aggregate)
+    return {i["_id"]: i for i in ret}

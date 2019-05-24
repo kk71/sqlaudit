@@ -5,6 +5,7 @@ from .user import *
 from .data import *
 from .config import *
 from .offline import *
+from .online import *
 
 __ALL__ = [
     "make_session",
@@ -20,5 +21,6 @@ __ALL__ = [
     "OSQLPlan",
     "RiskSQLRule",
     "WorkListAnalyseTemp",
-    "DataHealth"
+    "DataHealth",
+    "TaskManage"
 ]

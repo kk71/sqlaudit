@@ -13,4 +13,5 @@ __ALL__ = [
     "Rule",
     "SQLPlan",
     "Results",
+    "Job"
 ]

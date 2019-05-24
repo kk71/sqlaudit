@@ -2,8 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer, Boolean, Sequence
-from sqlalchemy.dialects.oracle import DATE
+from sqlalchemy import Column, String, Integer, Sequence
 
 from backend.models.oracle.utils import BaseModel
 
@@ -24,11 +23,3 @@ class RiskSQLRule(BaseModel):
 
     def get_3_key(self) -> tuple:
         return self.db_type, self.db_model, self.rule_name
-
-
-class DataHealth(BaseModel):
-    __tablename__ = "T_DATA_HEALTH"
-
-    database_name = Column("DATABASE_NAME", String)
-    health_score = Column("HEALTH_SCORE", Integer)
-    collect_date = Column("COLLECT_DATE", DATE, primary_key=True)
