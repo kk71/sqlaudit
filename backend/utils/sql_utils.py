@@ -4,7 +4,7 @@ import re
 
 import sqlparse
 
-from backend.models.mongo import SQLText
+from backend.models.mongo import SQLText, MSQLPlan
 
 
 SQL_DML = 0
@@ -290,4 +290,37 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
         }
     ]
     ret = SQLText.objects.aggregate(*to_aggregate)
+    return {i["_id"]: i for i in ret}
+
+
+def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
+    """
+    计算sql计划的统计信息
+    :param cmdb_id:
+    :param etl_date_gte: etl时间晚于
+    :return: {plan_hash_value: {}}
+    """
+    # TODO use cache!
+    # TODO use bulk aggregation instead of aggregate one by one!
+    match_case = {
+        'cmdb_id': cmdb_id,
+        # 'etl_date': {"$gte": , "$lt": }
+    }
+    if etl_date_gte:
+        match_case["etl_date"] = {}
+        match_case["etl_date"]["$gte"] = etl_date_gte
+    to_aggregate = [
+        {
+            "$match": match_case
+        },
+        {
+            "$group": {
+                "_id": "$plan_hash_value",
+                "cost": {"$max": "cost"},
+                "first_appearance": {"$min": "$etl_date"},
+                "last_appearance": {"$max": "$etl_date"},
+            }
+        }
+    ]
+    ret = MSQLPlan.objects.aggregate(*to_aggregate)
     return {i["_id"]: i for i in ret}

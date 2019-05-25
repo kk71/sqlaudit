@@ -416,7 +416,7 @@ class SQLRiskDetailHandler(AuthReq):
         }))
         cmdb_id = params.pop("cmdb_id")
         sql_id = params.pop("sql_id")
-        risk_rule_id_list: list = params.pop("risk_id")
+        risk_rule_id_list: list = params.pop("risk_sql_rule_id")
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
         del params  # shouldn't use params anymore
@@ -426,44 +426,51 @@ class SQLRiskDetailHandler(AuthReq):
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id).order_by("-etl_date").first()
 
+            # query sql plan
+            hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
+                              distinct("plan_hash_value"))
+            schemas = list(set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
+                              distinct("schema")))
+            sql_plan_stats = sql_utils.get_sql_plan_stats(cmdb_id)
+            plans = [
+                {
+                    "plan_hash_value": plan_hash_value,
+                    "cost": sql_plan_stats[plan_hash_value],
+                    "first_appearance": sql_plan_stats[plan_hash_value]["first_appearance"],
+                    "last_appearance": sql_plan_stats[plan_hash_value]["last_appearance"],
+                } for plan_hash_value in hash_values
+            ]
+
             # query graph
             graphs = {
-                'cpu_time_delta': defaultdict(list),
-                'disk_reads_delta': defaultdict(list),
-                'elapsed_time_delta': defaultdict(list),
-                'etl_date': [],
+                plan_hash_value: {
+                    'cpu_time_delta': defaultdict(list),
+                    'disk_reads_delta': defaultdict(list),
+                    'elapsed_time_delta': defaultdict(list),
+                    'etl_date': [],
+                } for plan_hash_value in hash_values
             }
-            sql_stat_objects = SQLStat.objects(sql_id=sql_id)
-            if date_start:
-                sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
-            if date_end:
-                date_end_arrow = arrow.get(date_end)
-                date_end_arrow.shift(days=+1)
-                date_end = date_end_arrow.datetime
-                sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
-            for sql_stat_obj in sql_stat_objects:
-                graphs['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
-                    append(round(sql_stat_obj.cpu_time_dalta, 2))
-                graphs['elapsed_time_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
-                    append(round(sql_stat_obj.elapsed_time_delta, 2))
-                graphs['disk_reads_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
-                    append(round(sql_stat_obj.disk_reads_delta, 2))
-                graphs['etl_date'].append(sql_stat_obj.etl_date)
-
-            # query sql plan
-            hash_values = MSQLPlan.objects(sql_id=params['sql_id'], cmdb_id=params['cmdb_id']).distinct(
-            MSQLPlan.plan_hash_value)
-            plans=get_plans({"SQL_ID": params['sql_id'], 'cmdb_id': params['cmdb_id']})
-            plans = [[
-                hash_value,
-                plans['cost'],
-                plans['first_time'],
-                plans['last_time'],
-            ] for hash_value in hash_values]
+            for plan_hash_value in hash_values:
+                sql_stat_objects = SQLStat.objects(sql_id=sql_id, plan_hash_value=plan_hash_value)
+                if date_start:
+                    sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
+                if date_end:
+                    date_end_arrow = arrow.get(date_end)
+                    date_end_arrow.shift(days=+1)
+                    date_end = date_end_arrow.datetime
+                    sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
+                for sql_stat_obj in sql_stat_objects:
+                    graphs['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
+                        append(round(sql_stat_obj.cpu_time_dalta, 2))
+                    graphs['elapsed_time_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                        append(round(sql_stat_obj.elapsed_time_delta, 2))
+                    graphs['disk_reads_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                        append(round(sql_stat_obj.disk_reads_delta, 2))
+                    graphs['etl_date'].append(sql_stat_obj.etl_date)
 
             self.resp({
                 'sql_id': sql_id,
-                'schema': sql_stat_obj.schema,
+                'schema': schemas[0] if schemas else None,
                 'first_appearance': sql_text_stats[sql_id]["first_appearance"],
                 'last_appearance': sql_text_stats[sql_id]["last_appearance"],
                 'sql_text': latest_sql_text_object.sql_text,
