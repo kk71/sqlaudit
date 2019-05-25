@@ -13,5 +13,8 @@ __ALL__ = [
     "Rule",
     "SQLPlan",
     "Results",
-    "Job"
+    "Job",
+    "EmbeddedJobDesc",
+    "SQLStat",
+    "SQLText",
 ]

@@ -8,7 +8,7 @@ from .utils import BaseDoc
 
 class MSQLPlan(BaseDoc):
     statement_id = StringField()
-    username = StringField()
+    schema = StringField()
     etl_date = DateTimeField()
     ipaddr = StringField()
     db_sid = StringField()

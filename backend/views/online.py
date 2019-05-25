@@ -13,7 +13,7 @@ import settings
 from .base import AuthReq
 from backend.utils.schema_utils import *
 from backend.utils import rule_utils, cmdb_utils, sql_utils
-from backend.models.mongo import Rule, Results
+from backend.models.mongo import *
 from backend.models.oracle import *
 
 
@@ -33,7 +33,6 @@ class ObjectRiskListHandler(AuthReq):
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         risk_sql_rule_id_list = params.pop("risk_sql_rule_id")
-        # TODO 如果有结束时间 结束时间往后推一天
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         del params  # shouldn't use params anymore
 
@@ -58,6 +57,9 @@ class ObjectRiskListHandler(AuthReq):
         if date_start:
             result_q = result_q.filter(create_date__gte=date_start)
         if date_end:
+            date_end_arrow = arrow.get(date_end)
+            date_end_arrow.shift(days=+1)
+            date_end = date_end_arrow.datetime
             result_q = result_q.filter(create_date__lt=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
@@ -138,6 +140,7 @@ class ObjectRiskListHandler(AuthReq):
                             risky_rule_object, record),
                         "optimized_advice": risk_rule_object.optimized_advice,
                         "severity": risk_rule_object.severity,
+                        "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                         **risky_rule_appearance[risky_rule_name]
                     })
         return rst
@@ -262,7 +265,6 @@ class SQLRiskListHandler(AuthReq):
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         risk_sql_rule_id_list = params.pop("risk_sql_rule_id")
-        # TODO 如果有结束时间 结束时间往后推一天
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         rule_type = params.pop("rule_type")
         enable_white_list = params.pop("enable_white_list")  # TODO 增加过滤白名单的功能
@@ -296,6 +298,9 @@ class SQLRiskListHandler(AuthReq):
         if date_start:
             result_q = result_q.filter(create_date__gte=date_start)
         if date_end:
+            date_end_arrow = arrow.get(date_end)
+            date_end_arrow.shift(days=+1)
+            date_end = date_end_arrow.datetime
             result_q = result_q.filter(create_date__lt=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
@@ -363,6 +368,7 @@ class SQLRiskListHandler(AuthReq):
                         "execution_time_cost_sum": execution_time_cost_sum,
                         "execution_times": execution_times,
                         "execution_time_cost_on_average": execution_time_cost_on_average,
+                        "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id
                     })
                     rst_sql_id_set.add(sql_id)
         if sort_by == "sum":
@@ -401,7 +407,70 @@ class SQLRiskDetailHandler(AuthReq):
 
     def get(self):
         """风险详情（include sql text, sql plan and statistics）"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            "sql_id": scm_str,
+            "risk_sql_rule_id": scm_dot_split_int,
+            Optional("date_start", default=None): scm_date,
+            Optional("date_end", default=None): scm_date,
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        sql_id = params.pop("sql_id")
+        risk_rule_id_list: list = params.pop("risk_id")
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
+        del params  # shouldn't use params anymore
+        with make_session() as session:
+            risk_rules = session.query(RiskSQLRule).filter(RiskSQLRule.risk_sql_rule_id.
+                                                           in_(risk_rule_id_list))
+            sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
+            latest_sql_text_object = SQLText.objects(sql_id=sql_id).order_by("-etl_date").first()
+
+            # query graph
+            graphs = {
+                'cpu_time_delta': defaultdict(list),
+                'disk_reads_delta': defaultdict(list),
+                'elapsed_time_delta': defaultdict(list),
+                'etl_date': [],
+            }
+            sql_stat_objects = SQLStat.objects(sql_id=sql_id)
+            if date_start:
+                sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
+            if date_end:
+                date_end_arrow = arrow.get(date_end)
+                date_end_arrow.shift(days=+1)
+                date_end = date_end_arrow.datetime
+                sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
+            for sql_stat_obj in sql_stat_objects:
+                graphs['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
+                    append(round(sql_stat_obj.cpu_time_dalta, 2))
+                graphs['elapsed_time_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                    append(round(sql_stat_obj.elapsed_time_delta, 2))
+                graphs['disk_reads_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                    append(round(sql_stat_obj.disk_reads_delta, 2))
+                graphs['etl_date'].append(sql_stat_obj.etl_date)
+
+            # query sql plan
+            hash_values = MSQLPlan.objects(sql_id=params['sql_id'], cmdb_id=params['cmdb_id']).distinct(
+            MSQLPlan.plan_hash_value)
+            plans=get_plans({"SQL_ID": params['sql_id'], 'cmdb_id': params['cmdb_id']})
+            plans = [[
+                hash_value,
+                plans['cost'],
+                plans['first_time'],
+                plans['last_time'],
+            ] for hash_value in hash_values]
+
+            self.resp({
+                'sql_id': sql_id,
+                'schema': sql_stat_obj.schema,
+                'first_appearance': sql_text_stats[sql_id]["first_appearance"],
+                'last_appearance': sql_text_stats[sql_id]["last_appearance"],
+                'sql_text': latest_sql_text_object.sql_text,
+                'risk_rules': [rr.to_dict() for rr in risk_rules],
+                'graph': graphs,
+                'plans': plans,
+            })
 
 
 class SQLPlanHandler(AuthReq):
