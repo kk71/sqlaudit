@@ -17,7 +17,6 @@ class SQLText(BaseDoc):
     cmdb_id = IntField()
     sql_id = StringField(help_text="the hash of the sql text")
     sql_text = StringField()
-    sql_text_detail = StringField()
 
     meta = {
         "collection": "sqltext"

@@ -17,6 +17,11 @@ DB_MYSQL = "mysql"
 ALL_SUPPORTED_DB_TYPE = (DB_ORACLE, DB_MYSQL)
 
 
+class CMDBNotFoundException(Exception):
+    """CMDB未找到错误"""
+    pass
+
+
 def get_current_cmdb(session, user_login) -> list:
     """
     获取某个用户可见的cmdb

@@ -1,9 +1,19 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField,\
-    BooleanField, DictField
+    BooleanField, DictField, EmbeddedDocument, EmbeddedDocumentField
 
 from .utils import BaseDoc
+
+
+class EmbeddedJobDesc(EmbeddedDocument):
+    db_ip = StringField()
+    port = StringField()
+    owner = StringField()
+    rule_type = StringField()
+    instance_name = StringField()
+    capture_time_start = DateTimeField()
+    capture_time_end = DateTimeField()
 
 
 class Job(BaseDoc):
@@ -18,14 +28,7 @@ class Job(BaseDoc):
     connect_name = StringField()
     record_id = StringField()
     exported = BooleanField()
-    desc = DictField(field=["db_ip",            # str
-                            "port",             # str
-                            "owner",            # str
-                            "rule_type",        # str
-                            "instance_name",    # str
-                            "capture_time_s",   # datetime
-                            "capture_time_e"    # datetime
-                            ])
+    desc = EmbeddedDocumentField(EmbeddedJobDesc)
     score = IntField()
 
     meta = {

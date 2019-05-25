@@ -266,7 +266,9 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
     :param etl_date_gte: etl时间晚于
     :return: {sql_id: {}}
     """
-    # TODO use cache
+    # TODO use cache!
+    # TODO use bulk aggregation instead of aggregate one by one!
+
     match_case = {
         'cmdb_id': cmdb_id,
         # 'etl_date': {"$gte": , "$lt": }
@@ -287,5 +289,5 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
             }
         }
     ]
-    ret = SQLText.objects.aggregate(to_aggregate)
+    ret = SQLText.objects.aggregate(*to_aggregate)
     return {i["_id"]: i for i in ret}
