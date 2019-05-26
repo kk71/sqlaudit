@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, ListField, DictField, ObjectIdField
-from backend.models.mongo.utils import BaseDoc
+from mongoengine import StringField, IntField, FloatField, ListField
+from .utils import BaseDoc
 
 
 class Rule(BaseDoc):

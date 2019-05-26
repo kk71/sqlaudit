@@ -1,8 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, ListField, DictField, \
-    ObjectIdField, DateTimeField
-from backend.models.mongo.utils import BaseDoc
+from mongoengine import StringField, IntField, ObjectIdField, DateTimeField
+from .utils import BaseDoc
 
 
 class Results(BaseDoc):

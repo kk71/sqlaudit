@@ -8,7 +8,7 @@ from typing import *
 from types import FunctionType
 
 # must initiate models first!
-from backend.models import Session, base, engine
+from models import Session, base
 
 
 @contextmanager

@@ -1,7 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import uuid
-import random
 from os import path
 from collections import OrderedDict
 
@@ -9,13 +8,10 @@ import xlrd
 import arrow
 import xlsxwriter
 from schema import Schema, Optional, And
-from sqlalchemy import and_, or_, not_
 
 import settings
-from backend.utils.schema_utils import *
-from backend.models.oracle import *
-from backend.models.mongo import *
-from backend.utils import stream_utils, sql_utils, cmdb_utils
+from utils.schema_utils import *
+from utils import sql_utils, stream_utils
 from .base import AuthReq
 from task.offline_ticket import offline_ticket
 

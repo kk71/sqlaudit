@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, Integer, Boolean, Sequence
 from sqlalchemy.dialects.oracle import DATE, CLOB
 
-from backend.models.oracle.utils import BaseModel
+from .utils import BaseModel
 
 
 class WorkList(BaseModel):

@@ -6,10 +6,9 @@ from schema import Schema, Optional
 from sqlalchemy.exc import IntegrityError
 
 import settings
-from backend.utils.schema_utils import *
-from backend.views.base import *
-from backend.models.oracle import *
-from backend.utils.role_utils import ALL_ROLES
+from utils.schema_utils import *
+from .base import *
+from utils.role_utils import ALL_ROLES
 
 
 class AuthHandler(BaseReq):

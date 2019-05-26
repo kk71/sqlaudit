@@ -1,14 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from typing import *
-
-import cx_Oracle
-from mongoengine import QuerySet as M_Query
-from sqlalchemy.orm.query import Query as S_Query
-
 import plain_db.oracleob
-from backend.models.oracle import *
-
 
 # 数据库类型
 

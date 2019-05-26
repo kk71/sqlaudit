@@ -4,7 +4,7 @@ import re
 
 import sqlparse
 
-from backend.models.mongo import SQLText, MSQLPlan
+from models.mongo import SQLText, MSQLPlan
 
 
 SQL_DML = 0

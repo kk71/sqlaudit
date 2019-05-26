@@ -1,15 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import arrow
-from schema import Schema, Optional, And, Or
-from sqlalchemy.exc import IntegrityError
+from schema import Schema, Optional, Or
 
-import settings
-from backend.utils.schema_utils import *
-from backend.views.base import *
-from backend.models.oracle import *
-from backend.models.mongo import *
-from backend.utils import rule_utils, cmdb_utils
+from utils.schema_utils import *
+from .base import *
+from utils import rule_utils, cmdb_utils
 
 
 class RuleRepoHandler(AuthReq):

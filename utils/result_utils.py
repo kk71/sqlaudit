@@ -4,10 +4,10 @@ from typing import *
 
 from mongoengine import Q
 
-from backend.models.mongo import Results, Rule
-from backend.models.oracle import CMDB
-from backend.utils.cmdb_utils import CMDBNotFoundException
-from backend.utils import rule_utils
+from models import Results, Rule
+from models import CMDB
+from utils import CMDBNotFoundException
+from utils import rule_utils
 
 # TODO NOT FINISHED YET!
 # TODO NOT FINISHED YET!

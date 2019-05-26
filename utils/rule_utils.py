@@ -3,9 +3,7 @@
 import re
 import json
 
-from backend.models.mongo import *
-from backend.utils import cmdb_utils
-from backend.models.oracle import RiskSQLRule
+from models.oracle import RiskSQLRule
 
 
 # 业务类型

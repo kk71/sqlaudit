@@ -1,11 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from schema import Schema, Optional
-from collections import defaultdict
 
-from backend.views.base import *
-from backend.utils.schema_utils import *
-from backend.models.oracle import *
+from .base import *
+from utils.schema_utils import *
 
 
 class SystemPermissionHandler(AuthReq):

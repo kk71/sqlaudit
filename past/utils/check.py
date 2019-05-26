@@ -15,11 +15,10 @@ from .rule_utils import RuleUtils
 from plain_db.oracleob import OracleOB
 from plain_db.oracleob import OracleHelper
 from .sql_parse_rules import ObjStaticRules
-from backend.utils.sql_utils import SQL_DDL as DDL
+from utils.sql_utils import SQL_DDL as DDL
 from .constant import worklist_type_static_rule
 from .constant import worklist_type_dynamic_sqlplan_rule
 from .constant import RULE_COMMANDS
-from .utils import filter_annotation
 from .utils import is_annotation
 from .constant import CREATE_APP_SQL, CREATE_DBA_SQL, OTHER_SQL, SQLPLUS_SQL
 

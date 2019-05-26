@@ -1,10 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from datetime import datetime
-
 from sqlalchemy import Column, String, Integer, Sequence
 
-from backend.models.oracle.utils import BaseModel
+from .utils import BaseModel
 
 
 class RiskSQLRule(BaseModel):

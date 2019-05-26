@@ -5,7 +5,7 @@ import os
 from tornado.web import StaticFileHandler
 
 import settings
-from backend.views import *
+from .views import *
 
 
 # static prefix

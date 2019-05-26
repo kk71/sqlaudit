@@ -2,10 +2,10 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, String, Integer
 from sqlalchemy.dialects.oracle import DATE
 
-from backend.models.oracle.utils import BaseModel
+from .utils import BaseModel
 
 
 class User(BaseModel):

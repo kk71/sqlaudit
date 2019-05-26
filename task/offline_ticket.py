@@ -5,9 +5,9 @@ import settings
 from datetime import datetime
 
 from celery import Celery, platforms
-from backend.utils.sql_utils import SQL_DDL, SQL_DML
+from utils.sql_utils import SQL_DDL, SQL_DML
 
-from backend.models import init_models
+from models import init_models
 
 platforms.C_FORCE_ROOT = True
 celery = Celery("offline_ticket",
@@ -22,8 +22,7 @@ init_models()
 import past.utils.utils
 import past.utils.check
 import past.models
-from backend.models.oracle import make_session
-from backend.models.oracle import CMDB, WorkList, SubWorkList
+from models.oracle import make_session, CMDB, WorkList, SubWorkList
 
 
 @celery.task

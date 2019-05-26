@@ -4,15 +4,13 @@
 __VERSION__ = "0.2.0"
 print(f"SQL-Audit version {__VERSION__}")
 
-import os
-
 import click
 from tornado.web import Application
 import tornado.ioloop
 from tornado.log import enable_pretty_logging
 
 import settings
-from backend.models import init_models
+from models import init_models
 
 
 # initiate database models/connections
@@ -27,9 +25,9 @@ def cli():
 
 @click.command()
 def runserver():
-    """start a web server for sqlaudit backend"""
-    print("Starting http server for backend...")
-    from backend.urls import urls
+    """start a web server for sqlaudit restful_api"""
+    print("Starting http server for restful api...")
+    from restful_api.urls import urls
     app = Application(
         urls,
         debug=settings.DEBUG,
@@ -48,9 +46,8 @@ def shell():
     from sqlalchemy.orm import sessionmaker
 
     # this shall be execute AFTER the init_models run
-    from backend.models import engine
+    from models import engine
     # this is for fast model referring
-    import backend.models.oracle as o
     # this session object is auto-commit and auto-flush enabled.
     Session = sessionmaker(
         bind=engine,
@@ -59,7 +56,7 @@ def shell():
     )
     ss = Session()
     embed(header='''SQL-Audit shell for debugging is now running.
-When operating oracle, no need to use backend.models.oracle.utils.make_session,
+When operating oracle, no need to use restful_api.models.oracle.utils.make_session,
 a session object with both autocommit and autoflush on is created named ss.
                  ''')
 
@@ -68,7 +65,7 @@ a session object with both autocommit and autoflush on is created named ss.
 @click.option("--filename", help="the json filename", default="./files/rule.json")
 def importrules(filename):
     """import rules from a json file, NOT deduplicate"""
-    from backend.utils import rule_utils
+    from utils import rule_utils
     print(f"going to import rule from {filename}...")
     imported_num, all_num = rule_utils.import_from_json_file(filename)
     print(f"Done({imported_num} of {all_num}).")

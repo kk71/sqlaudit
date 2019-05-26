@@ -1,11 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import string
-import random
-
 import chardet
-
-# from backend.models.oracle import
 
 
 def check_file_encoding(file_stream):
@@ -16,5 +11,4 @@ def check_file_encoding(file_stream):
     else:
         encoding = 'gbk'
     return encoding
-
 

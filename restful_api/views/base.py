@@ -11,10 +11,10 @@ from schema import Optional as scm_Optional
 from mongoengine import QuerySet as M_Query
 from mongoengine import Q
 from sqlalchemy.orm.query import Query as S_Query
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
 
 import settings
-from backend.utils.schema_utils import scm_unempty_str
+from utils.schema_utils import scm_unempty_str
 
 
 __all__ = [

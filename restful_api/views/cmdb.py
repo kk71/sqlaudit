@@ -1,14 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, And, Or
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import and_, or_
+from schema import Schema, Optional
 
-import settings
-from backend.utils.schema_utils import *
-from backend.views.base import *
-from backend.models.oracle import *
-from backend.utils import cmdb_utils
+from utils.schema_utils import *
+from .base import *
+from utils import cmdb_utils
 
 
 class CMDBHandler(AuthReq):
