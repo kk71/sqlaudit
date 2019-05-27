@@ -504,7 +504,6 @@ class SQLRiskDetailHandler(AuthReq):
                     'cpu_time_delta': defaultdict(list),
                     'disk_reads_delta': defaultdict(list),
                     'elapsed_time_delta': defaultdict(list),
-                    'etl_date': [],
                 } for plan_hash_value in hash_values
             }
             for plan_hash_value in hash_values:
@@ -526,13 +525,13 @@ class SQLRiskDetailHandler(AuthReq):
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
                 for sql_stat_obj in sql_stat_objects:
                     gp = graphs[plan_hash_value]
+                    etl_date_str = dt_to_str(sql_stat_obj.etl_date)
                     gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
-                        append(round(sql_stat_obj.cpu_time_delta, 2))
-                    gp['elapsed_time_delta'][str(sql_stat_obj['plan_hash_value'])].\
-                        append(round(sql_stat_obj.elapsed_time_delta, 2))
-                    gp['disk_reads_delta'][str(sql_stat_obj['plan_hash_value'])].\
-                        append(round(sql_stat_obj.disk_reads_delta, 2))
-                    gp['etl_date'].append(dt_to_str(sql_stat_obj.etl_date))
+                        append([etl_date_str, round(sql_stat_obj.cpu_time_delta, 2)])
+                    gp['elapsed_time_delta'][str(sql_stat_obj.plan_hash_value)].\
+                        append([etl_date_str, round(sql_stat_obj.elapsed_time_delta, 2)])
+                    gp['disk_reads_delta'][str(sql_stat_obj.plan_hash_value)].\
+                        append([etl_date_str, round(sql_stat_obj.disk_reads_delta, 2)])
 
             self.resp({
                 'sql_id': sql_id,
@@ -550,4 +549,23 @@ class SQLPlanHandler(AuthReq):
 
     def get(self):
         """风险详情的sql plan详情"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            Optional("schema", default=None): scm_str,
+            Optional("date_start", default=None): scm_date,
+            Optional("date_end", default=None): scm_date,
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        schema = params.pop("schema")
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
+        del params  # shouldn't use params anymore
+
+        with make_session() as session:
+
+            self.resp({
+                "sql_num": {"active": [], "at_risk": []},
+                "risk_rule_rank": [],
+                "schema": [],
+                "sql_execution_cost_rank": []
+            })

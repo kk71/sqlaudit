@@ -81,7 +81,6 @@ def merge_risk_rule_and_rule(
     merge rule_object to risk_rule object
     :param risk_rule_object:
     :param rule_object:
-    :param risk_rule_keys:
     :param rule_keys:
     """
     risk_rule_dict = risk_rule_object.to_dict()
