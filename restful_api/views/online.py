@@ -490,23 +490,15 @@ class SQLRiskDetailHandler(AuthReq):
                                                            in_(risk_rule_id_list))
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id).order_by("-etl_date").first()
+            schemas = list(set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
+                               distinct("schema")))
 
-            # query sql plan
             hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                               distinct("plan_hash_value"))
-            schemas = list(set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
-                              distinct("schema")))
             sql_plan_stats = sql_utils.get_sql_plan_stats(cmdb_id)
             plans = [
-                {
-                    "plan_hash_value": plan_hash_value,
-                    "cost": sql_plan_stats[plan_hash_value],
-                    "first_appearance": sql_plan_stats[plan_hash_value]["first_appearance"],
-                    "last_appearance": sql_plan_stats[plan_hash_value]["last_appearance"],
-                } for plan_hash_value in hash_values
+                # {check codes blow for structure details}
             ]
-
-            # query graph
             graphs = {
                 plan_hash_value: {
                     'cpu_time_delta': defaultdict(list),
@@ -516,7 +508,16 @@ class SQLRiskDetailHandler(AuthReq):
                 } for plan_hash_value in hash_values
             }
             for plan_hash_value in hash_values:
-                sql_stat_objects = SQLStat.objects(sql_id=sql_id, plan_hash_value=plan_hash_value)
+                # plans
+                sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id, plan_hash_value=plan_hash_value).first()
+                plans.append({
+                    "plan_hash_value": plan_hash_value,
+                    "cost": sql_plan_object.cost,
+                    "first_appearance": sql_plan_stats[plan_hash_value]["first_appearance"],
+                    "last_appearance": sql_plan_stats[plan_hash_value]["last_appearance"],
+                })
+                # stats
+                sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id, plan_hash_value=plan_hash_value)
                 if date_start:
                     sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
                 if date_end:
