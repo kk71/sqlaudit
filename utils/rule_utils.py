@@ -4,6 +4,7 @@ import re
 import json
 
 from models.oracle import RiskSQLRule
+from models.mongo import Rule
 
 
 # 业务类型

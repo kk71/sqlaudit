@@ -12,8 +12,9 @@ from mongoengine import Q
 import settings
 from .base import AuthReq
 from utils.schema_utils import *
-from utils import rule_utils, cmdb_utils
-from utils import sql_utils
+from utils import rule_utils, cmdb_utils, sql_utils
+from models.oracle import *
+from models.mongo import *
 
 
 class ObjectRiskListHandler(AuthReq):

@@ -5,6 +5,8 @@ from schema import Schema, Optional, Or
 from utils.schema_utils import *
 from .base import *
 from utils import rule_utils, cmdb_utils
+from models.mongo import *
+from models.oracle import *
 
 
 class RuleRepoHandler(AuthReq):

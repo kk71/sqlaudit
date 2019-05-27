@@ -8,7 +8,8 @@ from sqlalchemy.exc import IntegrityError
 import settings
 from utils.schema_utils import *
 from .base import *
-from utils.role_utils import ALL_ROLES
+from utils import role_utils
+from models.oracle import *
 
 
 class AuthHandler(BaseReq):
@@ -83,7 +84,7 @@ class UserHandler(BaseReq):
             "mobile_phone": scm_str,
             "department": scm_str,
             "status": scm_int,
-            "role_id": scm_one_of_choices(ALL_ROLES)
+            "role_id": scm_one_of_choices(role_utils.ALL_ROLES)
         }))
         role_id = params.pop("role_id")
         with make_session() as session:
@@ -108,7 +109,7 @@ class UserHandler(BaseReq):
             Optional("mobile_phone"): scm_str,
             Optional("department"): scm_str,
             Optional("status"): scm_int,
-            Optional("role_id"): scm_one_of_choices(ALL_ROLES)
+            Optional("role_id"): scm_one_of_choices(role_utils.ALL_ROLES)
         }))
         with make_session() as session:
             the_user = session.query(User).filter_by(login_user=params.pop("login_user")).first()

@@ -4,6 +4,7 @@ from schema import Schema, Optional
 
 from .base import *
 from utils.schema_utils import *
+from models.oracle import *
 
 
 class SystemPermissionHandler(AuthReq):

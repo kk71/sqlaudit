@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from models.oracle import *
+
 import plain_db.oracleob
 
 # 数据库类型

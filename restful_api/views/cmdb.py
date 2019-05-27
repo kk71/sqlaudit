@@ -5,6 +5,7 @@ from schema import Schema, Optional
 from utils.schema_utils import *
 from .base import *
 from utils import cmdb_utils
+from models.oracle import *
 
 
 class CMDBHandler(AuthReq):

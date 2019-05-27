@@ -4,10 +4,9 @@ from typing import *
 
 from mongoengine import Q
 
-from models import Results, Rule
-from models import CMDB
-from utils import CMDBNotFoundException
-from utils import rule_utils
+from models.mongo import *
+from models.oracle import *
+from utils import rule_utils, cmdb_utils
 
 # TODO NOT FINISHED YET!
 # TODO NOT FINISHED YET!
@@ -46,7 +45,7 @@ def get_result_query_by(
         assert 0
     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
     if not cmdb:
-        raise CMDBNotFoundException
+        raise cmdb_utils.CMDBNotFoundException
     rules = Rule.objects(rule_type__in=rule_type, db_model=cmdb.db_model)
     rule_name_list = list(rules.values_list("rule_name", flat=True))
     result_q = Results.objects()
