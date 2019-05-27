@@ -57,10 +57,7 @@ class ObjectRiskListHandler(AuthReq):
         if date_start:
             result_q = result_q.filter(create_date__gte=date_start)
         if date_end:
-            date_end_arrow = arrow.get(date_end)
-            date_end_arrow.shift(days=+1)
-            date_end = date_end_arrow.datetime
-            result_q = result_q.filter(create_date__lt=date_end)
+            result_q = result_q.filter(create_date__lte=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model,
@@ -293,13 +290,10 @@ class SQLRiskListHandler(AuthReq):
         if risk_sql_rule_id_list:
             risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                              in_(risk_sql_rule_id_list))
-        # if date_start:
-        #     result_q = result_q.filter(create_date__gte=date_start)
-        # if date_end:
-        #     date_end_arrow = arrow.get(date_end)
-        #     date_end_arrow.shift(days=+1)
-        #     date_end = date_end_arrow.datetime
-        #     result_q = result_q.filter(create_date__lt=date_end)
+        if date_start:
+            result_q = result_q.filter(create_date__gte=date_start)
+        if date_end:
+            result_q = result_q.filter(create_date__lte=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model,
@@ -360,8 +354,8 @@ class SQLRiskListHandler(AuthReq):
                         "sql_text": sql_text_dict["sql_text"],
                         "rule_desc": risky_rule_object.rule_desc,
                         "severity": risk_rule_object.severity,
-                        "first_appearance": sql_text_stats[sql_id]['first_appearance'],
-                        "last_appearance": sql_text_stats[sql_id]['last_appearance'],
+                        "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
+                        "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
                         "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
                         "execution_time_cost_sum": execution_time_cost_sum,
                         "execution_times": execution_times,
