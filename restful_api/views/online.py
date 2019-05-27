@@ -54,13 +54,13 @@ class ObjectRiskListHandler(AuthReq):
         if risk_sql_rule_id_list:
             risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                              in_(risk_sql_rule_id_list))
-        # if date_start:
-        #     result_q = result_q.filter(create_date__gte=date_start)
-        # if date_end:
-        #     date_end_arrow = arrow.get(date_end)
-        #     date_end_arrow.shift(days=+1)
-        #     date_end = date_end_arrow.datetime
-        #     result_q = result_q.filter(create_date__lt=date_end)
+        if date_start:
+            result_q = result_q.filter(create_date__gte=date_start)
+        if date_end:
+            date_end_arrow = arrow.get(date_end)
+            date_end_arrow.shift(days=+1)
+            date_end = date_end_arrow.datetime
+            result_q = result_q.filter(create_date__lt=date_end)
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model,
@@ -127,10 +127,8 @@ class ObjectRiskListHandler(AuthReq):
                     ]
                     agg_rest = list(Results.objects.aggregate(*to_aggregate))
                     risky_rule_appearance[risky_rule_name] = {
-                        "first_appearance": agg_rest[0]['first_appearance']
-                        if agg_rest else "",
-                        "last_appearance": agg_rest[0]['last_appearance']
-                        if agg_rest else ""
+                        "first_appearance": dt_to_str(agg_rest[0]['first_appearance'] if agg_rest else None),
+                        "last_appearance": dt_to_str(agg_rest[0]['last_appearance'] if agg_rest else None),
                     }
                 for record in getattr(result, risky_rule_name)["records"]:
                     rst.append({
