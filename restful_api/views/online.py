@@ -5,6 +5,7 @@ from collections import defaultdict
 from types import FunctionType
 
 import arrow
+import sqlparse
 import xlsxwriter
 from schema import Schema, Optional
 from mongoengine import Q
@@ -200,7 +201,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
                 assert 0
 
             heads = ['对象名称', "风险等级", '风险点', '风险详情', '最早出现时间', '最后出现时间', '优化建议']
-            filename = f"export_obj_rick_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
+            filename = f"export_obj_risk_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
             full_filename = path.join(settings.EXPORT_DIR, filename)
             wb = xlsxwriter.Workbook(full_filename)
             ws = wb.add_worksheet('风险对象报告')
@@ -392,7 +393,79 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
 
     def post(self):
         """导出风险SQL的报告"""
-        self.resp_created()
+        params = self.get_json_args(Schema({
+            "export_type": scm_one_of_choices(["all_filtered", "selected"]),
+
+            Optional(object): object
+        }))
+        export_type = params.pop("export_type")
+
+        with make_session() as session:
+            if export_type == "all_filtered":
+                sql_list = self.get_list(session, self.get_json_args)
+            elif export_type == "selected":
+                params = self.get_json_args(Schema({
+                    "objects": [
+                        {
+                            "schema": scm_unempty_str,
+                            "sql_id": scm_unempty_str,
+                            "rule_desc": scm_unempty_str,
+                            "first_appearance": scm_str,
+                            "last_appearance": scm_str,
+                            "similar_sql_num": scm_int,
+                            "execution_time_cost_sum": object,
+                            "execution_times": object,
+                            "execution_time_cost_on_average": object,
+                            "sql_text": scm_str
+                        }
+                    ],
+
+                    Optional(object): object
+                }))
+                sql_list = params.pop("objects")
+                del params  # shouldn't use params anymore
+            else:
+                assert 0
+
+            heads = ['执行用户', 'SQL_ID', '风险点', '最早出现时间', '最后出现时间', '相似SQL', '上次执行总时间', '上次执行次数', '上次平均时间', 'SQL文本']
+            filename = f"export_sql_risk_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
+            full_filename = path.join(settings.EXPORT_DIR, filename)
+            wb = xlsxwriter.Workbook(full_filename)
+            ws = wb.add_worksheet('风险SQL报告')
+            format_title = wb.add_format({
+                'bold': 1,
+                'size': 14,
+                'align': 'center',
+                'valign': 'vcenter',
+
+            })
+            format_text = wb.add_format({
+                'align': 'left',
+                'valign': 'vcenter',
+                'text_wrap': True,
+            })
+            ws.set_column(0, 2, 20)
+            ws.set_column(3, 4, 18)
+            ws.set_column(5, 5, 10)
+            ws.set_column(6, 8, 18)
+            ws.set_column(9, 9, 50)
+            ws.set_row(0, 30)
+            [ws.write(0, x, field.upper(), format_title) for x, field in enumerate(heads)]
+            for row_num, row in enumerate(sql_list):
+                sql_text = sqlparse.format(row["sql_text"], reindent=True, keyword_case='upper')
+                row_num += 1
+                ws.write(row_num, 0, row["schema"], format_text)
+                ws.write(row_num, 1, row["sql_id"], format_text)
+                ws.write(row_num, 2, row["rule_desc"], format_text)
+                ws.write(row_num, 3, row["first_appearance"], format_text)
+                ws.write(row_num, 4, row["last_appearance"], format_text)
+                ws.write(row_num, 5, row["similar_sql_num"], format_text)
+                ws.write(row_num, 6, row["execution_time_cost_sum"], format_text)
+                ws.write(row_num, 7, row["execution_times"], format_text)
+                ws.write(row_num, 8, row["execution_time_cost_on_average"], format_text)
+                ws.write(row_num, 9, sql_text, format_text)
+            wb.close()
+            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
 class SQLRiskDetailHandler(AuthReq):
