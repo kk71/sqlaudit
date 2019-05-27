@@ -526,12 +526,18 @@ class SQLRiskDetailHandler(AuthReq):
                 for sql_stat_obj in sql_stat_objects:
                     gp = graphs[plan_hash_value]
                     etl_date_str = dt_to_str(sql_stat_obj.etl_date)
-                    gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
-                        append([etl_date_str, round(sql_stat_obj.cpu_time_delta, 2)])
-                    gp['elapsed_time_delta'][str(sql_stat_obj.plan_hash_value)].\
-                        append([etl_date_str, round(sql_stat_obj.elapsed_time_delta, 2)])
-                    gp['disk_reads_delta'][str(sql_stat_obj.plan_hash_value)].\
-                        append([etl_date_str, round(sql_stat_obj.disk_reads_delta, 2)])
+                    gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.cpu_time_delta, 2)
+                    })
+                    gp['elapsed_time_delta'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.elapsed_time_delta, 2)
+                    })
+                    gp['disk_reads_delta'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.disk_reads_delta, 2)
+                    })
 
             self.resp({
                 'sql_id': sql_id,
