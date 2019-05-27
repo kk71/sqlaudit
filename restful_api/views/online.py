@@ -509,7 +509,8 @@ class SQLRiskDetailHandler(AuthReq):
             }
             for plan_hash_value in hash_values:
                 # plans
-                sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id, plan_hash_value=plan_hash_value).first()
+                sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id,
+                                                   plan_hash_value=plan_hash_value).first()
                 plans.append({
                     "plan_hash_value": plan_hash_value,
                     "cost": sql_plan_object.cost,
@@ -517,22 +518,21 @@ class SQLRiskDetailHandler(AuthReq):
                     "last_appearance": sql_plan_stats[plan_hash_value]["last_appearance"],
                 })
                 # stats
-                sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id, plan_hash_value=plan_hash_value)
+                sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id,
+                                                   plan_hash_value=plan_hash_value)
                 if date_start:
                     sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
                 if date_end:
-                    date_end_arrow = arrow.get(date_end)
-                    date_end_arrow.shift(days=+1)
-                    date_end = date_end_arrow.datetime
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
                 for sql_stat_obj in sql_stat_objects:
-                    graphs['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
-                        append(round(sql_stat_obj.cpu_time_dalta, 2))
-                    graphs['elapsed_time_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                    gp = graphs[plan_hash_value]
+                    gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].\
+                        append(round(sql_stat_obj.cpu_time_delta, 2))
+                    gp['elapsed_time_delta'][str(sql_stat_obj['plan_hash_value'])].\
                         append(round(sql_stat_obj.elapsed_time_delta, 2))
-                    graphs['disk_reads_delta'][str(sql_stat_obj['PLAN_HASH_VALUE'])].\
+                    gp['disk_reads_delta'][str(sql_stat_obj['plan_hash_value'])].\
                         append(round(sql_stat_obj.disk_reads_delta, 2))
-                    graphs['etl_date'].append(sql_stat_obj.etl_date)
+                    gp['etl_date'].append(dt_to_str(sql_stat_obj.etl_date))
 
             self.resp({
                 'sql_id': sql_id,

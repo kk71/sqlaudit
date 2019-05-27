@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import IntField, StringField, BooleanField, DictField, DateTimeField, ObjectIdField
+from mongoengine import IntField, StringField, BooleanField, DictField,\
+    DateTimeField, ObjectIdField, FloatField
 
 from .utils import BaseDoc
 
@@ -36,6 +37,7 @@ class SQLStat(BaseDoc):
     rows_processed_gets = IntField()
     executions_total = IntField()
     executions_delta = IntField()
+    per_row_blk = FloatField()
 
     meta = {
         "collection": "sqlstat"
