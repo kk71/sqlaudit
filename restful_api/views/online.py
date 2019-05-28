@@ -45,10 +45,10 @@ class ObjectRiskListHandler(AuthReq):
             if schema_name not in \
                     cmdb_utils.get_current_schema(session, self.current_user, cmdb_id):
                 self.resp_bad_req(msg=f"无法在编号为{cmdb_id}的数据库中"
-                                      f"操作名为{schema_name}的schema。")
+                f"操作名为{schema_name}的schema。")
                 return
 
-        risk_rule_q = session.query(RiskSQLRule).\
+        risk_rule_q = session.query(RiskSQLRule). \
             filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ)
         result_q = Results.objects(
             cmdb_id=cmdb_id, schema_name=schema_name, rule_type=rule_utils.RULE_TYPE_OBJ)
@@ -558,7 +558,30 @@ class SQLPlanHandler(AuthReq):
 
     def get(self):
         """风险详情的sql plan详情"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "sql_id": scm_unempty_str,
+            "plan_hash_value": scm_int,
+            "cmdb_id": scm_int,
+        }))
+        plans = MSQLPlan.objects(**params).order_by("-etl_date")
+        filtered_plans = []
+        indices_set = set()
+        for p in plans:
+            if p.index not in indices_set:
+                filtered_plans.append(p.to_dict(iter_if=lambda k, v: k in (
+                    "depth",
+                    "operation",
+                    "object_owner",
+                    "object_name",
+                    "position",
+                    "cost",
+                    "time",
+                    "access_predicates",
+                    "filter_predicates"
+                )))
+                indices_set.add(p.index)
+        filtered_plans = sorted(filtered_plans, key=lambda x: x["depth"])
+        self.resp(filtered_plans)
 
 
 class OverviewHandler(SQLRiskListHandler):
@@ -617,7 +640,7 @@ class OverviewHandler(SQLRiskListHandler):
                     "risk_name": robj.risk_name
                 }
                 for r3key, robj in rule_utils.get_risk_rules_dict(session).items()}
-            results = Results.objects(cmdb_id=cmdb_id,
+            results = Results.objects(cmdb_id=cmdb_id, schema_name=schema,
                                       create_date__gte=date_start, create_date__lte=date_end)
             for result in results:
                 for rule_name in risk_rule_name_sql_num_dict.keys():
@@ -649,7 +672,8 @@ class OverviewHandler(SQLRiskListHandler):
             sqls = self.get_list(session, self.get_query_args)
             top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
             top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
-            top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in sqls]
+            top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in
+                                     sqls]
             top_10_sql_by_average = sorted(top_10_sql_by_average, key=lambda x: x["time"])
             # sql execution cost rank
             self.resp({

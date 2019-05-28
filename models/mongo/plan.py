@@ -1,12 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import StringField, IntField, BooleanField, ListField,\
-    DictField, FloatField, DateTimeField, LongField
+    DictField, FloatField, DateTimeField, LongField, ObjectIdField
 
 from .utils import BaseDoc
 
 
 class MSQLPlan(BaseDoc):
+    _id = ObjectIdField()
     statement_id = StringField()
     schema = StringField()
     etl_date = DateTimeField()
@@ -15,12 +16,12 @@ class MSQLPlan(BaseDoc):
     record_id = StringField()
     cmdb_id = IntField()
     plan_hash_value = LongField()  # TODO
-    id = IntField()
-    depth: IntField()
+    index = IntField()  # TODO
+    depth = IntField()
     parent_id = IntField()
     operation = StringField()
-    operation_display: StringField()
-    options: StringField()
+    operation_display = StringField()
+    options = StringField()
     object_node = StringField(null=True)
     object_owner = StringField(null=True)
     object_name = StringField(null=True)
