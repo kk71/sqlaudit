@@ -238,7 +238,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
 class SQLRiskListHandler(AuthReq):
 
-    def get_list(self, session, query_parser: FunctionType):
+    def get_list(self, session, query_parser: FunctionType, dt_range: tuple = None):
         # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
         ALL_RULE_TYPES_FOR_SQL_RULE = [
             rule_utils.RULE_TYPE_TEXT,
@@ -266,6 +266,9 @@ class SQLRiskListHandler(AuthReq):
         enable_white_list = params.pop("enable_white_list")  # TODO 增加过滤白名单的功能
         sort_by = params.pop("sort_by")
         del params  # shouldn't use params anymore
+
+        if dt_range:
+            date_start, date_end = dt_range
 
         cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
         if not cmdb:
@@ -555,11 +558,19 @@ class SQLPlanHandler(AuthReq):
 
     def get(self):
         """风险详情的sql plan详情"""
+        self.resp()
+
+
+class OverviewHandler(SQLRiskListHandler):
+
+    def get(self):
+        """风险详情的sql plan详情"""
+        """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema", default=None): scm_str,
-            Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date,
+            "date_start": scm_date,
+            "date_end": scm_date,
         }))
         cmdb_id = params.pop("cmdb_id")
         schema = params.pop("schema")
@@ -568,10 +579,85 @@ class SQLPlanHandler(AuthReq):
         del params  # shouldn't use params anymore
 
         with make_session() as session:
+            dt_now = arrow.get(date_start)
+            dt_end = arrow.get(date_end)
+            sql_num_active = []
+            sql_num_at_risk = []
+            # sql_num
+            while dt_now <= dt_end:
+                active_sql_num = len(SQLText.objects(
+                    cmdb_id=cmdb_id,
+                    schema=schema,
+                    etl_date__gte=dt_now,
+                    etl_date__lt=dt_now.shift(days=+1),
+                ).distinct("sql_id"))
+                at_risk_sql_num = len(self.get_list(
+                    session,
+                    self.get_query_args,
+                    dt_range=(dt_now, dt_now.shift(days=+1))
+                ))
+                sql_num_active.append({
+                    "date": dt_to_str(dt_now),
+                    "value": active_sql_num
+                })
+                sql_num_at_risk.append({
+                    "date": dt_to_str(dt_now),
+                    "value": at_risk_sql_num
+                })
+                dt_now = dt_now.shift(days=+1)
 
+            # risk_rule_rank & schema
+
+            # 只需要拿到rule_name即可，不需要知道其他两个key,
+            # 因为当前仅对某一个库做分析，数据库类型和db_model都是确定的
+            risk_rule_name_sql_num_dict = {
+                r3key[2]: {
+                    "violation_num": 0,
+                    "schema_set": set(),
+                    "risk_name": robj.risk_name
+                }
+                for r3key, robj in rule_utils.get_risk_rules_dict(session).items()}
+            results = Results.objects(cmdb_id=cmdb_id,
+                                      create_date__gte=date_start, create_date__lte=date_end)
+            for result in results:
+                for rule_name in risk_rule_name_sql_num_dict.keys():
+                    if getattr(result, rule_name, None):
+                        risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
+                        risk_rule_name_sql_num_dict[rule_name]["schema_set"].add(result.schema_name)
+            risk_rule_rank = [
+                {
+                    "rule_name": rule_name,
+                    "num": k["violation_num"],
+                    "risk_name": k["risk_name"]
+                } for rule_name, k in risk_rule_name_sql_num_dict.items()
+            ]
+
+            risk_rule_rank = sorted(risk_rule_rank, key=lambda x: x["num"], reverse=True)
+            schema_rule_dict = defaultdict(lambda: 0)
+            violation_sum = 0
+            for rule_name, rule_info in risk_rule_name_sql_num_dict.items():
+                for s in rule_info["schema_set"]:
+                    schema_rule_dict[s] += 1
+                    violation_sum += 1
+            schemas = [
+                {
+                    "schema": current_schema,
+                    "num": current_num,
+                    "percentage": f"{current_num / violation_sum * 100}%"
+                } for current_schema, current_num in schema_rule_dict.items()
+            ]
+            sqls = self.get_list(session, self.get_query_args)
+            top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
+            top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
+            top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in sqls]
+            top_10_sql_by_average = sorted(top_10_sql_by_average, key=lambda x: x["time"])
+            # sql execution cost rank
             self.resp({
-                "sql_num": {"active": [], "at_risk": []},
-                "risk_rule_rank": [],
-                "schema": [],
-                "sql_execution_cost_rank": []
+                "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
+                "risk_rule_rank": risk_rule_rank,
+                "schema": schemas,
+                "sql_execution_cost_rank": {
+                    "by_sum": top_10_sql_by_sum[:10],
+                    "by_average": top_10_sql_by_average[:10]
+                }
             })
