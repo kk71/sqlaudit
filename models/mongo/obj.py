@@ -9,7 +9,7 @@ from .utils import BaseDoc
 class ObjTabInfo(BaseDoc):
     """表"""
     _id = ObjectIdField()
-    schema = StringField()
+    schema_name = StringField()
     etl_date = DateTimeField()
     ip_address = StringField()  # TODO
     sid = StringField()
@@ -38,7 +38,7 @@ class ObjTabInfo(BaseDoc):
 class ObjTabCol(BaseDoc):
     """列"""
     _id = ObjectIdField()
-    schema = StringField()
+    schema_name = StringField()
     etl_date = DateTimeField()
     ip_address = StringField()  # TODO
     sid = StringField()
@@ -63,7 +63,7 @@ class ObjTabCol(BaseDoc):
 class ObjPartTabParent(BaseDoc):
     """父分区表"""
     _id = ObjectIdField()
-    schema = StringField(help_text="table owner")
+    schema_name = StringField(help_text="table owner")
     etl_date = DateTimeField()
     ip_address = StringField()  # TODO
     sid = StringField()
@@ -91,7 +91,7 @@ class ObjPartTabParent(BaseDoc):
 class ObjIndColInfo(BaseDoc):
     """索引列"""
     _id = ObjectIdField()
-    schema = StringField(help_text="the owner of this index")
+    schema_name = StringField(help_text="the owner of this index")
     etl_date = DateTimeField()
     ip_address = StringField()  # TODO
     sid = StringField()
@@ -118,7 +118,7 @@ class ObjViewInfo(BaseDoc):
     sid = StringField()
     cmdb_id = IntField()
     record_id = StringField()
-    schema = StringField()
+    schema_name = StringField()
     view_name = StringField()
     object_type = StringField()
     referenced_owner = StringField()

@@ -617,12 +617,12 @@ class OverviewHandler(SQLRiskListHandler):
         """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema", default=None): scm_str,
+            Optional("schema_name", default=None): scm_str,
             "date_start": scm_date,
             "date_end": scm_date,
         }))
         cmdb_id = params.pop("cmdb_id")
-        schema = params.pop("schema")
+        schema_name = params.pop("schema_name")
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
         del params  # shouldn't use params anymore
@@ -634,12 +634,14 @@ class OverviewHandler(SQLRiskListHandler):
             sql_num_at_risk = []
             # sql_num
             while dt_now <= dt_end:
-                active_sql_num = len(SQLText.objects(
+                sql_text_q = SQLText.objects(
                     cmdb_id=cmdb_id,
-                    schema=schema,
                     etl_date__gte=dt_now.datetime,
                     etl_date__lt=dt_now.shift(days=+1).datetime,
-                ).distinct("sql_id"))
+                )
+                if schema_name:
+                    sql_text_q = sql_text_q.filter(schema=schema_name)
+                active_sql_num = len(sql_text_q.distinct("sql_id"))
                 at_risk_sql_num = len(self.get_list(
                     session,
                     self.get_query_args,
@@ -666,9 +668,11 @@ class OverviewHandler(SQLRiskListHandler):
                     "risk_name": robj.risk_name
                 }
                 for r3key, robj in rule_utils.get_risk_rules_dict(session).items()}
-            results = Results.objects(cmdb_id=cmdb_id, schema_name=schema,
-                                      create_date__gte=date_start, create_date__lte=date_end)
-            for result in results:
+            results_q = Results.objects(
+                cmdb_id=cmdb_id, create_date__gte=date_start, create_date__lte=date_end)
+            if schema_name:
+                results_q = results_q.filter(schema_name=schema_name)
+            for result in results_q:
                 for rule_name in risk_rule_name_sql_num_dict.keys():
                     if getattr(result, rule_name, None):
                         risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
