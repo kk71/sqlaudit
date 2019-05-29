@@ -57,3 +57,13 @@ urls += [
     (r"/api/online/sql/export", online.SQLRiskReportExportHandler),
     (r"/api/online/sql/plan", online.SQLPlanHandler),
 ]
+
+# health status
+urls += [
+    (r"/api/report/online/tasks", report.OnlineReportTaskListHandler),
+    (r"/api/report/online/task", report.OnlineReportTaskHandler),
+    (r"/api/report/online/rule_detail", report.OnlineReportRuleDetailHandler),
+    (r"/api/report/online/plan_detail", report.OnlineReportSQLPlanHandler),
+    (r"/api/report/export/xlsx", report.ExportReportXlsxHandler),
+    (r"/api/report/export/html", report.ExportReportHTMLHandler),
+]

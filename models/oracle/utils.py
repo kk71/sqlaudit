@@ -58,8 +58,8 @@ class BaseModel(base):
             if iter_by:
                 v = iter_by(k, v)
             d[k] = v
-            if datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format("YYYY-MM-DD")
-            elif datetime_to_str and isinstance(d[k], datetime):
+            if datetime_to_str and isinstance(d[k], datetime):
                 d[k] = arrow.get(d[k]).format('YYYY-MM-DDTHH:mm:ss')
+            elif datetime_to_str and isinstance(d[k], date):
+                d[k] = arrow.get(d[k]).format("YYYY-MM-DD")
         return d

@@ -5,7 +5,7 @@ from typing import *
 from datetime import date, datetime
 
 import arrow
-from mongoengine import DynamicDocument
+from mongoengine import DynamicDocument, EmbeddedDocument
 
 
 class BaseDoc(DynamicDocument):
@@ -33,10 +33,15 @@ class BaseDoc(DynamicDocument):
     def to_dict(self,
                 iter_if: FunctionType = None,
                 iter_by: FunctionType = None,
-                datetime_to_str: bool = True
+                datetime_to_str: bool = True,
+                recurse: dict = None
                 ) -> dict:
         d = {}
-        for k, v in self.to_mongo().items():
+        if isinstance(recurse, dict):
+            items = recurse.items()
+        else:
+            items = self.to_mongo().items()
+        for k, v in items:
             if k in ():
                 continue
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
@@ -45,10 +50,14 @@ class BaseDoc(DynamicDocument):
                 v = iter_by(k, v)
             if k in ("_id", "id"):
                 v = str(v)
+            if isinstance(v, dict):
+                v = self.to_dict(iter_if, iter_by, recurse=v)
+            if isinstance(v, EmbeddedDocument):
+                v = self.to_dict(iter_if, iter_by, recurse=v.to_mongo())
             d[k] = v
-            if datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format("YYYY-MM-DD")
-            elif datetime_to_str and isinstance(d[k], datetime):
+            if datetime_to_str and isinstance(d[k], datetime):
                 d[k] = arrow.get(d[k]).format('YYYY-MM-DDTHH:mm:ss')
+            elif datetime_to_str and isinstance(d[k], date):
+                d[k] = arrow.get(d[k]).format("YYYY-MM-DD")
         return d
 

@@ -17,13 +17,13 @@ class EmbeddedJobDesc(EmbeddedDocument):
 
 
 class Job(BaseDoc):
-    _id = ObjectIdField()
+    id = ObjectIdField()
     cmdb_id = IntField()
-    schema = StringField()
-    status = IntField()
+    schema_name = StringField()
+    status = IntField(help_text="0失败 1成功 2正在运行")
     create_time = DateTimeField()
-    etl_time = DateTimeField()
-    end_time = DateTimeField()
+    etl_date = DateTimeField()
+    end_date = DateTimeField(null=True)
     operator_user = StringField()
     connect_name = StringField()
     record_id = StringField()
