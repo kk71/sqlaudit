@@ -3,6 +3,7 @@ import sys
 import settings
 
 import past.capture.sql
+import task.capture as task_capture
 import plain_db.oracleob
 
 
@@ -26,7 +27,7 @@ def run(task_id, schema=None):
         if schema and schema in users:
             users = [schema]
         print(users)
-        task_uuid = task.capture.task_run.delay(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
+        task_uuid = task_capture.task_run.delay(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
         print(task_uuid)
 
 
