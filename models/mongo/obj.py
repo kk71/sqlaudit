@@ -52,7 +52,7 @@ class ObjTabCol(BaseDoc):
     nullable = StringField()
     num_nulls = IntField()
     num_distinct = IntField()
-    data_default = DynamicField()
+    data_default = DynamicField(null=True)
     avg_col_len = IntField()
 
     meta = {
@@ -71,17 +71,17 @@ class ObjPartTabParent(BaseDoc):
     record_id = StringField()
     table_name = StringField()
     object_id = IntField()
-    data_object_id = StringField()
-    partition_type = StringField()
+    data_object_id = StringField(null=True)
+    partitioning_type = StringField()
     column_name = StringField()
-    partition_key_count = IntField()
+    partitioning_key_count = IntField()
     partition_count = IntField()
     sub_partitioning_key_count = IntField()
     sub_partitioning_type = IntField()
     last_ddl_date = DateTimeField()
     part_role = StringField()
-    num_row = IntField()
-    phy_size_mb = FloatField(help_text="MB")  # 少量数据有此字段
+    num_rows = IntField()
+    phy_size_mb = FloatField(null=True, help_text="MB")  # 少量数据有此字段
 
     meta = {
         "collection": "obj_part_tab_parent"

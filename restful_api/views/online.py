@@ -603,13 +603,26 @@ class TableInfoHandler(AuthReq):
                 "schema_name", "table_name", "table_type", "iot_name", "num_rows", "blocks", "avg_row_len",
                 "last_analyzed", "last_ddl_date", "chain_cnt", "hwm_stat", "compression", "phy_size_mb"
             )) for i in ObjTabInfo.objects(**params)],
+
             'detail': [i.to_dict(iter_if=lambda k, v: k in (
                 "schema_name", "table_name", "column_name", "data_type", "nullable", "num_nulls",
                 "num_distinct", "data_default", "avg_col_len"
             )) for i in ObjTabCol.objects(**params)],
-            'partition': [i.to_dict() for i in ObjPartTabParent.objects(**params)],
-            'index': [i.to_dict() for i in ObjIndColInfo.objects(**params)],
-            'view': [i.to_dict() for i in ObjViewInfo.objects(**params)]
+
+            'partition': [i.to_dict(iter_if=lambda k, v: k in (
+                "schema_name", "table_name", "partitioning_type", "column_name", "partitioning_key_count",
+                "partition_count", "sub_partitioning_key_count", "sub_partitioning_type", "last_ddl_date",
+                "phy_size_mb", "num_rows"
+            )) for i in ObjPartTabParent.objects(**params)],
+
+            'index': [i.to_dict(iter_if=lambda k, v: k in (
+                "schema_name", "index_name", "table_owner", "table_name", "column_name",
+                "column_position", "descend"
+            )) for i in ObjIndColInfo.objects(**params)],
+            'view': [i.to_dict(iter_if=lambda k, v: k in (
+                "obj_pk", "schema_name", "view_name", "referenced_owner", "referenced_name",
+                "referenced_type"
+            )) for i in ObjViewInfo.objects(**params)]
         })
 
 
