@@ -72,9 +72,12 @@ def importrules(filename):
 
 
 @click.command()
-def makedata():
+@click.option("--task_id", help="")
+@click.option("--schema", help="", default=None)
+def makedata(task_id, schema):
     """manually send a message to queue for running sql analysis"""
-    return
+    import past.mkdata
+    past.mkdata.run(task_id, schema)
 
 
 @click.command()
