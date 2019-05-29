@@ -17,4 +17,9 @@ __ALL__ = [
     "EmbeddedJobDesc",
     "SQLStat",
     "SQLText",
+    "ObjTabInfo",
+    "ObjTabCol",
+    "ObjPartTabParent",
+    "ObjIndColInfo",
+    "ObjViewInfo",
 ]

@@ -51,6 +51,7 @@ urls += [
     (r"/api/online/overview", online.OverviewHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
     (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
+    (r"/api/online/object/table", online.TableInfoHandler),
     (r"/api/online/sql", online.SQLRiskListHandler),
     (r"/api/online/sql/detail", online.SQLRiskDetailHandler),
     (r"/api/online/sql/export", online.SQLRiskReportExportHandler),

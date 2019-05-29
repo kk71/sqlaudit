@@ -584,6 +584,32 @@ class SQLPlanHandler(AuthReq):
         self.resp(filtered_plans)
 
 
+class TableInfoHandler(AuthReq):
+
+    def get(self):
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            "schema": scm_unempty_str,
+            "table_name": scm_unempty_str
+        }))
+        table_name = params.pop("table_name")
+        latest_tab_info = ObjTabInfo.objects(table_name=table_name).order_by("-etl_date").first()
+        if not latest_tab_info:
+            self.resp({}, msg="无数据。")
+            return
+        params["record_id"] = latest_tab_info.record_id
+        self.resp({
+            'basic': [i.to_dict(iter_if=lambda k, v: k in (
+                "schema", "table_name", "table_type", "iot_name", "num_rows", "blocks", "avg_row_len",
+                "last_analyzed", "last_ddl_date", "chain_cnt", "hwm", "stat", "compression", "phy_size_mb"
+            )) for i in ObjTabInfo.objects(**params)],
+            'detail': [i.to_dict(iter_if=lambda k, v: k in ()) for i in ObjTabCol.objects(**params)],
+            'partition': [i.to_dict() for i in ObjPartTabParent.objects(**params)],
+            'index': [i.to_dict() for i in ObjIndColInfo.objects(**params)],
+            'view': [i.to_dict() for i in ObjViewInfo.objects(**params)]
+        })
+
+
 class OverviewHandler(SQLRiskListHandler):
 
     def get(self):
@@ -611,13 +637,13 @@ class OverviewHandler(SQLRiskListHandler):
                 active_sql_num = len(SQLText.objects(
                     cmdb_id=cmdb_id,
                     schema=schema,
-                    etl_date__gte=dt_now,
-                    etl_date__lt=dt_now.shift(days=+1),
+                    etl_date__gte=dt_now.datetime,
+                    etl_date__lt=dt_now.shift(days=+1).datetime,
                 ).distinct("sql_id"))
                 at_risk_sql_num = len(self.get_list(
                     session,
                     self.get_query_args,
-                    dt_range=(dt_now, dt_now.shift(days=+1))
+                    dt_range=(dt_now.datetime, dt_now.shift(days=+1).datetime)
                 ))
                 sql_num_active.append({
                     "date": dt_to_str(dt_now),
