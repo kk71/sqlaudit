@@ -9,26 +9,26 @@ from .utils import BaseDoc
 class ObjTabInfo(BaseDoc):
     """表"""
     _id = ObjectIdField()
-    schema_name = StringField()
-    etl_date = DateTimeField()
-    ip_address = StringField()  # TODO
-    sid = StringField()
+    schema_name = StringField("OWNER")
+    etl_date = DateTimeField("ETL_DATE")
+    ip_address = StringField("IPADDR")
+    sid = StringField("SID")
     cmdb_id = IntField()
     record_id = StringField()
-    table_name = StringField()
-    table_type = StringField()
-    object_type = StringField()
-    iot_name = StringField(null=True)
-    num_rows = IntField()
-    blocks = IntField()
-    avg_row_len = IntField()
-    last_analyzed = DateTimeField()
-    last_ddl_date = DateTimeField()  # TODO
-    chain_cnt = IntField()
-    partitioned = StringField()
-    hwm_stat = IntField()
-    compression = StringField()
-    phy_size_mb = FloatField(help_text="MB")
+    table_name = StringField("TABLE_NAME")
+    table_type = StringField("TABLE_TYPE")
+    object_type = StringField("OBJECT_TYPE")
+    iot_name = StringField("IOT_NAME", null=True)
+    num_rows = IntField("NUM_ROWS")
+    blocks = IntField("BLOCKS")
+    avg_row_len = IntField("AVG_ROW_LEN")
+    last_analyzed = DateTimeField("LAST_ANALYZED")
+    last_ddl_date = DateTimeField("LAST_DDL_TIME")
+    chain_cnt = IntField("CHAIN_CNT")
+    partitioned = StringField("PARTITIONED")
+    hwm_stat = IntField("HWM_STAT")
+    compression = StringField("COMPRESSION")
+    phy_size_mb = FloatField("PHY_SIZE(MB)")
 
     meta = {
         "collection": "obj_tab_info"
@@ -38,22 +38,22 @@ class ObjTabInfo(BaseDoc):
 class ObjTabCol(BaseDoc):
     """列"""
     _id = ObjectIdField()
-    schema_name = StringField()
-    etl_date = DateTimeField()
-    ip_address = StringField()  # TODO
-    sid = StringField()
+    schema_name = StringField("OWNER")
+    etl_date = DateTimeField("ETL_DATE")
+    ip_address = StringField("IPADDR")
+    sid = StringField("SID")
     cmdb_id = IntField()
     record_id = StringField()
-    table_name = StringField()
-    column_id = IntField()
-    column_name = StringField()
-    data_type = StringField()
-    type_change = StringField()
-    nullable = StringField()
-    num_nulls = IntField()
-    num_distinct = IntField()
-    data_default = DynamicField(null=True)
-    avg_col_len = IntField()
+    table_name = StringField("TABLE_NAME")
+    column_id = IntField("COLUMN_ID")
+    column_name = StringField("COLUMN_NAME")
+    data_type = StringField("DATA_TYPE")
+    type_change = StringField("TYPE_CHANGE")
+    nullable = StringField("NULLABLE")
+    num_nulls = IntField("NUM_NULLS")
+    num_distinct = IntField("NUM_DISTINCT")
+    data_default = DynamicField("DATA_DEFAULT", null=True)
+    avg_col_len = IntField("AVG_COL_LEN")
 
     meta = {
         "collection": "obj_tab_col"
@@ -63,25 +63,25 @@ class ObjTabCol(BaseDoc):
 class ObjPartTabParent(BaseDoc):
     """父分区表"""
     _id = ObjectIdField()
-    schema_name = StringField(help_text="table owner")
-    etl_date = DateTimeField()
-    ip_address = StringField()  # TODO
-    sid = StringField()
+    schema_name = StringField("OWNER")
+    etl_date = DateTimeField("ETL_DATE")
+    ip_address = StringField("IPADDR")
+    sid = StringField("SID")
     cmdb_id = IntField()
     record_id = StringField()
-    table_name = StringField()
-    object_id = IntField()
-    data_object_id = StringField(null=True)
-    partitioning_type = StringField()
-    column_name = StringField()
-    partitioning_key_count = IntField()
-    partition_count = IntField()
-    sub_partitioning_key_count = IntField()
-    sub_partitioning_type = IntField()
-    last_ddl_date = DateTimeField()
-    part_role = StringField()
-    num_rows = IntField()
-    phy_size_mb = FloatField(null=True, help_text="MB")  # 少量数据有此字段
+    table_name = StringField("TABLE_NAME")
+    object_id = IntField("OBJECT_ID")
+    data_object_id = StringField("DATA_OBJECT_ID", null=True)
+    partitioning_type = StringField("PARTITIONING_TYPE")
+    column_name = StringField("COLUMN_NAME")
+    partitioning_key_count = IntField("PARTITIONING_KEY_COUNT")
+    partition_count = IntField("PARTITION_COUNT")
+    sub_partitioning_key_count = IntField("SUBPARTITIONING_KEY_COUNT")
+    sub_partitioning_type = IntField("SUBPARTITIONING_TYPE")
+    last_ddl_date = DateTimeField("LAST_DDL_TIME")
+    part_role = StringField("PART_ROLE")
+    num_rows = IntField("NUM_ROW")
+    phy_size_mb = FloatField("PHY_SIZE(MB)", null=True)    # 少量数据有此字段
 
     meta = {
         "collection": "obj_part_tab_parent"
@@ -91,18 +91,18 @@ class ObjPartTabParent(BaseDoc):
 class ObjIndColInfo(BaseDoc):
     """索引列"""
     _id = ObjectIdField()
-    schema_name = StringField(help_text="the owner of this index")
-    etl_date = DateTimeField()
-    ip_address = StringField()  # TODO
-    sid = StringField()
+    schema_name = StringField("INDEX_OWNER")
+    etl_date = DateTimeField("ETL_DATE")
+    ip_address = StringField("IPADDR")
+    sid = StringField("SID")
     cmdb_id = IntField()
     record_id = StringField()
-    index_name = StringField()
-    table_owner = StringField()
-    table_name = StringField()
-    column_name = StringField()
-    column_position = IntField()
-    descend = StringField()
+    index_name = StringField("INDEX_NAME")
+    table_owner = StringField("TABLE_OWNER")
+    table_name = StringField("TABLE_NAME")
+    column_name = StringField("COLUMN_NAME")
+    column_position = IntField("COLUMN_POSITION")
+    descend = StringField("DESCEND")
 
     meta = {
         "collection": "obj_ind_col_info"
@@ -112,18 +112,18 @@ class ObjIndColInfo(BaseDoc):
 class ObjViewInfo(BaseDoc):
     """视图"""
     _id = ObjectIdField()
-    obj_pk = StringField()
-    etl_date = DateTimeField()
-    ip_address = StringField()  # TODO
-    sid = StringField()
+    obj_pk = StringField("OBJ_PK")
+    etl_date = DateTimeField("ETL_DATE")
+    ip_address = StringField("IPADDR")
+    sid = StringField("SID")
     cmdb_id = IntField()
     record_id = StringField()
-    schema_name = StringField()
-    view_name = StringField()
-    object_type = StringField()
-    referenced_owner = StringField()
-    referenced_name = StringField()
-    referenced_type = StringField()
+    schema_name = StringField("OWNER")
+    view_name = StringField("VIEW_NAME")
+    object_type = StringField("OBJECT_TYPE")
+    referenced_owner = StringField("REFERENCED_OWNER")
+    referenced_name = StringField("REFERENCED_NAME")
+    referenced_type = StringField("REFERENCED_TYPE")
 
     meta = {
         "collection": "obj_view_info"

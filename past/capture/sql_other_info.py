@@ -25,7 +25,7 @@ class CaptureOther(past.capture.base.Capture):
         self.ipaddress = ipaddress
         self.sid = sid
         self.cmdb_id = cmdb_id
-        self.capture_time = datetime.now().strftime("%Y-%m-%d %X")
+        self.capture_time = datetime.now()
         self.etl_date = etl_date
         self.startdate = startdate
         self.stopdate = stopdate

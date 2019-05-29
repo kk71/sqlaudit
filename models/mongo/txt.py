@@ -8,15 +8,15 @@ from .utils import BaseDoc
 
 class SQLText(BaseDoc):
     _id = ObjectIdField()
-    dbid = IntField(help_text="select dbid from v$database;")
-    ip_address = StringField()
-    db_sid = StringField()
-    schema = StringField()
-    etl_date = DateTimeField()
+    dbid = IntField("DBID", help_text="select dbid from v$database;")
+    ip_address = StringField("IPADDR")
+    db_sid = StringField("DB_SID")
+    schema = StringField("USERNAME")
+    etl_date = DateTimeField("ETL_DATE")
     record_id = StringField()
     cmdb_id = IntField()
-    sql_id = StringField(help_text="the hash of the sql text")
-    sql_text = StringField()
+    sql_id = StringField("SQL_ID", help_text="the hash of the sql text")
+    sql_text = StringField("SQL_TEXT_DETAIL")
 
     meta = {
         "collection": "sqltext"
