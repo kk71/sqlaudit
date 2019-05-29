@@ -545,8 +545,8 @@ class SQLRiskDetailHandler(AuthReq):
             self.resp({
                 'sql_id': sql_id,
                 'schema': schemas[0] if schemas else None,
-                'first_appearance': sql_text_stats[sql_id]["first_appearance"],
-                'last_appearance': sql_text_stats[sql_id]["last_appearance"],
+                'first_appearance': dt_to_str(sql_text_stats[sql_id]["first_appearance"]),
+                'last_appearance': dt_to_str(sql_text_stats[sql_id]["last_appearance"]),
                 'sql_text': latest_sql_text_object.sql_text,
                 'risk_rules': [rr.to_dict() for rr in risk_rules],
                 'graph': graphs,
@@ -589,7 +589,7 @@ class TableInfoHandler(AuthReq):
     def get(self):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            "schema": scm_unempty_str,
+            "schema_name": scm_unempty_str,
             "table_name": scm_unempty_str
         }))
         table_name = params.pop("table_name")
@@ -600,10 +600,13 @@ class TableInfoHandler(AuthReq):
         params["record_id"] = latest_tab_info.record_id
         self.resp({
             'basic': [i.to_dict(iter_if=lambda k, v: k in (
-                "schema", "table_name", "table_type", "iot_name", "num_rows", "blocks", "avg_row_len",
-                "last_analyzed", "last_ddl_date", "chain_cnt", "hwm", "stat", "compression", "phy_size_mb"
+                "schema_name", "table_name", "table_type", "iot_name", "num_rows", "blocks", "avg_row_len",
+                "last_analyzed", "last_ddl_date", "chain_cnt", "hwm_stat", "compression", "phy_size_mb"
             )) for i in ObjTabInfo.objects(**params)],
-            'detail': [i.to_dict(iter_if=lambda k, v: k in ()) for i in ObjTabCol.objects(**params)],
+            'detail': [i.to_dict(iter_if=lambda k, v: k in (
+                "schema_name", "table_name", "column_name", "data_type", "nullable", "num_nulls",
+                "num_distinct", "data_default", "avg_col_len"
+            )) for i in ObjTabCol.objects(**params)],
             'partition': [i.to_dict() for i in ObjPartTabParent.objects(**params)],
             'index': [i.to_dict() for i in ObjIndColInfo.objects(**params)],
             'view': [i.to_dict() for i in ObjViewInfo.objects(**params)]

@@ -18,7 +18,7 @@ class ObjTabInfo(BaseDoc):
     table_name = StringField()
     table_type = StringField()
     object_type = StringField()
-    iot_name = StringField()
+    iot_name = StringField(null=True)
     num_rows = IntField()
     blocks = IntField()
     avg_row_len = IntField()
