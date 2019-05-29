@@ -13,7 +13,7 @@ class ReviewResult(object):
         self.rule_status = rule_status
         self.task_owner = username
         self.db_model = db_model
-        self.task_id = self.gen_uuid()
+        # self.task_id = self.gen_uuid()
         self.rule_info = self._get_rule_info()
         self.factor = [string.ascii_lowercase[:17], string.ascii_lowercase[17:]]
 
@@ -74,27 +74,27 @@ class ReviewResult(object):
         job_record = {
             "name": "#".join([self.task_owner, self.rule_type.lower()]),
             "cmdb_id": kwargs.get("cmdb_id"),
-            "id": self.task_id,
-            "status": "2",
+            # "id": self.task_id,
+            "status": 2,
             "create_time": task_start_time,
-            "ETL_DATE": task_start_time,
+            "etl_date": task_start_time,
             "end_time": "",
             "operator_user": operator_user,
             "connect_name": kwargs.get("connect_name"),
             "record_id": kwargs['record_id'],
-            "exported": "0",
+            "exported": False,
             "desc": {
                 "db_ip": kwargs.get("task_ip", "127.0.0.1"),
                 "port": kwargs.get("task_port", 1521),
                 "owner": self.task_owner,
                 "rule_type": self.rule_type.upper(),
                 "instance_name": kwargs.get("instance_name"),
-                "capture_time_s": capture_time_s,
-                "capture_time_e": capture_time_e
+                "capture_time_start": capture_time_s,
+                "capture_time_end": capture_time_e
             }
         }
         self.mongo_client.insert("job", job_record)
-        return self.task_id
+        # return self.task_id
 
     def obj_result(self, results):
         for rule_name in results.keys():

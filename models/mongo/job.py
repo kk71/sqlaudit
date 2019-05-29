@@ -18,6 +18,7 @@ class EmbeddedJobDesc(EmbeddedDocument):
 
 class Job(BaseDoc):
     id = ObjectIdField()
+    name = StringField()
     cmdb_id = IntField()
     schema_name = StringField()
     status = IntField(help_text="0失败 1成功 2正在运行")
