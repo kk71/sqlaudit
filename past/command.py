@@ -253,9 +253,9 @@ class Command(object):
         result_update_info = {
             "task_uuid": sqlaudit.review_result.task_id,
             'cmdb_id': cmdb_id,
-            'username': username,
-            'create_time': past.utils.utils.get_time(),
-            'ETL_DATE': past.utils.utils.get_time(),
+            'schema_name': username,
+            'create_date': past.utils.utils.get_time(),
+            'etl_date': past.utils.utils.get_time(),
             'ip_address': task_ip,
             'sid': instance_name,
             'record_id': record_id,
@@ -264,7 +264,7 @@ class Command(object):
         job_record.update(result_update_info)
         sqlaudit.mongo_client.insert_one("results", job_record)
         sql = {'id': sqlaudit.review_result.task_id}
-        condition = {"$set": {"status": "1", "desc.capture_time_e": past.utils.utils.get_time()}}
+        condition = {"$set": {"status": 1, "desc.capture_time_end": past.utils.utils.get_time()}}
         sqlaudit.mongo_client.update_one("job", sql, condition)
 
     def run(self):

@@ -13,12 +13,12 @@ class ReviewResult(object):
         self.rule_status = rule_status
         self.task_owner = username
         self.db_model = db_model
-        # self.task_id = self.gen_uuid()
+        self.task_id = None  # wait for job creation
         self.rule_info = self._get_rule_info()
         self.factor = [string.ascii_lowercase[:17], string.ascii_lowercase[17:]]
 
-    def gen_uuid(self):
-        return str(uuid.uuid1())
+    # def gen_uuid(self):
+    #     return str(uuid.uuid1())
 
     def _get_rule_info(self):
         """
@@ -93,8 +93,9 @@ class ReviewResult(object):
                 "capture_time_end": capture_time_e
             }
         }
-        self.mongo_client.insert("job", job_record)
-        # return self.task_id
+        rst = self.mongo_client.insert("job", job_record)
+        self.task_id = str(rst.inserted_id)
+        return self.task_id
 
     def obj_result(self, results):
         for rule_name in results.keys():
@@ -113,7 +114,7 @@ class ReviewResult(object):
         stat_temp = {}
         obj_name_dict = {}
         cost_count = {}
-        result = {}
+        result = []
         for value in sqlobj:
             v1 = str(int(value[1]))
             if value[4] and value[7]:
@@ -163,19 +164,16 @@ class ReviewResult(object):
                 count = ""
             result_stat = stat_temp.get(obj_id, {})
             result_text = text_temp.get(value[0], {})
-            result.update({
-                obj_id: {
+            result.append({
                     "sql_id": value[0],
                     "plan_hash_value": int(value[1]),
-                    "sql_text": result_text.get("SQL_TEXT", None),
-                    "sql_fulltext": result_text.get("SQL_TEXT_DETAIL", None),
-                    # "plan": plan,
+                    "schema": self.task_owner,
+                    "sql_text": result_text.get("SQL_TEXT_DETAIL", None),
                     "stat": result_stat,
                     "obj_info": result_obj,
                     "obj_name": obj_name,
                     "cost": cost,
                     "count": count
-                }
             })
         return result
 

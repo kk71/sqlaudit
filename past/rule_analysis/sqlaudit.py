@@ -9,6 +9,8 @@ import past.rule_analysis.libs.oracle_plan_stat.plan_stat
 import past.rule_analysis.review_result.rule_result
 import past.rule_analysis.libs.text.sql_text
 
+import utils.cmdb_utils
+
 
 class SqlAudit(object):
     """
@@ -43,7 +45,7 @@ class SqlAudit(object):
             self.rule_status,
             self.db_model
         )
-        if self.db_type == "O" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
+        if self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
             self.ora = past.rule_analysis.libs.oracle_plan_stat.plan_stat.OraclePlanOrStat(self.mongo_client, self.username, self.startdate, self.record_id)
         # elif self.db_type == "mysql" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
         #     pt_server_args = kwargs.get("pt_server_args")
@@ -52,7 +54,7 @@ class SqlAudit(object):
         #     self.mys = MysqlPlanOrStat(
         #         pt_query_client, self.db_client,
         #         self.mongo_client, self.rule_type)
-        elif self.db_type == "O" and self.rule_type == "OBJ":
+        elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "OBJ":
             self.db_client = self.db_server_init(**kwargs)
         # elif self.db_type == "mysql" and self.rule_type == "OBJ":
         #     self.db_client = self.db_server_init(**kwargs)
@@ -63,7 +65,7 @@ class SqlAudit(object):
         #     self.sql_text = SqlText(self.mongo_client, self.startdate,
         #                             self.stopdate, self.username,
         #                             self.hostname, self.record_id, db_client=pt_query_client)
-        elif self.db_type == "O" and self.rule_type == "TEXT":
+        elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "TEXT":
             self.hostname = hostname
             self.sql_text = past.rule_analysis.libs.text.sql_text.SqlText(self.mongo_client, self.startdate,
                                     self.stopdate, self.username,
@@ -187,24 +189,25 @@ class SqlAudit(object):
         for parm in input_parms:
             args[parm["parm_name"]] = parm["parm_value"]
         score_list = []
-        temp = {}
+        # temp = {}
+        temp = []
         for sql in sql_list:
-            sql_id = sql["checksum"] + "#1#v"
+            # sql_id = sql["checksum"] + "#1#v"
             args["sql"] = sql["sqltext_form"]
             # 解析简单规则
             if rule_complexity == "simple":
                 pat = re.compile(rule_cmd)
                 if pat.search(args["sql"]):
                     score_list.append(sql["checksum"])
-                    temp.update({
-                        sql_id: {
+                    temp.append(
+                        {
                             "sql_id": sql["checksum"],
                             "sql_text": sql["sqltext_org"],
                             "obj_name": None,
                             "stat": sql["sqlstats"],
                             "plan": []
                         }
-                    })
+                    )
             # 解析复杂类规则
             elif rule_complexity == "complex":
                 # 根据规则名称动态加载复杂规则
@@ -212,15 +215,15 @@ class SqlAudit(object):
                 module = __import__(module_name, globals(), locals(), "execute_rule")
                 if module.execute_rule(**args):
                     score_list.append(sql["checksum"])
-                    temp.update({
-                        sql_id: {
+                    temp.append(
+                        {
                             "sql_id": sql["checksum"],
                             "sql_text": sql["sqltext_org"],
                             "obj_name": None,
                             "stat": sql["sqlstats"],
                             "plan": []
                         }
-                    })
+                    )
         scores = len(score_list) * float(weight)
         if scores > max_score:
             scores = max_score
@@ -276,7 +279,7 @@ class SqlAudit(object):
             weight = value["weight"]
             max_score = float(value["max_score"])
             input_parms = value["input_parms"]
-            if self.db_type == "O" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
+            if self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
                 result, score = self.o_rule_parse(
                     key,
                     rule_complexity,
@@ -304,10 +307,10 @@ class SqlAudit(object):
                                                  rule_cmd, weight,
                                                  max_score, input_parms,
                                                  sql_list)
-                if result:
+                if result:  # should be a list
                     job_record[key].update(result)
                     job_record[key].update({"scores": scores})
-            elif self.db_type == "O" and self.rule_type == "OBJ":
+            elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "OBJ":
                 results, scores = self.obj_parse(key, rule_complexity,
                                                  rule_cmd, weight,
                                                  max_score, input_parms)
