@@ -31,7 +31,7 @@ ALL_RULE_TYPE = (RULE_TYPE_OBJ, RULE_TYPE_TEXT, RULE_TYPE_SQLPLAN, RULE_TYPE_SQL
 
 # 定位一条规则的字段们
 
-RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name", "rule_type")
+RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
 
 
 def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
