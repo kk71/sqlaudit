@@ -492,7 +492,10 @@ class SQLRiskDetailHandler(AuthReq):
             risk_rules = session.query(RiskSQLRule).filter(RiskSQLRule.risk_sql_rule_id.
                                                            in_(risk_rule_id_list))
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
-            latest_sql_text_object = SQLText.objects(sql_id=sql_id).order_by("-etl_date").first()
+            latest_sql_text_object = SQLText.objects(sql_id=sql_id).first()
+            if not latest_sql_text_object:
+                self.resp_not_found(msg="不存在该SQL")
+                return
             schemas = list(set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                                distinct("schema")))
 
