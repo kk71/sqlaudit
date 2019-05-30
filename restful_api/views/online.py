@@ -492,7 +492,9 @@ class SQLRiskDetailHandler(AuthReq):
             risk_rules = session.query(RiskSQLRule).filter(RiskSQLRule.risk_sql_rule_id.
                                                            in_(risk_rule_id_list))
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
-            latest_sql_text_object = SQLText.objects(sql_id=sql_id).first()
+            latest_sql_text_object = SQLText.objects(sql_id=sql_id).\
+                order_by("-etl_date").\
+                first()
             if not latest_sql_text_object:
                 self.resp_not_found(msg="不存在该SQL")
                 return
@@ -519,8 +521,8 @@ class SQLRiskDetailHandler(AuthReq):
                 plans.append({
                     "plan_hash_value": plan_hash_value,
                     "cost": sql_plan_object.cost,
-                    "first_appearance": sql_plan_stats[plan_hash_value]["first_appearance"],
-                    "last_appearance": sql_plan_stats[plan_hash_value]["last_appearance"],
+                    "first_appearance": dt_to_str(sql_plan_stats[plan_hash_value]["first_appearance"]),
+                    "last_appearance": dt_to_str(sql_plan_stats[plan_hash_value]["last_appearance"]),
                 })
                 # stats
                 sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id,

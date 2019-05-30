@@ -315,9 +315,9 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
         },
         {
             "$group": {
-                "_id": "$plan_hash_value",
-                "first_appearance": {"$min": "$etl_date"},
-                "last_appearance": {"$max": "$etl_date"},
+                "_id": "$PLAN_HASH_VALUE",
+                "first_appearance": {"$min": "$ETL_DATE"},
+                "last_appearance": {"$max": "$ETL_DATE"},
             }
         }
     ]

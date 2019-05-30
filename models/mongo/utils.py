@@ -40,7 +40,7 @@ class BaseDoc(DynamicDocument):
         if isinstance(recurse, dict):
             items = recurse.items()
         else:
-            items = self.to_mongo().items()
+            items = {f: getattr(self, f, None) for f in self._fields}.items()
         for k, v in items:
             if k in ():
                 continue
@@ -53,7 +53,8 @@ class BaseDoc(DynamicDocument):
             if isinstance(v, dict):
                 v = self.to_dict(iter_if, iter_by, recurse=v)
             if isinstance(v, EmbeddedDocument):
-                v = self.to_dict(iter_if, iter_by, recurse=v.to_mongo())
+                v = self.to_dict(iter_if, iter_by, recurse={
+                    f: getattr(v, f, None) for f in v._fields})
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
                 d[k] = arrow.get(d[k]).format('YYYY-MM-DDTHH:mm:ss')
