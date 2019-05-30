@@ -267,41 +267,44 @@ class Check:
 
             for sqlplan in sql_plans:
                 insert_data = {
-                    "sql_id": statement_id,  # statement_id
-                    "schema": schema_user,
-                    "etl_date": datetime.now(),
-                    "ip_address": oracle_settings['host'],
-                    "db_sid": oracle_settings['sid'],
-                    "plan_hash_value": sqlplan['plan_id'],  # plan_id
-                    "index": sqlplan['id'],  # id
-                    "depth": sqlplan['depth'],  # depth
-                    "parent_id": sqlplan['parent_id'],  # parent_id
-                    "operation": sqlplan['operation'],  # operation
-                    "operation_display": "",  # ??????
-                    "options": sqlplan['options'],  # options
-                    "object_node": sqlplan['object_node'],  # object_node
-                    "object_owner": sqlplan['object_owner'],  # object_owner
-                    "object_name": sqlplan['object_name'],  # objcet_name
-                    "object_type": sqlplan['object_type'],  # object_type
-                    "optimizer": sqlplan['optimizer'],  # optimizer
-                    "search_columns": sqlplan['search_columns'],  # search_columns
-                    "position": sqlplan['position'],  # position
-                    "cost": sqlplan['cost'],  # cost
-                    "cardinality": sqlplan['cardinality'],  # cardinality
-                    "bytes": sqlplan['bytes'],  # bytes
-                    "other_tag": sqlplan['other_tag'],  # other tag
-                    "partition_start": sqlplan['partition_start'],  # partition_start
-                    "partition_stop": sqlplan['partition_stop'],  # partition_stop
-                    "partition_id": sqlplan['partition_id'],  # partition_id
-                    "other": sqlplan['other'],  # other
-                    "distribution": sqlplan['distribution'],  # distribution
-                    "cpu_cost": sqlplan['cpu_cost'],  # cpu_cost
-                    "io_cost": sqlplan['io_cost'],  # io_cost
-                    "filter_predicates": sqlplan['filter_predicates'],  # filter_predicates
-                    "access_predicates": sqlplan['access_predicates'],  # access_predicates
-                    "time": sqlplan['time'],  # time
-                    "cmdb_id": cmdb_id,
-                    "record_id": record_id,
+                    "SQL_ID": statement_id,  # statement_id
+                    "USERNAME": schema_user,
+                    "ETL_DATE": datetime.now(),
+                    "IPADDR": oracle_settings['host'],
+                    "DB_SID": oracle_settings['sid'],
+                    "PLAN_HASH_VALUE": sqlplan['plan_id'],  # plan_id
+                    "ID": sqlplan['id'],  # id
+                    "DEPTH": sqlplan['depth'],  # depth
+                    "PARENT_ID": sqlplan['parent_id'],  # parent_id
+                    "OPERATION": sqlplan['operation'],  # operation
+                    "OPERATION_DISPLAY": "",  # ??????
+                    "OPTIONS": sqlplan['options'],  # options
+                    "OBJECT_NODE": sqlplan['object_node'],  # object_node
+                    "OBJECT_OWNER": sqlplan['object_owner'],  # object_owner
+                    "OBJECT_NAME": sqlplan['object_name'],  # objcet_name
+                    # object_alias
+                    # object_instance
+                    # time_space
+                    # projection
+                    # qblock name
+                    "OBJECT_TYPE": sqlplan['object_type'],  # object_type
+                    "OPTIMIZER": sqlplan['optimizer'],  # optimizer
+                    "SEARCH_COLUMNS": sqlplan['search_columns'],  # search_columns
+                    "POSITION": sqlplan['position'],  # position
+                    "COST": sqlplan['cost'],  # cost
+                    "CARDINALITY": sqlplan['cardinality'],  # cardinality
+                    "BYTES": sqlplan['bytes'],  # bytes
+                    "OTHER_TAG": sqlplan['other_tag'],  # other tag
+                    "PARTITION_START": sqlplan['partition_start'],  # partition_start
+                    "PARTITION_STOP": sqlplan['partition_stop'],  # partition_stop
+                    "PARTITION_ID": sqlplan['partition_id'],  # partition_id
+                    "OTHER": sqlplan['other'],  # other
+                    "DISTRIBUTION": sqlplan['distribution'],  # distribution
+                    "CPU_COST": sqlplan['cpu_cost'],  # cpu_cost
+                    "IO_COST": sqlplan['io_cost'],  # io_cost
+                    "FILTER_PREDICATES": sqlplan['filter_predicates'],  # filter_predicates
+                    "ACCESS_PREDICATES": sqlplan['access_predicates'],  # access_predicates
+                    "TIME": sqlplan['time'],  # time
                 }
                 MongoHelper.insert('sqlplan', insert_data)
 

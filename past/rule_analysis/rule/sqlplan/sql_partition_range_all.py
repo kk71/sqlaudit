@@ -2,8 +2,10 @@
 
 from .decorator import mongo_query
 
+import utils.cmdb_utils
+
 rule = {
-    "db_type" : "O",
+    "db_type" : utils.cmdb_utils.DB_ORACLE,
     "exclude_obj_type" : [ 
         "SQL_ID", 
         "PLAN_HASH_VALUE"

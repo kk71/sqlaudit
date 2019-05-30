@@ -211,7 +211,7 @@ class SqlAudit(object):
             # 解析复杂类规则
             elif rule_complexity == "complex":
                 # 根据规则名称动态加载复杂规则
-                module_name = ".".join(["rule_analysis.rule", self.rule_type.lower(), key.lower()])
+                module_name = ".".join(["past.rule_analysis.rule", self.rule_type.lower(), key.lower()])
                 module = __import__(module_name, globals(), locals(), "execute_rule")
                 if module.execute_rule(**args):
                     score_list.append(sql["checksum"])
@@ -253,7 +253,7 @@ class SqlAudit(object):
             [args.update({parm["parm_name"]: parm["parm_value"]}) for parm in input_parms]
             # 根据规则名称动态加载规则模块
             module_name = ".".join(["rule", self.rule_type.lower(), key.lower()])
-            module_name = "rule_analysis." + module_name
+            module_name = "past.rule_analysis." + module_name
             module = __import__(module_name, globals(), locals(), "execute_rule")
             results, flag = module.execute_rule(**args)
         if isinstance(flag, bool):
@@ -290,8 +290,10 @@ class SqlAudit(object):
                 )
 
                 if result:
-                    job_record[key].update(result)
-                    job_record[key].update({"scores": score})
+                    job_record[key].update({
+                        "sqls": result,
+                        "scores": score
+                    })
             # elif self.db_type == "mysql" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
             #     hostname = kwargs.get("hostname")
             #     user = kwargs.get("user")
@@ -308,8 +310,10 @@ class SqlAudit(object):
                                                  max_score, input_parms,
                                                  sql_list)
                 if result:  # should be a list
-                    job_record[key].update(result)
-                    job_record[key].update({"scores": scores})
+                    job_record[key].update({
+                        "scores": scores,
+                        "sqls": result
+                    })
             elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "OBJ":
                 results, scores = self.obj_parse(key, rule_complexity,
                                                  rule_cmd, weight,

@@ -93,7 +93,7 @@ class ReviewResult(object):
                 "capture_time_end": capture_time_e
             }
         }
-        rst = self.mongo_client.insert("job", job_record)
+        rst = self.mongo_client.insert_one("job", job_record)
         self.task_id = str(rst.inserted_id)
         return self.task_id
 

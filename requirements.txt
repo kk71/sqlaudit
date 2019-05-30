@@ -14,3 +14,4 @@ ipython
 sqlparse==0.3
 chardet
 xlsxwriter
+pymysql # for past

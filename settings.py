@@ -82,8 +82,8 @@ CELERY_CONF = {
 
 MONGO_SERVER = env_get("MONGO_IP", WEB_IP)
 MONGO_PORT = env_get("MONGO_PORT", 27017, int)
-MONGO_USER = env_get("MONGO_USER", "isqlaudit")
-MONGO_PASSWORD = env_get("MONGO_PASSWORD", "v1g2m60id2499yz")
+MONGO_USER = env_get("MONGO_USER", "sqlreview")
+MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
 MONGO_DB = env_get("MONGO_DB", "sqlreview")
 
 

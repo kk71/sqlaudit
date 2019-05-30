@@ -14,6 +14,8 @@ from functools import wraps
 from datetime import datetime
 from collections import defaultdict
 
+import arrow
+
 import settings
 import cx_Oracle
 from plain_db.oracleob import OracleOB, OracleHelper
@@ -22,6 +24,7 @@ from .cmdb_utils import CmdbUtils
 
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+import utils.cmdb_utils
 
 def get_random_str_without_duplicate():
     lib = string.digits + string.ascii_lowercase
@@ -228,10 +231,14 @@ def render(template_name):
     return wrapper
 
 
-def get_time(timestamp=None, format=None):
+def get_time(timestamp=None, format=None, return_str=True):
     timestamp = timestamp or time.time()
     format = format or "%Y-%m-%d %X"
-    return time.strftime(format, time.localtime(timestamp))
+    if return_str:
+        return time.strftime(format, time.localtime(timestamp))
+    else:
+        return arrow.get(time.localtime(timestamp)).datetime
+
 
 
 def get_random_str(length=10):
@@ -280,7 +287,7 @@ def calculate_rules(result, search_temp):
 
     result = {k: v for k, v in result.items() if v and isinstance(v, dict)}
 
-    rule_infos = [x for x in MongoHelper.find("rule", {'rule_type': rule_type, 'db_type': "O", 'db_model': db_model})]
+    rule_infos = [x for x in MongoHelper.find("rule", {'rule_type': rule_type, 'db_type': utils.cmdb_utils.DB_ORACLE, 'db_model': db_model})]
     rule_summary = {v['rule_name']: [v['rule_summary'], v['exclude_obj_type']] for v in rule_infos}
     total_score = sum([float(rule['max_score']) for rule in rule_infos])
 

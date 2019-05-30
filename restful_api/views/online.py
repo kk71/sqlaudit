@@ -41,17 +41,17 @@ class ObjectRiskListHandler(AuthReq):
         if not cmdb:
             self.resp_bad_req(msg=f"不存在编号为{cmdb_id}的cmdb。")
             return
+        result_q = Results.objects(cmdb_id=cmdb_id, rule_type=rule_utils.RULE_TYPE_OBJ)
         if schema_name:
             if schema_name not in \
                     cmdb_utils.get_current_schema(session, self.current_user, cmdb_id):
                 self.resp_bad_req(msg=f"无法在编号为{cmdb_id}的数据库中"
                 f"操作名为{schema_name}的schema。")
                 return
+            result_q = result_q.filter(schema_name=schema_name)
 
         risk_rule_q = session.query(RiskSQLRule). \
             filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ)
-        result_q = Results.objects(
-            cmdb_id=cmdb_id, schema_name=schema_name, rule_type=rule_utils.RULE_TYPE_OBJ)
         if risk_sql_rule_id_list:
             risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                              in_(risk_sql_rule_id_list))

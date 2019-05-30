@@ -2,6 +2,8 @@
 
 import sqlparse
 
+import utils.cmdb_utils
+
 
 class SqlText(object):
 
@@ -95,7 +97,7 @@ class SqlText(object):
     def get_text(self, db_type):
         if db_type == "mysql":
             return self.get_mysql_text()
-        elif db_type == "O":
+        elif db_type == utils.cmdb_utils.DB_ORACLE:
             return self.get_oracle_text()
 
     def get_stat(self, sql_id):

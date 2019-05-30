@@ -6,6 +6,7 @@ import settings
 
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+
 def webui_logger(log_file: str, formatter=None, add_sys=True, level=logging.INFO):
     u"""Return logger."""
 
@@ -34,6 +35,7 @@ def webui_logger(log_file: str, formatter=None, add_sys=True, level=logging.INFO
 
     return logger
 
+
 def get_logger(filename, logger_name=None, formatter=None, level=None, add_sys=True, show_screen=False):
     u"""Return logger."""
     if not logger_name:
@@ -59,7 +61,7 @@ def get_logger(filename, logger_name=None, formatter=None, level=None, add_sys=T
         stderr_hdlr.setLevel(logging.WARNING)
         logger.addHandler(stderr_hdlr)
 
-    file_handler = logging.FileHandler(u'/var/log/O18/%s.log' % filename)
+    file_handler = logging.FileHandler('/tmp/%s.log' % filename)
     file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
 
