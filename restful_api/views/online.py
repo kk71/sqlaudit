@@ -478,7 +478,7 @@ class SQLRiskDetailHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "sql_id": scm_str,
-            "risk_sql_rule_id": scm_dot_split_int,
+            Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
         }))
@@ -489,8 +489,13 @@ class SQLRiskDetailHandler(AuthReq):
         date_end = params.pop("date_end")
         del params  # shouldn't use params anymore
         with make_session() as session:
-            risk_rules = session.query(RiskSQLRule).filter(RiskSQLRule.risk_sql_rule_id.
-                                                           in_(risk_rule_id_list))
+            risk_rules = session.query(RiskSQLRule)
+            if risk_rule_id_list:
+                # 给出了risk sql id就好办
+                risk_rules = risk_rules.filter(
+                    RiskSQLRule.risk_sql_rule_id.in_(risk_rule_id_list))
+            else:
+                rule_utils.get_all_risk_towards_a_sql(session, sql_id, (date_start, date_end))
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id).\
                 order_by("-etl_date").\

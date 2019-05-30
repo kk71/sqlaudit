@@ -3,8 +3,10 @@
 import re
 import json
 
+from mongoengine import Q
+
 from models.oracle import RiskSQLRule
-from models.mongo import Rule
+from models.mongo import Rule, Results
 
 
 # 业务类型
@@ -106,3 +108,39 @@ def get_risk_rules_dict(session) -> dict:
     # TODO make it cached
     risk_rule_list = list(session.query(RiskSQLRule).filter_by().all())
     return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}
+
+
+def get_all_risk_towards_a_sql(session, sql_id, date_range: tuple = ()):
+    """
+    用当前配置的风险规则，去遍历results
+    :param session:
+    :param sql_id:
+    :param date_range: a tuple of two datetime objects
+    :return:
+    """
+    risk_rule_dict = get_risk_rules_dict(session)
+    all_risk_rule_id_list = [i.risk_sql_rule_id
+                                 for i in risk_rule_dict.values()]
+    all_risk_rule_name_list = [i[2]  # 0db_type 1 db_model 2rule_name
+                                 for i in risk_rule_dict.keys()]
+    result_q = Results.objects()
+    date_start, date_end = date_range
+    if date_start:
+        result_q = result_q.filter(create_date__gte=date_start)
+    if date_end:
+        result_q = result_q.filter(create_date__lte=date_end)
+    Qs = None
+    for rn in all_risk_rule_name_list:
+        if not Qs:
+            Qs = Q(**{f"{rn}__sqls__sql_id": sql_id})
+        else:
+            Qs = Qs | Q(**{f"{rn}__sqls__sql_id": sql_id})
+    result_q = result_q.filter(Qs)
+    rule_name_set = set()
+    for r in result_q:
+        for rn in all_risk_rule_name_list:
+            if getattr(r, rn, None) and getattr(r, rn).get("sqls"):
+                rule_name_set.add(rn)
+    return list(session.query(RiskSQLRule).
+                filter(RiskSQLRule.rule_name.in_(list(rule_name_set))).
+                       with_entities(RiskSQLRule.risk_sql_rule_id))
