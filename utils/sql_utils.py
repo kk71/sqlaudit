@@ -282,9 +282,9 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
         },
         {
             "$group": {
-                "_id": "$sql_id",
-                "first_appearance": {"$min": "$etl_date"},
-                "last_appearance": {"$max": "$etl_date"},
+                "_id": "$SQL_ID",
+                "first_appearance": {"$min": "$ETL_DATE"},
+                "last_appearance": {"$max": "$ETL_DATE"},
                 "count": {"$sum": 1}
             }
         }
