@@ -1,6 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional
+from collections import defaultdict
+
+from schema import Schema, Optional, And
 
 from utils.schema_utils import *
 from .base import *
@@ -12,15 +14,25 @@ class CMDBHandler(AuthReq):
 
     def get(self):
         params = self.get_query_args(Schema({
+            Optional("current", default=False): scm_bool,  # 只返回当前登录用户可见的cmdb
+
+            # 精确匹配
             Optional("cmdb_id"): scm_int,
+            Optional("connect_name"): scm_unempty_str,
+            Optional("group_name"): scm_unempty_str,
+            Optional("business_name"): scm_unempty_str,
+
+            # 模糊匹配多个字段
+            Optional("keyword", default=None): scm_unempty_str,
+
+            # 分页
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
-            Optional("keyword", default=None): scm_unempty_str,
-            Optional("current", default=False): scm_bool  # 只返回当前登录用户可见的cmdb
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
-        p = {"page": params.pop("page"), "per_page": params.pop("per_page")}
+        p = self.pop_p(params)
+
         with make_session() as session:
             q = session.query(CMDB).filter_by(**params)
             if keyword:
@@ -144,6 +156,28 @@ class CMDBHandler(AuthReq):
         self.resp_created(msg="已删除。")
 
 
+class CMDBAggregationHandler(AuthReq):
+
+    def get(self):
+        """获取某个，某些字段的全部值的类型"""
+        params = self.get_query_args(Schema({
+            Optional("key"): And(
+                scm_dot_split_str,
+                scm_subset_of_choices(["connect_name", "group_name", "business_name"])
+            )
+        }))
+        key = params.pop("key")
+        with make_session() as session:
+            ret = defaultdict(set)
+            real_keys = [getattr(CMDB, k) for k in key]
+            query_ret = session.query(CMDB).all().with_entities(*real_keys)
+            for i, k in enumerate(key):
+                for qr in query_ret:
+                    ret[k].add(qr[i])
+            ret = {k: list(v) for k, v in ret.items()}
+            self.resp(ret)
+
+
 class SchemaHandler(AuthReq):
 
     def get(self):
@@ -151,6 +185,7 @@ class SchemaHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("current", default=False): scm_bool
+
         }))
         cmdb_id = params.pop("cmdb_id")
         current = params.pop("current")
@@ -172,3 +207,13 @@ class SchemaHandler(AuthReq):
 
         }))
         self.resp_created()
+
+
+class CMDBHealthTrendHandler(AuthReq):
+
+    def post(self):
+        """健康评分趋势图"""
+        params = self.get_json_args(Schema({
+            "cmdb_id_list": list
+        }))
+        cmdb_id_list = params.pop("cmdb_id_list")

@@ -12,8 +12,8 @@ class EmbeddedJobDesc(EmbeddedDocument):
     owner = StringField(help_text="schema")
     rule_type = StringField()
     instance_name = StringField()
-    capture_time_start = DateTimeField(db_field="capture_time_s")
-    capture_time_end = DateTimeField(db_field="capture_time_e")
+    capture_time_start = DateTimeField()
+    capture_time_end = DateTimeField()
 
 
 class Job(BaseDoc):

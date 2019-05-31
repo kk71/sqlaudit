@@ -34,6 +34,8 @@ urls += [
 urls += [
     (r"/api/cmdb/cmdbs", cmdb.CMDBHandler),
     (r"/api/cmdb/schemas", cmdb.SchemaHandler),
+    (r"/api/cmdb/trend", cmdb.CMDBHealthTrendHandler),
+    (r"/api/cmdb/aggregation", cmdb.CMDBAggregationHandler),
 ]
 
 # offline audit

@@ -5,7 +5,7 @@ from collections import defaultdict
 from schema import Optional, Schema, And
 
 from utils.schema_utils import *
-from utils import rule_utils, cmdb_utils
+from utils import rule_utils, cmdb_utils, result_utils
 from restful_api.views.base import AuthReq
 from models.mongo import *
 from models.oracle import *
@@ -18,7 +18,7 @@ class OnlineReportTaskListHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
-            "status": And(scm_int, scm_one_of_choices((0, 1, 2))),
+            "status": And(scm_int, scm_one_of_choices(result_utils.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
 
@@ -54,7 +54,8 @@ class OnlineReportTaskHandler(AuthReq):
     def calc_weighted_deduction(scores, total_score):
         return round(float(scores) * 100 / (total_score or 1), 2)
 
-    def calc_rules_and_score_in_one_result(self, result, cmdb) -> tuple:
+    @classmethod
+    def calc_rules_and_score_in_one_result(cls, result, cmdb) -> tuple:
         # TODO 需要确定这里查看的风险规则还是全部规则
         rule_dict = rule_utils.get_rules_dict()
         score_sum = 0
@@ -86,9 +87,9 @@ class OnlineReportTaskHandler(AuthReq):
                 rule_name_to_detail[rule_name]["rule"] = rule_object.to_dict(
                     iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
                 rule_name_to_detail[rule_name]["deduction"] += \
-                    self.calc_deduction(rule_result["scores"])
+                    cls.calc_deduction(rule_result["scores"])
                 rule_name_to_detail[rule_name]["weighted_deduction"] += \
-                    self.calc_weighted_deduction(
+                    cls.calc_weighted_deduction(
                         rule_result["scores"],
                         rule_utils.calc_sum_of_rule_max_score(
                             db_type=cmdb_utils.DB_ORACLE,
