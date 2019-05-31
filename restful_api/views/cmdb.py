@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 
+import arrow
 from schema import Schema, Optional, And
 
 from utils.schema_utils import *
@@ -161,7 +162,7 @@ class CMDBAggregationHandler(AuthReq):
     def get(self):
         """获取某个，某些字段的全部值的类型"""
         params = self.get_query_args(Schema({
-            Optional("key"): And(
+            "key": And(
                 scm_dot_split_str,
                 scm_subset_of_choices(["connect_name", "group_name", "business_name"])
             )
@@ -170,7 +171,7 @@ class CMDBAggregationHandler(AuthReq):
         with make_session() as session:
             ret = defaultdict(set)
             real_keys = [getattr(CMDB, k) for k in key]
-            query_ret = session.query(CMDB).all().with_entities(*real_keys)
+            query_ret = session.query(CMDB).with_entities(*real_keys)
             for i, k in enumerate(key):
                 for qr in query_ret:
                     ret[k].add(qr[i])
@@ -214,6 +215,22 @@ class CMDBHealthTrendHandler(AuthReq):
     def post(self):
         """健康评分趋势图"""
         params = self.get_json_args(Schema({
-            "cmdb_id_list": list
+            Optional("cmdb_id_list", default=()): list
         }))
+        now = arrow.now()
         cmdb_id_list = params.pop("cmdb_id_list")
+        with make_session() as session:
+            if cmdb_id_list:
+                cmdb_connect_name_list = [i[0] for i in session.query(CMDB).\
+                    filter(CMDB.cmdb_id.in_(cmdb_id_list)).with_entities(CMDB.connect_name)]
+                ret = {}
+                for cn in cmdb_connect_name_list:
+                    ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
+                        DataHealth.database_name == cn,
+                        DataHealth.collect_date > now.shift(weeks=-1).datetime,
+                        DataHealth.collect_date <= now.datetime,
+                    )]
+            else:
+                ret = cmdb_utils.get_latest_health_score_cmdb(session)
+                ret = ret[:10]
+            self.resp(ret)

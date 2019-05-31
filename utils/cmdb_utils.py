@@ -77,7 +77,7 @@ def get_latest_health_score_cmdb(session, user_login=None):
     :param user_login: 当前登录用户名，如果不给，则表示返回全部数据库的排名
     :return: [{"connect_name": str, "health_score": int, "collect_date": datetime}, ...]
     """
-    # TODO 这个函数可做缓存
+    # TODO make it cached!
 
     if user_login:
         all_connect_names: set = {i["connect_name"] for i in get_current_cmdb(session, user_login)}
