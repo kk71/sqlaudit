@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Optional, Schema
+from schema import Optional, Schema, And
 
 from utils.schema_utils import *
 from utils import rule_utils
@@ -16,7 +16,7 @@ class OnlineReportTaskListHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
-            "status": scm_one_of_choices((0, 1, 2), p=scm_int),
+            "status": And(scm_int, scm_one_of_choices((0, 1, 2))),
             Optional("date_start", default=None): scm_datetime,
             Optional("date_end", default=None): scm_datetime,
 
@@ -24,8 +24,11 @@ class OnlineReportTaskListHandler(AuthReq):
             Optional("per_page", default=10): scm_int,
         }))
         p = self.pop_p(params)
+        schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         job_q = Job.objects(**params)
+        if schema_name:
+            job_q = job_q.filter(desc__owner=schema_name)
         if date_start:
             job_q = job_q.filter(create_time__gte=date_start)
         if date_end:
