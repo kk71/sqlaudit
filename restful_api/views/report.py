@@ -19,8 +19,8 @@ class OnlineReportTaskListHandler(AuthReq):
             Optional("cmdb_id"): scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
             "status": And(scm_int, scm_one_of_choices((0, 1, 2))),
-            Optional("date_start", default=None): scm_datetime,
-            Optional("date_end", default=None): scm_datetime,
+            Optional("date_start", default=None): scm_date,
+            Optional("date_end", default=None): scm_date,
 
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
@@ -60,11 +60,21 @@ class OnlineReportTaskHandler(AuthReq):
             db_type, db_model, rule_name = k
             rule_result = getattr(result, rule_name, None)
             if rule_result:
+                if result.rule_type == rule_utils.RULE_TYPE_OBJ:
+                    rule_name_to_detail[rule_name]["violated_num"] += \
+                        len(rule_result.get("records", []))
+
+                if result.rule_type in [
+                    rule_utils.RULE_TYPE_TEXT,
+                    rule_utils.RULE_TYPE_SQLSTAT,
+                    rule_utils.RULE_TYPE_SQLPLAN]:
+                    pass
+                else:
+                    assert 0
 
                 score_sum += rule_result["scores"]
                 rule_name_to_detail[rule_name]["rule"] = rule_object.to_dict(
                     iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
-                rule_name_to_detail[rule_name]["violated_num"] += 1
                 rule_name_to_detail[rule_name]["deduction"] += 1
 
         return ()
