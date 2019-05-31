@@ -104,9 +104,6 @@ def get_rules_dict() -> dict:
 def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     """
     计算某个类型的规则的最大分总合
-    :param db_type:
-    :param db_model:
-    :return:
     """
     # TODO make it cached
     rule_q = Rule.objects(db_type=db_type, db_model=db_model, rule_type=rule_type)

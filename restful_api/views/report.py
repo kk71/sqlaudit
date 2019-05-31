@@ -51,14 +51,17 @@ class OnlineReportTaskHandler(AuthReq):
         return round(float(scores) / 1.0, 2)
 
     @staticmethod
-    def calc_weighted_deduction(scores, total_score):
-        return round(float(scores) * 100 / (total_score or 1), 2)
+    def calc_weighted_deduction(scores, max_score_sum):
+        return round(float(scores) * 100 / (max_score_sum or 1), 2)
 
     @classmethod
     def calc_rules_and_score_in_one_result(cls, result, cmdb) -> tuple:
-        # TODO 需要确定这里查看的风险规则还是全部规则
-        rule_dict = rule_utils.get_rules_dict()
-        score_sum = 0
+        score_sum_of_all_rule_scores_in_result = 0
+        max_score_sum = rule_utils.calc_sum_of_rule_max_score(
+            db_type=cmdb_utils.DB_ORACLE,
+            db_model=cmdb.db_model,
+            rule_type=result.rule_type
+        )
         rule_name_to_detail = defaultdict(lambda: {
             "violated_num": 0,
             "rule": {},
@@ -66,39 +69,38 @@ class OnlineReportTaskHandler(AuthReq):
             "weighted_deduction": 0.0
         })
 
-        for k, rule_object in rule_dict.items():
-            db_type, db_model, rule_name = k
-            rule_result = getattr(result, rule_name, None)
+        for rule_object in Rule.objects(rule_type=result.rule_type,
+                                        db_model=cmdb.db_model,
+                                        db_type=cmdb_utils.DB_ORACLE):
+            rule_result = getattr(result, rule_object.rule_name, None)
             if rule_result:
                 if result.rule_type == rule_utils.RULE_TYPE_OBJ:
-                    rule_name_to_detail[rule_name]["violated_num"] += \
+                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
                         len(rule_result.get("records", []))
 
                 if result.rule_type in [
                     rule_utils.RULE_TYPE_TEXT,
                     rule_utils.RULE_TYPE_SQLSTAT,
                     rule_utils.RULE_TYPE_SQLPLAN]:
-                    rule_name_to_detail[rule_name]["violated_num"] += \
+                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
                         len(rule_result.get("sqls", []))
                 else:
                     assert 0
 
-                score_sum += float(rule_result["scores"])
-                rule_name_to_detail[rule_name]["rule"] = rule_object.to_dict(
+                score_sum_of_all_rule_scores_in_result += round(float(rule_result["scores"]) / 1.0, 2)
+                rule_name_to_detail[rule_object.rule_name]["rule"] = rule_object.to_dict(
                     iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
-                rule_name_to_detail[rule_name]["deduction"] += \
+                rule_name_to_detail[rule_object.rule_name]["deduction"] += \
                     cls.calc_deduction(rule_result["scores"])
-                rule_name_to_detail[rule_name]["weighted_deduction"] += \
+                rule_name_to_detail[rule_object.rule_name]["weighted_deduction"] += \
                     cls.calc_weighted_deduction(
                         rule_result["scores"],
-                        rule_utils.calc_sum_of_rule_max_score(
-                            db_type=cmdb_utils.DB_ORACLE,
-                            db_model=cmdb.db_model,
-                            rule_type=result.rule_type
-                        )
+                        max_score_sum=max_score_sum
                     )
+        scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) / max_score_sum * 100 or 1, 2)
+        scores_total = scores_total if scores_total > 40 else 40
 
-        return list(rule_name_to_detail.values()), score_sum
+        return list(rule_name_to_detail.values()), scores_total
 
     def get(self):
         """在线查看某个报告"""
