@@ -220,17 +220,18 @@ class CMDBHealthTrendHandler(AuthReq):
         now = arrow.now()
         cmdb_id_list = params.pop("cmdb_id_list")
         with make_session() as session:
-            if cmdb_id_list:
+            if not cmdb_id_list:
+                # 如果没有给出cmdb_id，则去查找最近的健康度，把最差的前十个拿出来
+                cmdb_connect_name_list = [i["connect_name"]
+                                for i in cmdb_utils.get_latest_health_score_cmdb(session)[:10]]
+            else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB).\
                     filter(CMDB.cmdb_id.in_(cmdb_id_list)).with_entities(CMDB.connect_name)]
-                ret = {}
-                for cn in cmdb_connect_name_list:
-                    ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
-                        DataHealth.database_name == cn,
-                        DataHealth.collect_date > now.shift(weeks=-1).datetime,
-                        DataHealth.collect_date <= now.datetime,
-                    )]
-            else:
-                ret = cmdb_utils.get_latest_health_score_cmdb(session)
-                ret = ret[:10]
+            ret = {}
+            for cn in cmdb_connect_name_list:
+                ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
+                    DataHealth.database_name == cn,
+                    DataHealth.collect_date > now.shift(weeks=-1).datetime,
+                    DataHealth.collect_date <= now.datetime,
+                )]
             self.resp(ret)
