@@ -40,7 +40,6 @@ class OnlineReportTaskListHandler(AuthReq):
             for j in jobs_to_ret:
                 ret.append({
                     "cmdb": cmdb_dict[j.cmdb_id],
-                    "rule_type": j.name.split("#")[1].upper(),  # THAT'S SO BAD
                     **j.to_dict()
                 })
             self.resp(ret, **p)
