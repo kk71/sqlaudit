@@ -9,6 +9,7 @@ from types import FunctionType
 
 # must initiate models first!
 from models import Session, base
+from utils import schema_utils
 
 
 @contextmanager
@@ -59,7 +60,7 @@ class BaseModel(base):
                 v = iter_by(k, v)
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
-                d[k] = arrow.get(d[k]).format('YYYY-MM-DDTHH:mm:ss')
+                d[k] = arrow.get(d[k]).format(schema_utils.COMMON_DATETIME_FORMAT)
             elif datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format("YYYY-MM-DD")
+                d[k] = arrow.get(d[k]).format(schema_utils.COMMON_DATE_FORMAT)
         return d
