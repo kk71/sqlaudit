@@ -5,7 +5,7 @@ from collections import defaultdict
 from schema import Optional, Schema, And
 
 from utils.schema_utils import *
-from utils import rule_utils
+from utils import rule_utils, cmdb_utils
 from restful_api.views.base import AuthReq
 from models.mongo import *
 from models.oracle import *
@@ -46,7 +46,15 @@ class OnlineReportTaskListHandler(AuthReq):
 
 class OnlineReportTaskHandler(AuthReq):
 
-    def calc_rules_and_score_in_one_result(self, session, result) -> tuple:
+    @staticmethod
+    def calc_deduction(scores):
+        return round(float(scores) / 1.0, 2)
+
+    @staticmethod
+    def calc_weighted_deduction(scores, total_score):
+        return round(float(scores) * 100 / (total_score or 1), 2)
+
+    def calc_rules_and_score_in_one_result(self, result, cmdb) -> tuple:
         # TODO 需要确定这里查看的风险规则还是全部规则
         rule_dict = rule_utils.get_rules_dict()
         score_sum = 0
@@ -56,6 +64,7 @@ class OnlineReportTaskHandler(AuthReq):
             "deduction": 0.0,
             "weighted_deduction": 0.0
         })
+
         for k, rule_object in rule_dict.items():
             db_type, db_model, rule_name = k
             rule_result = getattr(result, rule_name, None)
@@ -68,36 +77,48 @@ class OnlineReportTaskHandler(AuthReq):
                     rule_utils.RULE_TYPE_TEXT,
                     rule_utils.RULE_TYPE_SQLSTAT,
                     rule_utils.RULE_TYPE_SQLPLAN]:
-                    pass
+                    rule_name_to_detail[rule_name]["violated_num"] += \
+                        len(rule_result.get("sqls", []))
                 else:
                     assert 0
 
-                score_sum += rule_result["scores"]
+                score_sum += float(rule_result["scores"])
                 rule_name_to_detail[rule_name]["rule"] = rule_object.to_dict(
                     iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
-                rule_name_to_detail[rule_name]["deduction"] += 1
+                rule_name_to_detail[rule_name]["deduction"] += \
+                    self.calc_deduction(rule_result["scores"])
+                rule_name_to_detail[rule_name]["weighted_deduction"] += \
+                    self.calc_weighted_deduction(
+                        rule_result["scores"],
+                        rule_utils.calc_sum_of_rule_max_score(
+                            db_type=cmdb_utils.DB_ORACLE,
+                            db_model=cmdb.db_model,
+                            rule_type=result.rule_type
+                        )
+                    )
 
-        return ()
+        return list(rule_name_to_detail.values()), score_sum
 
     def get(self):
         """在线查看某个报告"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
-            "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE)
         }))
         job_id = params.pop("job_id")
-        rule_type = params.pop("rule_type")
         del params  # shouldn't use params anymore
         with make_session() as session:
-            job = Job.objects(_id=job_id).first()
+            job = Job.objects(id=job_id).first()
             result = Results.objects(task_uuid=job_id).first()
-            cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id)
-            rules_violated = []
+            cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
+            if not cmdb:
+                self.resp_not_found(msg="纳管数据库不存在")
+                return
+            rules_violated, score_sum = self.calc_rules_and_score_in_one_result(result, cmdb)
             self.resp({
                 "job_id": job_id,
                 "cmdb": cmdb.to_dict(),
                 "rules_violated": rules_violated,
-                "rule_type": rule_type,
+                "score_sum": score_sum,
                 "schema": job.desc["owner"]
             })
 

@@ -101,6 +101,18 @@ def get_rules_dict() -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.objects().all()}
 
 
+def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
+    """
+    计算某个类型的规则的最大分总合
+    :param db_type:
+    :param db_model:
+    :return:
+    """
+    # TODO make it cached
+    rule_q = Rule.objects(db_type=db_type, db_model=db_model, rule_type=rule_type)
+    return sum([float(rule.max_score) for rule in rule_q])
+
+
 def get_risk_rules_dict(session) -> dict:
     """
     parse all risk rules into a dict with 3-key indexing
