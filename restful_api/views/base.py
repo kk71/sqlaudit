@@ -45,9 +45,20 @@ class BaseReq(RequestHandler):
         args = list(args) + [self._resp_em(e)]
         return Or(*args)
 
-    def get_json_args(self, schema_object: Schema = None) -> Union[dict, list, None]:
+    def get_json_args(self,
+                      schema_object: Schema = None,
+                      default_body: str = None) -> Union[dict, list, None]:
+        """
+        获取非get请求情况下，http request body所带的json数据
+        :param schema_object:
+        :param default_body: 如果http request body没有数据，则用该数据替换，如果该数据为None，就报错
+        :return:
+        """
         try:
-            ja = json.loads(self.request.body)
+            if not self.request.body and default_body is not None:
+                ja = json.loads(default_body)
+            else:
+                ja = json.loads(self.request.body)
             if schema_object:
                 ja = schema_object.validate(ja)
         except SchemaError as e:

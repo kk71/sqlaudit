@@ -216,7 +216,7 @@ class CMDBHealthTrendHandler(AuthReq):
         """健康评分趋势图"""
         params = self.get_json_args(Schema({
             Optional("cmdb_id_list", default=()): list
-        }))
+        }), default_body="{}")
         now = arrow.now()
         cmdb_id_list = params.pop("cmdb_id_list")
         with make_session() as session:
