@@ -231,7 +231,7 @@ def render(template_name):
     return wrapper
 
 
-def get_time(timestamp=None, format=None, return_str=True):
+def get_time(timestamp=None, format=None, return_str=False):
     timestamp = timestamp or time.time()
     format = format or "%Y-%m-%d %X"
     if return_str:
