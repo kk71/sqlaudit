@@ -169,9 +169,9 @@ def run_default_script(host, port, sid, username, password, db_user, cmdb_id, co
     time.sleep(5)
 
     logger.info("run obj capture start...")
-    com.run_capture(host, port, sid, username, password, past.utils.utils.get_time(), "OBJ", connect_name, record_id, cmdb_id)
+    com.run_capture(host, port, sid, username, password, past.utils.utils.get_time(return_str=True), "OBJ", connect_name, record_id, cmdb_id)
     logger.info("run other capture start...")
-    com.run_capture(host, port, sid, username, password, past.utils.utils.get_time(format='%Y-%m-%d'), "OTHER", connect_name, record_id, cmdb_id)
+    com.run_capture(host, port, sid, username, password, past.utils.utils.get_time(format='%Y-%m-%d', return_str=True), "OTHER", connect_name, record_id, cmdb_id)
 
     print(">>>>>>>>>>>>>>>>>> now >>>>>>>>>>>>>>>>>")
     print(now)

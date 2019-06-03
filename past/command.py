@@ -15,6 +15,7 @@ import plain_db.oracleob
 
 import utils.cmdb_utils
 import utils.result_utils
+from utils.datetime_utils import *
 import models.mongo
 
 
@@ -94,15 +95,15 @@ class Command(object):
             past.capture.sql_obj_info.CaptureObj(
                 self.mongo_client,
                 db_client.get_db_cursor(),
-                capture_date,
+                arrow.get(capture_date).datetime,
                 host,
                 sid=sid,
                 record_id=record_id,
                 cmdb_id=cmdb_id
             ).run()
         elif flag_type == "OTHER":
-            startdate = " ".join([capture_date, "00:00:00"])
-            stopdate = " ".join([capture_date, "23:59:59"])
+            startdate = arrow.get(" ".join([capture_date, "00:00:00"])).datetime
+            stopdate = arrow.get(" ".join([capture_date, "23:59:59"])).datetime
             past.capture.sql_other_info.CaptureOther(
                 self.mongo_client,
                 db_client.get_db_cursor(),
