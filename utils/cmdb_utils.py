@@ -3,6 +3,7 @@
 import cx_Oracle
 
 from models.oracle import *
+from utils.datetime_utils import *
 
 import plain_db.oracleob
 
@@ -72,11 +73,12 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     return schemas
 
 
-def get_latest_health_score_cmdb(session, user_login=None):
+def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
     """
     获取用户可见的cmdb最新的health score排名
     :param session:
     :param user_login: 当前登录用户名，如果不给，则表示返回全部数据库的排名
+    :param collect_month: 仅搜索当前起前n个月的数据，没有搜索到的，当作无分数对待
     :return: [{"connect_name": str, "health_score": int, "collect_date": datetime}, ...]
     """
     # TODO make it cached!
@@ -84,8 +86,11 @@ def get_latest_health_score_cmdb(session, user_login=None):
     if user_login:
         all_connect_names: set = {i["connect_name"] for i in get_current_cmdb(session, user_login)}
     else:
-        all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().with_entities(CMDB.connect_name)}
-    dh_objects = session.query(DataHealth).filter_by().order_by(DataHealth.collect_date.desc()).all()
+        all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().
+            with_entities(CMDB.connect_name)}
+    dh_objects = session.query(DataHealth).filter(
+        DataHealth.collect_date >= arrow.now().shift(months=-collect_month).datetime
+    ).order_by(DataHealth.collect_date.desc()).all()
     ret = []
     for dh in dh_objects:
         dh_dict = dh.to_dict()
@@ -94,14 +99,14 @@ def get_latest_health_score_cmdb(session, user_login=None):
                 "connect_name": dh_dict.pop("database_name"),
                 **dh_dict
             })
-        if len(ret) == len(all_connect_names):
+        if {i["connect_name"] for i in ret}.issubset(all_connect_names):
             break
     # sort
     ret = sorted(ret, key=lambda x: x["health_score"])
 
     # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
-    if len(ret) != len(all_connect_names):
-        collected_connect_names: set = {i["connect_name"] for i in ret}
+    collected_connect_names: set = {i["connect_name"] for i in ret}
+    if not all_connect_names.issubset(collected_connect_names):
         for cn in all_connect_names:
             if cn not in collected_connect_names:
                 ret.append({
