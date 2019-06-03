@@ -25,7 +25,7 @@ def get_current_cmdb(session, user_login) -> list:
     :param user_login:
     :return: list of cmdb_id
     """
-    q = session.query(DataPrivilege).filter(DataPrivilege.login_user==user_login)
+    q = session.query(DataPrivilege).filter(DataPrivilege.login_user == user_login)
     return list({i.cmdb_id for i in q})
 
 
