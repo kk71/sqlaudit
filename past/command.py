@@ -102,8 +102,8 @@ class Command(object):
                 cmdb_id=cmdb_id
             ).run()
         elif flag_type == "OTHER":
-            startdate = arrow.get(" ".join([capture_date, "00:00:00"])).datetime
-            stopdate = arrow.get(" ".join([capture_date, "23:59:59"])).datetime
+            startdate = " ".join([capture_date, "00:00:00"])
+            stopdate = " ".join([capture_date, "23:59:59"])
             past.capture.sql_other_info.CaptureOther(
                 self.mongo_client,
                 db_client.get_db_cursor(),
