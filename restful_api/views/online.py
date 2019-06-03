@@ -604,8 +604,8 @@ class TableInfoHandler(AuthReq):
             "schema_name": scm_unempty_str,
             "table_name": scm_unempty_str
         }))
-        table_name = params.pop("table_name")
-        latest_tab_info = ObjTabInfo.objects(table_name=table_name).order_by("-etl_date").first()
+        latest_tab_info = ObjTabInfo.objects(table_name=params["table_name"]).\
+            order_by("-etl_date").first()
         if not latest_tab_info:
             self.resp({}, msg="无数据。")
             return
