@@ -24,7 +24,7 @@ class TaskManage(BaseModel):
     group_name = Column("GROUP_NAME", String)
     business_name = Column("BUSINESS_NAME", String)
     machine_room = Column("MACHINE_ROOM", Integer)
-    database_type = Column("DATABASE_TYPE", String)
+    database_type = Column("DATABASE_TYPE", Integer)
     server_name = Column("SERVER_NAME", String)
     ip_address = Column("IP_ADDRESS", String)
     port = Column("PORT", Integer)

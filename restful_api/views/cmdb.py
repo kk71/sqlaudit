@@ -2,10 +2,10 @@
 
 from collections import defaultdict
 
-import arrow
 from schema import Schema, Optional, And
 
 from utils.schema_utils import *
+from utils.datetime_utils import *
 from .base import *
 from utils import cmdb_utils
 from models.oracle import *
@@ -14,6 +14,7 @@ from models.oracle import *
 class CMDBHandler(AuthReq):
 
     def get(self):
+        """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
             Optional("current", default=False): scm_bool,  # 只返回当前登录用户可见的cmdb
 
@@ -71,10 +72,6 @@ class CMDBHandler(AuthReq):
                     })
             self.resp(ret, **p)
 
-    def check_for_cmdb_integrity(self, session):
-        """检查cmdb的数据的统一形制"""
-        return True or False
-
     def post(self):
         """增加CMDB"""
         params = self.get_json_args(Schema({
@@ -107,11 +104,32 @@ class CMDBHandler(AuthReq):
             if session.query(CMDB).filter_by(connect_name=params["connect_name"]).first():
                 self.resp_bad_req(msg="连接名称已存在")
 
-            # TODO 需要连接数据库做测试
-
             session.add(new_cmdb)
             session.commit()
             session.refresh(new_cmdb)
+
+            # 连接数据库做测试
+            test_rst = cmdb_utils.test_cmdb_connectivity(new_cmdb)
+            if not test_rst["connectivity"]:
+                session.rollback()
+                self.resp(msg="数据库连接测试失败。")
+                return
+
+            # 创建任务的数据库字段信息
+            task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
+                "connect_name",
+                "group_name",
+                "business_name",
+                "machine_room",
+                "database_type",
+                "server_name",
+                "ip_address",
+                "port",
+                "cmdb_id"
+            ))
+            new_task = TaskManage(task_status=True, **task_dict)
+            session.add(new_task)
+            session.commit()
             self.resp_created(new_cmdb.to_dict())
 
     def patch(self):
@@ -140,11 +158,42 @@ class CMDBHandler(AuthReq):
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             the_cmdb.from_dict(params)
+            if session.query(CMDB).filter_by(connect_name=the_cmdb.connect_name).count() > 1:
+                self.resp_bad_req(msg=f"连接名称'{the_cmdb.connect_name}'已存在。")
+                return
+
+            # 同步更新全部任务的数据库字段信息
+            session.query(TaskManage).filter_by(cmdb_id=the_cmdb.cmdb_id).update(
+                the_cmdb.to_dict(iter_if=lambda k, v: k in (
+                    "connect_name",
+                    "group_name",
+                    "business_name",
+                    "machine_room",
+                    "database_type",
+                    "server_name",
+                    "ip_address",
+                    "port"
+                ))
+            )
+
+            # 更新采集开关
+            if the_cmdb.is_collect:
+                session.query(TaskManage).filter_by(cmdb_id=the_cmdb.cmdb_id).\
+                    update({"task_status": True})
+            else:
+                session.query(TaskManage).filter_by(cmdb_id=the_cmdb.cmdb_id). \
+                    update({"task_status": False})
 
             session.add(the_cmdb)
             session.commit()
             session.refresh(the_cmdb)
-            self.resp_created(the_cmdb.to_dict())
+
+            test_rst = cmdb_utils.test_cmdb_connectivity(the_cmdb)
+            if not test_rst["connectivity"]:
+                session.rollback()
+                self.resp(msg="数据库连接测试失败。")
+            else:
+                self.resp_created(the_cmdb.to_dict())
 
     def delete(self):
         """删除CMDB"""
@@ -154,7 +203,17 @@ class CMDBHandler(AuthReq):
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
+            session.query(TaskManage).filter_by(**params).delete()
         self.resp_created(msg="已删除。")
+
+    def options(self):
+        """测试连接是否成功"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int
+        }))
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(**params).first()
+            self.resp(cmdb_utils.test_cmdb_connectivity(cmdb))
 
 
 class CMDBAggregationHandler(AuthReq):
@@ -227,11 +286,26 @@ class CMDBHealthTrendHandler(AuthReq):
             else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB).\
                     filter(CMDB.cmdb_id.in_(cmdb_id_list)).with_entities(CMDB.connect_name)]
-            ret = {}
+            # ret = {}
+            # for cn in cmdb_connect_name_list:
+            #     ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
+            #         DataHealth.database_name == cn,
+            #         DataHealth.collect_date > now.shift(weeks=-1).datetime,
+            #         DataHealth.collect_date <= now.datetime,
+            #     )]
+            # self.resp(ret)
+            ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cn in cmdb_connect_name_list:
-                ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
+                dh_q = session.query(DataHealth).filter(
                     DataHealth.database_name == cn,
                     DataHealth.collect_date > now.shift(weeks=-1).datetime,
-                    DataHealth.collect_date <= now.datetime,
-                )]
+                    DataHealth.collect_date <= now.datetime
+                ).order_by(DataHealth.collect_date)
+                for dh in dh_q:
+                    ret[dh.collect_date.date()][dh.database_name] = dh.health_score
+            ret = [{
+                "date": d_to_str(k),
+                **v
+            } for k, v in ret.items()]
             self.resp(ret)
+

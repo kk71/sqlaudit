@@ -2,12 +2,10 @@
 
 from types import FunctionType
 from typing import *
-from datetime import date, datetime
 
-import arrow
 from mongoengine import DynamicDocument, EmbeddedDocument
 
-from utils import schema_utils
+from utils.datetime_utils import *
 
 
 class BaseDoc(DynamicDocument):
@@ -59,8 +57,8 @@ class BaseDoc(DynamicDocument):
                     f: getattr(v, f, None) for f in v._fields})
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
-                d[k] = arrow.get(d[k]).format(schema_utils.COMMON_DATETIME_FORMAT)
+                d[k] = arrow.get(d[k]).format(COMMON_DATETIME_FORMAT)
             elif datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format(schema_utils.COMMON_DATE_FORMAT)
+                d[k] = arrow.get(d[k]).format(COMMON_DATE_FORMAT)
         return d
 

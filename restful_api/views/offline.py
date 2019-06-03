@@ -5,12 +5,12 @@ from os import path
 from collections import OrderedDict
 
 import xlrd
-import arrow
 import xlsxwriter
 from schema import Schema, Optional, And
 
 import settings
 from utils.schema_utils import *
+from utils.datetime_utils import *
 from utils import sql_utils, stream_utils
 from .base import AuthReq
 from models.mongo import *
@@ -503,7 +503,7 @@ class ExportSubTicketHandler(SubTicketHandler):
                       "上线状态", "错误信息", "备注"]
             for x, field in enumerate(fields):
                 ws.write(0, x, field.upper(), format_title)
-            convert_datetime_to_str = lambda x: arrow.get(x).strftime('YYYY-MM-DD HH:mm:ss')
+            convert_datetime_to_str = lambda x: arrow.get(x).strftime(COMMON_DATETIME_FORMAT)
             for row_num, sub_ticket in enumerate(q.all()):
                 row_num += 1
                 ws.write(row_num, 0, sub_ticket.work_list_id, format_text)
