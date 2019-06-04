@@ -193,12 +193,12 @@ class CMDBHandler(AuthReq):
             session.commit()
             session.refresh(the_cmdb)
 
-            test_rst = cmdb_utils.test_cmdb_connectivity(the_cmdb)
-            if not test_rst["connectivity"]:
-                session.rollback()
-                self.resp(msg="数据库连接测试失败。")
-            else:
-                self.resp_created(the_cmdb.to_dict())
+            # test_rst = cmdb_utils.test_cmdb_connectivity(the_cmdb)
+            # if not test_rst["connectivity"]:
+            #     session.rollback()
+            #     self.resp(msg="数据库连接测试失败。")
+            # else:
+            #     self.resp_created(the_cmdb.to_dict())
 
     def delete(self):
         """删除CMDB"""
@@ -291,14 +291,6 @@ class CMDBHealthTrendHandler(AuthReq):
             else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB).\
                     filter(CMDB.cmdb_id.in_(cmdb_id_list)).with_entities(CMDB.connect_name)]
-            # ret = {}
-            # for cn in cmdb_connect_name_list:
-            #     ret[cn] = [i.to_dict() for i in session.query(DataHealth).filter(
-            #         DataHealth.database_name == cn,
-            #         DataHealth.collect_date > now.shift(weeks=-1).datetime,
-            #         DataHealth.collect_date <= now.datetime,
-            #     )]
-            # self.resp(ret)
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cn in cmdb_connect_name_list:
                 dh_q = session.query(DataHealth).filter(
