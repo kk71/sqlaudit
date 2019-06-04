@@ -39,6 +39,7 @@ class TaskHandler(AuthReq):
                     order_by(TaskExecHistory.task_end_date.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
+                ret.append(t_dict)
             self.resp(ret, **p)
 
     def patch(self):
