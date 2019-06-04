@@ -22,5 +22,6 @@ __ALL__ = [
     "RiskSQLRule",
     "WorkListAnalyseTemp",
     "DataHealth",
-    "TaskManage"
+    "TaskManage",
+    "TaskExecHistory"
 ]

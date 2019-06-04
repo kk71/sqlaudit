@@ -46,3 +46,5 @@ class DataPrivilege(BaseModel):
     schema_name = Column("SCHEMA_NAME", String)
     create_date = Column("CREATE_DATE", DATE, primary_key=True)
     comments = Column("COMMENTS", String)
+
+

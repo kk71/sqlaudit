@@ -38,6 +38,12 @@ urls += [
     (r"/api/cmdb/aggregation", cmdb.CMDBAggregationHandler),
 ]
 
+# Task
+urls += [
+    (r"/api/task/task", task.TaskHandler),
+    (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
+]
+
 # offline audit
 urls += [
     (r"/api/offline/ticket", offline.TicketHandler),

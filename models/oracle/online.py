@@ -37,3 +37,17 @@ class TaskManage(BaseModel):
     task_create_date = Column("TASK_CREATE_DATE", DATE)
     cmdb_id = Column("CMDB_ID", Integer)
     task_exec_frequency = Column("TASK_EXEC_FREQUENCY", Integer)
+
+
+class TaskExecHistory(BaseModel):
+    """任务执行历史"""
+    __tablename__ = "T_TASK_EXEC_HISTORY"
+    id = Column("ID", Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
+    task_id = Column("TASK_ID", Integer)
+    connect_name = Column("CONNECT_NAME", String)
+    business_name = Column("BUSINESS_NAME", String)
+    task_start_date = Column("TASK_START_DATE", DATE)
+    task_end_date = Column("TASK_END_DATE", DATE)
+    status = Column("STATUS", Boolean)
+    error_msg = Column("ERROR_MSG", String)
+    task_uuid = Column("TASK_UUID", String)
