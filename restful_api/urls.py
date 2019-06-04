@@ -40,7 +40,7 @@ urls += [
 
 # Task
 urls += [
-    (r"/api/task/task", task.TaskHandler),
+    (r"/api/task/tasks", task.TaskHandler),
     (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
 ]
 
