@@ -113,13 +113,6 @@ class CMDBHandler(AuthReq):
             session.commit()
             session.refresh(new_cmdb)
 
-            # 连接数据库做测试
-            # test_rst = cmdb_utils.test_cmdb_connectivity(new_cmdb)
-            # if not test_rst["connectivity"]:
-            #     session.rollback()
-            #     self.resp(msg="数据库连接测试失败。")
-            #     return
-
             # 创建任务的数据库字段信息
             task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
                 "connect_name",
@@ -192,13 +185,7 @@ class CMDBHandler(AuthReq):
             session.add(the_cmdb)
             session.commit()
             session.refresh(the_cmdb)
-
-            # test_rst = cmdb_utils.test_cmdb_connectivity(the_cmdb)
-            # if not test_rst["connectivity"]:
-            #     session.rollback()
-            #     self.resp(msg="数据库连接测试失败。")
-            # else:
-            #     self.resp_created(the_cmdb.to_dict())
+            self.resp_created(the_cmdb.to_dict())
 
     def delete(self):
         """删除CMDB"""
