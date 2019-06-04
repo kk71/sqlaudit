@@ -5,7 +5,6 @@ from schema import Schema, Optional, And, Or
 from .base import AuthReq
 from models.oracle import *
 from utils.schema_utils import *
-from utils.datetime_utils import *
 
 
 class TaskHandler(AuthReq):
@@ -50,13 +49,14 @@ class TaskHandler(AuthReq):
             "task_id": scm_int,
 
             Optional("task_status"): scm_bool,
-            Optional("task_schedule_date"): scm_time,
+            Optional("task_schedule_date"): scm_unempty_str,
             Optional("task_exec_frequency"): scm_int
         }))
         task_id = params.pop("task_id")
-        if "task_schedule_date" in params.keys():
-            params["task_schedule_date"] = params["task_schedule_date"].\
-                strftime("%H:%M")[:5]
+        # if "task_schedule_date" in params.keys():
+        #     数据库字段是文本，所以要转回文本。
+            # params["task_schedule_date"] = params["task_schedule_date"].\
+            #     strftime("%H:%M")[:5]
         with make_session() as session:
             session.query(TaskManage).filter_by(task_id=task_id).update(params)
             self.resp_created()
