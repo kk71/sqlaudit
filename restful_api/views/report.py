@@ -188,7 +188,7 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 records = [{
                     "sql_id": i["sql_id"],
                     "sql_text": i["sql_text"]
-                } for i in rule_dict_in_rst]
+                } for i in rule_dict_in_rst["sqls"]]
                 if records:
                     columns = list(records[0].keys())
 
@@ -216,16 +216,17 @@ class OnlineReportSQLPlanHandler(AuthReq):
 
         sql = SQLText.objects(sql_id=sql_id).first()
         result = Results.objects(task_uuid=job_id).first()
+        rule_dict_in_rst = getattr(result, rule_name, {})
         execution_stat = {}
         plan_hash_value = 0
         plans = []
-        for sql_dict in getattr(result, rule_name, {}).get("sqls", []):
-            if sql_dict and sql_dict["rule_name"] == rule_name:
-                execution_stat = sql_dict["stat"]
-                plan_hash_value = sql_dict["plan_hash_value"]
-                break
+        if result.rule_type in (rule_utils.RULE_TYPE_SQLPLAN, rule_utils.RULE_TYPE_SQLSTAT):
+            for sql_dict in rule_dict_in_rst.get("sqls", []):
+                if sql_dict and sql_dict["sql_id"] == sql_id:
+                    execution_stat = sql_dict["stat"]
+                    plan_hash_value = sql_dict["plan_hash_value"]
+                    break
         if plan_hash_value:
-
             plans = [i.to_dict(iter_if=lambda k, v:k in (
                 "operation",
                 "options",
@@ -233,7 +234,8 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "object_name",
                 "cost",
                 "cardinality"
-            )) for i in MSQLPlan.objects(plan_hash_value=plan_hash_value, sql_id=sql_id).order_by("-etl_date")]
+            )) for i in MSQLPlan.objects(plan_hash_value=plan_hash_value, sql_id=sql_id).
+                order_by("-etl_date")]
 
         self.resp({
             "sql_text": sql.sql_text,
