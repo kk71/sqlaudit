@@ -204,10 +204,45 @@ class OnlineReportSQLPlanHandler(AuthReq):
 
     def get(self):
         """在线查看报告sql执行计划信息（仅适用于非obj）"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "sql_id": scm_unempty_str,
+            "job_id": scm_unempty_str,
+            "rule_name": scm_unempty_str
+        }))
+        sql_id = params.pop("sql_id")
+        job_id = params.pop("job_id")
+        rule_name = params.pop("rule_name")
+        del params
+
+        sql = SQLText.objects(sql_id=sql_id).first()
+        result = Results.objects(task_uuid=job_id).first()
+        execution_stat = {}
+        plan_hash_value = 0
+        plans = []
+        for sql_dict in getattr(result, rule_name, {}).get("sqls", []):
+            if sql_dict and sql_dict["rule_name"] == rule_name:
+                execution_stat = sql_dict["stat"]
+                plan_hash_value = sql_dict["plan_hash_value"]
+                break
+        if plan_hash_value:
+
+            plans = [i.to_dict(iter_if=lambda k, v:k in (
+                "operation",
+                "options",
+                "object_owner",
+                "object_name",
+                "cost",
+                "cardinality"
+            )) for i in MSQLPlan.objects(plan_hash_value=plan_hash_value, sql_id=sql_id).order_by("-etl_date")]
+
+        self.resp({
+            "sql_text": sql.sql_text,
+            "sql_plan": plans,
+            "execution_stat": execution_stat
+        })
 
 
-class ExportReportXlsxHandler(AuthReq):
+class ExportReportXLSXHandler(AuthReq):
 
     def get(self):
         """导出报告为xlsx"""
