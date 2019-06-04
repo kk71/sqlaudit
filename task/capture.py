@@ -5,6 +5,11 @@ from celery import Celery, platforms
 
 import settings
 
+
+from models import init_models
+init_models()
+
+
 import past.command
 import plain_db.oracleob
 import past.utils.utils
@@ -12,11 +17,6 @@ import past.utils.log
 import past.utils.health_data_gen
 
 import utils.cmdb_utils
-
-
-from models import init_models
-init_models()
-
 
 
 platforms.C_FORCE_ROOT = True
