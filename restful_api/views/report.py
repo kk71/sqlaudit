@@ -141,59 +141,56 @@ class OnlineReportRuleDetailHandler(AuthReq):
         with make_session() as session:
             job = Job.objects(id=job_id).first()
             cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
-            rule = Rule(
+            rule = Rule.objects(
                 rule_name=rule_name,
                 rule_type=job.desc.rule_type,
                 db_model=cmdb.db_model
-            )
+            ).first()
             result = Results.objects(task_uuid=job_id).first()
-
+            rule_dict_in_rst = getattr(result, rule_name)
             records = []
             columns = []
 
             if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
-                for op in rule.output_parms:
-                    columns.append(op["parm_desc"])
-                if getattr(result, rule_name)["records"]:
-                    for r in getattr(result, rule_name)["records"]:
-                        if data not in records:
-                            records.append(dict(zip(columns, r)))
+                columns = [i["parm_desc"] for i in rule.output_parms]
+                for r in rule_dict_in_rst.get("records", []):
+                    if data not in records:
+                        records.append(dict(zip(columns, r)))
 
             elif rule.rule_type in [rule_utils.RULE_TYPE_SQLPLAN,
                                             rule_utils.RULE_TYPE_SQLSTAT]:
-                for key in results[rule_name]["sqls"]:
-                    if results[rule_name][key]["obj_name"]:
-                        obj_name = results[rule_name][key]["obj_name"]
+                for sql_dict in rule_dict_in_rst["sqls"]:
+                    if sql_dict.get("obj_name", None):
+                        obj_name = sql_dict["obj_name"]
                     else:
                         obj_name = "空"
-                    cost = results[rule_name][key].get("cost", None) \
-                        if results[rule_name][key].get("cost", None) else "空"
-                    if results[rule_name][key].get("stat"):
-                        count = results[rule_name][key].get("stat").get("ts_cnt", "空")
+                    if sql_dict.get("cost", None):
+                        cost = sql_dict["cost"]
+                    else:
+                        cost = "空"
+                    if sql_dict.get("stat", None):
+                        count = sql_dict["stat"].get("ts_cnt", "空")
                     else:
                         count = "空"
-                    records.append([
-                        key.split("#")[0],
-                        results[rule_name][key]["sql_text"],
-                        key.split("#")[1],
-                        key.split("#")[2],
-                        obj_name,
-                        cost,
-                        count
-                    ])
+                    records.append({
+                        "sql_id": sql_dict["sql_id"],
+                        "sql_text": sql_dict["sql_text"],
+                        "plan_hash_value": sql_dict["plan_hash_value"],
+                        "pos": "v",
+                        "object_name": obj_name,
+                        "cost": cost,
+                        "count": count
+                    })
+                if records:
+                    columns = list(records[0].keys())
 
             elif rule.rule_type == rule_utils.RULE_TYPE_TEXT:
-                for key in results[rule_name].keys():
-                    if "#" in key:
-                        sub_title = list(results[rule_name][key].keys())
-                        if len(results[rule_name][key]["sql_text"]) > 40:
-                            sqltext = results[rule_name][key]["sql_text"][:40]
-                        else:
-                            sqltext = results[rule_name][key]["sql_text"]
-                        records.append([key.split("#")[0], sqltext])
-                flag = rule_info["rule_type"]
-                title = rule_name
-                table_title = ""
+                records = [{
+                    "sql_id": i["sql_id"],
+                    "sql_text": i["sql_text"]
+                } for i in rule_dict_in_rst]
+                if records:
+                    columns = list(records[0].keys())
 
             self.resp({
                 "columns": columns,
