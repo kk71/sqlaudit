@@ -20,10 +20,12 @@ import utils.cmdb_utils
 
 
 platforms.C_FORCE_ROOT = True
-celery = Celery("task_capture",
+celery = Celery("capture",
                 backend=settings.REDIS_BACKEND,
                 broker=settings.REDIS_BROKER,
-                include=["task_capture", "task_exports"]
+                include=["capture",
+                         # "task_exports"
+                         ]
                 )
 logger = past.utils.log.get_logger("capture")
 celery.conf.update(settings.CELERY_CONF)

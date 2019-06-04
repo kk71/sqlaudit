@@ -69,10 +69,10 @@ CELERY_CONF = {
     'CELERY_QUEUE': {
         Queue('default', Exchange('default'), routing_key='default'),
         # Queue('task_exports', Exchange('task_exports'), routing_key='task_exports'),
-        # Queue('task_capture', Exchange('task_capture'), routing_key='task_capture'),
+        Queue('capture', Exchange('capture'), routing_key='capture'),
         # Queue('task_sqlaitune', Exchange('task_sqlaitune'), routing_key='task_sqlaitune'),
         # Queue('task_mail', Exchange('task_mail'), routing_key='task_mail'),
-        Queue('submit_ticket', Exchange('offline_ticket'), routing_key='submit_ticket'),
+        Queue('submit_ticket', Exchange('submit_ticket'), routing_key='submit_ticket'),
     },
     'CELERY_TIMEZONE': 'Asia/Shanghai',
 }
