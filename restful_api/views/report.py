@@ -130,7 +130,83 @@ class OnlineReportRuleDetailHandler(AuthReq):
 
     def get(self):
         """在线查看报告的规则细节(obj返回一个列表，其余类型返回sql文本相关的几个列表)"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "job_id": scm_unempty_str,
+            "rule_name": scm_unempty_str
+        }))
+        job_id = params.pop("job_id")
+        rule_name = params.pop("rule_name")
+        del params
+
+        with make_session() as session:
+            job = Job.objects(id=job_id).first()
+            cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
+            rule = Rule(
+                rule_name=rule_name,
+                rule_type=job.desc.rule_type,
+                db_model=cmdb.db_model
+            )
+            result = Results.objects(task_uuid=job_id).first()
+
+            records = []
+            columns = []
+
+            if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
+                if getattr(result, rule_name)["records"]:
+                    for data in rule.input_parms:
+                        title.append([data["parm_value"], data["parm_desc"]])
+                    for data in getattr(result, rule_name)["records"]:
+                        if data not in records:
+                            records.append(data)
+                flag = rule.rule_type
+                sub_title = table_title
+
+            elif rule_info["rule_type"] in [rule_utils.RULE_TYPE_SQLPLAN,
+                                            rule_utils.RULE_TYPE_SQLSTAT]:
+                for key in results[rule_name].keys():
+                    if "#" in key:
+                        sub_title = list(results[rule_name][key].keys())
+                        if results[rule_name][key]["obj_name"]:
+                            obj_name = results[rule_name][key]["obj_name"]
+                        else:
+                            obj_name = "空"
+                        cost = results[rule_name][key].get("cost", None) \
+                            if results[rule_name][key].get("cost", None) else "空"
+                        if results[rule_name][key].get("stat"):
+                            count = results[rule_name][key].get("stat").get("ts_cnt", "空")
+                        else:
+                            count = "空"
+                        records.append([
+                            key.split("#")[0],
+                            results[rule_name][key]["sql_text"],
+                            key.split("#")[1],
+                            key.split("#")[2],
+                            obj_name,
+                            cost,
+                            count
+                        ])
+                flag = rule_info["rule_type"]
+                title = rule_name
+                table_title = ""
+
+            elif rule_info["rule_type"] == rule_utils.RULE_TYPE_TEXT:
+                for key in results[rule_name].keys():
+                    if "#" in key:
+                        sub_title = list(results[rule_name][key].keys())
+                        if len(results[rule_name][key]["sql_text"]) > 40:
+                            sqltext = results[rule_name][key]["sql_text"][:40]
+                        else:
+                            sqltext = results[rule_name][key]["sql_text"]
+                        records.append([key.split("#")[0], sqltext])
+                flag = rule_info["rule_type"]
+                title = rule_name
+                table_title = ""
+        self.resp({
+            "columns": columns,
+            "records": records,
+            "rule": rule.to_dict(iter_if=lambda k, v: k in (
+                "rule_desc", "rule_name", "rule_type", "solution")),
+        })
 
 
 class OnlineReportSQLPlanHandler(AuthReq):
@@ -152,5 +228,3 @@ class ExportReportHTMLHandler(AuthReq):
     def get(self):
         """导出报告为html"""
         self.resp()
-
-
