@@ -129,7 +129,7 @@ class OnlineReportTaskHandler(AuthReq):
 class OnlineReportRuleDetailHandler(AuthReq):
 
     def get(self):
-        """在线查看报告的规则细节(obj返回一个列表，其余返回sql文本相关的几个列表)"""
+        """在线查看报告的规则细节(obj返回一个列表，其余类型返回sql文本相关的几个列表)"""
         self.resp()
 
 

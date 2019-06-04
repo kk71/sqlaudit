@@ -107,6 +107,7 @@ class CMDBHandler(AuthReq):
             # 检测数据库是否有重复信息
             if session.query(CMDB).filter_by(connect_name=params["connect_name"]).first():
                 self.resp_bad_req(msg="连接名称已存在")
+                return
 
             session.add(new_cmdb)
             session.commit()
