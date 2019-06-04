@@ -55,8 +55,8 @@ class TaskHandler(AuthReq):
         }))
         task_id = params.pop("task_id")
         if "task_schedule_date" in params.keys():
-            params["task_schedule_date"] = arrow.get(params["task_schedule_date"]).\
-                strftime(COMMON_TIME_FORMAT)[:5]
+            params["task_schedule_date"] = params["task_schedule_date"].\
+                strftime("%H:%M")[:5]
         with make_session() as session:
             session.query(TaskManage).filter_by(task_id=task_id).update(params)
             self.resp_created()
