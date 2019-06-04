@@ -135,7 +135,9 @@ class CMDBHandler(AuthReq):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_unempty_str,
 
-            Optional("connect_name"): scm_unempty_str,
+            Optional("ip_address"): scm_unempty_str,
+            Optional("port"): scm_int,
+            Optional("service_name"): scm_str,
             Optional("group_name"): scm_str,
             Optional("business_name"): scm_str,
             Optional("machine_room"): scm_str,
@@ -156,9 +158,6 @@ class CMDBHandler(AuthReq):
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             the_cmdb.from_dict(params)
-            if session.query(CMDB).filter_by(connect_name=the_cmdb.connect_name).count() > 1:
-                self.resp_bad_req(msg=f"连接名称'{the_cmdb.connect_name}'已存在。")
-                return
 
             # 同步更新全部任务的数据库字段信息
             session.query(TaskManage).filter_by(cmdb_id=the_cmdb.cmdb_id).update(

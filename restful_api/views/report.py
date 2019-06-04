@@ -152,44 +152,37 @@ class OnlineReportRuleDetailHandler(AuthReq):
             columns = []
 
             if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
+                for op in rule.output_parms:
+                    columns.append(op["parm_desc"])
                 if getattr(result, rule_name)["records"]:
-                    for data in rule.input_parms:
-                        title.append([data["parm_value"], data["parm_desc"]])
-                    for data in getattr(result, rule_name)["records"]:
+                    for r in getattr(result, rule_name)["records"]:
                         if data not in records:
-                            records.append(data)
-                flag = rule.rule_type
-                sub_title = table_title
+                            records.append(dict(zip(columns, r)))
 
-            elif rule_info["rule_type"] in [rule_utils.RULE_TYPE_SQLPLAN,
+            elif rule.rule_type in [rule_utils.RULE_TYPE_SQLPLAN,
                                             rule_utils.RULE_TYPE_SQLSTAT]:
-                for key in results[rule_name].keys():
-                    if "#" in key:
-                        sub_title = list(results[rule_name][key].keys())
-                        if results[rule_name][key]["obj_name"]:
-                            obj_name = results[rule_name][key]["obj_name"]
-                        else:
-                            obj_name = "空"
-                        cost = results[rule_name][key].get("cost", None) \
-                            if results[rule_name][key].get("cost", None) else "空"
-                        if results[rule_name][key].get("stat"):
-                            count = results[rule_name][key].get("stat").get("ts_cnt", "空")
-                        else:
-                            count = "空"
-                        records.append([
-                            key.split("#")[0],
-                            results[rule_name][key]["sql_text"],
-                            key.split("#")[1],
-                            key.split("#")[2],
-                            obj_name,
-                            cost,
-                            count
-                        ])
-                flag = rule_info["rule_type"]
-                title = rule_name
-                table_title = ""
+                for key in results[rule_name]["sqls"]:
+                    if results[rule_name][key]["obj_name"]:
+                        obj_name = results[rule_name][key]["obj_name"]
+                    else:
+                        obj_name = "空"
+                    cost = results[rule_name][key].get("cost", None) \
+                        if results[rule_name][key].get("cost", None) else "空"
+                    if results[rule_name][key].get("stat"):
+                        count = results[rule_name][key].get("stat").get("ts_cnt", "空")
+                    else:
+                        count = "空"
+                    records.append([
+                        key.split("#")[0],
+                        results[rule_name][key]["sql_text"],
+                        key.split("#")[1],
+                        key.split("#")[2],
+                        obj_name,
+                        cost,
+                        count
+                    ])
 
-            elif rule_info["rule_type"] == rule_utils.RULE_TYPE_TEXT:
+            elif rule.rule_type == rule_utils.RULE_TYPE_TEXT:
                 for key in results[rule_name].keys():
                     if "#" in key:
                         sub_title = list(results[rule_name][key].keys())
@@ -201,12 +194,13 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 flag = rule_info["rule_type"]
                 title = rule_name
                 table_title = ""
-        self.resp({
-            "columns": columns,
-            "records": records,
-            "rule": rule.to_dict(iter_if=lambda k, v: k in (
-                "rule_desc", "rule_name", "rule_type", "solution")),
-        })
+
+            self.resp({
+                "columns": columns,
+                "records": records,
+                "rule": rule.to_dict(iter_if=lambda k, v: k in (
+                    "rule_desc", "rule_name", "rule_type", "solution")),
+            })
 
 
 class OnlineReportSQLPlanHandler(AuthReq):
