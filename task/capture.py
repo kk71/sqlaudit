@@ -23,9 +23,6 @@ platforms.C_FORCE_ROOT = True
 celery = Celery("capture",
                 backend=settings.REDIS_BACKEND,
                 broker=settings.REDIS_BROKER,
-                include=["capture",
-                         # "task_exports"
-                         ]
                 )
 logger = past.utils.log.get_logger("capture")
 celery.conf.update(settings.CELERY_CONF)

@@ -90,10 +90,18 @@ def createenv(filename):
     print("Done.")
 
 
+@click.command()
+def schedule():
+    """run a schedule runner"""
+    import task.schedule
+    task.schedule.main()
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
     cli.add_command(importrules)
     cli.add_command(makedata)
     cli.add_command(createenv)
+    cli.add_command(schedule)
     cli()
