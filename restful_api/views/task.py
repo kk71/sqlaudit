@@ -30,7 +30,16 @@ class TaskHandler(AuthReq):
                                    TaskManage.server_name,
                                    TaskManage.ip_address)
             items, p = self.paginate(task_q, **p)
-            self.resp([i.to_dict() for i in items], **p)
+            ret = []
+            for t in items:
+                t_dict = t.to_dict()
+                t_dict["last_result"] = None
+                last_task_exec_history = session.query(TaskExecHistory).\
+                    filter_by(task_id=t.task_id).\
+                    order_by(TaskExecHistory.task_end_date.desc()).first()
+                if last_task_exec_history:
+                    t_dict["last_result"] = last_task_exec_history.status
+            self.resp(ret, **p)
 
     def patch(self):
         """修改任务状态"""
