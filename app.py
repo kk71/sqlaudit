@@ -55,6 +55,8 @@ def shell():
         autoflush=True
     )
     ss = Session()
+    import models.oracle as mo
+    import models.mongo as mm
     embed(header='''SQL-Audit shell for debugging is now running.
 When operating oracle, no need to use restful_api.models.oracle.utils.make_session,
 a session object with both autocommit and autoflush on is created named ss.

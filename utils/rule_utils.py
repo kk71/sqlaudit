@@ -119,13 +119,14 @@ def get_risk_rules_dict(session) -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}
 
 
-def get_all_risk_towards_a_sql(session, sql_id, date_range: tuple):
+def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
     :param session:
     :param sql_id:
+    :param db_model:
     :param date_range: a tuple of two datetime objects
-    :return:
+    :return: risk rule_name set
     """
     risk_rule_dict = get_risk_rules_dict(session)
     all_risk_rule_name_list = [i[2]  # 0db_type 1 db_model 2rule_name
@@ -150,6 +151,4 @@ def get_all_risk_towards_a_sql(session, sql_id, date_range: tuple):
                 for sql in getattr(r, rn)["sqls"]:
                     if sql["sql_id"] == sql_id:
                         rule_name_set.add(rn)
-    return list(session.query(RiskSQLRule).
-                filter(RiskSQLRule.rule_name.in_(list(rule_name_set))).
-                       with_entities(RiskSQLRule.risk_sql_rule_id))
+    return rule_name_set
