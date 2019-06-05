@@ -128,6 +128,67 @@ class OnlineReportTaskHandler(AuthReq):
 
 class OnlineReportRuleDetailHandler(AuthReq):
 
+    @staticmethod
+    def get_report_rule_detail(session, job_id: int, rule_name: str):
+        job = Job.objects(id=job_id).first()
+        cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
+        rule = Rule.objects(
+            rule_name=rule_name,
+            rule_type=job.desc.rule_type,
+            db_model=cmdb.db_model
+        ).first()
+        result = Results.objects(task_uuid=job_id).first()
+        rule_dict_in_rst = getattr(result, rule_name)
+        records = []
+        columns = []
+
+        if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
+            columns = [i["parm_desc"] for i in rule.output_parms]
+            for r in rule_dict_in_rst.get("records", []):
+                if data not in records:
+                    records.append(dict(zip(columns, r)))
+
+        elif rule.rule_type in [rule_utils.RULE_TYPE_SQLPLAN,
+                                rule_utils.RULE_TYPE_SQLSTAT]:
+            for sql_dict in rule_dict_in_rst["sqls"]:
+                if sql_dict.get("obj_name", None):
+                    obj_name = sql_dict["obj_name"]
+                else:
+                    obj_name = "空"
+                if sql_dict.get("cost", None):
+                    cost = sql_dict["cost"]
+                else:
+                    cost = "空"
+                if sql_dict.get("stat", None):
+                    count = sql_dict["stat"].get("ts_cnt", "空")
+                else:
+                    count = "空"
+                records.append({
+                    "sql_id": sql_dict["sql_id"],
+                    "sql_text": sql_dict["sql_text"],
+                    "plan_hash_value": sql_dict["plan_hash_value"],
+                    "pos": "v",
+                    "object_name": obj_name,
+                    "cost": cost,
+                    "count": count
+                })
+            if records:
+                columns = list(records[0].keys())
+
+        elif rule.rule_type == rule_utils.RULE_TYPE_TEXT:
+            records = [{
+                "sql_id": i["sql_id"],
+                "sql_text": i["sql_text"]
+            } for i in rule_dict_in_rst["sqls"]]
+            if records:
+                columns = list(records[0].keys())
+
+        return {
+            "columns": columns,
+            "records": records,
+            "rule": rule
+        }
+
     def get(self):
         """在线查看报告的规则细节(obj返回一个列表，其余类型返回sql文本相关的几个列表)"""
         params = self.get_query_args(Schema({
@@ -139,63 +200,11 @@ class OnlineReportRuleDetailHandler(AuthReq):
         del params
 
         with make_session() as session:
-            job = Job.objects(id=job_id).first()
-            cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
-            rule = Rule.objects(
-                rule_name=rule_name,
-                rule_type=job.desc.rule_type,
-                db_model=cmdb.db_model
-            ).first()
-            result = Results.objects(task_uuid=job_id).first()
-            rule_dict_in_rst = getattr(result, rule_name)
-            records = []
-            columns = []
-
-            if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
-                columns = [i["parm_desc"] for i in rule.output_parms]
-                for r in rule_dict_in_rst.get("records", []):
-                    if data not in records:
-                        records.append(dict(zip(columns, r)))
-
-            elif rule.rule_type in [rule_utils.RULE_TYPE_SQLPLAN,
-                                            rule_utils.RULE_TYPE_SQLSTAT]:
-                for sql_dict in rule_dict_in_rst["sqls"]:
-                    if sql_dict.get("obj_name", None):
-                        obj_name = sql_dict["obj_name"]
-                    else:
-                        obj_name = "空"
-                    if sql_dict.get("cost", None):
-                        cost = sql_dict["cost"]
-                    else:
-                        cost = "空"
-                    if sql_dict.get("stat", None):
-                        count = sql_dict["stat"].get("ts_cnt", "空")
-                    else:
-                        count = "空"
-                    records.append({
-                        "sql_id": sql_dict["sql_id"],
-                        "sql_text": sql_dict["sql_text"],
-                        "plan_hash_value": sql_dict["plan_hash_value"],
-                        "pos": "v",
-                        "object_name": obj_name,
-                        "cost": cost,
-                        "count": count
-                    })
-                if records:
-                    columns = list(records[0].keys())
-
-            elif rule.rule_type == rule_utils.RULE_TYPE_TEXT:
-                records = [{
-                    "sql_id": i["sql_id"],
-                    "sql_text": i["sql_text"]
-                } for i in rule_dict_in_rst["sqls"]]
-                if records:
-                    columns = list(records[0].keys())
-
+            ret = self.get_report_rule_detail(session, job_id, rule_name)
             self.resp({
-                "columns": columns,
-                "records": records,
-                "rule": rule.to_dict(iter_if=lambda k, v: k in (
+                "columns": ret["columns"],
+                "records": ret["records"],
+                "rule": ret["rule"].to_dict(iter_if=lambda k, v: k in (
                     "rule_desc", "rule_name", "rule_type", "solution")),
             })
 
