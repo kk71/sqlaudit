@@ -53,10 +53,6 @@ class TaskHandler(AuthReq):
             Optional("task_exec_frequency"): scm_int
         }))
         task_id = params.pop("task_id")
-        # if "task_schedule_date" in params.keys():
-        #     数据库字段是文本，所以要转回文本。
-            # params["task_schedule_date"] = params["task_schedule_date"].\
-            #     strftime("%H:%M")[:5]
         with make_session() as session:
             session.query(TaskManage).filter_by(task_id=task_id).update(params)
             self.resp_created()

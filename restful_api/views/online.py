@@ -701,7 +701,7 @@ class OverviewHandler(SQLRiskListHandler):
                 r3key[2]: {
                     "violation_num": 0,
                     "schema_set": set(),
-                    "risk_name": robj.risk_name
+                    **robj.to_dict(iter_if=lambda k, v: k in ("risk_name", "severity"))
                 }
                 for r3key, robj in rule_utils.get_risk_rules_dict(session).items()}
             results_q = Results.objects(
@@ -717,7 +717,8 @@ class OverviewHandler(SQLRiskListHandler):
                 {
                     "rule_name": rule_name,
                     "num": k["violation_num"],
-                    "risk_name": k["risk_name"]
+                    "risk_name": k["risk_name"],
+                    "severity": k["severity"],
                 } for rule_name, k in risk_rule_name_sql_num_dict.items()
             ]
 
