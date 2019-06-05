@@ -16,6 +16,7 @@ ALL_SUPPORTED_DB_TYPE = (DB_ORACLE, DB_MYSQL)
 # 纳管数据库的任务类型
 DB_TASK_CAPTURE = "采集及分析"
 DB_TASK_ANALYSIS = "SQL智能优化"
+ALL_DB_TASKS = (DB_TASK_CAPTURE, DB_TASK_ANALYSIS)
 
 
 class CMDBNotFoundException(Exception):

@@ -114,19 +114,25 @@ class CMDBHandler(AuthReq):
             session.refresh(new_cmdb)
 
             # 创建任务的数据库字段信息
-            task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
-                "connect_name",
-                "group_name",
-                "business_name",
-                "machine_room",
-                "database_type",
-                "server_name",
-                "ip_address",
-                "port",
-                "cmdb_id"
-            ))
-            new_task = TaskManage(task_status=True, **task_dict)
-            session.add(new_task)
+            for task_type in cmdb_utils.ALL_DB_TASKS:
+                task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
+                    "connect_name",
+                    "group_name",
+                    "business_name",
+                    "machine_room",
+                    "database_type",
+                    "server_name",
+                    "ip_address",
+                    "port",
+                    "cmdb_id"
+                ))
+                new_task = TaskManage(
+                    task_status=True,
+                    task_exec_scripts=task_type,
+                    **task_dict
+                )
+                session.add(new_task)
+
             session.commit()
             self.resp_created(new_cmdb.to_dict())
 
