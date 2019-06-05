@@ -49,7 +49,7 @@ class TaskHandler(AuthReq):
             "task_id": scm_int,
 
             Optional("task_status"): scm_bool,
-            Optional("task_schedule_date"): scm_unempty_str,
+            Optional("task_schedule_date"): And(scm_unempty_str, lambda x: len(x) == 5),
             Optional("task_exec_frequency"): scm_int
         }))
         task_id = params.pop("task_id")
