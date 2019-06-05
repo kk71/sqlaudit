@@ -129,7 +129,7 @@ class OnlineReportTaskHandler(AuthReq):
 class OnlineReportRuleDetailHandler(AuthReq):
 
     @staticmethod
-    def get_report_rule_detail(session, job_id: int, rule_name: str):
+    def get_report_rule_detail(session, job_id: int, rule_name: str) -> dict:
         job = Job.objects(id=job_id).first()
         cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
         rule = Rule.objects(

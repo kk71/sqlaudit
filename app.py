@@ -2,7 +2,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __VERSION__ = "0.2.0"
-print(f"SQL-Audit version {__VERSION__}")
+
+from utils.datetime_utils import *
+print(f"SQL-Audit version {__VERSION__} ({dt_to_str(arrow.now())})")
 
 import click
 from tornado.web import Application
@@ -66,7 +68,7 @@ a session object with both autocommit and autoflush on is created named ss.
 @click.command()
 @click.option("--filename", help="the json filename", default="./files/rule.json")
 def importrules(filename):
-    """import rules from a json file, NOT deduplicate"""
+    """import rules from a json file, deduplicated"""
     from utils import rule_utils
     print(f"going to import rule from {filename}...")
     imported_num, all_num = rule_utils.import_from_json_file(filename)
@@ -94,7 +96,7 @@ def createenv(filename):
 
 @click.command()
 def schedule():
-    """run a schedule runner"""
+    """start a task scheduler"""
     import task.schedule
     task.schedule.main()
 
