@@ -14,6 +14,6 @@ RUN     pip install --no-cache-dir -r /tmp/requirements.txt && \
         mv /root/instantclient_18_5 /root/instantclient
 ENV ORACLE_HOME=/root/instantclient
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME:/lib:/usr/lib:~/lib
-ENV TZ=China/Shanghai
+ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 CMD ["python", "-m http.server"]
