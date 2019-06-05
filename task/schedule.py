@@ -134,8 +134,8 @@ def main():
             time.sleep(t)
             run_capture(next_minute_ts + 3600 * 8)
 
-            if next_minute_structure.minute == 0:  # 每小时执行一次
-                run_mail(next_minute_structure)
+            # if next_minute_structure.minute == 0:  # 每小时执行一次
+            #     run_mail(next_minute_structure)
 
             # if next_minute_structure.minute == 0 & next_minute_structure.hour == 0 & next_minute_structure.day == 1:
             #     clean_mongo.delay()
