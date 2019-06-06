@@ -18,12 +18,13 @@ import past.capture.sql
 # from task_mail import timing_send_email
 # from task_sqlaitune import sqlaitune_run
 import plain_db.oracleob
+from utils import cmdb_utils
 # from task_mongo import clean_mongo
 
-backend = settings.REDIS_BACKEND
-broker = settings.REDIS_BROKER
-celery = Celery("task_other", backend=backend, broker=broker)
-celery.conf.update(settings.CELERY_CONF)
+# backend = settings.REDIS_BACKEND
+# broker = settings.REDIS_BROKER
+# celery = Celery("task_other", backend=backend, broker=broker)
+# celery.conf.update(settings.CELERY_CONF)
 
 logging.basicConfig(level=logging.NOTSET)
 
@@ -64,17 +65,22 @@ def run_capture(now):
         except cx_Oracle.DatabaseError as err:
             logging.error(str(err))
             continue
-        if task['script'] == "采集及分析":
+
+        logging.info(task)
+        if task['script'] == cmdb_utils.DB_TASK_CAPTURE:
             sql = past.capture.sql.GET_SCHEMA
             users = [x[0] for x in cmdb_odb.select(sql, one=False)]
 
             params = [task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'],
                       task['connect_name'], task['business_name'], users, task['cmdb_id']]
             task_run.delay(*params)
-        elif task['script'] == "SQL智能优化":
-            logging.error("SQL智能优化")
-            logging.error(task)
+
+        elif task['script'] == cmdb_utils.DB_TASK_TUNE:
             # sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
+            pass
+
+        else:
+            assert 0
 
 
 def run_mail(time_structure):

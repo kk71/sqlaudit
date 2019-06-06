@@ -27,7 +27,7 @@ class SQLStat(BaseDoc):
     direct_writes_delta = FloatField(db_field="DIRECT_WRITES_DELTA")
     per_direct_writes = FloatField(db_field="PER_DIRECT_WRITES")
     elapsed_time_total = FloatField(db_field="ELAPSED_TIME_TOTAL")
-    elapsed_time_delta = FloatField(db_field="ELAPSED_TIME_DELTA")
+    elapsed_time_delta = FloatField(db_field="ELAPSED_TIME_DELTA")  # in ms
     per_elapsed_time = FloatField(db_field="PER_ELAPSED_TIME")
     buffer_gets_total = IntField(db_field="BUFFER_GETS_TOTAL")
     buffer_gets_delta = IntField(db_field="BUFFER_GETS_DELTA")

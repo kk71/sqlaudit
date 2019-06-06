@@ -350,7 +350,7 @@ class SQLRiskListHandler(AuthReq):
                     sql_id = sql_text_dict["sql_id"]
                     if sql_id in rst_sql_id_set:
                         continue
-                    execution_time_cost_sum = round(sql_text_dict_stat["ELAPSED_TIME_DELTA"], 2)
+                    execution_time_cost_sum = round(sql_text_dict_stat["ELAPSED_TIME_DELTA"], 2)  # in ms
                     execution_times = sql_text_dict_stat.get('EXECUTIONS_DELTA', 0)
                     execution_time_cost_on_average = round(execution_time_cost_sum / execution_times, 2)
                     rst.append({
