@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import cx_Oracle
+from profilehooks import timecall
 
 from models.oracle import *
 from utils.datetime_utils import *
@@ -48,6 +49,7 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     return list({i.schema_name for i in q})
 
 
+@timecall
 def get_cmdb_available_schemas(cmdb_object) -> [str]:
     """
     获取一个cmdb可用的全部schema
@@ -78,6 +80,7 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     return schemas
 
 
+@timecall
 def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
     """
     获取用户可见的cmdb最新的health score排名

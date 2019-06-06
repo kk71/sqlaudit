@@ -14,4 +14,5 @@ ipython
 sqlparse
 chardet
 xlsxwriter
+profilehooks
 pymysql # for past

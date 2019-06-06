@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 from schema import Schema, Optional, And
+from profilehooks import timecall
 
 from utils.schema_utils import *
 from utils.datetime_utils import *
@@ -268,6 +269,7 @@ class SchemaHandler(AuthReq):
 
 class CMDBHealthTrendHandler(AuthReq):
 
+    @timecall
     def post(self):
         """健康评分趋势图"""
         params = self.get_json_args(Schema({

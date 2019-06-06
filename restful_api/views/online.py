@@ -8,6 +8,7 @@ import sqlparse
 import xlsxwriter
 from schema import Schema, Optional
 from mongoengine import Q
+from profilehooks import timecall
 
 import settings
 from .base import AuthReq
@@ -239,6 +240,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
 class SQLRiskListHandler(AuthReq):
 
+    @timecall
     def get_list(self, session, query_parser: FunctionType, dt_range: tuple = None):
         # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
         ALL_RULE_TYPES_FOR_SQL_RULE = [
@@ -475,6 +477,7 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
 
 class SQLRiskDetailHandler(AuthReq):
 
+    @timecall
     def get(self):
         """风险详情（include sql text, sql plan and statistics）"""
         params = self.get_query_args(Schema({
@@ -648,6 +651,7 @@ class TableInfoHandler(AuthReq):
 
 class OverviewHandler(SQLRiskListHandler):
 
+    @timecall
     def get(self):
         """风险详情的sql plan详情"""
         """数据库健康度概览"""
