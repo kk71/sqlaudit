@@ -6,13 +6,12 @@
     执行四个脚本 capture_obj, capture
 """
 import time
-
-import logging
+import traceback
 from datetime import datetime
-import settings
-import cx_Oracle
-from celery import Celery
 
+import cx_Oracle
+
+import settings
 from task.capture import task_run
 import past.capture.sql
 # from task_mail import timing_send_email
@@ -20,13 +19,6 @@ import past.capture.sql
 import plain_db.oracleob
 from utils import cmdb_utils
 # from task_mongo import clean_mongo
-
-# backend = settings.REDIS_BACKEND
-# broker = settings.REDIS_BROKER
-# celery = Celery("task_other", backend=backend, broker=broker)
-# celery.conf.update(settings.CELERY_CONF)
-
-logging.basicConfig(level=logging.NOTSET)
 
 
 def get_time():
@@ -59,14 +51,16 @@ def run_capture(now):
     for task in tasks:
         if (now - time2int(task['schedule'])) % (int(task['frequency']) * 60) == 0:
             new_tasks.append(task)
+    if new_tasks:
+        print(f"Going to run {len(new_tasks)} tasks...")
     for task in new_tasks:
         try:
             cmdb_odb = plain_db.oracleob.OracleOB(task['host'], task['port'], task['user_name'], task['password'], task['sid'])
         except cx_Oracle.DatabaseError as err:
-            logging.error(str(err))
+            print(str(err))
             continue
 
-        logging.info(task)
+        print(task)
         if task['script'] == cmdb_utils.DB_TASK_CAPTURE:
             sql = past.capture.sql.GET_SCHEMA
             users = [x[0] for x in cmdb_odb.select(sql, one=False)]
@@ -120,12 +114,12 @@ def run_mail(time_structure):
             )
 
     if send_user_list:
-        logging.error("Mail ready to send: %s", send_user_list)
+        print("Mail ready to send: %s" % send_user_list)
         # timing_send_email.delay(send_user_list)
 
 
 def main():
-    logging.error("Start schedule tasks --- ")
+    print("Start schedule tasks ...")
     while True:
         try:
 
@@ -135,7 +129,7 @@ def main():
             t = get_sleep_time()
 
             if next_minute_structure.minute % 5 == 0:
-                logging.error(next_minute_structure.strftime("%Y-%m-%d %X"))
+                print(next_minute_structure.strftime("%Y-%m-%d %X"))
 
             time.sleep(t)
             run_capture(next_minute_ts + 3600 * 8)
@@ -146,9 +140,8 @@ def main():
             # if next_minute_structure.minute == 0 & next_minute_structure.hour == 0 & next_minute_structure.day == 1:
             #     clean_mongo.delay()
 
-        except Exception as e:
-            logging.error("Exception", exc_info=True)
-            continue
+        except:
+            print(traceback.format_exc())
 
 
 if __name__ == "__main__":
