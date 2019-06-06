@@ -45,7 +45,8 @@ class CMDBHandler(AuthReq):
                                    CMDB.group_name,
                                    CMDB.business_name,
                                    CMDB.machine_room,
-                                   CMDB.server_name
+                                   CMDB.server_name,
+                                   CMDB.ip_address
                                    )
             if current:
                 current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)

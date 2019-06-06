@@ -35,6 +35,9 @@ class CMDB(BaseModel):
     while_list_rule_counts = Column("WHITE_LIST_RULE_COUNTS", Integer)
     db_model = Column("DB_MODEL", String)
     baseline = Column("BASELINE", Integer)
+    is_pdb = Column("IS_PDB", Boolean)
+    version = Column("VERSION", String)
+    sid = Column("SID", String)
 
 
 class DataPrivilege(BaseModel):

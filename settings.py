@@ -87,6 +87,13 @@ MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
 MONGO_DB = env_get("MONGO_DB", "sqlreview")
 
 
+# a redis instance for cache
+
+CACHE_REDIS_SERVER = env_get("CACHE_REDIS_IP", WEB_IP)
+CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017)
+CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1)
+
+
 # license keys
 
 PRIVATE_KEY = "/project/sqlaudit_license"
