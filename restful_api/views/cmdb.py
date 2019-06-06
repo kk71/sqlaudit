@@ -292,7 +292,7 @@ class CMDBHealthTrendHandler(AuthReq):
                 ).order_by(DataHealth.collect_date)
                 for dh in dh_q:
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score
-            if len(ret) > 1:
+            if len(ret) > 0:
                 base_lines = [i[0] for i in session.query(CMDB).
                                   filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
                                   order_by(CMDB.baseline).with_entities(CMDB.baseline)]
@@ -300,6 +300,8 @@ class CMDBHealthTrendHandler(AuthReq):
                     base_line = 80
                 else:
                     base_line = base_lines[0]
+            else:
+                assert 0
             ret = [{
                 "date": d_to_str(k),
                 "基线": base_line,
