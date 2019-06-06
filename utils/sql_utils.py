@@ -3,9 +3,9 @@
 import re
 
 import sqlparse
-from profilehooks import timecall
 
 from models.mongo import SQLText, MSQLPlan
+from utils.perf_utils import *
 
 
 SQL_DML = 0
@@ -260,7 +260,7 @@ def parse_sql_file(sql_contents, sql_keyword):
     return new_sql_list
 
 
-@timecall
+@timing
 def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
     计算sql文本的统计信息
@@ -295,7 +295,7 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
     return {i["_id"]: i for i in ret}
 
 
-@timecall
+@timing
 def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
     计算sql计划的统计信息

@@ -3,11 +3,11 @@
 import re
 import json
 
-from profilehooks import timecall
 from mongoengine import Q
 
 from models.oracle import RiskSQLRule
 from models.mongo import Rule, Results
+from utils.perf_utils import *
 
 
 # 业务类型
@@ -78,7 +78,7 @@ def import_from_json_file(filename: str):
     return len(rules_to_import), len(rules)
 
 
-@timecall
+@timing
 def merge_risk_rule_and_rule(
         risk_rule_object, rule_object=None, rule_keys=("rule_desc", "rule_name")) -> dict:
     """
@@ -103,7 +103,7 @@ def get_rules_dict() -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.objects().all()}
 
 
-@timecall
+@timing
 def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     """
     计算某个类型的规则的最大分总合
@@ -122,7 +122,7 @@ def get_risk_rules_dict(session) -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}
 
 
-@timecall
+@timing
 def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
