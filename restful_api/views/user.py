@@ -28,7 +28,7 @@ class AuthHandler(BaseReq):
                     user.last_login_failure_time = datetime.now().date()
                     user.login_retry_counts += 1
                     session.add(user)
-                    self.resp_unauthorized(msg="请检查密码，并确认该用户是启用状态。")
+                    self.resp_bad_username_password(msg="请检查用户名密码，并确认该用户是启用状态。")
                     return
                 # login successfully
                 user.last_login_ip = self.request.remote_ip
@@ -47,7 +47,7 @@ class AuthHandler(BaseReq):
                 content["token"] = token.decode("ascii")
                 self.resp_created(content)
                 return
-            self.resp_unauthorized(msg="用户名错误。")
+            self.resp_bad_username_password(msg="请检查用户名密码，并确认该用户是启用状态。")
 
 
 class UserHandler(BaseReq):
