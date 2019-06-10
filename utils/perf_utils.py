@@ -3,6 +3,8 @@
 import time
 from functools import wraps
 
+import settings
+
 __ALL__ = [
     "timing"
 ]
@@ -16,7 +18,8 @@ def timing(method):
         result = method(*args, **kwargs)
         te = time.time()
 
-        print(f"""
+        if settings.ENABLE_TIMING:
+            print(f"""
   {method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}
     args: {args}, kwargs: {kwargs}
     {round(te - ts, 3)} seconds
