@@ -244,7 +244,6 @@ class SchemaHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("current", default=False): scm_bool
-
         }))
         cmdb_id = params.pop("cmdb_id")
         current = params.pop("current")
@@ -259,13 +258,6 @@ class SchemaHandler(AuthReq):
                     filter_by(cmdb_id=cmdb_id).\
                     with_entities(DataPrivilege.schema_name)
                 self.resp(list({i.schema_name for i in schema_names}))
-
-    def post(self):
-        """编辑管控数据库的schema"""
-        params = self.get_json_args(Schema({
-
-        }))
-        self.resp_created()
 
 
 class CMDBHealthTrendHandler(AuthReq):
@@ -312,3 +304,17 @@ class CMDBHealthTrendHandler(AuthReq):
             } for k, v in ret.items()]
             self.resp(ret)
 
+
+class RankingConfigHandler(AuthReq):
+
+    def get(self):
+        """获取需要评分的数据库列表"""
+        self.resp()
+
+    def patch(self):
+        """修改评分的数据库，schema"""
+        self.resp_created()
+
+    def delete(self):
+        """删除需要评分的库"""
+        self.resp_created()

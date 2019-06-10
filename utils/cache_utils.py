@@ -18,28 +18,30 @@ def cache(
     redis_ip=settings.CACHE_REDIS_SERVER,
     redis_port=settings.CACHE_REDIS_PORT,
     redis_db=settings.CACHE_REDIS_DB,
-    cache_top_domain="REDIS-CACHE",
-    cache_domain=None,
-    default_cached=(),
     serializer=pickle,
-    kwargs_excluded=()
+    cache_top_domain: str = "REDIS-CACHE",
+    cache_domain: str = None,
+    default_cached: tuple = (),
+    kwargs_excluded: tuple = ()
 ):
     """
     简单的缓存装饰器
     :param redis_ip:
     :param redis_port:
     :param redis_db:
+    :param serializer: 序列化工具，默认用pickle，如果需要更快的序列化，可使用json（注意json的限制）
     :param cache_top_domain: 顶层缓存域，通常不应该修改
     :param cache_domain: 当前方法的缓存域，缺省为(模块名, 函数名)
     :param default_cached: 当缓存被清空之后，默认增加的缓存的参数，tuple of dicts
-    :param serializer: 序列化工具，默认用pickle，如果需要更快的序列化，可使用json（注意json的限制）
     :param kwargs_excluded: 不需要序列化匹配的入参，大部分实例对象。如果该参数成立，则入参必须都带参数名。
     :return:
     """
 
     def cache_dec(func):
 
-        CACHE_KEY = f"{cache_top_domain}:{cache_domain}:{}"
+        if not cache_domain:
+            cache_domain = f"{func.__module__}-{func.__name__}"
+        CACHE_KEY_TEMPLATE = f"{cache_top_domain}:{cache_domain}:" + "{args}:{kwargs}"
 
         def expire_top_domain():
             """清空当前顶级域的cache"""

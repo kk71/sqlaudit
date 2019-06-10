@@ -54,13 +54,13 @@ def run_capture(now):
     if new_tasks:
         print(f"Going to run {len(new_tasks)} tasks...")
     for task in new_tasks:
+        print(task)
         try:
             cmdb_odb = plain_db.oracleob.OracleOB(task['host'], task['port'], task['user_name'], task['password'], task['sid'])
         except cx_Oracle.DatabaseError as err:
             print(str(err))
             continue
 
-        print(task)
         if task['script'] == cmdb_utils.DB_TASK_CAPTURE:
             sql = past.capture.sql.GET_SCHEMA
             users = [x[0] for x in cmdb_odb.select(sql, one=False)]

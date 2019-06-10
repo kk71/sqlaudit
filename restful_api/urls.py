@@ -36,6 +36,8 @@ urls += [
     (r"/api/cmdb/schemas", cmdb.SchemaHandler),
     (r"/api/cmdb/trend", cmdb.CMDBHealthTrendHandler),
     (r"/api/cmdb/aggregation", cmdb.CMDBAggregationHandler),
+    # CMDB评分设置
+    (r"/api/cmdb/ranking_config", cmdb.RankingConfigHandler),
 ]
 
 # Task
