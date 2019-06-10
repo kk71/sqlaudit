@@ -6,7 +6,19 @@ from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
 from .utils import BaseDoc
 
 
-class ObjTabInfo(BaseDoc):
+class ObjectBaseDoc(BaseDoc):
+
+    meta = {
+        'abstract': True,
+    }
+
+    @classmethod
+    def filter_by_exec_hist(cls, exec_history_object):
+        """按照record_id查询"""
+        return cls.objects.filter(record_id__startswith=str(exec_history_object.id))
+
+
+class ObjTabInfo(ObjectBaseDoc):
     """表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -35,7 +47,7 @@ class ObjTabInfo(BaseDoc):
     }
 
 
-class ObjTabCol(BaseDoc):
+class ObjTabCol(ObjectBaseDoc):
     """列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -60,7 +72,7 @@ class ObjTabCol(BaseDoc):
     }
 
 
-class ObjPartTabParent(BaseDoc):
+class ObjPartTabParent(ObjectBaseDoc):
     """父分区表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -88,7 +100,7 @@ class ObjPartTabParent(BaseDoc):
     }
 
 
-class ObjIndColInfo(BaseDoc):
+class ObjIndColInfo(ObjectBaseDoc):
     """索引列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="INDEX_OWNER")
@@ -109,7 +121,7 @@ class ObjIndColInfo(BaseDoc):
     }
 
 
-class ObjViewInfo(BaseDoc):
+class ObjViewInfo(ObjectBaseDoc):
     """视图"""
     _id = ObjectIdField()
     obj_pk = StringField(db_field="OBJ_PK")

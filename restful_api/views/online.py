@@ -749,7 +749,19 @@ class OverviewHandler(SQLRiskListHandler):
             top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in
                                      sqls]
             top_10_sql_by_average = sorted(top_10_sql_by_average, key=lambda x: x["time"])
-            # sql execution cost rank
+
+            # 计算改库的物理体积（目前仅计算表的总体积）
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+            phy_size = None
+            lastest_task_exec_hist_obj = session.query(TaskExecHistory).\
+                filter(TaskExecHistory.connect_name == cmdb.connect_name).\
+                order_by(TaskExecHistory.task_end_date.desc()).first()
+            if lastest_task_exec_hist_obj:
+                task_exec_hist_q = ObjTabInfo.filter_by_exec_hist(lastest_task_exec_hist_obj).\
+                    filter(cmdb_id=cmdb_id)
+                phy_size = 0
+                if task_exec_hist_q:
+                    phy_size = sum([i.phy_size_mb for i in task_exec_hist_q])
             self.resp({
                 "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
                 "risk_rule_rank": risk_rule_rank,
@@ -757,5 +769,6 @@ class OverviewHandler(SQLRiskListHandler):
                 "sql_execution_cost_rank": {
                     "by_sum": top_10_sql_by_sum[:10],
                     "by_average": top_10_sql_by_average[:10]
-                }
+                },
+                "phy_size_mb": phy_size
             })
