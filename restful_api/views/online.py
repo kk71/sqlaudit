@@ -725,7 +725,10 @@ class OverviewHandler(SQLRiskListHandler):
                 results_q = results_q.filter(schema_name=schema_name)
             for result in results_q:
                 for rule_name in risk_rule_name_sql_num_dict.keys():
-                    if getattr(result, rule_name, None):
+                    result_rule_dict = getattr(result, rule_name, None)
+                    if not result_rule_dict:
+                        continue
+                    if result_rule_dict.get("records", []) or result_rule_dict.get("sqls", []):
                         risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
                         risk_rule_name_sql_num_dict[rule_name]["schema_set"].add(result.schema_name)
             risk_rule_rank = [
