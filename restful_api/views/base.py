@@ -133,8 +133,7 @@ class BaseReq(RequestHandler):
         elif isinstance(query, S_Query):
             items = query.limit(per_page).offset((page - 1) * per_page).all()
         elif isinstance(query, (list, tuple)):
-            page -= 1
-            items = query[page*per_page:page*per_page+per_page]
+            items = query[(page-1)*per_page:(page-1)*per_page+per_page]
         else:
             assert 0
         if page == 1 and len(items) < per_page:
