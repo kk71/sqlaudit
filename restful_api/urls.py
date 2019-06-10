@@ -17,7 +17,7 @@ urls = [
     )
 ]
 
-# user, authentication, privilege and role
+# user, authentication, privilege, role and other permissions
 urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
@@ -48,7 +48,7 @@ urls += [
     (r"/api/dashboard", overall.DashboardHandler),
 ]
 
-# Task
+# task
 urls += [
     (r"/api/task/tasks", task.TaskHandler),
     (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
@@ -76,7 +76,7 @@ urls += [
     (r"/api/online/sql/plan", online.SQLPlanHandler),
 ]
 
-# health status
+# health status report
 urls += [
     (r"/api/report/online/tasks", report.OnlineReportTaskListHandler),
     (r"/api/report/online/task", report.OnlineReportTaskHandler),
