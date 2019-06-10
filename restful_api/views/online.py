@@ -14,13 +14,14 @@ from utils.perf_utils import *
 from .base import AuthReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, cmdb_utils, sql_utils
+from utils import rule_utils, cmdb_utils, sql_utils, object_utils
 from models.oracle import *
 from models.mongo import *
 
 
 class ObjectRiskListHandler(AuthReq):
 
+    @timing
     def get_list(self, session, query_parser: FunctionType):
         # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
         params = query_parser(Schema({
@@ -86,6 +87,7 @@ class ObjectRiskListHandler(AuthReq):
         results = result_q.all()
         risky_rule_appearance = defaultdict(dict)
         rst = []
+        rst_set_for_deduplicate = set()  # 集合内为tuples，tuple内的值是返回字典内的values（按顺序）
         for result in results:
             for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
                 risk_rule_object = risk_rules_dict[risky_rule_object.get_3_key()]
@@ -130,7 +132,7 @@ class ObjectRiskListHandler(AuthReq):
                         "last_appearance": dt_to_str(agg_rest[0]['last_appearance'] if agg_rest else None),
                     }
                 for record in getattr(result, risky_rule_name)["records"]:
-                    rst.append({
+                    r = {
                         "object_name": record[0],
                         "rule_desc": risky_rule_object.rule_desc,
                         "risk_detail": rule_utils.format_rule_result_detail(
@@ -139,7 +141,14 @@ class ObjectRiskListHandler(AuthReq):
                         "severity": risk_rule_object.severity,
                         "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                         **risky_rule_appearance[risky_rule_name]
-                    })
+                    }
+                    # 用于去重
+                    r_tuple = tuple(r.values())
+                    if r_tuple in rst_set_for_deduplicate:
+                        continue
+                    rst_set_for_deduplicate.add(r_tuple)
+                    rst.append(r)
+
         return rst
 
     def get(self):
@@ -672,7 +681,8 @@ class OverviewHandler(SQLRiskListHandler):
             dt_end = arrow.get(date_end)
             sql_num_active = []
             sql_num_at_risk = []
-            # sql_num
+
+            # SQL count
             while dt_now <= dt_end:
                 sql_text_q = SQLText.objects(
                     cmdb_id=cmdb_id,
@@ -697,11 +707,12 @@ class OverviewHandler(SQLRiskListHandler):
                 })
                 dt_now = dt_now.shift(days=+1)
 
-            # risk_rule_rank & schema
+            # risk_rule_rank & schemas
 
             # 只需要拿到rule_name即可，不需要知道其他两个key,
             # 因为当前仅对某一个库做分析，数据库类型和db_model都是确定的
             risk_rule_name_sql_num_dict = {
+                # rule_name: {...}
                 r3key[2]: {
                     "violation_num": 0,
                     "schema_set": set(),
@@ -743,6 +754,7 @@ class OverviewHandler(SQLRiskListHandler):
 
             schemas = sorted(schemas, key=lambda x: x["num"], reverse=True)
 
+            # top 10 execution cost by sum and by average
             sqls = self.get_list(session, self.get_query_args)
             top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
             top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
@@ -750,18 +762,10 @@ class OverviewHandler(SQLRiskListHandler):
                                      sqls]
             top_10_sql_by_average = sorted(top_10_sql_by_average, key=lambda x: x["time"])
 
-            # 计算改库的物理体积（目前仅计算表的总体积）
+            # physical size of current CMDB
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            phy_size = None
-            lastest_task_exec_hist_obj = session.query(TaskExecHistory).\
-                filter(TaskExecHistory.connect_name == cmdb.connect_name).\
-                order_by(TaskExecHistory.task_end_date.desc()).first()
-            if lastest_task_exec_hist_obj:
-                task_exec_hist_q = ObjTabInfo.filter_by_exec_hist(lastest_task_exec_hist_obj).\
-                    filter(cmdb_id=cmdb_id)
-                phy_size = 0
-                if task_exec_hist_q:
-                    phy_size = sum([i.phy_size_mb for i in task_exec_hist_q])
+            phy_size = object_utils.get_cmdb_phy_size(session, cmdb)
+
             self.resp({
                 "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
                 "risk_rule_rank": risk_rule_rank,
