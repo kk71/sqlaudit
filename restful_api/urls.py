@@ -22,6 +22,8 @@ urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
     (r"/api/role/permission", permisson.SystemPermissionHandler),
+    # 纳管数据库的以及schema的操作权限
+    (r"/api/permission/cmdb", permisson.CMDBPermissionHandler),
 ]
 
 # rule and risk rules
@@ -38,6 +40,12 @@ urls += [
     (r"/api/cmdb/aggregation", cmdb.CMDBAggregationHandler),
     # CMDB评分设置
     (r"/api/cmdb/ranking_config", cmdb.RankingConfigHandler),
+]
+
+# overall
+urls += [
+    # 仪表盘
+    (r"/api/dashboard", overall.DashboardHandler),
 ]
 
 # Task

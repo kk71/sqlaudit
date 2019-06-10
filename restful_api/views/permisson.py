@@ -2,7 +2,7 @@
 
 from schema import Schema, Optional
 
-from .base import *
+from .base import AuthReq
 from utils.schema_utils import *
 from models.oracle import *
 
@@ -97,15 +97,3 @@ class CMDBPermissionHandler(AuthReq):
     def delete(self):
         self.resp_created()
 
-
-class CMDBRatingPermissionHandler(AuthReq):
-    """数据库评分权限配置"""
-
-    def get(self):
-        self.resp()
-
-    def patch(self):
-        self.resp_created()
-
-    def delete(self):
-        self.resp_created()
