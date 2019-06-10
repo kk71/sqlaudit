@@ -740,6 +740,9 @@ class OverviewHandler(SQLRiskListHandler):
                     "percentage": f"{current_num / violation_sum * 100}%"
                 } for current_schema, current_num in schema_rule_dict.items()
             ]
+
+            schemas = sorted(schemas, key=lambda x: x["num"], reverse=True)
+
             sqls = self.get_list(session, self.get_query_args)
             top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
             top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
