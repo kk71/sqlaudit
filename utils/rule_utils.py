@@ -169,7 +169,7 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
         RULE_TYPE_SQLSTAT: {"violation_num": 0, "sum": 0, "rate": 0.0},
         RULE_TYPE_SQLPLAN: {"violation_num": 0, "sum": 0, "rate": 0.0}
     }
-    exec_hist_id_set: set = set()
+    record_id_set: set = set()
     for result in results_q:
         for rule_3k, rule_obj in rule_dict.items():
             result_rule_dict = getattr(result, rule_3k[2], None)
@@ -184,17 +184,17 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
             else:
                 sqls = result_rule_dict["sqls"]
                 ret[result.rule_type]["violation_num"] += len(sqls)
-        exec_hist_id_set.add(result.record_id.split("##")[0])
-    for exec_hist_id in exec_hist_id_set:
+        record_id_set.add(result.record_id)
+    for record_id in record_id_set:
         # table include normal table and part-table, so calc twice.
-        ret["table"]["sum"] += tab_info_q.filter(record_id__startswith=exec_hist_id).count()
-        ret["table"]["sum"] += part_tab_info_q.filter(record_id__startswith=exec_hist_id).count()
+        ret["table"]["sum"] += tab_info_q.filter(record_id=record_id).count()
+        ret["table"]["sum"] += part_tab_info_q.filter(record_id=record_id).count()
         # OBJ index
-        ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id__startswith=exec_hist_id).count()
+        ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id=record_id).count()
         # other
-        ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__startswith=exec_hist_id).count()
-        ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__startswith=exec_hist_id).count()
-        ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id__startswith=exec_hist_id).count()
+        ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id=record_id).count()
+        ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id=record_id).count()
+        ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id=record_id).count()
     for k, v in ret.items():
         if v["sum"] and v["violation_num"]:
             v["rate"] = float(v["violation_num"]) / v["sum"]

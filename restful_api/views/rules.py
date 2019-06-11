@@ -5,7 +5,7 @@ from schema import Schema, Optional, Or
 from utils.schema_utils import *
 from utils.const import *
 from .base import *
-from utils import rule_utils, cmdb_utils
+from utils import rule_utils
 from models.mongo import *
 from models.oracle import *
 
