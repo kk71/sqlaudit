@@ -3,6 +3,7 @@
 from types import FunctionType
 from typing import *
 
+from bson import ObjectId
 from mongoengine import DynamicDocument, EmbeddedDocument
 
 from utils.datetime_utils import *
@@ -43,13 +44,13 @@ class BaseDoc(DynamicDocument):
         else:
             items = {f: getattr(self, f, None) for f in self._fields}.items()
         for k, v in items:
-            if k in ():
+            if k in ("auto_id_0",):
                 continue
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
-            if k in ("_id", "id"):
+            if k in ("_id", "id") and isinstance(v, ObjectId):
                 v = str(v)
             if isinstance(v, dict):
                 v = self.to_dict(iter_if, iter_by, recurse=v)
