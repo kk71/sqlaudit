@@ -33,7 +33,7 @@ class RuleRepoHandler(AuthReq):
         params = self.get_json_args(Schema({
             "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
             "db_model": scm_one_of_choices(ALL_SUPPORTED_MODEL),
-            "exclude_obj_type": [scm_unempty_str],
+            "exclude_obj_type": scm_dot_split_str,
             "input_parms": [
                 {
                     "parm_desc": scm_str,
