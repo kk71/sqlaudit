@@ -66,43 +66,39 @@ class RuleRepoHandler(AuthReq):
     def patch(self):
         """修改规则"""
         params = self.get_json_args(Schema({
-            "rule_name": self.scm_with_em(scm_unempty_str, e="规则名称不能为空"),
+            "_id": scm_unempty_str,
 
-            Optional("db_type"): scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
-            Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
-            Optional("exclude_obj_type"): [scm_unempty_str],
-            Optional("input_parms"): [
-                {
-                    "parm_desc": scm_str,
-                    "parm_name": scm_str,
-                    "parm_unit": scm_str,
-                    "parm_value": Or(float, int, str)
-                }
-            ],
+            # Optional("db_type"): scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
+            # Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
+            # Optional("rule_name"): scm_unempty_str,
+            # Optional("input_parms"): [
+            #     {
+            #         "parm_desc": scm_str,
+            #         "parm_name": scm_str,
+            #         "parm_unit": scm_str,
+            #         "parm_value": Or(float, int, str)
+            #     }
+            # ],
             Optional("max_score"): scm_int,
-            Optional("output_parms"): [
-                {
-                    "parm_desc": scm_str,
-                    "parm_name": scm_str
-                }
-            ],
-            Optional("rule_desc"): scm_str,
-            Optional("rule_complexity"): scm_str,
-            Optional("rule_cmd"): scm_str,
+            # Optional("output_parms"): [
+            #     {
+            #         "parm_desc": scm_str,
+            #         "parm_name": scm_str
+            #     }
+            # ],
+            # Optional("rule_desc"): scm_str,
+            # Optional("rule_complexity"): scm_str,
+            # Optional("rule_cmd"): scm_str,
             Optional("rule_status"): scm_one_of_choices(ALL_RULE_STATUS),
-            Optional("rule_summary"): scm_str,
-            Optional("rule_type"): scm_str,
-            Optional("solution"): [scm_unempty_str],
+            # Optional("rule_summary"): scm_str,
+            # Optional("rule_type"): scm_str,
+            # Optional("solution"): [scm_unempty_str],
             Optional("weight"): scm_float
         }))
-        rule_name = params.pop("rule_name")
-        rule = Rule.objects(rule_name=rule_name).first()
+        rule_id = params.pop("_id")
+        rule = Rule.objects(_id=rule_id).first()
         rule.from_dict(params)
         self.resp_created(rule.to_dict())
-
-    # def delete(self):
-    #     """删除规则"""
-    #     self.resp_created()
 
 
 class RiskRuleHandler(AuthReq):
@@ -121,11 +117,11 @@ class RiskRuleHandler(AuthReq):
             q = session.query(RiskSQLRule).filter_by(**params)
             if keyword:
                 mq = Rule.objects()  # search in mongo
-                rule_name_list_in_m = self.query_keyword(mq, keyword,
+                rule_name_list_in_m = list(self.query_keyword(mq, keyword,
                                                   "db_model",
                                                   "rule_desc",
                                                   "rule_name",
-                                                  "rule_summary").values_list("rule_name", flat=True)
+                                                  "rule_summary").values_list("rule_name"))
                 # search in oracle
                 rule_name_list_in_o = [i[0] for i in self.query_keyword(q, keyword,
                                                        RiskSQLRule.risk_name,

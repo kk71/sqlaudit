@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, ListField
+from mongoengine import StringField, IntField, FloatField, ListField, ObjectIdField
 
 from .utils import BaseDoc
 from utils import const
@@ -8,6 +8,7 @@ from utils import const
 
 class Rule(BaseDoc):
     """规则仓库"""
+    _id = ObjectIdField()
     db_type = StringField(required=True)
     db_model = StringField(required=True)
     exclude_obj_type = ListField()

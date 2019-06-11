@@ -195,7 +195,9 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
         ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__startswith=exec_hist_id).count()
         ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__startswith=exec_hist_id).count()
         ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id__startswith=exec_hist_id).count()
-
+    for k, v in ret.items():
+        if v["sum"] and v["violation_num"]:
+            v["rate"] = float(v["violation_num"]) / v["sum"]
     return ret
 
 
