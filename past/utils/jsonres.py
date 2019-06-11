@@ -1,6 +1,6 @@
 # -*-coding:utf-8-*-
 
-from webui.utils.raiseerr import APIError
+from past.utils.raiseerr import APIError
 
 
 def temRes(func):

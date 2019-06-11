@@ -16,7 +16,7 @@ import past.utils.utils
 import past.utils.log
 import past.utils.health_data_gen
 
-import utils.cmdb_utils
+import utils.const
 
 
 platforms.C_FORCE_ROOT = True
@@ -82,7 +82,7 @@ def analysis_plan(username, sid, host, port, com, db_user, cmdb_id, password, co
         "capture_date": now,
         "username": db_user,
         "create_user": "ISQLAUDIT",
-        "db_type": utils.cmdb_utils.DB_ORACLE,
+        "db_type": utils.const.DB_ORACLE,
         "rule_type": "SQLPLAN",
         "rule_status": "ON",
         "cmdb_id": cmdb_id,
@@ -105,7 +105,7 @@ def analysis_stat(username, sid, host, port, com, db_user, cmdb_id, password, co
         "username": db_user,
         "create_user": "ISQLAUDIT",
         "sid": sid,
-        "db_type": utils.cmdb_utils.DB_ORACLE,
+        "db_type": utils.const.DB_ORACLE,
         "rule_type": "SQLSTAT",
         "rule_status": "ON",
         "task_ip": host,
@@ -125,7 +125,7 @@ def analysis_text(username, sid, host, port, com, db_user, cmdb_id, password, co
         "type": "TEXT",
         "username": db_user,
         "create_user": "ISQLAUDIT",
-        "db_type": utils.cmdb_utils.DB_ORACLE,
+        "db_type": utils.const.DB_ORACLE,
         "sid": sid,
         "rule_type": "TEXT",
         "rule_status": "ON",
@@ -151,7 +151,7 @@ def analysis_obj(username, sid, host, port, com, db_user, cmdb_id, password, con
         "db_port": str(port),
         "create_user": "ISQLAUDIT",
         "username": db_user,
-        "db_type": utils.cmdb_utils.DB_ORACLE,
+        "db_type": utils.const.DB_ORACLE,
         "rule_type": "OBJ",
         "rule_status": "ON",
         "task_ip": host,

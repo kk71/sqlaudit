@@ -6,33 +6,9 @@ import json
 from mongoengine import Q
 
 from models.oracle import RiskSQLRule
-from models.mongo import Rule, Results
+from models.mongo import *
 from utils.perf_utils import *
-
-
-# 业务类型
-
-MODEL_OLTP = "OLTP"
-MODEL_OLAP = "OLAP"
-ALL_SUPPORTED_MODEL = (MODEL_OLAP, MODEL_OLTP)
-
-# 规则状态
-
-RULE_STATUS_ON = "ON"
-RULE_STATUS_OFF = "OFF"
-ALL_RULE_STATUS = (RULE_STATUS_ON, RULE_STATUS_OFF)
-
-# 规则类型
-
-RULE_TYPE_OBJ = "OBJ"
-RULE_TYPE_TEXT = "TEXT"
-RULE_TYPE_SQLPLAN = "SQLPLAN"
-RULE_TYPE_SQLSTAT = "SQLSTAT"
-ALL_RULE_TYPE = (RULE_TYPE_OBJ, RULE_TYPE_TEXT, RULE_TYPE_SQLPLAN, RULE_TYPE_SQLSTAT)
-
-# 定位一条规则的字段们
-
-RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
+from utils.const import *
 
 
 def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
@@ -95,12 +71,15 @@ def merge_risk_rule_and_rule(
     return {**risk_rule_dict, **rule_dict}
 
 
-def get_rules_dict() -> dict:
+def get_rules_dict(rule_status: str = RULE_STATUS_ON) -> dict:
     """
     parse all rules into a dict with 3-key indexing
+    :param rule_status:
+    :return:
     """
     # TODO make it cached
-    return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.objects().all()}
+    return {(r.db_type, r.db_model, r.rule_name): r for r in
+            Rule.objects(rule_status=rule_status).all()}
 
 
 @timing
@@ -109,7 +88,7 @@ def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     计算某个类型的规则的最大分总合
     """
     # TODO make it cached
-    rule_q = Rule.objects(db_type=db_type, db_model=db_model, rule_type=rule_type)
+    rule_q = Rule.filter_enabled(db_type=db_type, db_model=db_model, rule_type=rule_type)
     return sum([float(rule.max_score) for rule in rule_q])
 
 
@@ -156,3 +135,74 @@ def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple
                     if sql["sql_id"] == sql_id:
                         rule_name_set.add(rn)
     return rule_name_set
+
+
+@timing
+def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
+    """
+    获取最近的风险率
+    :param cmdb_id:
+    :param date_range:
+    :return:
+    """
+    # TODO make it cached
+    date_start, date_end = date_range
+    results_q = Results.objects(cmdb_id=cmdb_id, create_date__gte=date_start,
+                                create_date__lte=date_end)
+    # OBJ
+    tab_info_q = ObjTabInfo.objects(cmdb_id=cmdb_id)
+    part_tab_info_q = ObjPartTabParent.objects(cmdb_id=cmdb_id)
+    index_q = ObjIndColInfo.objects(cmdb_id=cmdb_id)
+    # others
+    sql_text_q = SQLText.objects(cmdb_id=cmdb_id)
+    sql_plan_q = MSQLPlan.objects(cmdb_id=cmdb_id)
+    sql_stats_q = SQLStat.objects(cmdb_id=cmdb_id)
+    # rule dict for searching obj_info_type
+    rule_dict = get_rules_dict()
+    ret = {
+        # OBJ
+        "table": {"violation_num": 0, "sum": 0, "rate": 0.0},  # table包括普通表及分区表,无属性或类型可定义，故以table表示
+        "sequence": {"violation_num": 0, "sum": 0, "rate": 0.0},
+        OBJ_RULE_TYPE_INDEX: {"violation_num": 0, "sum": 0, "rate": 0.0},
+        # others
+        RULE_TYPE_TEXT: {"violation_num": 0, "sum": 0, "rate": 0.0},
+        RULE_TYPE_SQLSTAT: {"violation_num": 0, "sum": 0, "rate": 0.0},
+        RULE_TYPE_SQLPLAN: {"violation_num": 0, "sum": 0, "rate": 0.0}
+    }
+    exec_hist_id_set: set = set()
+    for result in results_q:
+        for rule_3k, rule_obj in rule_dict.items():
+            result_rule_dict = getattr(result, rule_3k[2], None)
+            if not result_rule_dict:
+                continue
+            if result.rule_type == RULE_TYPE_OBJ:
+                records = result_rule_dict["records"]
+                if rule_obj.obj_info_type in (OBJ_RULE_TYPE_TABLE, OBJ_RULE_TYPE_PART_TABLE):
+                    ret["table"]["violation_num"] += len(records)
+                elif rule_obj.obj_info_type == OBJ_RULE_TYPE_INDEX:
+                    ret[OBJ_RULE_TYPE_INDEX]["violation_num"] += len(records)
+            else:
+                sqls = result_rule_dict["sqls"]
+                ret[result.rule_type]["violation_num"] += len(sqls)
+        exec_hist_id_set.add(result.record_id.split("##")[0])
+    for exec_hist_id in exec_hist_id_set:
+        # table include normal table and part-table, so calc twice.
+        ret["table"]["sum"] += tab_info_q.filter(record_id__startswith=exec_hist_id).count()
+        ret["table"]["sum"] += part_tab_info_q.filter(record_id__startswith=exec_hist_id).count()
+        # OBJ index
+        ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id__startswith=exec_hist_id).count()
+        # other
+        ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__startswith=exec_hist_id).count()
+        ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__startswith=exec_hist_id).count()
+        ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id__startswith=exec_hist_id).count()
+
+    return ret
+
+
+@timing
+def get_score_of_4_perspective():
+    """
+    获取四个维度的评分
+    :return:
+    """
+    return

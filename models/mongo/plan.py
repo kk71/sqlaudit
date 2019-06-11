@@ -1,12 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, BooleanField, ListField,\
-    DictField, FloatField, DateTimeField, LongField, ObjectIdField
+from mongoengine import StringField, IntField, BooleanField, FloatField, \
+    DateTimeField, LongField, ObjectIdField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
 
 
-class MSQLPlan(BaseDoc):
+class MSQLPlan(BaseDocRecordID):
     _id = ObjectIdField()
     sql_id = StringField(db_field="SQL_ID")
     schema = StringField(db_field="USERNAME")

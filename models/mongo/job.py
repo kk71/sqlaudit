@@ -1,9 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField,\
-    BooleanField, DictField, EmbeddedDocument, EmbeddedDocumentField, FloatField
+    BooleanField, EmbeddedDocument, EmbeddedDocumentField, FloatField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
 
 
 class EmbeddedJobDesc(EmbeddedDocument):
@@ -16,7 +16,7 @@ class EmbeddedJobDesc(EmbeddedDocument):
     capture_time_end = DateTimeField()
 
 
-class Job(BaseDoc):
+class Job(BaseDocRecordID):
     id = ObjectIdField(db_field="_id")
     name = StringField()
     cmdb_id = IntField()

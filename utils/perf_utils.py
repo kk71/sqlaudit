@@ -1,13 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__ALL__ = [
+    "timing"
+]
+
 import time
 from functools import wraps
 
 import settings
-
-__ALL__ = [
-    "timing"
-]
 
 
 def timing(method):

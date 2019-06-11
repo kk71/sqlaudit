@@ -8,22 +8,6 @@ from utils.perf_utils import *
 
 import plain_db.oracleob
 
-# 数据库类型
-
-DB_ORACLE = "oracle"
-DB_MYSQL = "mysql"
-ALL_SUPPORTED_DB_TYPE = (DB_ORACLE, DB_MYSQL)
-
-# 纳管数据库的任务类型
-DB_TASK_CAPTURE = "采集及分析"
-DB_TASK_TUNE = "SQL智能优化"
-ALL_DB_TASKS = (DB_TASK_CAPTURE, DB_TASK_TUNE)
-
-
-class CMDBNotFoundException(Exception):
-    """CMDB未找到错误"""
-    pass
-
 
 def get_current_cmdb(session, user_login) -> list:
     """
@@ -45,7 +29,7 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     :return: list of schema
     """
     q = session.query(DataPrivilege).filter(
-        DataPrivilege.login_user==user_login, DataPrivilege.cmdb_id==cmdb_id)
+        DataPrivilege.login_user == user_login, DataPrivilege.cmdb_id == cmdb_id)
     return list({i.schema_name for i in q})
 
 

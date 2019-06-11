@@ -9,7 +9,7 @@ import xlsxwriter
 from schema import Schema, Optional
 from mongoengine import Q
 
-import settings
+from utils.const import *
 from utils.perf_utils import *
 from .base import AuthReq
 from utils.schema_utils import *
@@ -64,7 +64,7 @@ class ObjectRiskListHandler(AuthReq):
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model,
-            db_type=cmdb_utils.DB_ORACLE
+            db_type=DB_ORACLE
         )
         risk_rules_dict = rule_utils.get_risk_rules_dict(session)
         risky_rule_name_object_dict = {risky_rule.rule_name:
@@ -313,7 +313,7 @@ class SQLRiskListHandler(AuthReq):
         risky_rules = Rule.objects(
             rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
             db_model=cmdb.db_model,
-            db_type=cmdb_utils.DB_ORACLE
+            db_type=DB_ORACLE
         )
         risk_rules_dict = rule_utils.get_risk_rules_dict(session)
         risky_rule_name_object_dict = {risky_rule.rule_name:
@@ -777,5 +777,8 @@ class OverviewHandler(SQLRiskListHandler):
                     "by_sum": top_10_sql_by_sum[:10],
                     "by_average": top_10_sql_by_average[:10]
                 },
-                "phy_size_mb": phy_size
+                "phy_size_mb": phy_size,
+                "risk_rates": rule_utils.get_risk_rate(cmdb_id, (date_start, date_end)),
+                "score_radar": None
             })
+

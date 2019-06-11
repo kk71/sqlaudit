@@ -3,10 +3,10 @@
 from mongoengine import IntField, StringField, BooleanField, DictField,\
     DateTimeField, ObjectIdField, FloatField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
 
 
-class SQLStat(BaseDoc):
+class SQLStat(BaseDocRecordID):
     _id = ObjectIdField()
     sql_id = StringField(db_field="SQL_ID")
     etl_date = DateTimeField(db_field="ETL_DATE")

@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from datetime import datetime
-
 from sqlalchemy import Column, String, Integer, Boolean, Sequence
 from sqlalchemy.dialects.oracle import DATE, CLOB
 

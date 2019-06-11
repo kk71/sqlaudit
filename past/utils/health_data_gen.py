@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 import plain_db.oracleob

@@ -3,6 +3,7 @@
 from schema import Schema, Optional, Or
 
 from utils.schema_utils import *
+from utils.const import *
 from .base import *
 from utils import rule_utils, cmdb_utils
 from models.mongo import *
@@ -13,7 +14,7 @@ class RuleRepoHandler(AuthReq):
     def get(self):
         """规则库列表"""
         params = self.get_query_args(Schema({
-            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("rule_type"): scm_one_of_choices(ALL_RULE_TYPE),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
@@ -30,8 +31,8 @@ class RuleRepoHandler(AuthReq):
     def post(self):
         """新增规则"""
         params = self.get_json_args(Schema({
-            "db_type": scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
-            "db_model": scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
+            "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
+            "db_model": scm_one_of_choices(ALL_SUPPORTED_MODEL),
             "exclude_obj_type": [scm_unempty_str],
             "input_parms": [
                 {
@@ -52,7 +53,7 @@ class RuleRepoHandler(AuthReq):
             "rule_name": scm_unempty_str,
             "rule_complexity": scm_str,
             "rule_cmd": scm_str,
-            "rule_status": scm_one_of_choices(rule_utils.ALL_RULE_STATUS),
+            "rule_status": scm_one_of_choices(ALL_RULE_STATUS),
             "rule_summary": scm_str,
             "rule_type": scm_str,
             "solution": [scm_unempty_str],
@@ -67,8 +68,8 @@ class RuleRepoHandler(AuthReq):
         params = self.get_json_args(Schema({
             "rule_name": self.scm_with_em(scm_unempty_str, e="规则名称不能为空"),
 
-            Optional("db_type"): scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
-            Optional("db_model"): scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
+            Optional("db_type"): scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
+            Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             Optional("exclude_obj_type"): [scm_unempty_str],
             Optional("input_parms"): [
                 {
@@ -88,7 +89,7 @@ class RuleRepoHandler(AuthReq):
             Optional("rule_desc"): scm_str,
             Optional("rule_complexity"): scm_str,
             Optional("rule_cmd"): scm_str,
-            Optional("rule_status"): scm_one_of_choices(rule_utils.ALL_RULE_STATUS),
+            Optional("rule_status"): scm_one_of_choices(ALL_RULE_STATUS),
             Optional("rule_summary"): scm_str,
             Optional("rule_type"): scm_str,
             Optional("solution"): [scm_unempty_str],
@@ -109,7 +110,7 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
-            Optional("rule_type"): scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            Optional("rule_type"): scm_one_of_choices(ALL_RULE_TYPE),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
@@ -147,10 +148,10 @@ class RiskRuleHandler(AuthReq):
             "risk_name": scm_unempty_str,
             "severity": scm_str,
             "optimized_advice": scm_str,
-            Optional("db_type", default=cmdb_utils.DB_ORACLE): scm_one_of_choices(cmdb_utils.ALL_SUPPORTED_DB_TYPE),
-            "db_model": scm_one_of_choices(rule_utils.ALL_SUPPORTED_MODEL),
+            Optional("db_type", default=DB_ORACLE): scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
+            "db_model": scm_one_of_choices(ALL_SUPPORTED_MODEL),
             "rule_name": scm_unempty_str,
-            "rule_type": scm_one_of_choices(rule_utils.ALL_RULE_TYPE),
+            "rule_type": scm_one_of_choices(ALL_RULE_TYPE),
         }))
         with make_session() as session:
             risk_rule = RiskSQLRule(**params)

@@ -9,7 +9,7 @@ import past.rule_analysis.libs.oracle_plan_stat.plan_stat
 import past.rule_analysis.review_result.rule_result
 import past.rule_analysis.libs.text.sql_text
 
-import utils.cmdb_utils
+import utils.const
 
 
 class SqlAudit(object):
@@ -45,7 +45,7 @@ class SqlAudit(object):
             self.rule_status,
             self.db_model
         )
-        if self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
+        if self.db_type == utils.const.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
             self.ora = past.rule_analysis.libs.oracle_plan_stat.plan_stat.OraclePlanOrStat(self.mongo_client, self.username, self.startdate, self.record_id)
         # elif self.db_type == "mysql" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
         #     pt_server_args = kwargs.get("pt_server_args")
@@ -54,7 +54,7 @@ class SqlAudit(object):
         #     self.mys = MysqlPlanOrStat(
         #         pt_query_client, self.db_client,
         #         self.mongo_client, self.rule_type)
-        elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "OBJ":
+        elif self.db_type == utils.const.DB_ORACLE and self.rule_type == "OBJ":
             self.db_client = self.db_server_init(**kwargs)
         # elif self.db_type == "mysql" and self.rule_type == "OBJ":
         #     self.db_client = self.db_server_init(**kwargs)
@@ -65,7 +65,7 @@ class SqlAudit(object):
         #     self.sql_text = SqlText(self.mongo_client, self.startdate,
         #                             self.stopdate, self.username,
         #                             self.hostname, self.record_id, db_client=pt_query_client)
-        elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "TEXT":
+        elif self.db_type == utils.const.DB_ORACLE and self.rule_type == "TEXT":
             self.hostname = hostname
             self.sql_text = past.rule_analysis.libs.text.sql_text.SqlText(self.mongo_client, self.startdate,
                                     self.stopdate, self.username,
@@ -279,7 +279,7 @@ class SqlAudit(object):
             weight = value["weight"]
             max_score = float(value["max_score"])
             input_parms = value["input_parms"]
-            if self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
+            if self.db_type == utils.const.DB_ORACLE and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
                 result, score = self.o_rule_parse(
                     key,
                     rule_complexity,
@@ -314,7 +314,7 @@ class SqlAudit(object):
                         "scores": scores,
                         "sqls": result
                     })
-            elif self.db_type == utils.cmdb_utils.DB_ORACLE and self.rule_type == "OBJ":
+            elif self.db_type == utils.const.DB_ORACLE and self.rule_type == "OBJ":
                 results, scores = self.obj_parse(key, rule_complexity,
                                                  rule_cmd, weight,
                                                  max_score, input_parms)

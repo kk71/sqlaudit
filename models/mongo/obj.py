@@ -1,24 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
-    BooleanField, DynamicField, FloatField
+    DynamicField, FloatField
 
-from .utils import BaseDoc
-
-
-class ObjectBaseDoc(BaseDoc):
-
-    meta = {
-        'abstract': True,
-    }
-
-    @classmethod
-    def filter_by_exec_hist(cls, exec_history_object):
-        """按照record_id查询"""
-        return cls.objects.filter(record_id__startswith=str(exec_history_object.id))
+from .utils import BaseDocRecordID
 
 
-class ObjTabInfo(ObjectBaseDoc):
+class ObjTabInfo(BaseDocRecordID):
     """表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -47,7 +35,7 @@ class ObjTabInfo(ObjectBaseDoc):
     }
 
 
-class ObjTabCol(ObjectBaseDoc):
+class ObjTabCol(BaseDocRecordID):
     """列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -72,7 +60,7 @@ class ObjTabCol(ObjectBaseDoc):
     }
 
 
-class ObjPartTabParent(ObjectBaseDoc):
+class ObjPartTabParent(BaseDocRecordID):
     """父分区表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -100,7 +88,7 @@ class ObjPartTabParent(ObjectBaseDoc):
     }
 
 
-class ObjIndColInfo(ObjectBaseDoc):
+class ObjIndColInfo(BaseDocRecordID):
     """索引列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="INDEX_OWNER")
@@ -121,7 +109,7 @@ class ObjIndColInfo(ObjectBaseDoc):
     }
 
 
-class ObjViewInfo(ObjectBaseDoc):
+class ObjViewInfo(BaseDocRecordID):
     """视图"""
     _id = ObjectIdField()
     obj_pk = StringField(db_field="OBJ_PK")

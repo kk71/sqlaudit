@@ -5,7 +5,7 @@ import settings
 from datetime import datetime
 
 from celery import Celery, platforms
-from utils.sql_utils import SQL_DDL, SQL_DML
+from utils.const import SQL_DDL, SQL_DML
 
 from models import init_models
 

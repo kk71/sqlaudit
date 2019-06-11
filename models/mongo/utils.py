@@ -6,6 +6,7 @@ from typing import *
 from mongoengine import DynamicDocument, EmbeddedDocument
 
 from utils.datetime_utils import *
+from utils import const
 
 
 class BaseDoc(DynamicDocument):
@@ -57,8 +58,19 @@ class BaseDoc(DynamicDocument):
                     f: getattr(v, f, None) for f in v._fields})
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
-                d[k] = arrow.get(d[k]).format(COMMON_DATETIME_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATETIME_FORMAT)
             elif datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format(COMMON_DATE_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATE_FORMAT)
         return d
 
+
+class BaseDocRecordID(BaseDoc):
+
+    meta = {
+        'abstract': True,
+    }
+
+    @classmethod
+    def filter_by_exec_hist_id(cls, exec_history_id: str):
+        """按照record_id查询"""
+        return cls.objects.filter(record_id__startswith=exec_history_id)

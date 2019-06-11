@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-"
 
-from webui.utils.oracle_connect import oracle_connect
+from past.utils.oracle_connect import oracle_connect
 
 
 def f_priv_db_user_list(**kwargs):

@@ -6,11 +6,8 @@ import sqlparse
 
 from models.mongo import SQLText, MSQLPlan
 from utils.perf_utils import *
+from utils.const import SQL_DDL, SQL_DML
 
-
-SQL_DML = 0
-SQL_DDL = 1
-ALL_SQL_TYPE = (SQL_DML, SQL_DDL)
 
 TICKET_TYPE_STATIC_RULE = {
     SQL_DDL: ["BAD_JOIN", "DML_ALLDATA", "DML_SORT", "LIKE_UNINDEX", "LONG_TEXT", "SELECT_ANY", "SUBQUERY_REP",

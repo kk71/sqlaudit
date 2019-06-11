@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def oracle_connect(ip, port, username, passwd, sid=None, service_name=None):
     import cx_Oracle
     if sid:

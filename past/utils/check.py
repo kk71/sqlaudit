@@ -15,7 +15,7 @@ from .rule_utils import RuleUtils
 from plain_db.oracleob import OracleOB
 from plain_db.oracleob import OracleHelper
 from .sql_parse_rules import ObjStaticRules
-from utils.sql_utils import SQL_DDL as DDL
+from utils.const import SQL_DDL as DDL
 from .constant import worklist_type_static_rule
 from .constant import worklist_type_dynamic_sqlplan_rule
 from .constant import RULE_COMMANDS

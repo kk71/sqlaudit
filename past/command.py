@@ -14,7 +14,7 @@ import past.utils.utils
 import plain_db.oracleob
 
 import utils.cmdb_utils
-import utils.result_utils
+import utils.const
 from utils.datetime_utils import *
 import models.mongo
 
@@ -269,7 +269,7 @@ class Command(object):
         job_record.update(result_update_info)
         sqlaudit.mongo_client.insert_one("results", job_record)
         models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
-            set__status=utils.result_utils.JOB_STATUS_FINISHED,
+            set__status=utils.const.JOB_STATUS_FINISHED,
             set__desc__capture_time_end=past.utils.utils.get_time()
         )
         # sql = {'_id': sqlaudit.review_result.task_id}

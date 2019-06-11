@@ -17,7 +17,7 @@ import past.capture.sql
 # from task_mail import timing_send_email
 # from task_sqlaitune import sqlaitune_run
 import plain_db.oracleob
-from utils import cmdb_utils
+from utils import const
 # from task_mongo import clean_mongo
 
 
@@ -61,7 +61,7 @@ def run_capture(now):
             print(str(err))
             continue
 
-        if task['script'] == cmdb_utils.DB_TASK_CAPTURE:
+        if task['script'] == const.DB_TASK_CAPTURE:
             sql = past.capture.sql.GET_SCHEMA
             users = [x[0] for x in cmdb_odb.select(sql, one=False)]
 
@@ -69,7 +69,7 @@ def run_capture(now):
                       task['connect_name'], task['business_name'], users, task['cmdb_id']]
             task_run.delay(*params)
 
-        elif task['script'] == cmdb_utils.DB_TASK_TUNE:
+        elif task['script'] == const.DB_TASK_TUNE:
             # sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
             pass
 

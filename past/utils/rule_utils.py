@@ -2,7 +2,8 @@
 import random
 import string
 from plain_db.mongo_operat import MongoHelper
-import utils.cmdb_utils
+import utils.const
+
 
 class RuleUtils:
 
@@ -25,19 +26,19 @@ class RuleUtils:
         return {x['rule_name']: x for x in cls.rules if cls.compare(subset, x)}
 
     @classmethod
-    def text(cls, db_model, db_type=utils.cmdb_utils.DB_ORACLE, rule_status="ON"):
+    def text(cls, db_model, db_type=utils.const.DB_ORACLE, rule_status="ON"):
         return cls.get_classified_rules("TEXT", db_type, db_model, rule_status)
 
     @classmethod
-    def obj(cls, db_model, db_type=utils.cmdb_utils.DB_ORACLE, rule_status="ON"):
+    def obj(cls, db_model, db_type=utils.const.DB_ORACLE, rule_status="ON"):
         return cls.get_classified_rules("OBJ", db_type, db_model, rule_status)
 
     @classmethod
-    def sqlplan(cls, db_model, db_type=utils.cmdb_utils.DB_ORACLE, rule_status="ON"):
+    def sqlplan(cls, db_model, db_type=utils.const.DB_ORACLE, rule_status="ON"):
         return cls.get_classified_rules("SQLPLAN", db_type, db_model, rule_status)
 
     @classmethod
-    def sqlstat(cls, db_model, db_type=utils.cmdb_utils.DB_ORACLE, rule_status="ON"):
+    def sqlstat(cls, db_model, db_type=utils.const.DB_ORACLE, rule_status="ON"):
         return cls.get_classified_rules("SQLSTAT", db_type, db_model, rule_status)
 
     @classmethod

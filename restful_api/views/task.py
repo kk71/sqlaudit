@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, And, Or
+from schema import Schema, Optional, And
 
 from .base import AuthReq
 from models.oracle import *

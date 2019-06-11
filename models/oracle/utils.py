@@ -7,6 +7,7 @@ from types import FunctionType
 # must initiate models first!
 from models import Session, base
 from utils.datetime_utils import *
+from utils import const
 
 
 @contextmanager
@@ -15,9 +16,10 @@ def make_session():
     try:
         yield session
         session.commit()
-    except:
+    except Exception as e:
         session.rollback()
-        raise Exception(f"session object {id(session)} has been rolled-back.")
+        print(f"session object {id(session)} has been rolled-back because of the following exception: ")
+        raise e
     finally:
         session.close()
 
@@ -57,7 +59,7 @@ class BaseModel(base):
                 v = iter_by(k, v)
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
-                d[k] = arrow.get(d[k]).format(COMMON_DATETIME_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATETIME_FORMAT)
             elif datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format(COMMON_DATE_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATE_FORMAT)
         return d

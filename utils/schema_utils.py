@@ -1,9 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import arrow
-from schema import And, Or, Use
+from schema import And, Use
 
-from utils import datetime_utils
+from utils import const
 
 __all__ = [
     "scm_str",
@@ -17,7 +17,6 @@ __all__ = [
     "scm_subset_of_choices",
     "scm_one_of_choices",
     "scm_date",
-    "scm_time",
     "scm_datetime",
     "scm_bool",
 ]
@@ -42,8 +41,5 @@ scm_dot_split_int = scm_something_split_str(",", scm_int)
 scm_bool = Use(lambda x: x not in (0, "0", False))
 
 # for date and time
-scm_datetime = Use(lambda x: arrow.get(x, datetime_utils.COMMON_DATETIME_FORMAT).datetime)
-scm_date = Use(lambda x: arrow.get(x, datetime_utils.COMMON_DATE_FORMAT).date())
-scm_time = Use(lambda x: arrow.get(x, datetime_utils.COMMON_TIME_FORMAT).time())
-
-
+scm_datetime = Use(lambda x: arrow.get(x, const.COMMON_DATETIME_FORMAT).datetime)
+scm_date = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).date())

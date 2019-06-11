@@ -16,10 +16,7 @@ from typing import Union
 import arrow
 from datetime import date, datetime
 
-
-COMMON_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
-COMMON_DATE_FORMAT = 'YYYY-MM-DD'
-COMMON_TIME_FORMAT = 'HH:mm:ss'
+from utils.const import COMMON_DATETIME_FORMAT, COMMON_DATE_FORMAT
 
 
 def dt_to_str(dt: Union[datetime, arrow.Arrow]) -> Union[str, None]:
