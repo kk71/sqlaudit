@@ -37,16 +37,20 @@ class RuleRepoHandler(AuthReq):
             "input_parms": [
                 {
                     "parm_desc": scm_str,
-                    "parm_name": scm_str,
+                    "parm_name": scm_unempty_str,
                     "parm_unit": scm_str,
-                    "parm_value": Or(float, int, str)
+                    "parm_value": Or(float, int, str),
+
+                    Optional(object): object
                 }
             ],
             "max_score": scm_int,
             "output_parms": [
                 {
                     "parm_desc": scm_str,
-                    "parm_name": scm_str
+                    "parm_name": scm_unempty_str,
+
+                    Optional(object): object
                 }
             ],
             "rule_desc": scm_str,
@@ -59,6 +63,12 @@ class RuleRepoHandler(AuthReq):
             "solution": [scm_unempty_str],
             "weight": scm_float
         }))
+        params["input_parms"] = [{k: v for k, v in i.items() if k in (
+            "parm_desc", "parm_name", "parm_unit", "parm_value"
+        )} for i in params["input_parms"]]
+        params["output_parms"] = [{k: v for k, v in i.items() if k in (
+            "parm_desc", "parm_name"
+        )} for i in params["output_parms"]]
         new_rule = Rule(**params)
         new_rule.save()
         self.resp_created(new_rule.to_dict())
