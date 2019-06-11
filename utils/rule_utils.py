@@ -185,16 +185,18 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
                 sqls = result_rule_dict["sqls"]
                 ret[result.rule_type]["violation_num"] += len(sqls)
         record_id_set.add(result.record_id)
-    for record_id in record_id_set:
-        # table include normal table and part-table, so calc twice.
-        ret["table"]["sum"] += tab_info_q.filter(record_id=record_id).count()
-        ret["table"]["sum"] += part_tab_info_q.filter(record_id=record_id).count()
-        # OBJ index
-        ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id=record_id).count()
-        # other
-        ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id=record_id).count()
-        ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id=record_id).count()
-        ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id=record_id).count()
+
+    record_id_list = list(record_id_set)
+    # table include normal table and part-table, so calc twice.
+    ret["table"]["sum"] += tab_info_q.filter(record_id__in=record_id_list).count()
+    ret["table"]["sum"] += part_tab_info_q.filter(record_id__in=record_id_list).count()
+    # OBJ index
+    ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id__in=record_id_list).count()
+    # other
+    ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__in=record_id_list).count()
+    ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__in=record_id_list).count()
+    ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id__in=record_id_list).count()
+
     for k, v in ret.items():
         if v["sum"] and v["violation_num"]:
             v["rate"] = float(v["violation_num"]) / v["sum"]
