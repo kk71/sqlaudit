@@ -21,10 +21,10 @@ import cx_Oracle
 from plain_db.oracleob import OracleOB, OracleHelper
 from plain_db.mongo_operat import MongoHelper
 from .cmdb_utils import CmdbUtils
+import utils.const
 
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-import utils.cmdb_utils
 
 def get_random_str_without_duplicate():
     lib = string.digits + string.ascii_lowercase
@@ -287,7 +287,9 @@ def calculate_rules(result, search_temp):
 
     result = {k: v for k, v in result.items() if v and isinstance(v, dict)}
 
-    rule_infos = [x for x in MongoHelper.find("rule", {'rule_type': rule_type, 'db_type': utils.cmdb_utils.DB_ORACLE, 'db_model': db_model})]
+    rule_infos = [x for x in MongoHelper.find("rule", {'rule_type': rule_type,
+                                                       'db_type': utils.const.DB_ORACLE,
+                                                       'db_model': db_model})]
     rule_summary = {v['rule_name']: [v['rule_summary'], v['exclude_obj_type']] for v in rule_infos}
     total_score = sum([float(rule['max_score']) for rule in rule_infos])
 
