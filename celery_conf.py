@@ -20,13 +20,13 @@ worker_max_tasks_per_child = 3
 imports = ("task.capture", "task.offline_ticket")
 
 # when add a new task, add it to blow.
-_capture = "capture"
-_submit_ticket = "submit_ticket"
+_capture = "task.capture.task_run"
+_submit_ticket = "task.offline_ticket.offline_ticket"
 
 task_routes = {
-    'task.capture.task_run': {
+    _capture: {
         'queue': _capture, 'routing_key': _capture},
-    'task.offline_ticket.offline_ticket': {
+    _submit_ticket: {
         'queue': _submit_ticket, 'routing_key': _submit_ticket},
 }
 task_queues = {
