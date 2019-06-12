@@ -17,7 +17,7 @@ accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 result_serializer = 'json'
 worker_concurrency = 2
 worker_max_tasks_per_child = 3
-
+imports = ("task.capture", "task.offline_ticket")
 
 # when add a new task, add it to blow.
 _capture = "capture"
