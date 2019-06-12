@@ -51,3 +51,12 @@ class DataPrivilege(BaseModel):
     comments = Column("COMMENTS", String)
 
 
+class DataHealthUserConfig(BaseModel):
+    """数据库评分配置"""
+    __tablename__="T_DATA_HEALTH_USER_CONFIG"
+
+    database_name=Column("DATABASE_NAME",String,primary_key=True)
+    username=Column("USERNAME",String)
+    needcalc=Column("NEEDCALC",String)
+    weight=Column("WEIGHT",Integer)
+
