@@ -4,6 +4,7 @@ from schema import Schema, Optional
 
 from .base import AuthReq
 from utils.schema_utils import *
+from utils.datetime_utils import dt_to_str
 from models.oracle import *
 
 
@@ -89,11 +90,59 @@ class CMDBPermissionHandler(AuthReq):
     """数据库权限配置"""
 
     def get(self):
-        self.resp()
+        if self.current_user != "admin":
+            return self.resp_bad_req("No Authority")
+
+        with make_session() as session:
+            perm_datas=session.query(DataPrivilege,CMDB,User).\
+                join(CMDB,DataPrivilege.cmdb_id==CMDB.cmdb_id).\
+                join(User,User.login_user==DataPrivilege.login_user).\
+                with_entities(CMDB.connect_name,CMDB.cmdb_id,
+                              DataPrivilege.schema_name,DataPrivilege.create_date,
+                              DataPrivilege.comments,User.user_name,User.login_user)
+            permisson_datas = []
+            perm_datas = [list(x) for x in perm_datas]
+            for perm_data in perm_datas:
+                permisson_datas.append({'connect_name': perm_data[0], 'cmdb_id': perm_data[1],
+                                    'schema_name': perm_data[2], 'create_date': dt_to_str(perm_data[3]),
+                                    'comments': perm_data[4], 'user_name': perm_data[5],
+                                    'login_user': perm_data[6]})
+
+            user=session.query(User).filter(User.login_user != "admin").\
+                with_entities(User.login_user,User.user_name)
+            # users=[user.to_dict() for user in users]
+            users = []
+            user=[list(x) for x in user]
+            for u in user:
+                users.append({'login_user':u[0],'user_name':u[1]})
+
+            cmdb=session.query(CMDB).with_entities(CMDB.cmdb_id,CMDB.connect_name)
+            # cmdbs=[cmdb.to_dict() for cmdb in cmdbs]
+            cmdbs = []
+            cmdb =[list(x) for x in cmdb]
+            for c in cmdb:
+                cmdbs.append({'cmdb_id':c[0],'connect_name':c[1]})
+            self.resp({"permisson_datas": permisson_datas, "users": users, "cmdbs": cmdbs})
 
     def patch(self):
         self.resp_created()
 
     def delete(self):
-        self.resp_created()
+        params=self.get_json_args(Schema({
+            'cmdb_id':scm_int,
+            'login_user':scm_unempty_str,
+            'schema_name':scm_unempty_str
+        }))
+        cmdb_id,login_user,schema_name=params.pop('cmdb_id'),params.pop('login_user'),\
+                                       params.pop('schema_name')
+        del params
+        with make_session() as session:
+            session.query(DataPrivilege).\
+                filter(DataPrivilege.cmdb_id==cmdb_id,
+                       DataPrivilege.login_user==login_user,
+                       DataPrivilege.schema_name==schema_name).delete()
+
+
+
+            self.resp_created("删除权限成功")
 
