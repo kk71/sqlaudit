@@ -61,11 +61,11 @@ CELERY_CONF = {
     'CELERYD_CONCURRENCY': 2,
     'CELERYD_MAX_TASKS_PER_CHILD': 5,
     'CELERY_ROUTES': {
-        'task_exports.export': {'queue': 'task_exports', 'routing_key': 'task_exports'},
-        'task_capture.task_run': {'queue': 'task_capture', 'routing_key': 'task_capture'},
-        'task_sqlaitune.sqlaitune_run': {'queue': 'task_sqlaitune', 'routing_key': 'task_sqlaitune'},
-        'task_mail.timing_send_email': {'queue': 'task_mail', 'routing_key': 'task_mail'},
-        'task_submit_worklist.submit_worklist': {'queue': 'submit_worklist', 'routing_key': 'submit_worklist'},
+        # 'task_exports.export': {'queue': 'task_exports', 'routing_key': 'task_exports'},
+        'task.capture.task_run': {'queue': 'capture', 'routing_key': 'capture'},
+        # 'task_sqlaitune.sqlaitune_run': {'queue': 'task_sqlaitune', 'routing_key': 'task_sqlaitune'},
+        # 'task_mail.timing_send_email': {'queue': 'task_mail', 'routing_key': 'task_mail'},
+        'task.offline_ticket.offline_ticket': {'queue': 'offline_ticket', 'routing_key': 'offline_ticket'},
     },
     'CELERY_QUEUE': {
         Queue('default', Exchange('default'), routing_key='default'),
