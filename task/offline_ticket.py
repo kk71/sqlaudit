@@ -3,20 +3,16 @@
 import time
 from datetime import datetime
 
-from celery import Celery
 from utils.const import SQL_DDL, SQL_DML
-
-celery = Celery(__name__)
-celery.config_from_object("celery_conf")
 
 from models import init_models
 init_models()
-
 
 import past.utils.utils
 import past.utils.check
 import past.models
 from models.oracle import make_session, CMDB, WorkList, SubWorkList
+from task.base import *
 
 
 @celery.task

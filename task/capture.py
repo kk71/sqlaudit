@@ -1,11 +1,6 @@
 import time
 import signal
 
-from celery import Celery
-
-import settings
-
-
 from models import init_models
 init_models()
 
@@ -17,10 +12,9 @@ import past.utils.log
 import past.utils.health_data_gen
 
 import utils.const
+from task.base import *
 
 
-celery = Celery(__name__)
-celery.config_from_object("celery_conf")
 logger = past.utils.log.get_logger("capture")
 
 

@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from kombu import Exchange, Queue
 from celery import platforms
+from kombu import Exchange, Queue
 
 import settings
 
@@ -17,6 +17,8 @@ accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 result_serializer = 'json'
 worker_concurrency = 2
 worker_max_tasks_per_child = 3
+
+# when add new tasks in new a module, add it below.
 imports = ("task.capture", "task.offline_ticket")
 
 # when add a new task, add it to blow.
