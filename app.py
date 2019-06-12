@@ -78,10 +78,13 @@ def importrules(filename):
 @click.command()
 @click.option("--task_id", help="")
 @click.option("--schema", help="", default=None)
-def makedata(task_id, schema):
+@click.option("--q", help="use celery or not", default=0)
+def makedata(task_id, schema, q):
     """manually send a message to queue for running sql analysis"""
     import past.mkdata
-    past.mkdata.run(task_id, schema)
+    q = int(q)
+    q = True if q else False
+    past.mkdata.run(task_id, schema, q)
 
 
 @click.command()

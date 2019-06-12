@@ -7,7 +7,7 @@ import task.capture as task_capture
 import plain_db.oracleob
 
 
-def run(task_id, schema=None):
+def run(task_id, schema=None, use_queue=False):
     odb = plain_db.oracleob.OracleOB(settings.ORACLE_IP, settings.ORACLE_PORT, settings.ORACLE_USERNAME, settings.ORACLE_PASSWORD, settings.ORACLE_SID)
     sql = f"""SELECT tm.task_id, tm.connect_name, tm.group_name, tm.business_name, tm.machine_room,
                     tm.database_type, tm.ip_address AS host, tm.port AS port,
@@ -27,8 +27,10 @@ def run(task_id, schema=None):
         if schema and schema in users:
             users = [schema]
         print(users)
-        # task_uuid = task_capture.task_run.delay(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
-        task_uuid = task_capture.task_run(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
+        if use_queue:
+            task_uuid = task_capture.task_run.delay(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
+        else:
+            task_uuid = task_capture.task_run(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
         print(task_uuid)
 
 
