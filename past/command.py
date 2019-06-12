@@ -158,7 +158,7 @@ class Command(object):
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
                                 create_user=create_user, **kwargs)
             job_record = sqlaudit.run()
-        elif db_type == utils.cmdb_utils.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
+        elif db_type == utils.const.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
             instance_name = args.get("sid")
             capture_date = args.get("capture_date")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
@@ -168,7 +168,7 @@ class Command(object):
         elif rule_type == "TEXT":
             startdate = args.get("startdate")
             stopdate = args.get("stopdate")
-            if db_type == utils.cmdb_utils.DB_ORACLE:
+            if db_type == utils.const.DB_ORACLE:
                 instance_name = args.get("sid")
                 hostname = args.get("hostname")
             # elif db_type == "mysql":
