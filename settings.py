@@ -40,37 +40,18 @@ EXPORT_PREFIX = "/downloads/export"
 ENABLE_TIMING = env_get("ENABLE_TIMING", 1, int)
 
 
-# celery settings
+# celery broker & backend settings
+# for celery other settings, please refer to celery_conf.py
 
 REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", WEB_IP)
 REDIS_BROKER_PORT = env_get("REDIS_BROKER_PORT", 6379, int)
 REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2)
-REDIS_BROKER = f'redis://:@{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
+REDIS_BROKER = f'redis://{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
 
 REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", WEB_IP)
 REDIS_BACKEND_PORT = env_get("REDIS_BACKEND_PORT", 6379, int)
 REDIS_BACKEND_DB = env_get("REDIS_BACKEND_DB", 3)
-REDIS_BACKEND = f'redis://:@{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
-
-from kombu import Exchange, Queue
-CELERY_CONF = {
-    # 'CELERYD_POOL_RESTARTS': True,
-    'CELERY_TASK_SERIALIZER': 'json',
-    'CELERY_ACCEPT_CONTENT': ['pickle', 'json', 'msgpack', 'yaml'],
-    'CELERY_RESULT_SERIALIZER': 'json',
-    'CELERYD_CONCURRENCY': 2,
-    'CELERYD_MAX_TASKS_PER_CHILD': 5,
-    'CELERY_ROUTES': {
-        'task.capture.task_run': {'queue': 'capture', 'routing_key': 'capture'},
-        'task.offline_ticket.offline_ticket': {'queue': 'submit_ticket', 'routing_key': 'submit_ticket'},
-    },
-    'CELERY_QUEUE': {
-        Queue('default', Exchange('default'), routing_key='default'),
-        Queue('capture', Exchange('capture'), routing_key='capture'),
-        Queue('submit_ticket', Exchange('submit_ticket'), routing_key='submit_ticket'),
-    },
-    'CELERY_TIMEZONE': 'Asia/Shanghai',
-}
+REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
 
 
 # mongodb server settings

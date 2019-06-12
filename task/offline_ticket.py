@@ -1,21 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import time
-import settings
 from datetime import datetime
 
-from celery import Celery, platforms
+from celery import Celery
 from utils.const import SQL_DDL, SQL_DML
 
+celery = Celery(__name__)
+celery.config_from_object("celery_conf")
+
 from models import init_models
-
-platforms.C_FORCE_ROOT = True
-celery = Celery("submit_ticket",
-                backend=settings.REDIS_BACKEND,
-                broker=settings.REDIS_BROKER,
-                )
-celery.conf.update(settings.CELERY_CONF)
-
 init_models()
 
 

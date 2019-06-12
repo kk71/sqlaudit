@@ -1,7 +1,7 @@
 import time
 import signal
 
-from celery import Celery, platforms
+from celery import Celery
 
 import settings
 
@@ -19,13 +19,9 @@ import past.utils.health_data_gen
 import utils.const
 
 
-platforms.C_FORCE_ROOT = True
-celery = Celery("capture",
-                backend=settings.REDIS_BACKEND,
-                broker=settings.REDIS_BROKER,
-                )
+celery = Celery(__name__)
+celery.config_from_object("celery_conf")
 logger = past.utils.log.get_logger("capture")
-celery.conf.update(settings.CELERY_CONF)
 
 
 def sigintHandler(signum, frame):
