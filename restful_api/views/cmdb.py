@@ -13,6 +13,8 @@ from .base import *
 from utils import cmdb_utils
 from models.oracle import *
 
+from plain_db.oracleob import OracleOB
+
 
 class CMDBHandler(AuthReq):
 
@@ -307,10 +309,6 @@ class CMDBHealthTrendHandler(AuthReq):
             self.resp(ret)
 
 
-
-
-from plain_db.oracleob import OracleOB
-
 class RankingConfigHandler(AuthReq):
 
     def get(self):
@@ -375,7 +373,7 @@ class RankingConfigHandler(AuthReq):
                     session.add(config)
             if delete_schemas:
                 session.query(DataHealthUserConfig).filter(DataHealthUserConfig.database_name==database_name,
-                                                           DataHealthUserConfig.username.in_(delete_schemas)).delete()
+                                                           DataHealthUserConfig.username.in_(delete_schemas)).delete(synchronize_session='fetch')
             self.resp_created(msg="评分配置成功")
 
     def post(self):
@@ -407,11 +405,7 @@ class RankingConfigHandler(AuthReq):
             'database_name':scm_unempty_str,
             'schema_name':scm_unempty_str
         }))
-        database_name,schema_name=params.pop('database_name'),params.pop('schema_name')
-        del params
 
         with make_session() as session:
-            session.query(DataHealthUserConfig).filter(
-                DataHealthUserConfig.database_name == database_name,
-                DataHealthUserConfig.username == schema_name).delete()
+            session.query(DataHealthUserConfig).filter_by(**params).delete()
             self.resp_created("删除评分schema成功")
