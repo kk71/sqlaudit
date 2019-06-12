@@ -10,6 +10,7 @@ import traceback
 from datetime import datetime
 
 import cx_Oracle
+from celery import Celery
 
 import settings
 from task.capture import task_run
@@ -19,6 +20,10 @@ import past.capture.sql
 import plain_db.oracleob
 from utils import const
 # from task_mongo import clean_mongo
+
+
+celery = Celery("capture", backend=settings.REDIS_BACKEND, broker=settings.REDIS_BROKER)
+celery.conf.update(settings.CELERY_CONF)
 
 
 def get_time():

@@ -67,6 +67,8 @@ urls += [
 # online audit
 urls += [
     (r"/api/online/overview", online.OverviewHandler),
+    (r"/api/online/overview/score_by_rule_type", online.OverviewScoreByRuleTypeHandler),
+    (r"/api/online/overview/score_by_schema", online.OverviewScoreBySchemaHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
     (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
     (r"/api/online/object/table", online.TableInfoHandler),

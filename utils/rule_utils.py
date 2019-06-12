@@ -82,7 +82,6 @@ def get_rules_dict(rule_status: str = RULE_STATUS_ON) -> dict:
             Rule.objects(rule_status=rule_status).all()}
 
 
-@timing
 def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     """
     计算某个类型的规则的最大分总合
@@ -203,10 +202,3 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     return ret
 
 
-@timing
-def get_score_of_4_perspective():
-    """
-    获取四个维度的评分
-    :return:
-    """
-    return

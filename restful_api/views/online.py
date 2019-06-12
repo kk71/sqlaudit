@@ -14,7 +14,7 @@ from utils.perf_utils import *
 from .base import AuthReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, cmdb_utils, sql_utils, object_utils
+from utils import rule_utils, cmdb_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
 
@@ -779,6 +779,28 @@ class OverviewHandler(SQLRiskListHandler):
                 },
                 "phy_size_mb": phy_size,
                 "risk_rates": rule_utils.get_risk_rate(cmdb_id, (date_start, date_end)),
-                "score_radar": None
             })
 
+
+class OverviewScoreByRuleTypeHandler(AuthReq):
+
+    def get(self):
+        """显示整个库四个规则类型评分的雷达图"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            Optional("score_type", default=None): scm_one_of_choices(const.ALL_SCORE_BY)
+        }))
+        with make_session() as session:
+            self.resp()
+
+
+class OverviewScoreBySchemaHandler(AuthReq):
+
+    def get(self):
+        """显示数据库纳管的schema的评分"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            Optional("score_type", default=None): scm_one_of_choices(const.ALL_SCORE_BY)
+        }))
+        with make_session() as session:
+            self.resp()

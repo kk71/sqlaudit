@@ -63,6 +63,12 @@ SQL_DML = 0
 SQL_DDL = 1
 ALL_SQL_TYPE = (SQL_DML, SQL_DDL)
 
+# 评分显示类型
+
+SCORE_BY_AVERAGE = 1  # 按照平均分展示
+SCORE_BY_LOWEST = 2   # 按照最低分展示
+ALL_SCORE_BY = (SCORE_BY_AVERAGE, SCORE_BY_LOWEST)
+
 
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""

@@ -10,8 +10,8 @@ from utils.const import SQL_DDL, SQL_DML
 from models import init_models
 
 platforms.C_FORCE_ROOT = True
-celery = Celery("offline_ticket",
-                backend=settings.REDIS_BROKER,
+celery = Celery("submit_ticket",
+                backend=settings.REDIS_BACKEND,
                 broker=settings.REDIS_BROKER,
                 )
 celery.conf.update(settings.CELERY_CONF)
