@@ -82,8 +82,12 @@ def importrules(filename):
 def makedata(task_id, schema, q):
     """manually send a message to queue for running sql analysis"""
     import past.mkdata
+    if not task_id:
+        print("task_id is required.")
+        exit()
     q = int(q)
     q = True if q else False
+    print(f"task_id={task_id} schema={schema} use_queue={q}")
     past.mkdata.run(task_id, schema, q)
 
 

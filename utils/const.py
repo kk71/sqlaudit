@@ -46,6 +46,13 @@ OBJ_RULE_TYPE_VIEW = "VIEW"
 ALL_OBJ_RULE_TYPE = (OBJ_RULE_TYPE_TABLE, OBJ_RULE_TYPE_PART_TABLE, OBJ_RULE_TYPE_INDEX,
                      OBJ_RULE_TYPE_VIEW)
 
+# 所有归类为SQL的规则类型(与OBJ对应)
+ALL_RULE_TYPES_FOR_SQL_RULE = [
+    RULE_TYPE_TEXT,
+    RULE_TYPE_SQLPLAN,
+    RULE_TYPE_SQLSTAT,
+]
+
 # 定位一条规则的字段们
 
 RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
@@ -72,4 +79,9 @@ ALL_SCORE_BY = (SCORE_BY_AVERAGE, SCORE_BY_LOWEST)
 
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""
+    pass
+
+
+class NoRiskRuleSetException(Exception):
+    """没有设置风险规则"""
     pass

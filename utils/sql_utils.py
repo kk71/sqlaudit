@@ -3,9 +3,13 @@
 import re
 
 import sqlparse
+from mongoengine import Q
 
-from models.mongo import SQLText, MSQLPlan
 from utils.perf_utils import *
+from models.mongo import *
+from models.oracle import *
+from utils.datetime_utils import *
+from utils import rule_utils, cmdb_utils
 from utils.const import SQL_DDL, SQL_DML
 
 
@@ -323,3 +327,167 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     ]
     ret = MSQLPlan.objects.aggregate(*to_aggregate)
     return {i["_id"]: i for i in ret}
+
+
+@timing
+def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
+    """
+    获取最近捕获的sql文本统计信息(在给定的record_id中)
+    :param record_id: 可传单个或者list
+    :return: {sql_id: {stats, ...}, ...}
+    """
+    if not isinstance(record_id, (list, tuple)):
+        if isinstance(record_id, str):
+            record_id = [record_id]
+        else:
+            assert 0
+    keys = ["sql_id", "elapsed_time_delta", "executions_delta", "schema"]
+    return {i[0]: dict(zip(keys[1:], i[1:])) for i in
+            SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
+
+
+@timing
+def get_risk_sql_list(session,
+                      cmdb_id: str,
+                      date_range: (date, date),
+                      schema_name: str = None,
+                      rule_type: str = "ALL",
+                      risk_sql_rule_id: list = (),
+                      sort_by: str = "last",
+                      enable_white_list: bool = True,
+                      current_user: str = None,
+                      sql_id_only: bool = False,
+                      **kwargs
+                      ) -> Union[dict, set]:
+    """
+    获取风险SQL列表
+    :param session:
+    :param cmdb_id:
+    :param date_range:
+    :param schema_name:
+    :param rule_type:
+    :param risk_sql_rule_id:
+    :param sort_by:
+    :param enable_white_list:
+    :param current_user: 需要过滤登录用户
+    :param sql_id_only: 仅仅返回sql_id的set
+    :param kwargs: 多余的参数，会被收集到这里，并且会提示
+    :return:
+    """
+    # 因为参数过多，加个判断。
+    date_start, date_end = date_range
+    assert sort_by in ("last", "average")
+    assert rule_type in ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE
+    if kwargs:
+        print(f"got extra useless kwargs: {kwargs}")
+
+    cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+    risk_rule_q = session.query(RiskSQLRule)
+    result_q = Results.objects(cmdb_id=cmdb_id)
+    if schema_name:
+        if schema_name not in \
+                cmdb_utils.get_current_schema(session, current_user, cmdb_id):
+            raise Exception(f"无法在编号为{cmdb_id}的数据库中"
+                            f"操作名为{schema_name}的schema。")
+        result_q = result_q.filter(schema_name=schema_name)
+    if rule_type == "ALL":
+        rule_type: list = const.ALL_RULE_TYPES_FOR_SQL_RULE
+    else:
+        rule_type: list = [rule_type]
+    risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_type.in_(rule_type))
+    result_q = result_q.filter(rule_type__in=rule_type)
+
+    if risk_sql_rule_id:
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
+                                         in_(risk_sql_rule_id))
+    if date_start:
+        result_q = result_q.filter(create_date__gte=date_start)
+    if date_end:
+        result_q = result_q.filter(create_date__lte=date_end)
+    risky_rules = Rule.filter_enabled(
+        rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
+        db_model=cmdb.db_model,
+        db_type=const.DB_ORACLE
+    )
+    risk_rules_dict = rule_utils.get_risk_rules_dict(session)
+    risky_rule_name_object_dict = {risky_rule.rule_name:
+                                       risky_rule for risky_rule in risky_rules.all()}
+    if not risky_rule_name_object_dict:
+        raise const.NoRiskRuleSetException
+    print(f"risk sql rule count: {len(risky_rule_name_object_dict)}")
+
+    # 过滤出包含风险SQL规则结果的result
+    Qs = None
+    for risky_rule_name in risky_rule_name_object_dict.keys():
+        if not Qs:
+            Qs = Q(**{f"{risky_rule_name}__sqls__nin": [None, []]})
+        else:
+            Qs = Qs | Q(**{f"{risky_rule_name}__sqls__nin": [None, []]})
+    if Qs:
+        result_q = result_q.filter(Qs)
+    print(f"result count: {result_q.count()}")
+    rst = []
+    # 统计sql_id防止重复
+    rst_sql_id_set = set()
+    if not sql_id_only:  # 如果仅统计sql_id，以下信息不需要
+        sql_text_stats = get_sql_id_stats(cmdb_id)
+        # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
+        last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(list(result_q.distinct("record_id")))
+    for result in result_q:
+
+        # result具有可变字段，具体结构请参阅models.mongo.results
+
+        for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
+            risk_rule_object = risk_rules_dict[risky_rule_object.get_3_key()]
+
+            # risky_rule_object is a record of Rule from mongodb
+
+            # risk_rule_object is a record of RiskSQLRule from oracle
+
+            if not getattr(result, risky_rule_name, None):
+                continue  # 规则key不存在，或者值直接是个空dict，则跳过
+            if not getattr(result, risky_rule_name).get("sqls", None):
+                # 规则key下的sqls不存在，或者值直接是个空list，则跳过
+                # e.g. {"XXX_RULE_NAME": {"scores": 0.0}}  # 无sqls
+                # e.g. {"XXX_RULE_NAME": {"sqls": [], "scores": 0.0}}
+                continue
+
+            sqls = getattr(result, risky_rule_name)["sqls"]
+
+            if sql_id_only:
+                rst_sql_id_set.update([i["sql_id"] for i in sqls])
+                continue
+
+            for sql_text_dict in sqls:
+                sql_id = sql_text_dict["sql_id"]
+                if sql_id in rst_sql_id_set:
+                    continue
+                sqlstat_dict = last_sql_id_sqlstat_dict[sql_id]
+                execution_time_cost_sum = round(sqlstat_dict["elapsed_time_delta"], 2)  # in ms
+                execution_times = sqlstat_dict.get('executions_delta', 0)
+                execution_time_cost_on_average = 0
+                if execution_times:
+                    execution_time_cost_on_average = round(execution_time_cost_sum / execution_times, 2)
+                r = {
+                    "sql_id": sql_id,
+                    "schema": sqlstat_dict["schema"],
+                    "sql_text": sql_text_dict["sql_text"],
+                    "rule_desc": risky_rule_object.rule_desc,
+                    "severity": risk_rule_object.severity,
+                    "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
+                    "execution_time_cost_sum": execution_time_cost_sum,
+                    "execution_times": execution_times,
+                    "execution_time_cost_on_average": execution_time_cost_on_average,
+                    "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
+                    "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
+                    "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
+                }
+                rst.append(r)
+                rst_sql_id_set.add(sql_id)
+    if sql_id_only:
+        return rst_sql_id_set
+    if sort_by == "sum":
+        rst = sorted(rst, key=lambda x: x["execution_time_cost_sum"], reverse=True)
+    elif sort_by == "average":
+        rst = sorted(rst, key=lambda x: x["execution_time_cost_on_average"], reverse=True)
+    return rst

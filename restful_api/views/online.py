@@ -249,156 +249,38 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
 class SQLRiskListHandler(AuthReq):
 
-    @timing
-    def get_list(self, session, query_parser: FunctionType, dt_range: tuple = None):
-        # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
-        ALL_RULE_TYPES_FOR_SQL_RULE = [
-            rule_utils.RULE_TYPE_TEXT,
-            rule_utils.RULE_TYPE_SQLPLAN,
-            rule_utils.RULE_TYPE_SQLSTAT,
-        ]
-        params = query_parser(Schema({
+    @classmethod
+    def parsing_schema_dict(cls):
+        """给接口用的schema，防止反复写"""
+        return {
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
-
-            Optional("rule_type", default="ALL"): scm_one_of_choices(["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
-            Optional("enable_white_list", default=True): scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
+            Optional("rule_type", default="ALL"): scm_one_of_choices(
+                ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE),
+            Optional("enable_white_list", default=True):
+                scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="last"): scm_one_of_choices(["sum", "average"]),
-
-            Optional(object): object
-        }))
-        cmdb_id = params.pop("cmdb_id")
-        schema_name = params.pop("schema_name")
-        risk_sql_rule_id_list = params.pop("risk_sql_rule_id")
-        date_start, date_end = params.pop("date_start"), params.pop("date_end")
-        rule_type = params.pop("rule_type")
-        enable_white_list = params.pop("enable_white_list")  # TODO 增加过滤白名单的功能
-        sort_by = params.pop("sort_by")
-        del params  # shouldn't use params anymore
-
-        if dt_range:
-            date_start, date_end = dt_range
-
-        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-        if not cmdb:
-            self.resp_bad_req(msg=f"不存在编号为{cmdb_id}的cmdb。")
-            return
-
-        risk_rule_q = session.query(RiskSQLRule)
-        result_q = Results.objects(cmdb_id=cmdb_id)
-        if schema_name:
-            if schema_name not in \
-                    cmdb_utils.get_current_schema(session, self.current_user, cmdb_id):
-                self.resp_bad_req(msg=f"无法在编号为{cmdb_id}的数据库中"
-                f"操作名为{schema_name}的schema。")
-                return
-            result_q = result_q.filter(schema_name=schema_name)
-        if rule_type == "ALL":
-            rule_type: list = ALL_RULE_TYPES_FOR_SQL_RULE
-        else:
-            rule_type: list = [rule_type]
-        risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_type.in_(rule_type))
-        result_q = result_q.filter(rule_type__in=rule_type)
-
-        if risk_sql_rule_id_list:
-            risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
-                                             in_(risk_sql_rule_id_list))
-        if date_start:
-            result_q = result_q.filter(create_date__gte=date_start)
-        if date_end:
-            result_q = result_q.filter(create_date__lte=date_end)
-        risky_rules = Rule.objects(
-            rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
-            db_model=cmdb.db_model,
-            db_type=DB_ORACLE
-        )
-        risk_rules_dict = rule_utils.get_risk_rules_dict(session)
-        risky_rule_name_object_dict = {risky_rule.rule_name:
-                                           risky_rule for risky_rule in risky_rules.all()}
-        if not risky_rule_name_object_dict:
-            self.resp(msg="无任何风险规则。")
-            return
-
-        # 过滤出包含风险SQL规则结果的result
-        Qs = None
-        for risky_rule_name in risky_rule_name_object_dict.keys():
-            if not Qs:
-                Qs = Q(**{f"{risky_rule_name}__sqls__nin": [None, []]})
-            else:
-                Qs = Qs | Q(**{f"{risky_rule_name}__sqls__nin": [None, []]})
-        if Qs:
-            result_q = result_q.filter(Qs)
-        results = result_q.all()
-        sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
-        rst = []
-        rst_sql_id_set = set()
-        for result in results:
-
-            # result具有可变字段，具体结构请参阅models.mongo.results
-
-            for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
-                risk_rule_object = risk_rules_dict[risky_rule_object.get_3_key()]
-
-                # risky_rule_object is a record of Rule from mongodb
-
-                # risk_rule_object is a record of RiskSQLRule from oracle
-
-                if not getattr(result, risky_rule_name, None):
-                    continue  # 规则key不存在，或者值直接是个空dict，则跳过
-                if not getattr(result, risky_rule_name).get("sqls", None):
-                    # 规则key下的sqls不存在，或者值直接是个空list，则跳过
-                    # e.g. {"XXX_RULE_NAME": {"scores": 0.0}}  # 无sqls
-                    # e.g. {"XXX_RULE_NAME": {"sqls": [], "scores": 0.0}}
-                    continue
-
-                sqls = getattr(result, risky_rule_name)["sqls"]
-
-                for sql_text_dict in sqls:
-                    sql_text_dict_stat = sql_text_dict.get("stat", {})
-                    sql_id = sql_text_dict["sql_id"]
-                    if sql_id in rst_sql_id_set:
-                        continue
-                    execution_time_cost_sum = round(sql_text_dict_stat["ELAPSED_TIME_DELTA"], 2)  # in ms
-                    execution_times = sql_text_dict_stat.get('EXECUTIONS_DELTA', 0)
-                    execution_time_cost_on_average = round(execution_time_cost_sum / execution_times, 2)
-                    rst.append({
-                        "sql_id": sql_id,
-                        "schema": sql_text_dict["schema"],
-                        "sql_text": sql_text_dict["sql_text"],
-                        "rule_desc": risky_rule_object.rule_desc,
-                        "severity": risk_rule_object.severity,
-                        "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
-                        "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
-                        "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
-                        "execution_time_cost_sum": execution_time_cost_sum,
-                        "execution_times": execution_times,
-                        "execution_time_cost_on_average": execution_time_cost_on_average,
-                        "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id
-                    })
-                    rst_sql_id_set.add(sql_id)
-        if sort_by == "sum":
-            rst = sorted(rst, key=lambda x: x["execution_time_cost_sum"], reverse=True)
-        if sort_by == "average":
-            rst = sorted(rst, key=lambda x: x["execution_time_cost_on_average"], reverse=True)
-        return rst
+        }
 
     def get(self):
         """风险SQL列表"""
         params = self.get_query_args(Schema({
+            **self.parsing_schema_dict(),
+
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
-
-            Optional(object): object
         }))
         p = self.pop_p(params)
-        del params  # shouldn't use params anymore
+        date_range = params.pop("date_start"), params.pop("date_end")
 
         with make_session() as session:
-            rst = self.get_list(session, self.get_query_args)
-            if rst is None:
+            try:
+                rst = sql_utils.get_risk_sql_list(session, **params, date_range=date_range)
+            except const.NoRiskRuleSetException:
+                self.resp(msg="未设置风险规则。")
                 return
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
@@ -417,7 +299,14 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
 
         with make_session() as session:
             if export_type == "all_filtered":
-                sql_list = self.get_list(session, self.get_json_args)
+                params = self.get_json_args(Schema({
+                    **self.parsing_schema_dict(),
+
+                    Optional(object): object
+                }))
+                date_range = params.pop("date_start"), params.pop("date_end")
+                sql_list = sql_utils.get_risk_sql_list(session, **params, date_range=date_range)
+
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
                     "objects": [
@@ -440,6 +329,7 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
                 }))
                 sql_list = params.pop("objects")
                 del params  # shouldn't use params anymore
+
             else:
                 assert 0
 
@@ -692,10 +582,12 @@ class OverviewHandler(SQLRiskListHandler):
                 if schema_name:
                     sql_text_q = sql_text_q.filter(schema=schema_name)
                 active_sql_num = len(sql_text_q.distinct("sql_id"))
-                at_risk_sql_num = len(self.get_list(
+                at_risk_sql_num = len(sql_utils.get_risk_sql_list(
                     session,
-                    self.get_query_args,
-                    dt_range=(dt_now.datetime, dt_now.shift(days=+1).datetime)
+                    cmdb_id=cmdb_id,
+                    schema_name=schema_name,
+                    sql_id_only=True,
+                    date_range=(dt_now.datetime, dt_now.shift(days=+1).datetime)
                 ))
                 sql_num_active.append({
                     "date": dt_to_str(dt_now),
@@ -758,7 +650,12 @@ class OverviewHandler(SQLRiskListHandler):
             schemas = sorted(schemas, key=lambda x: x["num"], reverse=True)
 
             # top 10 execution cost by sum and by average
-            sqls = self.get_list(session, self.get_query_args)
+            sqls = sql_utils.get_risk_sql_list(
+                session,
+                cmdb_id=cmdb_id,
+                schema_name=schema_name,
+                date_range=(date_start, date_end)
+            )
             top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
             top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
             top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in
@@ -770,15 +667,18 @@ class OverviewHandler(SQLRiskListHandler):
             phy_size = object_utils.get_cmdb_phy_size(session, cmdb)
 
             self.resp({
+                # 以下是按照给定的时间区间搜索的结果
                 "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
                 "risk_rule_rank": risk_rule_rank,
-                "schema": schemas,
                 "sql_execution_cost_rank": {
                     "by_sum": top_10_sql_by_sum[:10],
                     "by_average": top_10_sql_by_average[:10]
                 },
-                "phy_size_mb": phy_size,
                 "risk_rates": rule_utils.get_risk_rate(cmdb_id, (date_start, date_end)),
+                # 以下是取最近一次扫描的结果
+                "phy_size_mb": phy_size,
+                # TODO to migrate to another API
+                "schema": schemas,
             })
 
 
