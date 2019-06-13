@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import cx_Oracle
 from schema import Schema, Optional
 
 from .base import AuthReq
@@ -125,7 +126,61 @@ class CMDBPermissionHandler(AuthReq):
             self.resp({"permisson_datas": permisson_datas, "users": users, "cmdbs": cmdbs})
 
     def patch(self):
-        self.resp_created()
+        params=self.get_json_args(Schema({
+            "cmdb_id":scm_int,
+            "login_user":scm_unempty_str,
+            "schema_names":list
+        }))
+        login_user,cmdb_id,schema_names=params.pop("login_user"),params.pop("cmdb_id"),params.pop("schema_names")
+        del params
+        with make_session() as session:
+            existing_schemas=session.query(DataPrivilege).filter(DataPrivilege.login_user==login_user,
+                DataPrivilege.cmdb_id==cmdb_id).\
+                with_entities(DataPrivilege.schema_name)
+            existing_schemas=[list(existing_schema)[0] for existing_schema in existing_schemas]
+            loading={f"{login_user}:{cmdb_id}:{schema}"for schema in schema_names}
+            existing={f"{login_user}:{cmdb_id}:{schema}" for schema in existing_schemas}
+
+            insert_schemas=[x.split(":")[2] for x in (loading-existing)]
+            delete_schemas=[x.split(":")[2] for x in (existing-loading)]
+
+            if insert_schemas:
+                for schema in insert_schemas:
+                    config=DataPrivilege()
+                    config.login_user=login_user
+                    config.cmdb_id=cmdb_id
+                    config.schema_name=schema
+                    config.create_date=datetime.now()
+                    session.add(config)
+            if delete_schemas:
+                session.query(DataPrivilege).filter(DataPrivilege.login_user==login_user,
+                                                    DataPrivilege.cmdb_id==cmdb_id,
+                                                    DataPrivilege.schema_name.in_(delete_schemas)).delete(synchronize_session='fetch')
+
+            self.resp_created(msg="分配权限成功")
+
+    def post(self):
+        params=self.get_json_args(Schema({
+            "cmdb_id":scm_int,
+            "login_user":scm_unempty_str
+        }))
+        cmdb_id,login_user=params.pop("cmdb_id"),params.pop("login_user")
+        del params
+
+        from utils.cmdb_utils import get_cmdb_available_schemas
+        with make_session() as session:
+            cmdb_objects=session.query(CMDB).filter(CMDB.cmdb_id==cmdb_id)
+            for cmdb_object in cmdb_objects:
+                try:
+                    schemas=get_cmdb_available_schemas(cmdb_object)
+                except cx_Oracle.DatabaseError as err:
+                    print(err)
+                    return self.resp_bad_req(msg="无法连接到目标主机")
+            authed_schemas=session.query(DataPrivilege).filter(DataPrivilege.login_user==login_user,DataPrivilege.cmdb_id==cmdb_id).\
+                with_entities(DataPrivilege.schema_name)
+            authed_schemas=[list(authed_schema)[0].upper() for authed_schema in authed_schemas]
+            schemas={schema:1 if schema in authed_schemas else 0 for schema in schemas}
+            self.resp_created({'schemas':schemas})
 
     def delete(self):
         params=self.get_json_args(Schema({
@@ -133,16 +188,8 @@ class CMDBPermissionHandler(AuthReq):
             'login_user':scm_unempty_str,
             'schema_name':scm_unempty_str
         }))
-        cmdb_id,login_user,schema_name=params.pop('cmdb_id'),params.pop('login_user'),\
-                                       params.pop('schema_name')
-        del params
         with make_session() as session:
-            session.query(DataPrivilege).\
-                filter(DataPrivilege.cmdb_id==cmdb_id,
-                       DataPrivilege.login_user==login_user,
-                       DataPrivilege.schema_name==schema_name).delete()
-
-
+            session.query(DataPrivilege).filter_by(**params).delete()
 
             self.resp_created("删除权限成功")
 
