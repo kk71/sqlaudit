@@ -357,6 +357,7 @@ def get_risk_sql_list(session,
                       enable_white_list: bool = True,
                       current_user: str = None,
                       sql_id_only: bool = False,
+                      sqltext_stats: bool = True,
                       **kwargs
                       ) -> Union[dict, set]:
     """
@@ -371,6 +372,7 @@ def get_risk_sql_list(session,
     :param enable_white_list:
     :param current_user: 需要过滤登录用户
     :param sql_id_only: 仅仅返回sql_id的set
+    :param sqltext_stats: 返回是否需要包含sqltext的统计信息（首末出现时间）
     :param kwargs: 多余的参数，会被收集到这里，并且会提示
     :return:
     """
@@ -426,13 +428,18 @@ def get_risk_sql_list(session,
     if Qs:
         result_q = result_q.filter(Qs)
     print(f"result count: {result_q.count()}")
-    rst = []
-    # 统计sql_id防止重复
-    rst_sql_id_set = set()
-    if not sql_id_only:  # 如果仅统计sql_id，以下信息不需要
-        sql_text_stats = get_sql_id_stats(cmdb_id)
+
+    rst = []  # 详细信息的返回结果
+    rst_sql_id_set = set()  # 统计sql_id防止重复
+
+    if not sql_id_only:
+        # ====== 如果仅统计sql_id，以下信息不需要 ======
+        sql_text_stats = {}
+        if sqltext_stats:
+            sql_text_stats = get_sql_id_stats(cmdb_id)
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
         last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(list(result_q.distinct("record_id")))
+
     for result in result_q:
 
         # result具有可变字段，具体结构请参阅models.mongo.results
@@ -458,6 +465,8 @@ def get_risk_sql_list(session,
                 rst_sql_id_set.update([i["sql_id"] for i in sqls])
                 continue
 
+            # NOTICE: 以下代码必须保证sql_id_only == False
+
             for sql_text_dict in sqls:
                 sql_id = sql_text_dict["sql_id"]
                 if sql_id in rst_sql_id_set:
@@ -479,9 +488,12 @@ def get_risk_sql_list(session,
                     "execution_times": execution_times,
                     "execution_time_cost_on_average": execution_time_cost_on_average,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
-                    "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
-                    "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
                 }
+                if sqltext_stats:
+                    r.update({
+                        "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
+                        "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
+                    })
                 rst.append(r)
                 rst_sql_id_set.add(sql_id)
     if sql_id_only:

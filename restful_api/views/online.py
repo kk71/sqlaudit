@@ -654,7 +654,8 @@ class OverviewHandler(SQLRiskListHandler):
                 session,
                 cmdb_id=cmdb_id,
                 schema_name=schema_name,
-                date_range=(date_start, date_end)
+                date_range=(date_start, date_end),
+                sqltext_stats=False
             )
             top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
             top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
