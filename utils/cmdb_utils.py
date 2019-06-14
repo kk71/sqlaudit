@@ -9,15 +9,22 @@ from utils.perf_utils import *
 import plain_db.oracleob
 
 
-def get_current_cmdb(session, user_login) -> list:
+def get_current_cmdb(session, user_login, id_name="cmdb_id") -> set:
     """
     获取某个用户可见的cmdb
     :param session:
     :param user_login:
+    :param id_name: 返回的唯一键值，默认是cmdb_id，亦可选择connect_name
     :return: list of cmdb_id
     """
-    q = session.query(DataPrivilege).filter(DataPrivilege.login_user == user_login)
-    return list({i.cmdb_id for i in q})
+    if id_name == "cmdb_id":
+        return {i[0] for i in session.query(DataPrivilege).
+            filter(DataPrivilege.login_user == user_login).
+            with_entities(DataPrivilege.cmdb_id)}
+    elif id_name == "connect_name":
+        return {i[0] for i in session.query(CMDB, DataPrivilege). \
+            filter(CMDB.cmdb_id == DataPrivilege.cmdb_id). \
+            with_entities(CMDB.connect_name)}
 
 
 def get_current_schema(session, user_login, cmdb_id) -> list:
@@ -76,7 +83,7 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
     # TODO make it cached!
 
     if user_login:
-        all_connect_names: set = {i["connect_name"] for i in get_current_cmdb(session, user_login)}
+        all_connect_names: set = get_current_cmdb(session, user_login, id_name="connect_name")
     else:
         all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().
             with_entities(CMDB.connect_name)}

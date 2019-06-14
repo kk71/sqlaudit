@@ -48,7 +48,7 @@ class TaskExecHistory(BaseModel):
     task_end_date = Column("TASK_END_DATE", DATE)
     status = Column("STATUS", Boolean)
     error_msg = Column("ERROR_MSG", String)
-    task_uuid = Column("TASK_UUID", String)
+    # task_uuid = Column("TASK_UUID", String)
 
     @classmethod
     def filter_succeed(cls, session, *args, **kwargs):

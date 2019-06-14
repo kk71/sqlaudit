@@ -27,7 +27,8 @@ class TicketHandler(AuthReq):
     def get(self):
         """线下审核工单列表"""
         params = self.get_query_args(Schema({
-            Optional("work_list_status", default=None): scm_int,
+            Optional("work_list_status", default=None):
+                scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS),
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
             Optional("keyword", default=None): scm_str
@@ -74,7 +75,7 @@ class TicketHandler(AuthReq):
     def post(self):
         """创建DDL，DML工单"""
         params = self.get_json_args(Schema({
-            "work_list_type": scm_one_of_choices(sql_utils.ALL_SQL_TYPE),
+            "work_list_type": scm_one_of_choices(const.ALL_SQL_TYPE),
             "audit_owner": scm_unempty_str,
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
@@ -98,7 +99,7 @@ class TicketHandler(AuthReq):
         params = self.get_json_args(Schema({
             "work_list_id": scm_int,
             Optional("audit_comments"): scm_str,
-            "work_list_status": scm_int,
+            "work_list_status": scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS),
         }))
         params["audit_date"] = datetime.now()
         work_list_id = params.pop("work_list_id")
@@ -247,7 +248,7 @@ class SQLUploadHandler(AuthReq):
             self.resp_bad_req(msg="未选择文件。")
             return
         params = self.get_query_args(Schema({
-            "ticket_type": And(scm_int, scm_one_of_choices(sql_utils.ALL_SQL_TYPE)),
+            "ticket_type": And(scm_int, scm_one_of_choices(const.ALL_SQL_TYPE)),
             "if_filter": scm_bool
         }))
         file_object = self.request.files.get("file")[0]

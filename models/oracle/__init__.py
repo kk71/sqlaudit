@@ -1,12 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from .utils import make_session
-from .user import *
-from .data import *
-from .config import *
-from .offline import *
-from .online import *
-
 __ALL__ = [
     "make_session",
     "User",
@@ -24,5 +17,15 @@ __ALL__ = [
     "DataHealth",
     "TaskManage",
     "TaskExecHistory",
-    "OverviewRate"
+    "OverviewRate",
+    "Notice",
+    "Param"
 ]
+
+from .utils import make_session
+from .user import *
+from .data import *
+from .config import *
+from .offline import *
+from .online import *
+

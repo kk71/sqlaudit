@@ -704,7 +704,7 @@ class OverviewScoreByHandler(AuthReq):
             overview_rate = session.query(OverviewRate).filter_by(
                 login_user=self.current_user,
                 cmdb_id=cmdb.cmdb_id,
-                item=const.OVERVIEW_ITEM_RADAR
+                item=perspective
             ).order_by(OverviewRate.id.desc()).first()
             if score_type is None:
                 if overview_rate:
@@ -715,7 +715,7 @@ class OverviewScoreByHandler(AuthReq):
                 overview_rate = OverviewRate(
                     login_user=self.current_user,
                     cmdb_id=cmdb.cmdb_id,
-                    item=const.OVERVIEW_ITEM_RADAR,
+                    item=perspective,
                     type=score_type)
                 session.add(overview_rate)
             elif score_type and overview_rate:

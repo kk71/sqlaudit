@@ -70,3 +70,22 @@ class DataHealthUserConfig(BaseModel):
     username = Column("USERNAME", String)
     needcalc = Column("NEEDCALC", String)
     weight = Column("WEIGHT", Integer)
+
+
+class Param(BaseModel):
+    """存放机房、环境、各种杂乱信息的表，程序逻辑只读不写"""
+    __tablename__ = "T_PARAM"
+
+    param_id = Column("PARAM_ID", Integer, primary_key=True)
+    param_value = Column("PARAM_value", String)
+    param_type = Column("PARAM_TYPE", Integer)
+
+
+class Notice(BaseModel):
+    """公告栏"""
+    __tablename__ = "T_NOTICE"
+
+    notice_id = Column("NOTICE_ID", Integer, primary_key=True)
+    contents = Column("CONTENTS", String)
+    update_date = Column("UPDATE_DATE", DATE)
+    update_user = Column("UPDATE_USER", String)

@@ -1,14 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from .job import *
-from .obj import *
-from .plan import *
-from .rule import *
-from .stat import *
-from .txt import *
-from .results import *
-
-
 __ALL__ = [
     "Rule",
     "SQLPlan",
@@ -23,3 +14,11 @@ __ALL__ = [
     "ObjIndColInfo",
     "ObjViewInfo",
 ]
+
+from .job import *
+from .obj import *
+from .plan import *
+from .rule import *
+from .stat import *
+from .txt import *
+from .results import *

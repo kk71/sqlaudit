@@ -46,6 +46,7 @@ urls += [
 urls += [
     # 仪表盘
     (r"/api/dashboard", overall.DashboardHandler),
+    (r"/api/dashboard/notice", overall.NoticeHandler),
 ]
 
 # task
