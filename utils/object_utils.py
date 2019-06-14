@@ -14,17 +14,23 @@ def get_cmdb_phy_size(session, cmdb) -> int:
     :return: int
     """
     # TODO make it cached
-    phy_size = None
     latest_task_exec_hist_obj = session.query(TaskExecHistory). \
         filter(TaskExecHistory.connect_name == cmdb.connect_name). \
         order_by(TaskExecHistory.task_end_date.desc()).first()
     if latest_task_exec_hist_obj:
-        tab_phy_size_iter = ObjTabInfo.\
-            filter_by_exec_hist_id(str(latest_task_exec_hist_obj.id)). \
-            filter(cmdb_id=cmdb.cmdb_id).values_list("phy_size_mb")
-        phy_size = 0
-        if tab_phy_size_iter:
-            get_cmdb_phy_size.tik("start sum")
-            phy_size = sum(tab_phy_size_iter)
-            get_cmdb_phy_size.tik("end sum")
-    return phy_size
+        ret = list(ObjTabInfo.objects.aggregate(
+            {
+                "$match": {
+                    "record_id": {"$regex": f"{latest_task_exec_hist_obj.id}"},
+                    "cmdb_id": cmdb.cmdb_id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$cmdb_id",
+                    "sum": {"$sum": "$PHY_SIZE(MB)"}
+                }
+            }
+        ))
+        if ret:
+            return ret[0]["sum"]

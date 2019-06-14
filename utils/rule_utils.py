@@ -54,7 +54,6 @@ def import_from_json_file(filename: str):
     return len(rules_to_import), len(rules)
 
 
-@timing
 def merge_risk_rule_and_rule(
         risk_rule_object, rule_object=None, rule_keys=("rule_desc", "rule_name")) -> dict:
     """
