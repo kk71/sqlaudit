@@ -47,7 +47,7 @@ class DataPrivilege(BaseModel):
     login_user = Column("LOGIN_USER", String)
     cmdb_id = Column("CMDB_ID", Integer)
     schema_name = Column("SCHEMA_NAME", String)
-    create_date = Column("CREATE_DATE", DATE, primary_key=True)
+    create_date = Column("CREATE_DATE", DATE,default=lambda: datetime.now().date(),primary_key=True)
     comments = Column("COMMENTS", String)
 
 

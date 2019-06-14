@@ -139,11 +139,15 @@ class CMDBPermissionHandler(AuthReq):
                 filter(DataPrivilege.login_user == login_user, DataPrivilege.cmdb_id == cmdb_id).\
                 with_entities(DataPrivilege.schema_name)
             existing_schemas = [list(existing_schema)[0] for existing_schema in existing_schemas]
-            loading = {f"{login_user}:{cmdb_id}:{schema}" for schema in schema_names}
-            existing = {f"{login_user}:{cmdb_id}:{schema}" for schema in existing_schemas}
+            # loading = {f"{login_user}:{cmdb_id}:{schema}" for schema in schema_names}
+            # existing = {f"{login_user}:{cmdb_id}:{schema}" for schema in existing_schemas}
+            loading={(login_user,cmdb_id,schema) for schema in schema_names}
+            existing={(login_user,cmdb_id,schema) for schema in existing_schemas}
 
-            insert_schemas = [x.split(":")[2] for x in (loading - existing)]
-            delete_schemas = [x.split(":")[2] for x in (existing - loading)]
+            # insert_schemas = [x.split(":")[2] for x in loading - existing]
+            # delete_schemas = [x.split(":")[2] for x in existing - loading]
+            insert_schemas=[x[2] for x in loading-existing]
+            delete_schemas=[x[2] for x in existing-loading]
 
             if insert_schemas:
                 for schema in insert_schemas:
@@ -152,14 +156,15 @@ class CMDBPermissionHandler(AuthReq):
                     config.cmdb_id = cmdb_id
                     config.schema_name = schema
                     session.add(config)
+                return self.resp_created(msg="分配权限成功")
             if delete_schemas:
                 session.query(DataPrivilege).filter(
                     DataPrivilege.login_user == login_user,
                     DataPrivilege.cmdb_id == cmdb_id,
                     DataPrivilege.schema_name.in_(delete_schemas)).\
                     delete(synchronize_session='fetch')
+                return self.resp_created(msg="分配权限成功")
 
-            self.resp_created(msg="分配权限成功")
 
     def post(self):
         params = self.get_json_args(Schema({
