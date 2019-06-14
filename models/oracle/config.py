@@ -60,3 +60,13 @@ class OverviewRate(BaseModel):
     cmdb_id = Column("CMDB_ID", Integer)
     item = Column("ITEM", String)
     type = Column("TYPE", Integer)
+
+
+class DataHealthUserConfig(BaseModel):
+    """数据库评分配置"""
+    __tablename__ = "T_DATA_HEALTH_USER_CONFIG"
+
+    database_name = Column("DATABASE_NAME", String, primary_key=True)
+    username = Column("USERNAME", String)
+    needcalc = Column("NEEDCALC", String)
+    weight = Column("WEIGHT", Integer)
