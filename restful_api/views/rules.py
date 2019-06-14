@@ -196,3 +196,64 @@ class RiskRuleHandler(AuthReq):
         with make_session() as session:
             session.query(RiskSQLRule).filter_by(**params).delete()
         self.resp_created(msg="已删除")
+
+
+class WhiteListRiskRuleDetailsHandler(AuthReq):
+
+    def get(self):
+        """风险白名单详情页,及编辑时查询"""
+        params = self.get_query_args(Schema({
+            Optional("cmdb_id",default=None): scm_int,
+            Optional("rule_id",default=None): scm_int
+
+        }))
+        cmdb_id,rule_id=params.pop("cmdb_id"),params.pop("rule_id")
+        del params
+
+        with make_session() as session:
+            if cmdb_id:
+                whitelist = session.query(WhiteListRules).filter_by(cmdb_id=cmdb_id)
+                whitelist = [wl.to_dict() for wl in whitelist]
+                for wl in whitelist:
+                    wl['rule_catagory'] = {1: '过滤用户', 2: '过滤程序modal', 3: '过滤sqltext', 4: '过滤规则'}[wl['rule_catagory']]
+                    wl['status'] = '启用' if wl['status'] == 0 else '禁用'
+
+                self.resp({'whitelist_rules': whitelist, 'cmdb_id':cmdb_id})
+            elif rule_id:
+                rule=session.query(WhiteListRules).filter_by(id=rule_id)
+                rule=[r.to_dict() for r in rule]
+
+                self.resp({'data':rule})
+            else:
+                self.resp_bad_req("参数不正确")
+
+    def patch(self):
+        """禁用启用,及编辑"""
+        self.resp_created()
+
+    def post(self):
+        """新增"""
+        self.resp_created()
+
+    def delete(self):
+        params=self.get_query_args(Schema({
+            "rule_id":scm_int
+        }))
+        rule_id=params.pop("rule_id")
+        del params
+        with make_session() as session:
+            cmdb=session.query(WhiteListRules).filter_by(id=rule_id).with_entities(WhiteListRules.cmdb_id)
+            cmdb = [list(x)[0] for x in cmdb]
+            if len(cmdb)==0:
+                return self.resp_bad_req("无效的cmdb")
+            a=session.query(WhiteListRules).filter_by(id=rule_id).delete()
+            # b=session.query(CMDB).filter_by(cmdb_id=cmdb[0]).update(CMDB.while_list_rule_counts==2)
+            c=session.query(CMDB).filter_by(cmdb_id=cmdb[0])
+            # c.while_list_rule_counts=2
+            # session.commit()
+            for x in c:
+                x=x.to_dict()
+                x['while_list_rule_counts']-=1
+                session.commit()
+            # c.while_list_rule_counts-=1
+            self.resp_created("删除规则成功")
