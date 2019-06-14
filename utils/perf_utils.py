@@ -13,7 +13,6 @@ import settings
 def timing(method):
     """函数计时"""
 
-
     @wraps(method)
     def timed(*args, **kwargs):
 

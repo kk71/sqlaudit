@@ -710,7 +710,7 @@ class OverviewScoreByHandler(AuthReq):
                 if overview_rate:
                     score_type = overview_rate.type
                 else:
-                    score_type = const.SCORE_BY_AVERAGE
+                    score_type = const.SCORE_BY_LOWEST
             elif score_type and not overview_rate:
                 overview_rate = OverviewRate(
                     login_user=self.current_user,

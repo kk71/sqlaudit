@@ -128,5 +128,3 @@ class UserHandler(BaseReq):
             the_user = session.query(User).filter_by(**params)
             session.delete(the_user)
         self.resp_created(msg="已删除。")
-
-
