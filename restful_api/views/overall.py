@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from schema import Schema, Optional, And, Or
+from sqlalchemy import func
 
 from .base import AuthReq
 from utils.schema_utils import *
@@ -17,15 +18,17 @@ class DashboardHandler(AuthReq):
         """仪表盘"""
         with make_session() as session:
             cmdb_id_set = cmdb_utils.get_current_cmdb(session, self.current_user)
-            cmdb_id_task_exec_hist_id = session.query(TaskManage).\
-                join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name,).\
-                filter(
-                    TaskManage.cmdb_id.in_(list(cmdb_id_set)),
-                    TaskManage.task_exec_scripts == DB_TASK_CAPTURE
-                ).order_by(TaskExecHistory.task_end_date.desc()).\
-                with_entities(TaskManage.cmdb_id, TaskExecHistory.id)
-            task_exec_hist_ids: set = set()
-            
+
+            print(list(session.query(TaskManage.cmdb_id, TaskManage.connect_name).all()))
+
+            # cmdb_id_task_exec_hist_id = session.query(TaskManage.cmdb_id, func.first(TaskExecHistory.id)).\
+            #     join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name).\
+            #     filter(
+            #         TaskManage.cmdb_id.in_(list(cmdb_id_set)),
+            #         TaskManage.task_exec_scripts == DB_TASK_CAPTURE
+            #     ).order_by(TaskExecHistory.task_end_date.desc()).group_by(TaskManage.cmdb_id)
+            #
+            # print(list(cmdb_id_task_exec_hist_id))
 
             self.resp({
                 "sql_num": 0,

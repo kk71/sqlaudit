@@ -88,7 +88,7 @@ class CMDBHandler(AuthReq):
             "connect_name": scm_unempty_str,
             "group_name": scm_str,
             "business_name": scm_str,
-            "machine_room": scm_int,
+            Optional("machine_room"): scm_int,
             "database_type": scm_int,
             "server_name": scm_str,
             "ip_address": scm_unempty_str,
@@ -313,37 +313,37 @@ class RankingConfigHandler(AuthReq):
 
     def get(self):
         """获取需要评分的数据库列表"""
-        params=self.get_query_args(Schema({
+        params = self.get_query_args(Schema({
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         p = self.pop_p(params)
         del params
 
-        if self.current_user !="admin":
+        if self.current_user != "admin":
             return self.resp_bad_req(msg="No Authority")
 
         with make_session() as session:
-            ranking=session.query(DataHealthUserConfig,CMDB).\
-                join(CMDB,DataHealthUserConfig.database_name==CMDB.connect_name)\
+            ranking = session.query(DataHealthUserConfig, CMDB). \
+                join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name) \
                 .with_entities(CMDB.connect_name,
-                              DataHealthUserConfig.database_name,
-                              DataHealthUserConfig.username,
-                              DataHealthUserConfig.needcalc,
-                              DataHealthUserConfig.weight)
-            ranking=[list(x) for x in ranking]
-            rankings=[]
+                               DataHealthUserConfig.database_name,
+                               DataHealthUserConfig.username,
+                               DataHealthUserConfig.needcalc,
+                               DataHealthUserConfig.weight)
+            ranking = [list(x) for x in ranking]
+            rankings = []
             for x in ranking:
-                rankings.append({'connect_name':x[0],'databese_name':x[1],
-                                 'username':x[2],'needcalc':x[3],'weight':x[4]})
+                rankings.append({'connect_name': x[0], 'databese_name': x[1],
+                                 'username': x[2], 'needcalc': x[3], 'weight': x[4]})
 
             rankings_this_page, p = self.paginate(rankings, **p)
 
-            #?这个数据应该可不返回
-            cmdbs=session.query(CMDB).all()
-            cmdbs=[cmdb.to_dict() for cmdb in cmdbs]
+            # ?这个数据应该可不返回
+            cmdbs = session.query(CMDB).all()
+            cmdbs = [cmdb.to_dict() for cmdb in cmdbs]
 
-            self.resp(content={'rankings':rankings_this_page,'cmdb':cmdbs},**p)
+            self.resp(content={'rankings': rankings_this_page, 'cmdb': cmdbs}, **p)
 
     def patch(self):
         """局部修改评分的数据库，schema"""
