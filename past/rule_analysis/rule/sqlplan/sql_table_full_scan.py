@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from .decorator import mongo_query
-import utils.cmdb_utils
+import utils.const
 
 rule = {    
-    "db_type" : utils.cmdb_utils.DB_ORACLE,
+    "db_type" : utils.const.DB_ORACLE,
     "exclude_obj_type" : [ 
         "SQL_ID", 
         "PLAN_HASH_VALUE"

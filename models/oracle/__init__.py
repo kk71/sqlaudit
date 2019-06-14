@@ -23,5 +23,6 @@ __ALL__ = [
     "WorkListAnalyseTemp",
     "DataHealth",
     "TaskManage",
-    "TaskExecHistory"
+    "TaskExecHistory",
+    "OverviewRate"
 ]

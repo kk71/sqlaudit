@@ -3,6 +3,7 @@
 import pymongo
 import settings
 
+
 class MongoHelper:
     """mongodb连接模块，负责初始化mongo，认证，动态获取集合等功能"""
 

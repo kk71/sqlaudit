@@ -1,12 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
-    BooleanField, DictField
+from mongoengine import IntField, StringField, ObjectIdField, DateTimeField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
 
 
-class SQLText(BaseDoc):
+class SQLText(BaseDocRecordID):
     _id = ObjectIdField()
     dbid = IntField(db_field="DBID", help_text="select dbid from v$database;")
     ip_address = StringField(db_field="IPADDR")

@@ -1,9 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField,\
-    BooleanField, DictField, EmbeddedDocument, EmbeddedDocumentField, FloatField
+    BooleanField, EmbeddedDocument, EmbeddedDocumentField, FloatField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
+from utils import const
 
 
 class EmbeddedJobDesc(EmbeddedDocument):
@@ -16,8 +17,8 @@ class EmbeddedJobDesc(EmbeddedDocument):
     capture_time_end = DateTimeField()
 
 
-class Job(BaseDoc):
-    id = ObjectIdField(db_field="_id")
+class Job(BaseDocRecordID):
+    id = ObjectIdField(db_field="_id", primary_key=True)
     name = StringField()
     cmdb_id = IntField()
     status = IntField(help_text="0失败 1成功 2正在运行")
@@ -29,8 +30,12 @@ class Job(BaseDoc):
     record_id = StringField()
     exported = BooleanField(default=False)
     desc = EmbeddedDocumentField(EmbeddedJobDesc)
-    score = FloatField(help_text="only some of Job objects contains score")
+    score = FloatField(null=True, help_text="only some of Job objects contains score")
 
     meta = {
         "collection": "job"
     }
+
+    @classmethod
+    def filter_finished(cls, *args, **kwargs):
+        return cls.objects(status=const.JOB_STATUS_FINISHED)

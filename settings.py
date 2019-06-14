@@ -3,7 +3,6 @@
 # DO NOT CHANGE THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING
 # almost all settings can be changed through environment variables
 # please refer to docker-compose file and the py.env environment file first.
-# to figure out the difference between default value and the current using value, please use app.py
 
 from os import environ
 from os import path
@@ -22,7 +21,7 @@ def env_get(k, default, parser=None):
     return final_value
 
 
-# ========= settings ==========
+# ==================  settings ===================
 
 # web server settings
 
@@ -40,43 +39,18 @@ EXPORT_PREFIX = "/downloads/export"
 ENABLE_TIMING = env_get("ENABLE_TIMING", 1, int)
 
 
-# celery settings
+# celery broker & backend settings
+# for celery other settings, please refer to celery_conf.py
 
 REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", WEB_IP)
 REDIS_BROKER_PORT = env_get("REDIS_BROKER_PORT", 6379, int)
-REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2)
-REDIS_BROKER = f'redis://:@{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
+REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2, int)
+REDIS_BROKER = f'redis://{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
 
 REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", WEB_IP)
 REDIS_BACKEND_PORT = env_get("REDIS_BACKEND_PORT", 6379, int)
 REDIS_BACKEND_DB = env_get("REDIS_BACKEND_DB", 3)
-REDIS_BACKEND = f'redis://:@{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
-
-from kombu import Exchange, Queue
-CELERY_CONF = {
-    # 'CELERYD_POOL_RESTARTS': True,
-    'CELERY_TASK_SERIALIZER': 'json',
-    'CELERY_ACCEPT_CONTENT': ['pickle', 'json', 'msgpack', 'yaml'],
-    'CELERY_RESULT_SERIALIZER': 'json',
-    'CELERYD_CONCURRENCY': 2,
-    'CELERYD_MAX_TASKS_PER_CHILD': 5,
-    'CELERY_ROUTES': {
-        'task_exports.export': {'queue': 'task_exports', 'routing_key': 'task_exports'},
-        'task_capture.task_run': {'queue': 'task_capture', 'routing_key': 'task_capture'},
-        'task_sqlaitune.sqlaitune_run': {'queue': 'task_sqlaitune', 'routing_key': 'task_sqlaitune'},
-        'task_mail.timing_send_email': {'queue': 'task_mail', 'routing_key': 'task_mail'},
-        'task_submit_worklist.submit_worklist': {'queue': 'submit_worklist', 'routing_key': 'submit_worklist'},
-    },
-    'CELERY_QUEUE': {
-        Queue('default', Exchange('default'), routing_key='default'),
-        # Queue('task_exports', Exchange('task_exports'), routing_key='task_exports'),
-        Queue('capture', Exchange('capture'), routing_key='capture'),
-        # Queue('task_sqlaitune', Exchange('task_sqlaitune'), routing_key='task_sqlaitune'),
-        # Queue('task_mail', Exchange('task_mail'), routing_key='task_mail'),
-        Queue('submit_ticket', Exchange('submit_ticket'), routing_key='submit_ticket'),
-    },
-    'CELERY_TIMEZONE': 'Asia/Shanghai',
-}
+REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
 
 
 # mongodb server settings
@@ -88,11 +62,12 @@ MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
 MONGO_DB = env_get("MONGO_DB", "sqlreview")
 
 
-# a redis instance for cache
+# cache setting
 
 CACHE_REDIS_SERVER = env_get("CACHE_REDIS_IP", WEB_IP)
-CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017)
-CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1)
+CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017, int)
+CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1, int)
+CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int)  # in sec
 
 
 # license keys

@@ -133,8 +133,7 @@ class BaseReq(RequestHandler):
         elif isinstance(query, S_Query):
             items = query.limit(per_page).offset((page - 1) * per_page).all()
         elif isinstance(query, (list, tuple)):
-            page -= 1
-            items = query[page*per_page:page*per_page+per_page]
+            items = query[(page-1)*per_page:(page-1)*per_page+per_page]
         else:
             assert 0
         if page == 1 and len(items) < per_page:
@@ -177,6 +176,11 @@ class BaseReq(RequestHandler):
 
         else:
             assert 0
+
+    @classmethod
+    def dict_to_verbose_dict_in_list(cls, d, key_name="key", value_name="value"):
+        """将普通字典转成繁琐的list of dicts"""
+        return [{key_name: k, value_name: v} for k, v in d.items()]
 
 
 class AuthReq(BaseReq):

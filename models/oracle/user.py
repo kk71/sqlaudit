@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, Boolean
 from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
@@ -17,7 +17,7 @@ class User(BaseModel):
     email = Column("EMAIL", String)
     mobile_phone = Column("MOBILE_PHONE", String)
     department = Column("DEPARTMENT", String)
-    status = Column("STATUS", Integer)
+    status = Column("STATUS", Boolean)
     last_login_time = Column("LAST_LOGIN_TIME", DATE)
     last_login_ip = Column("LAST_LOGIN_IP", String)
     login_counts = Column("LOGIN_COUNTS", Integer)

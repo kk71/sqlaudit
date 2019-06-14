@@ -1,28 +1,18 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import time
-import settings
 from datetime import datetime
 
-from celery import Celery, platforms
-from utils.sql_utils import SQL_DDL, SQL_DML
+from utils.const import SQL_DDL, SQL_DML
 
 from models import init_models
-
-platforms.C_FORCE_ROOT = True
-celery = Celery("offline_ticket",
-                backend=settings.REDIS_BROKER,
-                broker=settings.REDIS_BROKER,
-                )
-celery.conf.update(settings.CELERY_CONF)
-
 init_models()
-
 
 import past.utils.utils
 import past.utils.check
 import past.models
 from models.oracle import make_session, CMDB, WorkList, SubWorkList
+from task.base import *
 
 
 @celery.task

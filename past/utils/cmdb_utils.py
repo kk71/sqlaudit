@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+
 from plain_db.oracleob import OracleHelper
+
 
 class CmdbUtils:
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import utils.cmdb_utils
+import utils.const
+
 
 def mongo_query(func):
     def _wrapper(**kwargs):
@@ -8,7 +9,7 @@ def mongo_query(func):
         mongo_client = kwargs.get("mongo_client")
         db_type = kwargs.get("db_type")
         tmp = kwargs.get("tmp")
-        if db_type == utils.cmdb_utils.DB_ORACLE:
+        if db_type == utils.const.DB_ORACLE:
             etl_date = kwargs.get("etl_date")
             tmp1 = kwargs.get("tmp1")
             collection_name = kwargs.get("collection_name")

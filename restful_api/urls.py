@@ -17,11 +17,13 @@ urls = [
     )
 ]
 
-# user, authentication, privilege and role
+# user, authentication, privilege, role and other permissions
 urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
     (r"/api/role/permission", permisson.SystemPermissionHandler),
+    # 纳管数据库的以及schema的操作权限
+    (r"/api/permission/cmdb", permisson.CMDBPermissionHandler),
 ]
 
 # rule and risk rules
@@ -40,7 +42,13 @@ urls += [
     (r"/api/cmdb/ranking_config", cmdb.RankingConfigHandler),
 ]
 
-# Task
+# overall
+urls += [
+    # 仪表盘
+    (r"/api/dashboard", overall.DashboardHandler),
+]
+
+# task
 urls += [
     (r"/api/task/tasks", task.TaskHandler),
     (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
@@ -59,6 +67,7 @@ urls += [
 # online audit
 urls += [
     (r"/api/online/overview", online.OverviewHandler),
+    (r"/api/online/overview/score_by", online.OverviewScoreByHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
     (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
     (r"/api/online/object/table", online.TableInfoHandler),
@@ -68,7 +77,7 @@ urls += [
     (r"/api/online/sql/plan", online.SQLPlanHandler),
 ]
 
-# health status
+# health status report
 urls += [
     (r"/api/report/online/tasks", report.OnlineReportTaskListHandler),
     (r"/api/report/online/task", report.OnlineReportTaskHandler),

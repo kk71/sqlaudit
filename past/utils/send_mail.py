@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import yagmail
 
+
 def send_mail(title, contents, receivers, server_data, path=None, filename=None):
     print(f"Mail parameters: title: {title}, contents: {contents}, receivers: {receivers}, path: {path}, filename: {filename}")
     mail_host = server_data['mail_server_name']

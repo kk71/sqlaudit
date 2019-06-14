@@ -1,12 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
-    BooleanField, DynamicField, FloatField
+    DynamicField, FloatField
 
-from .utils import BaseDoc
+from .utils import BaseDocRecordID
 
 
-class ObjTabInfo(BaseDoc):
+class ObjTabInfo(BaseDocRecordID):
     """表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -35,7 +35,7 @@ class ObjTabInfo(BaseDoc):
     }
 
 
-class ObjTabCol(BaseDoc):
+class ObjTabCol(BaseDocRecordID):
     """列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -60,7 +60,7 @@ class ObjTabCol(BaseDoc):
     }
 
 
-class ObjPartTabParent(BaseDoc):
+class ObjPartTabParent(BaseDocRecordID):
     """父分区表"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="OWNER")
@@ -88,7 +88,7 @@ class ObjPartTabParent(BaseDoc):
     }
 
 
-class ObjIndColInfo(BaseDoc):
+class ObjIndColInfo(BaseDocRecordID):
     """索引列"""
     _id = ObjectIdField()
     schema_name = StringField(db_field="INDEX_OWNER")
@@ -109,7 +109,7 @@ class ObjIndColInfo(BaseDoc):
     }
 
 
-class ObjViewInfo(BaseDoc):
+class ObjViewInfo(BaseDocRecordID):
     """视图"""
     _id = ObjectIdField()
     obj_pk = StringField(db_field="OBJ_PK")

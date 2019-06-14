@@ -3,9 +3,11 @@
 from types import FunctionType
 from typing import *
 
+from bson import ObjectId
 from mongoengine import DynamicDocument, EmbeddedDocument
 
 from utils.datetime_utils import *
+from utils import const
 
 
 class BaseDoc(DynamicDocument):
@@ -42,13 +44,13 @@ class BaseDoc(DynamicDocument):
         else:
             items = {f: getattr(self, f, None) for f in self._fields}.items()
         for k, v in items:
-            if k in ():
+            if k in ("auto_id_0",):
                 continue
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
-            if k in ("_id", "id"):
+            if k in ("_id", "id") and isinstance(v, ObjectId):
                 v = str(v)
             if isinstance(v, dict):
                 v = self.to_dict(iter_if, iter_by, recurse=v)
@@ -57,8 +59,30 @@ class BaseDoc(DynamicDocument):
                     f: getattr(v, f, None) for f in v._fields})
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime):
-                d[k] = arrow.get(d[k]).format(COMMON_DATETIME_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATETIME_FORMAT)
             elif datetime_to_str and isinstance(d[k], date):
-                d[k] = arrow.get(d[k]).format(COMMON_DATE_FORMAT)
+                d[k] = arrow.get(d[k]).format(const.COMMON_DATE_FORMAT)
         return d
 
+    @classmethod
+    def list_of_values_dict(cls, q, *args):
+        """返回dict形式的values"""
+        assert args
+        q.values_list()
+        return
+
+
+class BaseDocRecordID(BaseDoc):
+
+    meta = {
+        'abstract': True,
+    }
+
+    @classmethod
+    def filter_by_exec_hist_id(cls, exec_history_id: Union[str, int]):
+        """按照record_id查询"""
+        if isinstance(exec_history_id, str):
+            pass
+        elif isinstance(exec_history_id, int):
+            exec_history_id = str(exec_history_id)
+        return cls.objects.filter(record_id__startswith=exec_history_id)

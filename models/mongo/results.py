@@ -1,10 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, ObjectIdField, DateTimeField
-from .utils import BaseDoc
+from mongoengine import StringField, IntField, ObjectIdField, DateTimeField, Q
+
+from .utils import BaseDocRecordID
 
 
-class Results(BaseDoc):
+class Results(BaseDocRecordID):
     _id = ObjectIdField()
     task_uuid = StringField(null=False)
     cmdb_id = IntField()

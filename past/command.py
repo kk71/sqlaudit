@@ -14,7 +14,7 @@ import past.utils.utils
 import plain_db.oracleob
 
 import utils.cmdb_utils
-import utils.result_utils
+import utils.const
 from utils.datetime_utils import *
 import models.mongo
 
@@ -158,7 +158,7 @@ class Command(object):
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
                                 create_user=create_user, **kwargs)
             job_record = sqlaudit.run()
-        elif db_type == utils.cmdb_utils.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
+        elif db_type == utils.const.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
             instance_name = args.get("sid")
             capture_date = args.get("capture_date")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
@@ -168,7 +168,7 @@ class Command(object):
         elif rule_type == "TEXT":
             startdate = args.get("startdate")
             stopdate = args.get("stopdate")
-            if db_type == utils.cmdb_utils.DB_ORACLE:
+            if db_type == utils.const.DB_ORACLE:
                 instance_name = args.get("sid")
                 hostname = args.get("hostname")
             # elif db_type == "mysql":
@@ -269,7 +269,7 @@ class Command(object):
         job_record.update(result_update_info)
         sqlaudit.mongo_client.insert_one("results", job_record)
         models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
-            set__status=utils.result_utils.JOB_STATUS_FINISHED,
+            set__status=utils.const.JOB_STATUS_FINISHED,
             set__desc__capture_time_end=past.utils.utils.get_time()
         )
         # sql = {'_id': sqlaudit.review_result.task_id}

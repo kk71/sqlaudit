@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from datetime import datetime
-
 from sqlalchemy import Column, String, Integer, Boolean, Sequence
 from sqlalchemy.dialects.oracle import DATE, CLOB
 
@@ -51,3 +49,7 @@ class TaskExecHistory(BaseModel):
     status = Column("STATUS", Boolean)
     error_msg = Column("ERROR_MSG", String)
     task_uuid = Column("TASK_UUID", String)
+
+    @classmethod
+    def filter_succeed(cls, session, *args, **kwargs):
+        return session.query(cls).filter(*args, cls.status == True, **kwargs)

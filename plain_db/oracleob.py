@@ -6,8 +6,10 @@ import cx_Oracle
 import settings
 os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
 
+
 class DBError(Exception):
     pass
+
 
 class OracleHelper:
 

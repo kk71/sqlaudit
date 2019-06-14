@@ -9,7 +9,7 @@ from schema import Optional, Schema, And
 import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
-from utils import rule_utils, cmdb_utils, result_utils
+from utils import rule_utils, score_utils
 from restful_api.views.base import AuthReq
 from models.mongo import *
 from models.oracle import *
@@ -22,7 +22,7 @@ class OnlineReportTaskListHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
-            "status": And(scm_int, scm_one_of_choices(result_utils.ALL_JOB_STATUS)),
+            "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
 
@@ -50,62 +50,6 @@ class OnlineReportTaskListHandler(AuthReq):
 
 class OnlineReportTaskHandler(AuthReq):
 
-    @staticmethod
-    def calc_deduction(scores):
-        return round(float(scores) / 1.0, 2)
-
-    @staticmethod
-    def calc_weighted_deduction(scores, max_score_sum):
-        return round(float(scores) * 100 / (max_score_sum or 1), 2)
-
-    @classmethod
-    def calc_rules_and_score_in_one_result(cls, result, cmdb) -> tuple:
-        score_sum_of_all_rule_scores_in_result = 0
-        max_score_sum = rule_utils.calc_sum_of_rule_max_score(
-            db_type=cmdb_utils.DB_ORACLE,
-            db_model=cmdb.db_model,
-            rule_type=result.rule_type
-        )
-        rule_name_to_detail = defaultdict(lambda: {
-            "violated_num": 0,
-            "rule": {},
-            "deduction": 0.0,
-            "weighted_deduction": 0.0
-        })
-
-        for rule_object in Rule.objects(rule_type=result.rule_type,
-                                        db_model=cmdb.db_model,
-                                        db_type=cmdb_utils.DB_ORACLE):
-            rule_result = getattr(result, rule_object.rule_name, None)
-            if rule_result:
-                if result.rule_type == rule_utils.RULE_TYPE_OBJ:
-                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
-                        len(rule_result.get("records", []))
-
-                if result.rule_type in [
-                    rule_utils.RULE_TYPE_TEXT,
-                    rule_utils.RULE_TYPE_SQLSTAT,
-                    rule_utils.RULE_TYPE_SQLPLAN]:
-                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
-                        len(rule_result.get("sqls", []))
-                else:
-                    assert 0
-
-                score_sum_of_all_rule_scores_in_result += round(float(rule_result["scores"]) / 1.0, 2)
-                rule_name_to_detail[rule_object.rule_name]["rule"] = rule_object.to_dict(
-                    iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
-                rule_name_to_detail[rule_object.rule_name]["deduction"] += \
-                    cls.calc_deduction(rule_result["scores"])
-                rule_name_to_detail[rule_object.rule_name]["weighted_deduction"] += \
-                    cls.calc_weighted_deduction(
-                        rule_result["scores"],
-                        max_score_sum=max_score_sum
-                    )
-        scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) / max_score_sum * 100 or 1, 2)
-        scores_total = scores_total if scores_total > 40 else 40
-
-        return list(rule_name_to_detail.values()), scores_total
-
     def get(self):
         """在线查看某个报告"""
         params = self.get_query_args(Schema({
@@ -113,6 +57,7 @@ class OnlineReportTaskHandler(AuthReq):
         }))
         job_id = params.pop("job_id")
         del params  # shouldn't use params anymore
+
         with make_session() as session:
             job = Job.objects(id=job_id).first()
             result = Results.objects(task_uuid=job_id).first()
@@ -120,7 +65,7 @@ class OnlineReportTaskHandler(AuthReq):
             if not cmdb:
                 self.resp_not_found(msg="纳管数据库不存在")
                 return
-            rules_violated, score_sum = self.calc_rules_and_score_in_one_result(result, cmdb)
+            rules_violated, score_sum = score_utils.calc_result(result, cmdb.db_model)
             self.resp({
                 "job_id": job_id,
                 "cmdb": cmdb.to_dict(),
@@ -146,14 +91,14 @@ class OnlineReportRuleDetailHandler(AuthReq):
         records = []
         columns = []
 
-        if rule.rule_type == rule_utils.RULE_TYPE_OBJ:
+        if rule.rule_type == const.RULE_TYPE_OBJ:
             columns = [i["parm_desc"] for i in rule.output_parms]
             for r in rule_dict_in_rst.get("records", []):
                 if data not in records:
                     records.append(dict(zip(columns, r)))
 
-        elif rule.rule_type in [rule_utils.RULE_TYPE_SQLPLAN,
-                                rule_utils.RULE_TYPE_SQLSTAT]:
+        elif rule.rule_type in [const.RULE_TYPE_SQLPLAN,
+                                const.RULE_TYPE_SQLSTAT]:
             for sql_dict in rule_dict_in_rst["sqls"]:
                 if sql_dict.get("obj_name", None):
                     obj_name = sql_dict["obj_name"]
@@ -179,7 +124,7 @@ class OnlineReportRuleDetailHandler(AuthReq):
             if records:
                 columns = list(records[0].keys())
 
-        elif rule.rule_type == rule_utils.RULE_TYPE_TEXT:
+        elif rule.rule_type == const.RULE_TYPE_TEXT:
             records = [{
                 "sql_id": i["sql_id"],
                 "sql_text": i["sql_text"]
@@ -233,7 +178,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
         execution_stat = {}
         plan_hash_value = 0
         plans = []
-        if result.rule_type in (rule_utils.RULE_TYPE_SQLPLAN, rule_utils.RULE_TYPE_SQLSTAT):
+        if result.rule_type in (const.RULE_TYPE_SQLPLAN, const.RULE_TYPE_SQLSTAT):
             for sql_dict in rule_dict_in_rst.get("sqls", []):
                 if sql_dict and sql_dict["sql_id"] == sql_id:
                     execution_stat = sql_dict["stat"]
@@ -282,7 +227,7 @@ class ExportReportXLSXHandler(AuthReq):
 
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
-            rules_violated, score_sum = OnlineReportTaskHandler.calc_rules_and_score_in_one_result(result, cmdb)
+            rules_violated, score_sum = score_utils.calc_result(result, cmdb.db_model)
             rules_violateds = []
             for x in rules_violated:
                 rules_violateds.append([x['rule']['rule_name'],
@@ -301,7 +246,8 @@ class ExportReportXLSXHandler(AuthReq):
 
             for rule_data in rule_data_lists:
                 rule_name = rule_data[0]
-                rule_detail_data = OnlineReportRuleDetailHandler.get_report_rule_detail(session, job_id, rule_name)
+                rule_detail_data = OnlineReportRuleDetailHandler.\
+                    get_report_rule_detail(session, job_id, rule_name)
                 rule_info = Rule.objects(rule_name=rule_name).first()
                 solution = ''.join(rule_info['solution'])
                 rule_detail_datas = []
@@ -362,13 +308,15 @@ class ExportReportXLSXHandler(AuthReq):
 
                 num = 1
                 for records_data in records:
-                    [rule_ws.write(6 + num, x, field, format_text) for x, field in enumerate(records_data)]
+                    [rule_ws.write(6 + num, x, field, format_text) for x, field in
+                     enumerate(records_data)]
                     num += 1
 
                 last_num = 6 + len(records) + 2
 
                 last_data = ['修改意见: ', solution]
-                [rule_ws.write(last_num, x, field, format_title) for x, field in enumerate(last_data)]
+                [rule_ws.write(last_num, x, field, format_title) for x, field in
+                 enumerate(last_data)]
             wb.close()
 
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
