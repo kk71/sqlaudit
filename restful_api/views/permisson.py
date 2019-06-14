@@ -117,7 +117,7 @@ class CMDBPermissionHandler(AuthReq):
             for u in user:
                 users.append({'login_user': u[0], 'user_name': u[1]})
 
-            cmdb = session.query(CMDB).with_entities(CMDB.cmdb_id, CMDB.connect_name)
+            cmdb = session.query(CMDB.cmdb_id, CMDB.connect_name).all()
             # cmdbs=[cmdb.to_dict() for cmdb in cmdbs]
             cmdbs = []
             cmdb = [list(x) for x in cmdb]

@@ -280,8 +280,8 @@ class CMDBHealthTrendHandler(AuthReq):
                 cmdb_connect_name_list = [i["connect_name"]
                                           for i in cmdb_utils.get_latest_health_score_cmdb(session)[:10]]
             else:
-                cmdb_connect_name_list = [i[0] for i in session.query(CMDB). \
-                    filter(CMDB.cmdb_id.in_(cmdb_id_list)).with_entities(CMDB.connect_name)]
+                cmdb_connect_name_list = [i[0] for i in session.query(CMDB.connect_name).
+                                                    filter(CMDB.cmdb_id.in_(cmdb_id_list))]
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cn in cmdb_connect_name_list:
                 dh_q = session.query(DataHealth).filter(
@@ -292,9 +292,9 @@ class CMDBHealthTrendHandler(AuthReq):
                 for dh in dh_q:
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score
             if len(ret) > 0:
-                base_lines = [i[0] for i in session.query(CMDB).
-                    filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
-                    order_by(CMDB.baseline).with_entities(CMDB.baseline)]
+                base_lines = [i[0] for i in session.query(CMDB.baseline).
+                                filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
+                                order_by(CMDB.baseline)]
                 if not base_lines or base_lines[0] == 0:
                     base_line = 80
                 else:
@@ -324,18 +324,22 @@ class RankingConfigHandler(AuthReq):
             return self.resp_bad_req(msg="No Authority")
 
         with make_session() as session:
-            ranking = session.query(DataHealthUserConfig, CMDB). \
-                join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name) \
-                .with_entities(CMDB.connect_name,
-                               DataHealthUserConfig.database_name,
-                               DataHealthUserConfig.username,
-                               DataHealthUserConfig.needcalc,
-                               DataHealthUserConfig.weight)
-            ranking = [list(x) for x in ranking]
+            ranking = session.query(
+                CMDB.connect_name,
+                DataHealthUserConfig.database_name,
+                DataHealthUserConfig.username,
+                DataHealthUserConfig.needcalc,
+                DataHealthUserConfig.weight). \
+                join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name)
             rankings = []
             for x in ranking:
-                rankings.append({'connect_name': x[0], 'databese_name': x[1],
-                                 'username': x[2], 'needcalc': x[3], 'weight': x[4]})
+                rankings.append({
+                    'connect_name': x[0],
+                    'databese_name': x[1],
+                    'username': x[2],
+                    'needcalc': x[3],
+                    'weight': x[4]
+                })
 
             rankings_this_page, p = self.paginate(rankings, **p)
 
@@ -367,9 +371,8 @@ class RankingConfigHandler(AuthReq):
             if set(schema_names) - set(schemas):
                 return self.resp_bad_req(msg="参数不正确")
 
-            existing_schemas = session.query(DataHealthUserConfig).filter(
-                DataHealthUserConfig.database_name == database_name) \
-                .with_entities(DataHealthUserConfig.username)
+            existing_schemas = session.query(DataHealthUserConfig.username).\
+                filter(DataHealthUserConfig.database_name == database_name)
             existing_schemas = [list(existing_schema)[0] for existing_schema in existing_schemas]
             loading, existing = set(schema_names), set(existing_schemas)
 
@@ -406,8 +409,8 @@ class RankingConfigHandler(AuthReq):
                 except cx_Oracle.DatabaseError as err:
                     # print(err)
                     return self.resp_bad_req(msg="无法连接到目标主机")
-            authed_schemas = session.query(DataHealthUserConfig).filter(
-                DataHealthUserConfig.database_name == database_name).with_entities(DataHealthUserConfig.username)
+            authed_schemas = session.query(DataHealthUserConfig.username).\
+                filter(DataHealthUserConfig.database_name == database_name)
             authed_schemas = [list(authed_schema)[0] for authed_schema in authed_schemas]
             schemas = {schema: 1 if schema in authed_schemas else 0 for schema in schemas}
 

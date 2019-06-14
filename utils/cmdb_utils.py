@@ -9,7 +9,7 @@ from utils.perf_utils import *
 import plain_db.oracleob
 
 
-def get_current_cmdb(session, user_login, id_name="cmdb_id") -> set:
+def get_current_cmdb(session, user_login, id_name="cmdb_id") -> list:
     """
     获取某个用户可见的cmdb
     :param session:
@@ -18,13 +18,11 @@ def get_current_cmdb(session, user_login, id_name="cmdb_id") -> set:
     :return: list of cmdb_id
     """
     if id_name == "cmdb_id":
-        return {i[0] for i in session.query(DataPrivilege).
-            filter(DataPrivilege.login_user == user_login).
-            with_entities(DataPrivilege.cmdb_id)}
+        return [i[0] for i in session.query(DataPrivilege.cmdb_id.distinct()).
+                filter(DataPrivilege.login_user == user_login)]
     elif id_name == "connect_name":
-        return {i[0] for i in session.query(CMDB, DataPrivilege). \
-            filter(CMDB.cmdb_id == DataPrivilege.cmdb_id). \
-            with_entities(CMDB.connect_name)}
+        return [i[0] for i in session.query(CMDB.connect_name.distinct()).
+                filter(CMDB.cmdb_id == DataPrivilege.cmdb_id)]
 
 
 def get_current_schema(session, user_login, cmdb_id) -> list:
