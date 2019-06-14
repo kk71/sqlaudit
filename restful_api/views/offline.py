@@ -28,7 +28,7 @@ class TicketHandler(AuthReq):
         """线下审核工单列表"""
         params = self.get_query_args(Schema({
             Optional("work_list_status", default=None):
-                scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS),
+                And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
             Optional("keyword", default=None): scm_str
@@ -99,7 +99,7 @@ class TicketHandler(AuthReq):
         params = self.get_json_args(Schema({
             "work_list_id": scm_int,
             Optional("audit_comments"): scm_str,
-            "work_list_status": scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS),
+            "work_list_status": And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
         work_list_id = params.pop("work_list_id")
