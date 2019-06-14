@@ -3,7 +3,6 @@
 # DO NOT CHANGE THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING
 # almost all settings can be changed through environment variables
 # please refer to docker-compose file and the py.env environment file first.
-# to figure out the difference between default value and the current using value, please use app.py
 
 from os import environ
 from os import path
@@ -22,7 +21,7 @@ def env_get(k, default, parser=None):
     return final_value
 
 
-# ========= settings ==========
+# ==================  settings ===================
 
 # web server settings
 
@@ -45,7 +44,7 @@ ENABLE_TIMING = env_get("ENABLE_TIMING", 1, int)
 
 REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", WEB_IP)
 REDIS_BROKER_PORT = env_get("REDIS_BROKER_PORT", 6379, int)
-REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2)
+REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2, int)
 REDIS_BROKER = f'redis://{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
 
 REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", WEB_IP)
@@ -63,11 +62,12 @@ MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
 MONGO_DB = env_get("MONGO_DB", "sqlreview")
 
 
-# a redis instance for cache
+# cache setting
 
 CACHE_REDIS_SERVER = env_get("CACHE_REDIS_IP", WEB_IP)
-CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017)
-CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1)
+CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017, int)
+CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1, int)
+CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int)  # in sec
 
 
 # license keys

@@ -70,6 +70,6 @@ class TaskExecutionHistoryHandler(AuthReq):
         p = self.pop_p(params)
         with make_session() as session:
             task_exec_hist_q = session.query(TaskExecHistory).\
-                filter_by(**params).order_by(TaskExecHistory.id)
+                filter_by(**params).order_by(TaskExecHistory.id.desc())
             items, p = self.paginate(task_exec_hist_q, **p)
             self.resp([i.to_dict() for i in items], **p)

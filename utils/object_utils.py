@@ -24,5 +24,7 @@ def get_cmdb_phy_size(session, cmdb) -> int:
             filter(cmdb_id=cmdb.cmdb_id).values_list("phy_size_mb")
         phy_size = 0
         if tab_phy_size_iter:
-            phy_size = sum([i for i in tab_phy_size_iter if i])
+            get_cmdb_phy_size.tik("start sum")
+            phy_size = sum(tab_phy_size_iter)
+            get_cmdb_phy_size.tik("end sum")
     return phy_size

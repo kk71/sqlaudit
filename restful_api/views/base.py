@@ -177,6 +177,11 @@ class BaseReq(RequestHandler):
         else:
             assert 0
 
+    @classmethod
+    def dict_to_verbose_dict_in_list(cls, d, key_name="key", value_name="value"):
+        """将普通字典转成反锁的list of dicts"""
+        return [{key_name: k, value_name: v} for k, v in d.items()]
+
 
 class AuthReq(BaseReq):
     """a request handler with authenticating"""

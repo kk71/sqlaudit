@@ -51,3 +51,12 @@ class DataPrivilege(BaseModel):
     comments = Column("COMMENTS", String)
 
 
+class OverviewRate(BaseModel):
+    """概览页的默认设置"""
+    __tablename__ = "T_OVERVIEW_RATE"
+
+    id = Column("ID", Integer, Sequence("SEQ_OVERVIEW_RATE"), primary_key=True)
+    login_user = Column("LOGIN_USER", String)
+    cmdb_id = Column("CMDB_ID", Integer)
+    item = Column("ITEM", String)
+    type = Column("TYPE", Integer)

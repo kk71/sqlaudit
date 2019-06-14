@@ -1,10 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from collections import defaultdict
+from typing import *
 
 from utils.const import *
 from utils.perf_utils import timing
 from models.mongo import *
+from models.oracle import *
 from utils import rule_utils
 
 
@@ -47,7 +49,7 @@ def calc_result(result, db_model) -> tuple:
                 rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
                     len(rule_result.get("records", []))
 
-            if result.rule_type in [
+            elif result.rule_type in [
                 RULE_TYPE_TEXT,
                 RULE_TYPE_SQLSTAT,
                 RULE_TYPE_SQLPLAN]:
@@ -75,23 +77,50 @@ def calc_result(result, db_model) -> tuple:
 
 
 @timing
-def calc_score_of_rule_type(cmdb_id, db_model) -> dict:
+def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     """
-    获取某个纳管数据库最后一次的按照规则类型分类的评分
-    :param cmdb_id:
-    :param db_model:
+    获取某个纳管数据库最后一次的按照[规则类型/schema]分类的评分
+    :param session:
+    :param cmdb:
+    :param perspective:
+    :param score_by:
     :return:
     """
     # TODO make it cached
-    lastest_result = Results.objects(cmdb_id=cmdb_id).order_by("-create_date").first()
-    job_id = lastest_result.task_uuid
-    ret = {
-        RULE_TYPE_OBJ: 0.0,
-        RULE_TYPE_TEXT: 0.0,
-        RULE_TYPE_SQLPLAN: 0.0,
-        RULE_TYPE_SQLSTAT: 0.0
-    }
-    for result in results_q:
-        _, scores = calc_result(result, db_model)
-        ret[result.rule_type] += scores
+    assert perspective in const.ALL_OVERVIEW_ITEM
+    assert score_by in const.ALL_SCORE_BY
+
+    ret = {}
+
+    last_exec_hist = TaskExecHistory.\
+        filter_succeed(session, TaskExecHistory.connect_name == cmdb.connect_name).\
+        order_by(TaskExecHistory.task_end_date.desc()).first()
+    if not last_exec_hist:
+        return ret  # 无分析记录
+
+    rule_type_schema_scores = Job.filter_by_exec_hist_id(last_exec_hist.id). \
+        values_list("desc__rule_type", "desc__owner", "score")
+    scores_by_sth = defaultdict(lambda: defaultdict(lambda: 0.0))
+    for rule_type, schema, score in rule_type_schema_scores:
+        if score:
+            if perspective == const.OVERVIEW_ITEM_RADAR:
+                scores_by_sth[rule_type][schema] += score
+            elif perspective == const.OVERVIEW_ITEM_SCHEMA:
+                scores_by_sth[schema][rule_type] += score
+    calc_score_by.tik("end calcing scores")
+
+    for persp_1, persp_2_score_dict in scores_by_sth.items():
+        ret[persp_1] = None
+        if score_by == const.SCORE_BY_LOWEST:
+            scores_sorted = [s for s in
+                             sorted(persp_2_score_dict.items(), key=lambda k: k[1]) if s]
+            if scores_sorted:
+                ret[persp_1] = scores_sorted[0][1]
+
+        elif score_by == const.SCORE_BY_AVERAGE:
+            persp_2_num = len(persp_2_score_dict)
+            if persp_2_num:
+                ret[persp_1] = sum(persp_2_score_dict.values()) / persp_2_num
+
     return ret
+

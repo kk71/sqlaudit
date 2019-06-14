@@ -416,7 +416,7 @@ def get_risk_sql_list(session,
                                        risky_rule for risky_rule in risky_rules.all()}
     if not risky_rule_name_object_dict:
         raise const.NoRiskRuleSetException
-    print(f"risk sql rule count: {len(risky_rule_name_object_dict)}")
+    get_risk_sql_list.tik(f"risk sql rule count: {len(risky_rule_name_object_dict)}")
 
     # 过滤出包含风险SQL规则结果的result
     Qs = None
@@ -427,7 +427,7 @@ def get_risk_sql_list(session,
             Qs = Qs | Q(**{f"{risky_rule_name}__sqls__nin": [None, []]})
     if Qs:
         result_q = result_q.filter(Qs)
-    print(f"result count: {result_q.count()}")
+    get_risk_sql_list.tik(f"result count: {result_q.count()}")
 
     rst = []  # 详细信息的返回结果
     rst_sql_id_set = set()  # 统计sql_id防止重复

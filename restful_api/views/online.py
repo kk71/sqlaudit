@@ -6,7 +6,7 @@ from types import FunctionType
 
 import sqlparse
 import xlsxwriter
-from schema import Schema, Optional
+from schema import Schema, Optional, And
 from mongoengine import Q
 
 from utils.const import *
@@ -128,8 +128,10 @@ class ObjectRiskListHandler(AuthReq):
                     ]
                     agg_rest = list(Results.objects.aggregate(*to_aggregate))
                     risky_rule_appearance[risky_rule_name] = {
-                        "first_appearance": dt_to_str(agg_rest[0]['first_appearance'] if agg_rest else None),
-                        "last_appearance": dt_to_str(agg_rest[0]['last_appearance'] if agg_rest else None),
+                        "first_appearance": dt_to_str(agg_rest[0]['first_appearance']
+                                                      if agg_rest else None),
+                        "last_appearance": dt_to_str(agg_rest[0]['last_appearance']
+                                                     if agg_rest else None),
                     }
                 for record in getattr(result, risky_rule_name)["records"]:
                     r = {
@@ -333,7 +335,8 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
             else:
                 assert 0
 
-            heads = ['执行用户', 'SQL_ID', '风险点', '最早出现时间', '最后出现时间', '相似SQL', '上次执行总时间', '上次执行次数', '上次平均时间', 'SQL文本']
+            heads = ['执行用户', 'SQL_ID', '风险点', '最早出现时间', '最后出现时间', '相似SQL',
+                     '上次执行总时间', '上次执行次数', '上次平均时间', 'SQL文本']
             filename = f"export_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
             full_filename = path.join(settings.EXPORT_DIR, filename)
             wb = xlsxwriter.Workbook(full_filename)
@@ -522,19 +525,21 @@ class TableInfoHandler(AuthReq):
         params["record_id"] = latest_tab_info.record_id
         self.resp({
             'basic': [i.to_dict(iter_if=lambda k, v: k in (
-                "schema_name", "table_name", "table_type", "iot_name", "num_rows", "blocks", "avg_row_len",
-                "last_analyzed", "last_ddl_date", "chain_cnt", "hwm_stat", "compression", "phy_size_mb"
+                "schema_name", "table_name", "table_type", "iot_name", "num_rows",
+                "blocks", "avg_row_len", "last_analyzed", "last_ddl_date",
+                "chain_cnt", "hwm_stat", "compression", "phy_size_mb"
             )) for i in ObjTabInfo.objects(**params)],
 
             'detail': [i.to_dict(iter_if=lambda k, v: k in (
-                "schema_name", "table_name", "column_name", "data_type", "nullable", "num_nulls",
-                "num_distinct", "data_default", "avg_col_len"
+                "schema_name", "table_name", "column_name", "data_type", "nullable",
+                "num_nulls", "num_distinct", "data_default", "avg_col_len"
             )) for i in ObjTabCol.objects(**params)],
 
             'partition': [i.to_dict(iter_if=lambda k, v: k in (
-                "schema_name", "table_name", "partitioning_type", "column_name", "partitioning_key_count",
-                "partition_count", "sub_partitioning_key_count", "sub_partitioning_type", "last_ddl_date",
-                "phy_size_mb", "num_rows"
+                "schema_name", "table_name", "partitioning_type", "column_name",
+                "partitioning_key_count", "partition_count",
+                "sub_partitioning_key_count", "sub_partitioning_type",
+                "last_ddl_date", "phy_size_mb", "num_rows"
             )) for i in ObjPartTabParent.objects(**params)],
 
             'index': [i.to_dict(iter_if=lambda k, v: k in (
@@ -599,7 +604,7 @@ class OverviewHandler(SQLRiskListHandler):
                 })
                 dt_now = dt_now.shift(days=+1)
 
-            # risk_rule_rank & schemas
+            # risk_rule_rank
 
             # 只需要拿到rule_name即可，不需要知道其他两个key,
             # 因为当前仅对某一个库做分析，数据库类型和db_model都是确定的
@@ -622,7 +627,8 @@ class OverviewHandler(SQLRiskListHandler):
                         continue
                     if result_rule_dict.get("records", []) or result_rule_dict.get("sqls", []):
                         risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
-                        risk_rule_name_sql_num_dict[rule_name]["schema_set"].add(result.schema_name)
+                        risk_rule_name_sql_num_dict[rule_name]["schema_set"].\
+                            add(result.schema_name)
             risk_rule_rank = [
                 {
                     "rule_name": rule_name,
@@ -633,21 +639,6 @@ class OverviewHandler(SQLRiskListHandler):
             ]
 
             risk_rule_rank = sorted(risk_rule_rank, key=lambda x: x["num"], reverse=True)
-            schema_rule_dict = defaultdict(lambda: 0)
-            violation_sum = 0
-            for rule_name, rule_info in risk_rule_name_sql_num_dict.items():
-                for s in rule_info["schema_set"]:
-                    schema_rule_dict[s] += 1
-                    violation_sum += 1
-            schemas = [
-                {
-                    "schema": current_schema,
-                    "num": current_num,
-                    "percentage": f"{current_num / violation_sum * 100}%"
-                } for current_schema, current_num in schema_rule_dict.items()
-            ]
-
-            schemas = sorted(schemas, key=lambda x: x["num"], reverse=True)
 
             # top 10 execution cost by sum and by average
             sqls = sql_utils.get_risk_sql_list(
@@ -657,11 +648,24 @@ class OverviewHandler(SQLRiskListHandler):
                 date_range=(date_start, date_end),
                 sqltext_stats=False
             )
-            top_10_sql_by_sum = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]} for sql in sqls]
-            top_10_sql_by_sum = sorted(top_10_sql_by_sum, key=lambda x: x["time"])
-            top_10_sql_by_average = [{"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]} for sql in
-                                     sqls]
-            top_10_sql_by_average = sorted(top_10_sql_by_average, key=lambda x: x["time"])
+            sql_by_sum = [
+                {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]}
+                for sql in sqls
+            ]
+            top_10_sql_by_sum = sorted(
+                sql_by_sum,
+                key=lambda x: x["time"],
+                reverse=True
+            )[:10]
+            sql_by_average = [
+                {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]}
+                for sql in sqls
+            ]
+            top_10_sql_by_average = sorted(
+                sql_by_average,
+                key=lambda x: x["time"],
+                reverse=True
+            )[:10]
 
             # physical size of current CMDB
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
@@ -672,36 +676,62 @@ class OverviewHandler(SQLRiskListHandler):
                 "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
                 "risk_rule_rank": risk_rule_rank,
                 "sql_execution_cost_rank": {
-                    "by_sum": top_10_sql_by_sum[:10],
-                    "by_average": top_10_sql_by_average[:10]
+                    "by_sum": top_10_sql_by_sum,
+                    "by_average": top_10_sql_by_average
                 },
                 "risk_rates": rule_utils.get_risk_rate(cmdb_id, (date_start, date_end)),
                 # 以下是取最近一次扫描的结果
                 "phy_size_mb": phy_size,
-                # TODO to migrate to another API
-                "schema": schemas,
             })
 
 
-class OverviewScoreByRuleTypeHandler(AuthReq):
+class OverviewScoreByHandler(AuthReq):
 
     def get(self):
-        """显示整个库四个规则类型评分的雷达图"""
+        """显示整个库评分(按照schema或者rule_type)的(柱状图或者雷达图)"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            Optional("score_type", default=None): scm_one_of_choices(const.ALL_SCORE_BY)
+            "perspective": scm_one_of_choices(const.ALL_OVERVIEW_ITEM),
+            Optional("score_type", default=None): And(
+                scm_int,
+                scm_one_of_choices(const.ALL_SCORE_BY)
+            )
         }))
+        score_type = params.pop("score_type")
+        perspective = params.pop("perspective")
         with make_session() as session:
-            self.resp()
-
-
-class OverviewScoreBySchemaHandler(AuthReq):
-
-    def get(self):
-        """显示数据库纳管的schema的评分"""
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-            Optional("score_type", default=None): scm_one_of_choices(const.ALL_SCORE_BY)
-        }))
-        with make_session() as session:
-            self.resp()
+            cmdb = session.query(CMDB).filter_by(**params).first()
+            overview_rate = session.query(OverviewRate).filter_by(
+                login_user=self.current_user,
+                cmdb_id=cmdb.cmdb_id,
+                item=const.OVERVIEW_ITEM_RADAR
+            ).order_by(OverviewRate.id.desc()).first()
+            if score_type is None:
+                if overview_rate:
+                    score_type = overview_rate.type
+                else:
+                    score_type = const.SCORE_BY_AVERAGE
+            elif score_type and not overview_rate:
+                overview_rate = OverviewRate(
+                    login_user=self.current_user,
+                    cmdb_id=cmdb.cmdb_id,
+                    item=const.OVERVIEW_ITEM_RADAR,
+                    type=score_type)
+                session.add(overview_rate)
+            elif score_type and overview_rate:
+                overview_rate.type = score_type
+                session.add(overview_rate)
+            ret = score_utils.calc_score_by(session, cmdb, perspective, score_type)
+            if perspective == const.OVERVIEW_ITEM_SCHEMA:
+                d = sorted(
+                    self.dict_to_verbose_dict_in_list(ret, "schema", "num"),
+                    key=lambda k: k["num"]
+                )
+            elif perspective == const.OVERVIEW_ITEM_RADAR:
+                d = ret
+            else:
+                assert 0
+            self.resp({
+                "data": d,
+                "score_type": score_type
+            })

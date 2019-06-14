@@ -72,6 +72,10 @@ class BaseDocRecordID(BaseDoc):
     }
 
     @classmethod
-    def filter_by_exec_hist_id(cls, exec_history_id: str):
+    def filter_by_exec_hist_id(cls, exec_history_id: Union[str, int]):
         """按照record_id查询"""
+        if isinstance(exec_history_id, str):
+            pass
+        elif isinstance(exec_history_id, int):
+            exec_history_id = str(exec_history_id)
         return cls.objects.filter(record_id__startswith=exec_history_id)

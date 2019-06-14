@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, ObjectIdField, DateTimeField
+from mongoengine import StringField, IntField, ObjectIdField, DateTimeField, Q
 
 from .utils import BaseDocRecordID
 

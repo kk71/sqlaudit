@@ -168,6 +168,9 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
         RULE_TYPE_SQLSTAT: {"violation_num": 0, "sum": 0, "rate": 0.0},
         RULE_TYPE_SQLPLAN: {"violation_num": 0, "sum": 0, "rate": 0.0}
     }
+
+    get_risk_rate.tik("start calc violation_num")
+
     record_id_set: set = set()
     for result in results_q:
         for rule_3k, rule_obj in rule_dict.items():
@@ -185,6 +188,8 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
                 ret[result.rule_type]["violation_num"] += len(sqls)
         record_id_set.add(result.record_id)
 
+    get_risk_rate.tik("start query mongo count")
+
     record_id_list = list(record_id_set)
     # table include normal table and part-table, so calc twice.
     ret["table"]["sum"] += tab_info_q.filter(record_id__in=record_id_list).count()
@@ -195,6 +200,8 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__in=record_id_list).count()
     ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__in=record_id_list).count()
     ret[RULE_TYPE_SQLPLAN]["sum"] += sql_plan_q.filter(record_id__in=record_id_list).count()
+
+    get_risk_rate.tik("end query mongo count")
 
     for k, v in ret.items():
         if v["sum"] and v["violation_num"]:
