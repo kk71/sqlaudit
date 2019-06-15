@@ -225,7 +225,7 @@ class WhiteListHandler(AuthReq):
     def patch(self):
         """禁用启用,及编辑"""
         params = self.get_json_args(Schema({
-            "rule_id": scm_int,
+            "id": scm_int,
 
             Optional("rule_name", default=None): scm_unempty_str,
             Optional("rule_category", default=None): scm_one_of_choices(
@@ -234,7 +234,7 @@ class WhiteListHandler(AuthReq):
             Optional("status", default=None): scm_bool,
             Optional("comments", default=None): scm_str,
         }))
-        rule_id = params.pop('rule_id')
+        rule_id = params.pop('id')
 
         with make_session() as session:
             session.query(WhiteListRules).filter(WhiteListRules.id == rule_id).update(params)
