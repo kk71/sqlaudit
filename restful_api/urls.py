@@ -30,8 +30,7 @@ urls += [
 urls += [
     (r"/api/rule/rules", rules.RuleRepoHandler),
     (r"/api/rule/risk_rules", rules.RiskRuleHandler),
-    #风险白名单规则详情
-    (r"/api/whitelist/risk_rule_details",rules.WhiteListRiskRuleDetailsHandler),
+    (r"/api/rule/white_list", rules.WhiteListHandler),
 
 ]
 

@@ -128,16 +128,16 @@ class RiskRuleHandler(AuthReq):
             if keyword:
                 mq = Rule.filter_enabled()  # search in mongo
                 rule_name_list_in_m = list(self.query_keyword(mq, keyword,
-                                                  "db_model",
-                                                  "rule_desc",
-                                                  "rule_name",
-                                                  "rule_summary").values_list("rule_name"))
+                                                              "db_model",
+                                                              "rule_desc",
+                                                              "rule_name",
+                                                              "rule_summary").values_list("rule_name"))
                 # search in oracle
                 rule_name_list_in_o = [i[0] for i in self.query_keyword(q, keyword,
-                                                       RiskSQLRule.risk_name,
-                                                       RiskSQLRule.severity,
-                                                       RiskSQLRule.rule_name,
-                                                       RiskSQLRule.optimized_advice).\
+                                                                        RiskSQLRule.risk_name,
+                                                                        RiskSQLRule.severity,
+                                                                        RiskSQLRule.rule_name,
+                                                                        RiskSQLRule.optimized_advice). \
                     with_entities(RiskSQLRule.rule_name).all()]
                 q = q.filter(RiskSQLRule.rule_name.in_(
                     rule_name_list_in_m + rule_name_list_in_o))
@@ -177,7 +177,7 @@ class RiskRuleHandler(AuthReq):
         }))
         risk_sql_rule_id = params.pop("risk_sql_rule_id")
         with make_session() as session:
-            risk_rule = session.query(RiskSQLRule).\
+            risk_rule = session.query(RiskSQLRule). \
                 filter_by(risk_sql_rule_id=risk_sql_rule_id).first()
             if not risk_rule:
                 self.resp_not_found(f"未找到风险规则id={risk_sql_rule_id}")
@@ -198,16 +198,15 @@ class RiskRuleHandler(AuthReq):
         self.resp_created(msg="已删除")
 
 
-class WhiteListRiskRuleDetailsHandler(AuthReq):
+class WhiteListHandler(AuthReq):
 
     def get(self):
         """风险白名单详情页,及编辑时查询"""
         params = self.get_query_args(Schema({
-            Optional("cmdb_id",default=None): scm_int,
-            Optional("rule_id",default=None): scm_int
-
+            Optional("cmdb_id", default=None): scm_int,
+            Optional("rule_id", default=None): scm_int
         }))
-        cmdb_id,rule_id=params.pop("cmdb_id"),params.pop("rule_id")
+        cmdb_id, rule_id = params.pop("cmdb_id"), params.pop("rule_id")
         del params
 
         with make_session() as session:
@@ -218,89 +217,91 @@ class WhiteListRiskRuleDetailsHandler(AuthReq):
                     wl['rule_catagory'] = {1: '过滤用户', 2: '过滤程序modal', 3: '过滤sqltext', 4: '过滤规则'}[wl['rule_catagory']]
                     wl['status'] = '启用' if wl['status'] == 0 else '禁用'
 
-                self.resp({'whitelist_rules': whitelist, 'cmdb_id':cmdb_id})
+                self.resp({'whitelist_rules': whitelist, 'cmdb_id': cmdb_id})
             elif rule_id:
-                rule=session.query(WhiteListRules).filter_by(id=rule_id)
-                rule=[r.to_dict() for r in rule]
+                rule = session.query(WhiteListRules).filter_by(id=rule_id)
+                rule = [r.to_dict() for r in rule]
 
-                self.resp({'data':rule})
+                self.resp({'data': rule})
             else:
                 self.resp_bad_req("参数不正确")
 
     def patch(self):
         """禁用启用,及编辑"""
-        params=self.get_json_args(Schema({
-            Optional("comments",default=None):scm_str,
-            Optional("rule_type",default=None):scm_int,
-            Optional("rule_name",default=None):scm_unempty_str,
-            Optional("rule_text",default=None):scm_unempty_str,
+        params = self.get_json_args(Schema({
+            "rule_id": scm_int,
 
-            #禁用启用
+            Optional("comments", default=None): scm_str,
+            Optional("rule_type", default=None): scm_int,
+            Optional("rule_name", default=None): scm_unempty_str,
+            Optional("rule_text", default=None): scm_unempty_str,
+
+            # 禁用启用
             Optional("status", default=None): scm_int,
-            Optional("rule_id",default=None):scm_int
         }))
-        comments,rule_type,rule_name,rule_text=params.pop('comments'),params.pop('rule_type'),\
-                            params.pop('rule_name'),params.pop('rule_text')
-        status=params.pop('status')
-        rule_id=params.pop('rule_id')
+        comments, rule_type, rule_name, rule_text = params.pop('comments'), params.pop('rule_type'), \
+                                                    params.pop('rule_name'), params.pop('rule_text')
+        status = params.pop('status')
+        rule_id = params.pop('rule_id')
         del params
 
         with make_session() as session:
-            a=session.query(WhiteListRules).filter(WhiteListRules.id==rule_id).\
-                update({'status':status,'comments':comments,
-                        'rule_catagory':rule_type,'rule_name':rule_name,
-                        'rule_text':rule_text})
+            a = session.query(WhiteListRules).filter(WhiteListRules.id == rule_id). \
+                update({'status': status, 'comments': comments,
+                        'rule_catagory': rule_type, 'rule_name': rule_name,
+                        'rule_text': rule_text})
 
             self.resp_created(msg="修改白名单规则成功")
 
     def post(self):
         """新增"""
-        params=self.get_json_args(Schema({
-            'rule_name':scm_unempty_str,
-            'rule_text':scm_unempty_str,
-            'rule_type':scm_int,
-            'status':scm_int,
-            'cmdb_id':scm_int,
-            Optional('comments',default=None):scm_str
+        params = self.get_json_args(Schema({
+            'cmdb_id': scm_int,
+
+            'rule_name': scm_unempty_str,
+            'rule_text': scm_unempty_str,
+            'rule_type': scm_int,
+            'status': scm_int,
+            Optional('comments', default=None): scm_str
         }))
-        rule_name,rule_text=params.pop('rule_name'),params.pop('rule_text')
-        rule_type,status=params.pop('rule_type'),params.pop('status')
-        cmdb_id,comments=params.pop('cmdb_id'),params.pop('comments')
+        rule_name, rule_text = params.pop('rule_name'), params.pop('rule_text')
+        rule_type, status = params.pop('rule_type'), params.pop('status')
+        cmdb_id, comments = params.pop('cmdb_id'), params.pop('comments')
         del params
-        login_user=self.current_user
+        login_user = self.current_user
 
         with make_session() as session:
-            W=WhiteListRules()
-            W.cmdb_id=cmdb_id
-            W.rule_name=rule_name
-            W.rule_catagory=rule_type
-            W.rule_text=rule_text
-            W.status=status
-            W.comments=comments
-            W.create_date=datetime.now()
-            W.creator=login_user
+            W = WhiteListRules()
+            W.cmdb_id = cmdb_id
+            W.rule_name = rule_name
+            W.rule_catagory = rule_type
+            W.rule_text = rule_text
+            W.status = status
+            W.comments = comments
+            W.create_date = datetime.now()
+            W.creator = login_user
             session.add(W)
 
-            cmdb_rule_counts=session.query(CMDB).filter_by(cmdb_id=cmdb_id).\
+            cmdb_rule_counts = session.query(CMDB).filter_by(cmdb_id=cmdb_id). \
                 update({CMDB.while_list_rule_counts: CMDB.while_list_rule_counts + 1})
 
             self.resp_created('添加白名单成功')
 
-
     def delete(self):
-        params=self.get_query_args(Schema({
-            "rule_id":scm_int
+        params = self.get_query_args(Schema({
+            "rule_id": scm_int
         }))
-        rule_id=params.pop("rule_id")
+        rule_id = params.pop("rule_id")
         del params
 
         with make_session() as session:
-            cmdb=session.query(WhiteListRules).filter_by(id=rule_id).with_entities(WhiteListRules.cmdb_id)
+            cmdb = session.query(WhiteListRules).filter_by(id=rule_id).with_entities(WhiteListRules.cmdb_id)
             cmdb = [list(x)[0] for x in cmdb]
-            if len(cmdb)==0:
+            if len(cmdb) == 0:
                 return self.resp_bad_req("无效的cmdb")
 
             session.query(WhiteListRules).filter_by(id=rule_id).delete()
-            session.query(CMDB).filter_by(cmdb_id=cmdb[0]).update({"while_list_rule_counts":CMDB.while_list_rule_counts-1})
+            session.query(CMDB).filter_by(cmdb_id=cmdb[0]).update(
+                {"while_list_rule_counts": CMDB.while_list_rule_counts - 1})
 
             self.resp_created("删除规则成功")
