@@ -7,6 +7,7 @@ from schema import Schema, Optional, And
 
 from utils.schema_utils import *
 from utils.perf_utils import *
+from utils.const import *
 from utils.datetime_utils import *
 from utils.cmdb_utils import get_cmdb_available_schemas
 from .base import *
@@ -120,7 +121,7 @@ class CMDBHandler(AuthReq):
             session.refresh(new_cmdb)
 
             # 创建任务的数据库字段信息
-            for task_type in cmdb_utils.ALL_DB_TASKS:
+            for task_type in ALL_DB_TASKS:
                 task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
                     "connect_name",
                     "group_name",
