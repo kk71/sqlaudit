@@ -126,7 +126,7 @@ class RiskRuleHandler(AuthReq):
         with make_session() as session:
             q = session.query(RiskSQLRule).filter_by(**params)
             if keyword:
-                mq = Rule.objects()  # search in mongo
+                mq = Rule.filter_enabled()  # search in mongo
                 rule_name_list_in_m = list(self.query_keyword(mq, keyword,
                                                   "db_model",
                                                   "rule_desc",

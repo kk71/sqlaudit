@@ -41,4 +41,7 @@ class Rule(BaseDoc):
     @classmethod
     def filter_enabled(cls, *args, **kwargs):
         """返回当前启用的规则查询集"""
-        return cls.objects.filter(*args, rule_status=const.RULE_STATUS_ON, **kwargs)
+        return cls.objects.filter(*args,
+                                  rule_status=const.RULE_STATUS_ON,
+                                  db_type=const.DB_ORACLE,  # TODO 目前只返回oracle类型的规则！！！
+                                  **kwargs)

@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import re
 from types import FunctionType
 from typing import *
 
@@ -79,10 +80,15 @@ class BaseDocRecordID(BaseDoc):
     }
 
     @classmethod
-    def filter_by_exec_hist_id(cls, exec_history_id: Union[str, int]):
+    def filter_by_exec_hist_id(cls, exec_history_id: Union[str, int, list, tuple]):
         """按照record_id查询"""
         if isinstance(exec_history_id, str):
-            pass
+            to_join = [exec_history_id]
         elif isinstance(exec_history_id, int):
-            exec_history_id = str(exec_history_id)
-        return cls.objects.filter(record_id__startswith=exec_history_id)
+            to_join = [str(exec_history_id)]
+        elif isinstance(exec_history_id, (tuple, list)):
+            to_join = [str(i) for i in exec_history_id]  # 不确定是不是文本，反正帮它转换了
+        else:
+            assert 0
+        t = re.compile(f"^({'|'.join(to_join)})")
+        return cls.objects.filter(record_id=t)

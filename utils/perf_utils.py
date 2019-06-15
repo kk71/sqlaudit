@@ -25,7 +25,7 @@ def timing(method):
             tt = time.time()
             s = f"{round(tt - ts, 3)}"
             if msg:
-                s += " " + msg
+                s += " " + str(msg)
             tiks.append(s)
 
         timed.tik = tik

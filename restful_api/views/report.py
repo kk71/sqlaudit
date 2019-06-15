@@ -248,7 +248,7 @@ class ExportReportXLSXHandler(AuthReq):
                 rule_name = rule_data[0]
                 rule_detail_data = OnlineReportRuleDetailHandler.\
                     get_report_rule_detail(session, job_id, rule_name)
-                rule_info = Rule.objects(rule_name=rule_name).first()
+                rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model).first()
                 solution = ''.join(rule_info['solution'])
                 rule_detail_datas = []
                 rule_detail_title = []

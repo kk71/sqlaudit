@@ -77,7 +77,7 @@ class Param(BaseModel):
     __tablename__ = "T_PARAM"
 
     param_id = Column("PARAM_ID", Integer, primary_key=True)
-    param_value = Column("PARAM_value", String)
+    param_value = Column("PARAM_VALUE", String)
     param_type = Column("PARAM_TYPE", Integer)
 
 
@@ -85,7 +85,7 @@ class Notice(BaseModel):
     """公告栏"""
     __tablename__ = "T_NOTICE"
 
-    notice_id = Column("NOTICE_ID", Integer, primary_key=True)
+    notice_id = Column("NOTICE_ID", Integer, default=1, primary_key=True)
     contents = Column("CONTENTS", String)
-    update_date = Column("UPDATE_DATE", DATE)
+    update_date = Column("UPDATE_DATE", DATE, default=datetime.now, onupdate=datetime.now)
     update_user = Column("UPDATE_USER", String)

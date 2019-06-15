@@ -70,15 +70,14 @@ def merge_risk_rule_and_rule(
     return {**risk_rule_dict, **rule_dict}
 
 
-def get_rules_dict(rule_status: str = RULE_STATUS_ON) -> dict:
+def get_rules_dict() -> dict:
     """
     parse all rules into a dict with 3-key indexing
     :param rule_status:
     :return:
     """
     # TODO make it cached
-    return {(r.db_type, r.db_model, r.rule_name): r for r in
-            Rule.objects(rule_status=rule_status).all()}
+    return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.filter_enabled()}
 
 
 def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
@@ -86,7 +85,7 @@ def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     计算某个类型的规则的最大分总合
     """
     # TODO make it cached
-    rule_q = Rule.filter_enabled(db_type=db_type, db_model=db_model, rule_type=rule_type)
+    rule_q = Rule.filter_enabled(db_model=db_model, rule_type=rule_type)
     return sum([float(rule.max_score) for rule in rule_q])
 
 

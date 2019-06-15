@@ -20,33 +20,48 @@ class DashboardHandler(AuthReq):
         """仪表盘"""
         with make_session() as session:
             cmdb_id_set = cmdb_utils.get_current_cmdb(session, self.current_user)
-            # 获取每个库最后一次抓取分析任务的id
+            # 获取每个库最后一次抓取分析成功的历史记录的id
             sub_q = session.\
                 query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")).\
                 join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name).\
                 filter(TaskManage.cmdb_id.in_(list(cmdb_id_set)),
-                       TaskManage.task_exec_scripts == DB_TASK_CAPTURE).subquery()
-            cmdb_id_exec_hist_id_list = session.\
+                       TaskManage.task_exec_scripts == DB_TASK_CAPTURE,
+                       TaskExecHistory.status == True).subquery()
+            cmdb_id_exec_hist_id_list_q = session.\
                 query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
-
-
+            task_exec_hist_id_list: [str] = [str(i[1]) for i in cmdb_id_exec_hist_id_list_q]
+            # 计算值
+            sql_num = len(SQLText.filter_by_exec_hist_id(task_exec_hist_id_list).distinct("sql_id"))
+            table_num = ObjTabInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
+            index_num = ObjIndColInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
+            # 维度的数据库
+            envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)).\
+                filter(Param.param_id == CMDB.domain_env,
+                       Param.param_type == const.PARAM_TYPE_ENV).\
+                group_by(Param.param_value)
+            # 线下审核工单状态归类
+            offline_tickets = session.query(
+                WorkList.work_list_status, func.count(WorkList.work_list_id)).\
+                group_by(WorkList.work_list_status)
+            # 线上审核的采集任务
+            capture_tasks = session.query(
+                TaskManage.task_exec_scripts, func.count(TaskManage.task_id)).\
+                group_by(TaskManage.task_exec_scripts)
+            # 公告板
+            notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
-                "sql_num": 0,
-                "table_num": 0,
-                "index_num": 0,
+                "sql_num": sql_num,
+                "table_num": table_num,
+                "index_num": index_num,
                 "sequence_num": 0,
 
-                "env": [],
-                "cmdb_num": 0,
+                "env": self.dict_to_verbose_dict_in_list(dict(envs)),
+                "cmdb_num": session.query(CMDB).count(),
                 "ai_tune_num": 0,
-                "offline_ticket": {
-                    "pending": 0,
-                    "rejected": 0,
-                    "passed": 0
-                },
+                "offline_ticket": self.dict_to_verbose_dict_in_list(dict(offline_tickets)),
 
-                "capture_tasks": [],
-                "notice": ""
+                "capture_tasks": self.dict_to_verbose_dict_in_list(dict(capture_tasks)),
+                "notice": notice.contents if notice else ""
             })
 
 
@@ -62,6 +77,7 @@ class NoticeHandler(AuthReq):
             if not notice:
                 notice = Notice()
             notice.from_dict(param)
+            notice.update_user = self.current_user
             session.add(notice)
             session.commit()
             session.refresh(notice)

@@ -96,6 +96,11 @@ ALL_OFFLINE_TICKET_STATUS = (
     OFFLINE_TICKET_EXECUTED
 )
 
+# PARAM_TYPE
+PARAM_TYPE_ENV = 4              # 环境
+PARAM_TYPE_DATA_CENTER = 1      # 数据中心
+ALL_PARAM_TYPE = (PARAM_TYPE_ENV, PARAM_TYPE_DATA_CENTER)
+
 
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""

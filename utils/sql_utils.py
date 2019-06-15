@@ -409,7 +409,6 @@ def get_risk_sql_list(session,
     risky_rules = Rule.filter_enabled(
         rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
         db_model=cmdb.db_model,
-        db_type=const.DB_ORACLE
     )
     risk_rules_dict = rule_utils.get_risk_rules_dict(session)
     risky_rule_name_object_dict = {risky_rule.rule_name:
