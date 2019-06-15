@@ -43,6 +43,12 @@ class DashboardHandler(AuthReq):
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)).\
                 group_by(WorkList.work_list_status)
+            status_desc = {
+                0: "待审核",
+                1: "审核通过",
+                2: "被驳回",
+                3: "已上线"
+            }
             # 线上审核的采集任务
             capture_tasks = session.query(
                 TaskManage.task_exec_scripts, func.count(TaskManage.task_id)).\
@@ -58,7 +64,7 @@ class DashboardHandler(AuthReq):
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": session.query(CMDB).count(),
                 "ai_tune_num": 0,
-                "offline_ticket": self.dict_to_verbose_dict_in_list(dict(offline_tickets)),
+                "offline_ticket": {status_desc[k]: v for k, v in dict(offline_tickets).items()},
 
                 "capture_tasks": self.dict_to_verbose_dict_in_list(dict(capture_tasks)),
                 "notice": notice.contents if notice else ""
