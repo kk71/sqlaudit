@@ -267,7 +267,7 @@ class SchemaHandler(AuthReq):
 
 class CMDBHealthTrendHandler(AuthReq):
 
-    @timing
+    @timing()
     def post(self):
         """健康评分趋势图"""
         params = self.get_json_args(Schema({

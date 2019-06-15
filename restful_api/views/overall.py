@@ -15,7 +15,7 @@ from utils import cmdb_utils
 
 class DashboardHandler(AuthReq):
 
-    @timing
+    @timing()
     def get(self):
         """仪表盘"""
         with make_session() as session:

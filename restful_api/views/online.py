@@ -21,7 +21,7 @@ from models.mongo import *
 
 class ObjectRiskListHandler(AuthReq):
 
-    @timing
+    @timing()
     def get_list(self, session, query_parser: FunctionType):
         # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
         params = query_parser(Schema({
@@ -379,7 +379,7 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
 
 class SQLRiskDetailHandler(AuthReq):
 
-    @timing
+    @timing()
     def get(self):
         """风险详情（include sql text, sql plan and statistics）"""
         params = self.get_query_args(Schema({
@@ -555,7 +555,7 @@ class TableInfoHandler(AuthReq):
 
 class OverviewHandler(SQLRiskListHandler):
 
-    @timing
+    @timing()
     def get(self):
         """风险详情的sql plan详情"""
         """数据库健康度概览"""

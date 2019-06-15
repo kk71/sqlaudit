@@ -38,7 +38,7 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     return list({i.schema_name for i in q})
 
 
-@timing
+@timing()
 def get_cmdb_available_schemas(cmdb_object) -> [str]:
     """
     获取一个cmdb可用的全部schema
@@ -69,7 +69,7 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     return schemas
 
 
-@timing
+@timing()
 def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
     """
     获取用户可见的cmdb最新的health score排名
@@ -81,7 +81,7 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
     # TODO make it cached!
 
     if user_login:
-        all_connect_names: set = get_current_cmdb(session, user_login, id_name="connect_name")
+        all_connect_names: set = set(get_current_cmdb(session, user_login, id_name="connect_name"))
     else:
         all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().
             with_entities(CMDB.connect_name)}

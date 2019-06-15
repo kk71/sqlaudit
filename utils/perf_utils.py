@@ -10,42 +10,45 @@ from functools import wraps
 import settings
 
 
-def timing(method):
+def timing(enabled: bool = True):
     """函数计时"""
 
-    @wraps(method)
-    def timed(*args, **kwargs):
+    def timing_wrap(method):
 
-        tiks = []
+        @wraps(method)
+        def timed(*args, **kwargs):
 
-        ts = time.time()
+            tiks = []
 
-        def tik(msg: str = None):
-            """在过程中掐一下时间"""
-            tt = time.time()
-            s = f"{round(tt - ts, 3)}"
-            if msg:
-                s += " " + str(msg)
-            tiks.append(s)
+            ts = time.time()
 
-        timed.tik = tik
+            def tik(msg: str = None):
+                """在过程中掐一下时间"""
+                tt = time.time()
+                s = f"{round(tt - ts, 3)}"
+                if msg:
+                    s += " " + str(msg)
+                tiks.append(s)
 
-        result = method(*args, **kwargs)
-        te = time.time()
+            timed.tik = tik
 
-        if settings.ENABLE_TIMING:
-            leading_spaces = "\n  * "
-            tiks_formatted = leading_spaces + leading_spaces.join(tiks) if tiks else ""
-            print(f"""
-  {method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}
-    args: {args}, kwargs: {kwargs}{tiks_formatted}
-    {round(te - ts, 3)} seconds total
-""")
-        return result
-    return timed
+            result = method(*args, **kwargs)
+            te = time.time()
+
+            if enabled and settings.ENABLE_TIMING:
+                leading_spaces = "\n  * "
+                tiks_formatted = leading_spaces + leading_spaces.join(tiks) if tiks else ""
+                print(f"""
+      {method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}
+        args: {args}, kwargs: {kwargs}{tiks_formatted}
+        {round(te - ts, 3)} seconds total
+    """)
+            return result
+        return timed
+    return timing_wrap
 
 
-@timing
+@timing()
 def test():
     import time
     time.sleep(2)

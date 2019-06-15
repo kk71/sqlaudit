@@ -5,7 +5,7 @@ from models.mongo import *
 from utils.perf_utils import *
 
 
-@timing
+@timing()
 def get_cmdb_phy_size(session, cmdb) -> int:
     """
     计算cmdb最近一次统计的物理体积（目前仅计算表的总体积）

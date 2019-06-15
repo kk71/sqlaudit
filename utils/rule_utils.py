@@ -100,7 +100,7 @@ def get_risk_rules_dict(session) -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}
 
 
-@timing
+@timing()
 def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
@@ -136,7 +136,7 @@ def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple
     return rule_name_set
 
 
-@timing
+@timing()
 def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     """
     获取最近的风险率
