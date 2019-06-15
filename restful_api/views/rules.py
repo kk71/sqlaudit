@@ -229,11 +229,49 @@ class WhiteListRiskRuleDetailsHandler(AuthReq):
 
     def patch(self):
         """禁用启用,及编辑"""
-        self.resp_created()
+        params=self.get_json_args(Schema({
+            "status":scm_int,
+            "comments":scm_str,
+            "rule_type":scm_str,
+            "rule_name":scm_str,
+            "rule_text":scm_str,
+            "rule_id":scm_int
+        }))
+        rule_id=params.pop('rule_id')
+        with make_session() as session:
+            """'UPDATE WHITE_LIST_RULES SET status = :1,comments = :2,rule_name = :3,rule_text = :4 WHERE id = :5'"""
+            # session.query(WhiteListRules).filter(WhiteListRules.id==rule_id).update(**params)
+
+            # W=session.query(WhiteListRules).filter(WhiteListRules.id==rule_id)
+            # W.status
+            self.resp_created()
 
     def post(self):
         """新增"""
-        self.resp_created()
+        params=self.get_json_args(Schema({
+            'rule_name':scm_unempty_str,
+            'rule_text':scm_unempty_str,
+            'rule_type':scm_unempty_str,
+            'status':scm_int,
+            'cmdb_id':scm_int,
+            'comments':scm_str
+        }))
+        c=self.current_user
+        with make_session() as session:
+            W=WhiteListRules()
+            W.id=1
+            W.cmdb_id=2
+            W.rule_name=3
+            W.rule_catagory=4
+            W.rule_text=5
+            W.status=6
+            W.comments=7
+            W.create_date=datetime.now()
+            W.creator=self.current_user
+            session.add(W)
+
+
+        self.resp_created("添加白名单成功")
 
     def delete(self):
         params=self.get_query_args(Schema({
@@ -247,6 +285,7 @@ class WhiteListRiskRuleDetailsHandler(AuthReq):
             if len(cmdb)==0:
                 return self.resp_bad_req("无效的cmdb")
             a=session.query(WhiteListRules).filter_by(id=rule_id).delete()
+            # TODO
             # b=session.query(CMDB).filter_by(cmdb_id=cmdb[0]).update(CMDB.while_list_rule_counts==2)
             c=session.query(CMDB).filter_by(cmdb_id=cmdb[0])
             # c.while_list_rule_counts=2
