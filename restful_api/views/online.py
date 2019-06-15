@@ -657,6 +657,7 @@ class OverviewHandler(SQLRiskListHandler):
                 key=lambda x: x["time"],
                 reverse=True
             )[:10]
+            top_10_sql_by_sum.reverse()
             sql_by_average = [
                 {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]}
                 for sql in sqls
@@ -666,6 +667,7 @@ class OverviewHandler(SQLRiskListHandler):
                 key=lambda x: x["time"],
                 reverse=True
             )[:10]
+            top_10_sql_by_average.reverse()
 
             # physical size of current CMDB
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
