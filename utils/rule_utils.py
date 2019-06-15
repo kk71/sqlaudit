@@ -66,6 +66,8 @@ def merge_risk_rule_and_rule(
     if not rule_object:
         rule_object = Rule.objects(**risk_rule_object.
                                    to_dict(iter_if=lambda k, v: k in RULE_ALLOCATING_KEYS)).first()
+    if not rule_object:  # 用于排错
+        print(risk_rule_object.to_dict(iter_if=lambda k, v: k in RULE_ALLOCATING_KEYS))
     rule_dict = rule_object.to_dict(iter_if=lambda k, v: k in rule_keys)
     return {**risk_rule_dict, **rule_dict}
 

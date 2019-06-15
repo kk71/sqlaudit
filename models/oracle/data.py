@@ -29,7 +29,7 @@ class WhiteListRules(BaseModel):
     id = Column("ID", Integer, Sequence("SEQ_WHITE_LIST_RULES"), primary_key=True)
     cmdb_id = Column("CMDB_ID", Integer)
     rule_name = Column("RULE_NAME", String)
-    rule_catagory = Column("RULE_CATAGORY", Integer)
+    rule_category = Column("RULE_CATEGORY", Integer)
     rule_text = Column("RULE_TEXT", String)
     status = Column("STATUS", Boolean)
     create_date = Column("CREATE_DATE", DATE)
