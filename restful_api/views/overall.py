@@ -29,10 +29,14 @@ class DashboardHandler(AuthReq):
             cmdb_id_exec_hist_id_list_q = session.\
                 query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
             task_exec_hist_id_list: [str] = [str(i[1]) for i in cmdb_id_exec_hist_id_list_q]
+            self.get.tik("received task_exec_hist_id_list")
+
             # 计算值
             sql_num = len(SQLText.filter_by_exec_hist_id(task_exec_hist_id_list).distinct("sql_id"))
             table_num = ObjTabInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
             index_num = ObjIndColInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
+            self.get.tik("calced 3 count")
+
             # 维度的数据库
             envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)).\
                 filter(Param.param_id == CMDB.domain_env,
@@ -48,6 +52,7 @@ class DashboardHandler(AuthReq):
                 2: "被驳回",
                 3: "已上线"
             }
+            self.get.tik("finished offline ticket")
             # 线上审核的采集任务
             capture_tasks = session.query(TaskExecHistory.status, TaskExecHistory.task_id).\
                 filter(TaskExecHistory.id.in_([int(i) for i in task_exec_hist_id_list]))
@@ -60,8 +65,10 @@ class DashboardHandler(AuthReq):
             for status, task_id in capture_tasks:
                 if task_id:
                     task_status[task_status_desc[status]] += 1
+            self.get.tik("finished capture tasks status count")
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
+            self.get.tik("finished notice")
             self.resp({
                 "sql_num": sql_num,
                 "table_num": table_num,
