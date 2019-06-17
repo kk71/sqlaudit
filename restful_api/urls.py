@@ -21,8 +21,9 @@ urls = [
 urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
-    (r"/api/role/permission", permisson.SystemPermissionHandler),
-    # 纳管数据库的以及schema的操作权限
+    (r"/api/role", permisson.RoleHandler),
+    (r"/api/role/user", permisson.RoleUserHandler),
+    (r"/api/role/privilege", permisson.SystemPrivilegeHandler),
     (r"/api/permission/cmdb", permisson.CMDBPermissionHandler),
 ]
 

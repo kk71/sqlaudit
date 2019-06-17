@@ -7,84 +7,127 @@ from .base import AuthReq
 from utils.schema_utils import *
 from utils.datetime_utils import dt_to_str
 from models.oracle import *
+from utils.const import *
 
 
-class SystemPermissionHandler(AuthReq):
-    """角色系统权限配置"""
+class RoleHandler(AuthReq):
 
     def get(self):
-        """系统角色权限列表"""
+        """角色列表"""
         params = self.get_query_args(Schema({
-            "role_id": scm_int,
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=50): scm_int,
+            Optional("keyword", default=None): scm_str,
+            **self.gen_p()
         }))
-        role_id = params.pop("role_id")
+        keyword = params.pop("keyword")
+        p = self.pop_p(params)
+        with make_session() as session:
+            role_q = session.query(Role)
+            if keyword:
+                role_q = self.query_keyword(role_q, keyword,
+                                                 Role.role_id,
+                                                 Role.role_name,
+                                                 Role.comments)
+            items, p = self.paginate(role_q, **p)
+            self.resp([i.to_dict() for i in items], **p)
 
-        # with make_session() as session:
-        #     q = session.query(Privilege).all()
-        #     itesm, p = self.paginate(q, **params)
-        #     ret = {
-        #         privilege_id: privilege
-        # }
-        #
-        #
-        #
-        # q = session.query(Privilege).\
-        #     join(RolePrivilege, Privilege.privilege_id == RolePrivilege.privilege_id).\
-        #     filter(RolePrivilege.role_id == role_id)
-        # items, p = self.paginate(q, **params)
-        # ret = []
-        # for a_privege, role_privilege in items:
-        #     privilege_content = a_privege.to_dict()
-        #     privilege_content.update({"enabled": False})
-        #     if len(role_privilege):
-        #         privilege_content.update({"enabled": True})
-        #     ret.append(privilege_content)
-        # self.resp(ret, **p)
-
-        # privileges = session.query(RolePrivilege).\
-        #     with_entities(RolePrivilege.role_id, RolePrivilege.privilege_id)
-        # privileges = [list(x) for x in privileges]
-        # res = defaultdict(list)
-        # for priv in privileges:
-        #     res[priv[0]].append(priv[1])
-        #
-        # roles = session.query(Role).with_entities(Role.role_id, Role.role_name)
-        # roles = dict([list(x) for x in roles])
-        #
-        # user_privileges = {roles[x]: res[x] for x in roles}
-        # sys_privileges = session.query(Privilege).\
-        #     with_entities(Privilege.privilege_id, Privilege.comments)
-        # sys_privileges = dict([list(x) for x in sys_privileges])
-        # self.resp({'user_privileges': user_privileges, 'sys_privileges': sys_privileges})
+    def post(self):
+        """增加角色"""
+        params = self.get_query_args(Schema({
+            "role_name": scm_unempty_str,
+            "comments": scm_str
+        }))
+        with make_session() as session:
+            if session.query(Role).filter_by(role_name=params["role_name"]).count():
+                self.resp_forbidden(msg="已经存在该角色")
+                return
+            role = Role(**params)
+            session.add(role)
+            session.commit()
+            session.refresh(role)
+            self.resp_created(role.to_dict())
 
     def patch(self):
-        """部分更新系统权限"""
-        params = self.get_json_args(Schema({
+        """编辑角色"""
+        params = self.get_query_args(Schema({
             "role_id": scm_int,
-            Optional("privilege_ids"): scm_str,
+
+            Optional("role_name"): scm_unempty_str,
+            Optional("comments"): scm_str
         }))
-
+        role_id = params.pop("role_id")
         with make_session() as session:
+            role = session.query(Role).filter_by(role_id=role_id).first()
+            role.from_dict(params)
+            session.add(role)
+            session.commit()
+            session.refresh(role)
+            self.resp_created(role.to_dict())
 
-            change_priv_ids = {int(x) for x in params["privilege_ids"].split(',')}
-            priv_ids = session.query(RolePrivilege) \
-                .filter(RolePrivilege.role_id == params["role_id"]). \
-                with_entities(RolePrivilege.privilege_id)
-            priv_ids = {priv_id[0] for priv_id in priv_ids}
-            add_ids = change_priv_ids - priv_ids
-            delete_ids = priv_ids - change_priv_ids
+    def delete(self):
+        """删除角色"""
+        params = self.get_query_args(Schema({
+            "role_id": scm_int,
+        }))
+        with make_session() as session:
+            session.query(Role).delete(**params)
+            session.query(UserRole).delete(**params)
+        self.resp_created(msg="删除成功")
 
-            for priv_id in add_ids:
-                add_id = RolePrivilege(role_id=params["role_id"], privilege_id=priv_id)
-                session.add(add_id)
-            if delete_ids:  # TODO
-                delete_id = session.query(RolePrivilege).filter(
-                    RolePrivilege.role_id == params["role_id"],
-                    RolePrivilege.privilege_id.in_([x for x in delete_ids])).all()
-                session.delete(*delete_id)
-        self.resp_created(msg="修改系统权限配置成功")
+
+class RoleUserHandler(AuthReq):
+
+    def get(self):
+        """获取用户角色信息"""
+        params = self.get_query_args(Schema({
+            Optional("role_id", default=None): scm_int,
+            Optional("login_user", default=None): scm_unempty_str,
+            **self.gen_p()
+        }))
+        p = self.pop_p(params)
+        with make_session() as session:
+            keys = QueryEntityList(
+                User.user_name,
+                UserRole.role_id,
+                Role.role_name
+            )
+            user_role = session.query(*keys).\
+                join(Role, UserRole.role_id == Role.role_id).\
+                join(User, UserRole.login_user == User.login_user)
+            items, p = self.paginate(user_role, **p)
+            self.resp([keys.to_dict(i) for i in items])
+
+    def post(self):
+        """用户绑定角色"""
+        params = self.get_query_args(Schema({
+            "role_id": scm_int,
+            "login_user": scm_unempty_str,
+        }))
+        with make_session() as session:
+            ur = UserRole(**params)
+            session.add(ur)
+            session.commit()
+            session.refresh(ur)
+            self.resp_created(ur.to_dict())
+
+    def delete(self):
+        """用户取消角色"""
+        params = self.get_query_args(Schema({
+            "role_id": scm_int,
+            "login_user": scm_unempty_str,
+        }))
+        with make_session() as session:
+            session.query(UserRole).filter_by(**params).delete()
+        self.resp_created(msg="deleted")
+
+
+class SystemPrivilegeHandler(AuthReq):
+
+    def get(self):
+        """权限列表"""
+        params = self.get_query_args(Schema(self.gen_p()))
+        p = self.pop_p(params)
+        items, p = self.paginate(PRIVILEGE.ALL_PRIVILEGE, **p)
+        self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
 
 
 class CMDBPermissionHandler(AuthReq):
@@ -164,7 +207,6 @@ class CMDBPermissionHandler(AuthReq):
                     DataPrivilege.schema_name.in_(delete_schemas)).\
                     delete(synchronize_session='fetch')
                 return self.resp_created(msg="分配权限成功")
-
 
     def post(self):
         params = self.get_json_args(Schema({

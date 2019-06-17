@@ -2,10 +2,11 @@
 
 __ALL__ = [
     "make_session",
+    "QueryEntityList",
     "User",
     "UserRole",
     "RolePrivilege",
-    "Privilege",
+    # "Privilege",
     "Role",
     "CMDB",
     "DataPrivilege",
@@ -22,7 +23,7 @@ __ALL__ = [
     "Param"
 ]
 
-from .utils import make_session
+from .utils import make_session, QueryEntityList
 from .user import *
 from .data import *
 from .config import *

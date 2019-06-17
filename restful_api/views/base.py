@@ -14,7 +14,7 @@ from sqlalchemy.orm.query import Query as S_Query
 from sqlalchemy import or_
 
 import settings
-from utils.schema_utils import scm_unempty_str
+from utils.schema_utils import scm_unempty_str, scm_int
 
 
 __all__ = [
@@ -146,6 +146,14 @@ class BaseReq(RequestHandler):
         if total % per_page > 0:
             pages += 1
         return items, {"page": page, "per_page": per_page, "total": total, "pages": pages}
+
+    @staticmethod
+    def gen_p(page=1, per_page=10):
+        """分页的配置"""
+        return {
+            scm_Optional("page", default=page): scm_int,
+            scm_Optional("per_page", default=per_page): scm_int,
+        }
 
     @staticmethod
     def pop_p(query_dict) -> dict:

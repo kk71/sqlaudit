@@ -113,6 +113,40 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
                            WHITE_LIST_CATEGORY_TEXT)
 
 
+class PRIVILEGE:
+
+    # 权限执行方
+    TYPE_BE = 1       # 仅后端处理
+    TYPE_FE = 2       # 仅前端处理
+    TYPE_BOTH = 3     # 皆处理
+    ALL_PRIVILEGE_TYPE = (TYPE_BE, TYPE_FE, TYPE_BOTH)
+
+    # 权限类别
+    CATEGORY_NORMAL = "通用类型"
+    ALL_PRIVILEGE_CATEGORY = (CATEGORY_NORMAL,)
+
+    # 权限键名
+    NAMES = ("id", "type", "name", "description", "category")
+
+    # 权限
+    PRIVILEGE_DASHBOARD = (1,
+                           TYPE_FE,
+                           "仪表盘可见", "是否允许使用仪表盘", CATEGORY_NORMAL)
+    ALL_PRIVILEGE = (
+        PRIVILEGE_DASHBOARD,
+    )
+
+    @classmethod
+    def privilege_to_dict(cls, x):
+        """
+        权限列表转为字典
+        :param cls:
+        :param x:
+        :return:
+        """
+        return dict(zip(cls.NAMES, x))
+
+
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""
     pass

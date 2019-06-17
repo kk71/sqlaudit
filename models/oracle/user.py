@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, String, Integer, Boolean, Sequence
 from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
@@ -23,7 +23,7 @@ class User(BaseModel):
     login_counts = Column("LOGIN_COUNTS", Integer)
     login_retry_counts = Column("LOGIN_RETRY_COUNTS", Integer)
     last_login_failure_time = Column("LAST_LOGIN_FAILURE_TIME", DATE)
-    create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
     comments = Column("COMMENTS", String)
     top_cmdb_ids = Column("TOP_CMDB_IDS", Integer)
     col = Column("COL", DATE)
@@ -34,7 +34,7 @@ class UserRole(BaseModel):
 
     login_user = Column("LOGIN_USER", String, primary_key=True)
     role_id = Column("ROLE_ID", Integer, primary_key=True)
-    create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
 
 
 class RolePrivilege(BaseModel):
@@ -43,24 +43,23 @@ class RolePrivilege(BaseModel):
     role_id = Column("ROLE_ID", Integer, primary_key=True)
     privilege_type = Column("PRIVILEGE_TYPE", Integer)
     privilege_id = Column("PRIVILEGE_ID", Integer)
-    create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
 
 
-class Privilege(BaseModel):
-    __tablename__ = "T_PRIVILEGE"
-
-    privilege_id = Column("PRIVILEGE_ID", Integer, primary_key=True)
-    privilege_name = Column("PRIVILEGE_NAME", String)
-    operate_url = Column("OPERATE_URL", String)
-    create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
-    comments = Column("COMMENTS", String)
+# class Privilege(BaseModel):
+#     __tablename__ = "T_PRIVILEGE"
+#
+#     privilege_id = Column("PRIVILEGE_ID", Integer, primary_key=True)
+#     privilege_name = Column("PRIVILEGE_NAME", String)
+#     operate_url = Column("OPERATE_URL", String)
+#     create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
+#     comments = Column("COMMENTS", String)
 
 
 class Role(BaseModel):
     __tablename__ = "T_ROLE"
 
-    role_id = Column("ROLE_ID", Integer, primary_key=True)
+    role_id = Column("ROLE_ID", Integer, Sequence("SEQ_ROLE"), primary_key=True)
     role_name = Column("ROLE_NAME", String)
-    create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
     comments = Column("COMMENTS", String)
-

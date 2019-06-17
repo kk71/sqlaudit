@@ -80,8 +80,15 @@ class BaseDocRecordID(BaseDoc):
     }
 
     @classmethod
-    def filter_by_exec_hist_id(cls, exec_history_id: Union[str, int, list, tuple]):
-        """按照record_id查询"""
+    def filter_by_exec_hist_id(cls,
+                               exec_history_id: Union[str, int, list, tuple],
+                               ret_aggregation_match=False):
+        """
+        按照record_id查询
+        :param exec_history_id:
+        :param ret_aggregation_match: 仅返回用于aggregation的match部分
+        :return:
+        """
         if isinstance(exec_history_id, str):
             to_join = [exec_history_id]
         elif isinstance(exec_history_id, int):
@@ -90,5 +97,13 @@ class BaseDocRecordID(BaseDoc):
             to_join = [str(i) for i in exec_history_id]  # 不确定是不是文本，反正帮它转换了
         else:
             assert 0
-        t = re.compile(f"^({'|'.join(to_join)})")
-        return cls.objects.filter(record_id=t)
+        exp = f"^({'|'.join(to_join)})"
+        if not ret_aggregation_match:
+            t = re.compile(exp)
+            return cls.objects.filter(record_id=t)
+        else:
+            return {
+                "$match": {
+                    "record_id": {"$regex": exp}
+                }
+            }

@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from sqlalchemy import Column, String, Integer, Sequence, Boolean, DATE
+from sqlalchemy import Column, String, Integer, Sequence, Boolean
+from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
 from utils.datetime_utils import *

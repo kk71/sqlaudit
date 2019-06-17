@@ -40,7 +40,7 @@ def timing(
             t_rst = round(te - ts, 3)
 
             if enabled and t_rst >= threshold:
-                leading_spaces = "\n  * "
+                leading_spaces = "\n      * "
                 tiks_formatted = leading_spaces + leading_spaces.join(tiks) if tiks else ""
                 print(f"""
       {method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}

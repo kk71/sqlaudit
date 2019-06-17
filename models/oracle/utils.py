@@ -24,6 +24,16 @@ def make_session():
         session.close()
 
 
+class QueryEntityList(List):
+
+    def __init__(self, *args, **kwargs):
+        super(QueryEntityList, self).__init__(*args, **kwargs)
+
+    def to_dict(self, v):
+        keys = [i.key for i in self]
+        return dict(zip(keys, v))
+
+
 class BaseModel(base):
     __abstract__ = True
 
