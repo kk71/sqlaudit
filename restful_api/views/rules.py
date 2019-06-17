@@ -220,7 +220,7 @@ class WhiteListHandler(AuthReq):
                                                  WhiteListRules.rule_text,
                                                  WhiteListRules.comments)
             items, p = self.paginate(whitelist_q, **p)
-            self.resp(items, **p)
+            self.resp([i.to_dict() for i in items], **p)
 
     def patch(self):
         """禁用启用,及编辑"""
