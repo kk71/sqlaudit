@@ -93,7 +93,8 @@ class RoleUserHandler(AuthReq):
             keys = QueryEntity(
                 User.user_name,
                 UserRole.role_id,
-                Role.role_name
+                Role.role_name,
+                User.login_user
             )
             user_role = session.query(*keys).\
                 join(Role, UserRole.role_id == Role.role_id).\

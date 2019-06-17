@@ -58,18 +58,18 @@ class OptimizeBeforePlan(AuthReq):
         """优化前SQL"""
         params = self.get_query_args(Schema({
             Optional("sql_id", default=None): scm_str,
-            Optional("targetname", default=None): scm_str,
+            Optional("target_name", default=None): scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
+        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
 
         if not (sql_id and targetname):
-            return self.redirect("/api/cmdb/cmdbs")
+            return self.redirect("/api/cmdb/cmdbs")  # TODO
         with make_session() as session:
             before_plan = session.query(AituneSqlExPlan). \
                 filter(AituneSqlExPlan.sql_id == sql_id,
@@ -92,12 +92,12 @@ class OptimizeAfterPlan(AuthReq):
         params = self.get_query_args(Schema({
             Optional("sql_id", default=None): scm_str,
 
-            Optional("targetname", default=None): scm_str,
+            Optional("target_name", default=None): scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
+        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
@@ -127,12 +127,12 @@ class OptimizeHistoryPlan(AuthReq):
         params = self.get_query_args(Schema({
             Optional("sql_id", default=None): scm_str,
 
-            Optional("targetname", default=None): scm_str,
+            Optional("target_name", default=None): scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
+        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
