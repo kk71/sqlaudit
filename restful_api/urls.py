@@ -90,3 +90,12 @@ urls += [
     (r"/api/report/export/xlsx", report.ExportReportXLSXHandler),
     (r"/api/report/export/html", report.ExportReportHTMLHandler),
 ]
+
+#optimize
+urls += [
+    (r"/api/optimize/results", optimize.OptimizeResults),
+    (r"/api/optimize/details",optimize.OptimizeDetails),
+    (r"/api/optimize/before_plan",optimize.OptimizeBeforePlan),
+    (r"/api/optimize/after_plan",optimize.OptimizeAfterPlan),
+    (r"/api/optimize/history_plan",optimize.OptimizeHistoryPlan)
+]

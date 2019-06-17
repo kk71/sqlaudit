@@ -147,6 +147,11 @@ class PRIVILEGE:
         return dict(zip(cls.NAMES, x))
 
 
+#自动优化SQL前后
+Before_optimize="B"
+After_optimize="A"
+
+
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""
     pass
