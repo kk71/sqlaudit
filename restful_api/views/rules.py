@@ -227,15 +227,15 @@ class WhiteListHandler(AuthReq):
         params = self.get_json_args(Schema({
             "id": scm_int,
 
-            Optional("rule_name", default=None): scm_unempty_str,
-            Optional("rule_category", default=None): scm_one_of_choices(
+            Optional("rule_name"): scm_unempty_str,
+            Optional("rule_category"): scm_one_of_choices(
                 const.ALL_WHITE_LIST_CATEGORY),
-            Optional("rule_text", default=None): scm_unempty_str,
-            Optional("status", default=None): scm_bool,
-            Optional("comments", default=None): scm_str,
+            Optional("rule_text"): scm_unempty_str,
+            Optional("status"): scm_bool,
+            Optional("comments"): scm_str,
+            Optional("db_model"): scm_str,
         }))
         rule_id = params.pop('id')
-
         with make_session() as session:
             session.query(WhiteListRules).filter(WhiteListRules.id == rule_id).update(params)
         self.resp_created(msg="修改白名单规则成功")
@@ -249,8 +249,14 @@ class WhiteListHandler(AuthReq):
             'rule_text': scm_unempty_str,
             'rule_category': scm_one_of_choices(const.ALL_WHITE_LIST_CATEGORY),
             'status': scm_bool,
-            Optional('comments', default=None): scm_str
+            Optional('comments'): scm_str,
+            Optional('db_model', default=None): scm_one_of_choices(const.ALL_SUPPORTED_MODEL)
         }))
+        if params["rule_category"] == const.WHITE_LIST_CATEGORY_RULE:
+            self.get_json_args(Schema({
+                'db_model': scm_one_of_choices(const.ALL_SUPPORTED_MODEL),
+                Optional(object): object
+            }))
 
         with make_session() as session:
             w = WhiteListRules()
