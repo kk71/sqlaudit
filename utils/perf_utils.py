@@ -10,7 +10,10 @@ from functools import wraps
 import settings
 
 
-def timing(enabled: bool = True):
+def timing(
+        enabled: bool = settings.TIMING_ENABLED,
+        threshold: float = settings.TIMING_THRESHOLD
+):
     """函数计时"""
 
     def timing_wrap(method):
@@ -34,14 +37,15 @@ def timing(enabled: bool = True):
 
             result = method(*args, **kwargs)
             te = time.time()
+            t_rst = round(te - ts, 3)
 
-            if enabled and settings.ENABLE_TIMING:
+            if enabled and t_rst >= threshold:
                 leading_spaces = "\n  * "
                 tiks_formatted = leading_spaces + leading_spaces.join(tiks) if tiks else ""
                 print(f"""
       {method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}
         args: {args}, kwargs: {kwargs}{tiks_formatted}
-        {round(te - ts, 3)} seconds total
+        {t_rst} seconds total
     """)
             return result
         return timed
