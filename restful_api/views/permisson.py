@@ -74,8 +74,8 @@ class RoleHandler(AuthReq):
             "role_id": scm_int,
         }))
         with make_session() as session:
-            session.query(Role).delete(**params)
-            session.query(UserRole).delete(**params)
+            session.query(Role).filter_by(**params).delete()
+            session.query(UserRole).filter_by(**params).delete()
         self.resp_created(msg="删除成功")
 
 
