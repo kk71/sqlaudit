@@ -85,7 +85,7 @@ class RoleUserHandler(AuthReq):
         }))
         p = self.pop_p(params)
         with make_session() as session:
-            keys = QueryEntityList(
+            keys = QueryEntity(
                 User.user_name,
                 UserRole.role_id,
                 Role.role_name

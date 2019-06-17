@@ -24,10 +24,10 @@ def make_session():
         session.close()
 
 
-class QueryEntityList(List):
+class QueryEntity(List):
 
     def __init__(self, *args, **kwargs):
-        super(QueryEntityList, self).__init__(*args, **kwargs)
+        super(QueryEntity, self).__init__(args)
 
     def to_dict(self, v):
         keys = [i.key for i in self]
