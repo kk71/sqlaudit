@@ -7,7 +7,6 @@ from tornado.web import StaticFileHandler
 import settings
 from .views import *
 
-
 # static prefix
 urls = [
     (
@@ -91,11 +90,11 @@ urls += [
     (r"/api/report/export/html", report.ExportReportHTMLHandler),
 ]
 
-#optimize
+# optimize
 urls += [
-    (r"/api/optimize/results", optimize.OptimizeResults),
-    (r"/api/optimize/details",optimize.OptimizeDetails),
-    (r"/api/optimize/before_plan",optimize.OptimizeBeforePlan),
-    (r"/api/optimize/after_plan",optimize.OptimizeAfterPlan),
-    (r"/api/optimize/history_plan",optimize.OptimizeHistoryPlan)
+    (r"/api/optimize/results", optimize.OptimizeResultsHandler),
+    (r"/api/optimize/details", optimize.OptimizeDetailsHandler),
+    (r"/api/optimize/before_plan", optimize.OptimizeBeforePlan),
+    (r"/api/optimize/after_plan", optimize.OptimizeAfterPlan),
+    (r"/api/optimize/history_plan", optimize.OptimizeHistoryPlan)
 ]
