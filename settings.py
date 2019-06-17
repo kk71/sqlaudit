@@ -37,6 +37,7 @@ STATIC_PREFIX = "/downloads"
 EXPORT_DIR = path.join(STATIC_DIR, "export")
 EXPORT_PREFIX = "/downloads/export"
 ENABLE_TIMING = env_get("ENABLE_TIMING", 1, int)
+TIMING_START = env_get("TIMING_START", 0.1, float)
 
 
 # celery broker & backend settings

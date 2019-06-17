@@ -49,6 +49,9 @@ def run_capture(now):
     tasks = odb.select_dict(sql, one=False)
     new_tasks = []
     for task in tasks:
+        if not task["schedule"] or not task["frequency"]:
+            print(f"task with id {task['id']} has neither schedule date nor frequency.")
+            continue
         if (now - time2int(task['schedule'])) % (int(task['frequency']) * 60) == 0:
             new_tasks.append(task)
     if new_tasks:
