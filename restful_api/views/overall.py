@@ -49,19 +49,17 @@ class DashboardHandler(AuthReq):
                 3: "已上线"
             }
             # 线上审核的采集任务
-            capture_tasks = session.query(
-                TaskManage.task_status, func.count(TaskManage.task_id)).\
-                group_by(TaskManage.task_status)
+            capture_tasks = session.query(TaskExecHistory.status, TaskExecHistory.task_id).\
+                filter(TaskExecHistory.id.in_([int(i) for i in task_exec_hist_id_list]))
             task_status_desc = {
                 None: "正在执行",
                 True: "成功",
                 False: "失败"
             }
-            task_status_default = {i: 0 for i in task_status_desc.values()}
-            task_status = {
-                **task_status_default,
-                **{task_status_desc[k]: v for k, v in dict(capture_tasks).items()}
-            }
+            task_status = {i: 0 for i in task_status_desc.values()}
+            for status, task_id in capture_tasks:
+                if task_id:
+                    task_status[task_status_desc[status]] += 1
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
