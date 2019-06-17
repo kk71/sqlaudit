@@ -98,3 +98,8 @@ urls += [
     (r"/api/optimize/after_plan", optimize.OptimizeAfterPlan),
     (r"/api/optimize/history_plan", optimize.OptimizeHistoryPlan)
 ]
+
+#self help online
+urls += [
+    (r"api/selfhelp/online",selfhelp.SelfHelpOnline)
+]
