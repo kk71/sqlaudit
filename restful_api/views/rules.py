@@ -250,8 +250,7 @@ class WhiteListHandler(AuthReq):
             Optional('comments'): scm_str,
         }))
         with make_session() as session:
-            w = WhiteListRules()
-            w.from_dict(params)
+            w = WhiteListRules(**params)
             session.add(w)
             session.commit()
             session.query(CMDB).filter_by(cmdb_id=params["cmdb_id"]). \
