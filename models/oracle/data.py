@@ -3,6 +3,7 @@
 from sqlalchemy import Column, String, Integer, Sequence, Boolean, DATE
 
 from .utils import BaseModel
+from utils.datetime_utils import *
 
 
 class RiskSQLRule(BaseModel):
@@ -24,7 +25,7 @@ class RiskSQLRule(BaseModel):
 
 
 class WhiteListRules(BaseModel):
-    __tablename__ = "WHITE_LIST_RULES"
+    __tablename__ = "T_WHITE_LIST_RULES"
 
     id = Column("ID", Integer, Sequence("SEQ_WHITE_LIST_RULES"), primary_key=True)
     cmdb_id = Column("CMDB_ID", Integer)
@@ -32,6 +33,7 @@ class WhiteListRules(BaseModel):
     rule_category = Column("RULE_CATEGORY", Integer)
     rule_text = Column("RULE_TEXT", String)
     status = Column("STATUS", Boolean)
-    create_date = Column("CREATE_DATE", DATE)
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
     creator = Column("CREATOR", String)
     comments = Column("COMMENTS", String)
+    db_model = Column("DB_MODEL", String)
