@@ -259,7 +259,7 @@ class WhiteListHandler(AuthReq):
             self.resp_created(w.to_dict())
 
     def delete(self):
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "id": scm_int
         }))
         with make_session() as session:
