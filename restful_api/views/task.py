@@ -34,10 +34,10 @@ class TaskHandler(AuthReq):
             for t in items:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = None
-                last_task_exec_history = session.query(TaskExecHistory).\
-                    filter(TaskExecHistory.task_id == t.task_id,
-                           TaskExecHistory.task_end_date.isnot(None)).\
-                    order_by(TaskExecHistory.task_end_date.desc()).first()
+                last_task_exec_history = session.\
+                    query(TaskExecHistory).\
+                    filter(TaskExecHistory.task_id == t.task_id).\
+                    order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 ret.append(t_dict)

@@ -36,4 +36,3 @@ class WhiteListRules(BaseModel):
     create_date = Column("CREATE_DATE", DATE, default=datetime.now)
     creator = Column("CREATOR", String)
     comments = Column("COMMENTS", String)
-    db_model = Column("DB_MODEL", String)

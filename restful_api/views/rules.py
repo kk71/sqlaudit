@@ -233,7 +233,6 @@ class WhiteListHandler(AuthReq):
             Optional("rule_text"): scm_unempty_str,
             Optional("status"): scm_bool,
             Optional("comments"): scm_str,
-            Optional("db_model"): scm_str,
         }))
         rule_id = params.pop('id')
         with make_session() as session:
@@ -250,14 +249,7 @@ class WhiteListHandler(AuthReq):
             'rule_category': scm_one_of_choices(const.ALL_WHITE_LIST_CATEGORY),
             'status': scm_bool,
             Optional('comments'): scm_str,
-            Optional('db_model', default=None): scm_one_of_choices(const.ALL_SUPPORTED_MODEL)
         }))
-        if params["rule_category"] == const.WHITE_LIST_CATEGORY_RULE:
-            self.get_json_args(Schema({
-                'db_model': scm_one_of_choices(const.ALL_SUPPORTED_MODEL),
-                Optional(object): object
-            }))
-
         with make_session() as session:
             w = WhiteListRules()
             w.from_dict(params)
