@@ -58,6 +58,10 @@ class DashboardHandler(AuthReq):
                 False: "失败"
             }
             task_status_default = {i: 0 for i in task_status_desc.values()}
+            task_status = {
+                **task_status_default,
+                **{task_status_desc[k]: v for k, v in dict(capture_tasks).items()}
+            }
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
@@ -71,10 +75,7 @@ class DashboardHandler(AuthReq):
                 "ai_tune_num": 0,
                 "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
 
-                "capture_tasks": {
-                    **task_status_default,
-                    **{task_status_desc[k]: v for k, v in dict(capture_tasks).items()}
-                },
+                "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
                 "notice": notice.contents if notice else ""
             })
 
