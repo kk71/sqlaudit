@@ -32,9 +32,10 @@ class RoleHandler(AuthReq):
 
     def post(self):
         """增加角色"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "role_name": scm_unempty_str,
-            "comments": scm_str
+            "comments": scm_str,
+            # "privilege_id": [int]
         }))
         with make_session() as session:
             if session.query(Role).filter_by(role_name=params["role_name"]).count():
@@ -44,15 +45,19 @@ class RoleHandler(AuthReq):
             session.add(role)
             session.commit()
             session.refresh(role)
+            # session.bulk_save_objects([RolePrivilege()])
             self.resp_created(role.to_dict())
 
     def patch(self):
         """编辑角色"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "role_id": scm_int,
 
             Optional("role_name"): scm_unempty_str,
-            Optional("comments"): scm_str
+            Optional("comments"): scm_str,
+            # Optional("privilege_id"): [int],
+            # Optional("privilege_id_append"): [int],
+            # Optional("privilege_id_exclude"): [int]
         }))
         role_id = params.pop("role_id")
         with make_session() as session:
@@ -65,7 +70,7 @@ class RoleHandler(AuthReq):
 
     def delete(self):
         """删除角色"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "role_id": scm_int,
         }))
         with make_session() as session:
@@ -98,7 +103,7 @@ class RoleUserHandler(AuthReq):
 
     def post(self):
         """用户绑定角色"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "role_id": scm_int,
             "login_user": scm_unempty_str,
         }))
@@ -111,7 +116,7 @@ class RoleUserHandler(AuthReq):
 
     def delete(self):
         """用户取消角色"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "role_id": scm_int,
             "login_user": scm_unempty_str,
         }))
