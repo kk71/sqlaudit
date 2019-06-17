@@ -1,7 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import jwt
-import arrow
 from schema import Schema, Optional
 from sqlalchemy.exc import IntegrityError
 
@@ -50,29 +49,15 @@ class AuthHandler(BaseReq):
             self.resp_bad_username_password(msg="请检查用户名密码，并确认该用户是启用状态。")
 
 
-class UserHandler(BaseReq):
+class UserHandler(AuthReq):
     def get(self):
         """用户列表"""
-        params = self.get_query_args(Schema({
-            Optional("roles", default=None): scm_dot_split_str,
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
-        }))
-        roles = params.pop("roles")
+        params = self.get_query_args(Schema(self.gen_p()))
+        p = self.pop_p(params)
         with make_session() as session:
-            q = session.query(User, UserRole).\
-                join(UserRole, User.login_user == UserRole.login_user).filter_by()
-            if roles:
-                # 仅返回指定角色id的用户，如果不给参数则意味着返回全部用户
-                q = q.filter(UserRole.role_id.in_(roles))
-            items, p = self.paginate(q, **params)
-            ret = []
-            for user, user_role in items:
-                ret.append({
-                    **user.to_dict(),
-                    **user_role.to_dict(iter_if=lambda k, v: k in ("role_id",))
-                })
-            self.resp(ret, **p)
+            user_q = session.query(User)
+            items, p = self.paginate(user_q, **p)
+            self.resp([i.to_dict() for i in items], **p)
 
     def post(self):
         """新增用户"""
@@ -84,20 +69,16 @@ class UserHandler(BaseReq):
             "mobile_phone": scm_str,
             "department": scm_str,
             "status": scm_int,
-            "role_id": scm_one_of_choices(role_utils.ALL_ROLES)
         }))
-        role_id = params.pop("role_id")
         with make_session() as session:
             try:
                 new_user = User(**params)
-                new_role_user_rel = UserRole(login_user=params["login_user"], role_id=role_id)
-                session.add_all([new_user, new_role_user_rel])
+                session.add_all(new_user)
                 session.commit()
             except IntegrityError:
                 self.resp_forbidden(msg="用户名已存在，请修改后重试")
             session.refresh(new_user)
-            session.refresh(new_role_user_rel)
-            self.resp_created({**new_user.to_dict(), **new_role_user_rel.to_dict()})
+            self.resp_created(new_user.to_dict())
 
     def patch(self):
         """修改用户"""
@@ -109,15 +90,11 @@ class UserHandler(BaseReq):
             Optional("mobile_phone"): scm_str,
             Optional("department"): scm_str,
             Optional("status"): scm_int,
-            Optional("role_id"): scm_one_of_choices(role_utils.ALL_ROLES)
         }))
         with make_session() as session:
             the_user = session.query(User).filter_by(login_user=params.pop("login_user")).first()
             the_user.from_dict(params)
-            the_user_role_rel = session.query(UserRole).filter_by(login_user=the_user.login_user).first()
-            the_user_role_rel.from_dict(params, iter_if=lambda k, v: k in ("role_id",))
-            session.add_all([the_user, the_user_role_rel])
-            self.resp_created({**the_user.to_dict(), **the_user_role_rel.to_dict()})
+            self.resp_created(the_user.to_dict())
 
     def delete(self):
         """删除用户"""
