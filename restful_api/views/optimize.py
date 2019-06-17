@@ -3,6 +3,7 @@ from .base import AuthReq
 from utils.schema_utils import *
 from models.oracle import *
 
+
 from schema import Schema,Optional
 
 
@@ -16,9 +17,6 @@ class OptimizeList(AuthReq):
             Optional("per_page",default=10): scm_int,
         }))
 
-
-
-        from models.oracle.optimize import *
         with make_session() as session:
             intelligent=session.query(AituneResultSummary)
 
