@@ -92,6 +92,9 @@ urls += [
 
 #optimize
 urls += [
-    (r"/api/optimize/list", optimize.OptimizeList),
+    (r"/api/optimize/results", optimize.OptimizeResults),
     (r"/api/optimize/details",optimize.OptimizeDetails),
+    (r"/api/optimize/before_plan",optimize.OptimizeBeforePlan),
+    (r"/api/optimize/after_plan",optimize.OptimizeAfterPlan),
+    (r"/api/optimize/history_plan",optimize.OptimizeHistoryPlan)
 ]

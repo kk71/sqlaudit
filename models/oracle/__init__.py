@@ -28,4 +28,5 @@ from .data import *
 from .config import *
 from .offline import *
 from .online import *
+from .optimize import *
 

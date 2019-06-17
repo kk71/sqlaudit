@@ -1,7 +1,7 @@
 
 from .utils import BaseModel
 
-from sqlalchemy import Column,String,Integer,DATE
+from sqlalchemy import Column,String,Integer,DATE,Float
 from datetime import datetime
 
 class AituneResultSummary(BaseModel):
@@ -21,7 +21,7 @@ class AituneResultSummary(BaseModel):
     aitunedate=Column("AITUNEDATE",DATE,default=datetime.now)
 
 
-class Aitune_sql_ex_plan(BaseModel):
+class AituneSqlExPlan(BaseModel):
     __tablename__="AITUNE_SQL_EX_PLAN"
 
     aituneid=Column("AITUNEID",Integer,primary_key=True)
@@ -47,23 +47,23 @@ class AituneResultDetails(BaseModel):
     targetname=Column("TARGETNAME",String)
     sql_id=Column("SQL_ID",String)
     aisolution=Column("AISOLUTION",String)
-    aitunedate=Column("AITUNRDATE",String)
+    aitunedate=Column("AITUNEDATE",DATE,default=lambda :datetime.now())
 
 
-class AituneHistSqlstat(BaseModel):
+class AituneHistSqlStat(BaseModel):
     __tablename__="AITUNE_HIST_SQLSTAT"
 
     targetname=Column("TARGETNAME",String)
-    btime=Column("BTIME",DATE,default=lambda :datetime.now())
+    btime=Column("BTIME",DATE,default=lambda :datetime.now(),primary_key=True)
     inst_id=Column("INST_ID",Integer)
-    snap_id=Column("SNAP_ID",Integer,primary_key=True)
+    snap_id=Column("SNAP_ID",Integer)
     sql_id=Column("SQL_ID",String)
     hash_value=Column("HASH_VALUE",Integer)
     deltae=Column("DELTAE",Integer)
     ppxs=Column("PPXS",Integer)
-    pgets=Column("pgets",Integer)
-    preads=Column("preads",Integer)
-    pcpu=Column("pcpu",Integer)
-    prows=Column("prows",Integer)
+    pgets=Column("PGETS",Integer)
+    preads=Column("PREADS",Integer)
+    pcpu=Column("PCPU",Integer)
+    prows=Column("PROWS",Integer)
     pccwait=Column("PCCWAIT",Integer)
-    pelap=Column("PELAP",Integer)
+    pelap=Column("PELAP",Float)

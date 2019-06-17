@@ -115,6 +115,11 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
                            WHITE_LIST_CATEGORY_RULE)
 
 
+#自动优化SQL前后
+Before_optimize="B"
+After_optimize="A"
+
+
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""
     pass
