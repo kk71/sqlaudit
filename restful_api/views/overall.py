@@ -53,7 +53,7 @@ class DashboardHandler(AuthReq):
                 TaskManage.task_status, func.count(TaskManage.task_id)).\
                 group_by(TaskManage.task_status)
             task_status_desc = {
-                None: "正在运行",
+                None: "正在执行",
                 True: "成功",
                 False: "失败"
             }
