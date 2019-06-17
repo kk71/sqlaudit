@@ -27,7 +27,7 @@ class TaskManage(BaseModel):
     server_name = Column("SERVER_NAME", String)
     ip_address = Column("IP_ADDRESS", String)
     port = Column("PORT", Integer)
-    task_status = Column("TASK_STATUS", Boolean)
+    task_status = Column("TASK_STATUS", Boolean, default=True)
     task_schedule_date = Column("TASK_SCHEDULE_DATE", String, default="22:00")
     task_exec_scripts = Column("TASK_EXEC_SCRIPTS", String)
     task_exec_counts = Column("TASK_EXEC_COUNTS", Integer, default=0)

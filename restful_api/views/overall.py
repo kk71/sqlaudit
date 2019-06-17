@@ -5,7 +5,6 @@ from sqlalchemy import func
 
 from .base import AuthReq
 from utils.schema_utils import *
-from utils.datetime_utils import *
 from utils.perf_utils import timing
 from models.mongo import *
 from models.oracle import *
@@ -43,7 +42,7 @@ class DashboardHandler(AuthReq):
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)).\
                 group_by(WorkList.work_list_status)
-            status_desc = {
+            offline_status_desc = {
                 0: "待审核",
                 1: "审核通过",
                 2: "被驳回",
@@ -51,8 +50,14 @@ class DashboardHandler(AuthReq):
             }
             # 线上审核的采集任务
             capture_tasks = session.query(
-                TaskManage.task_exec_scripts, func.count(TaskManage.task_id)).\
-                group_by(TaskManage.task_exec_scripts)
+                TaskManage.task_status, func.count(TaskManage.task_id)).\
+                group_by(TaskManage.task_status)
+            task_status_desc = {
+                None: "正在运行",
+                True: "成功",
+                False: "失败"
+            }
+            task_status_default = {i: 0 for i in task_status_desc.values()}
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
@@ -64,9 +69,12 @@ class DashboardHandler(AuthReq):
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": session.query(CMDB).count(),
                 "ai_tune_num": 0,
-                "offline_ticket": {status_desc[k]: v for k, v in dict(offline_tickets).items()},
+                "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
 
-                "capture_tasks": self.dict_to_verbose_dict_in_list(dict(capture_tasks)),
+                "capture_tasks": {
+                    **task_status_default,
+                    **{task_status_desc[k]: v for k, v in dict(capture_tasks).items()}
+                },
                 "notice": notice.contents if notice else ""
             })
 

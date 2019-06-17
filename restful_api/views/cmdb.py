@@ -134,7 +134,6 @@ class CMDBHandler(AuthReq):
                     "cmdb_id"
                 ))
                 new_task = TaskManage(
-                    task_status=True,
                     task_exec_scripts=task_type,
                     **task_dict
                 )

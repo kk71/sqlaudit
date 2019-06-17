@@ -243,7 +243,6 @@ class WhiteListHandler(AuthReq):
         """新增"""
         params = self.get_json_args(Schema({
             'cmdb_id': scm_int,
-
             'rule_name': scm_unempty_str,
             'rule_text': scm_unempty_str,
             'rule_category': scm_one_of_choices(const.ALL_WHITE_LIST_CATEGORY),
