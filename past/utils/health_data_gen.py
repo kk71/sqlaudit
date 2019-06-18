@@ -40,8 +40,8 @@ def calculate():
 
     for job in past.rule_analysis.db.mongo_operat.MongoHelper.find("job", sql):
 
-        if job['desc']['owner'] not in weights[job['desc']['instance_name']]:
-            print(f" *** schema({job['desc']['owner']}) not in {weights[job['desc']['instance_name']]}")
+        if job['desc']['owner'] not in weights[job['desc']['owner']]:
+            print(f" *** schema({job['desc']['owner']}) not in {weights[job['desc']['owner']]}")
             continue
 
         date = job['create_time'].split()[0]
