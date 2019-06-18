@@ -57,13 +57,14 @@ class OptimizeBeforePlanHandler(AuthReq):
     def get(self):
         """优化前SQL"""
         params = self.get_query_args(Schema({
-            Optional("sql_id", default=None): scm_str,
-            Optional("target_name", default=None): scm_str,
+            "sql_id": scm_str,
+
+            "targetname": scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
+        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
@@ -88,14 +89,14 @@ class OptimizeAfterPlanHandler(AuthReq):
     def get(self):
         """优化后SQL"""
         params = self.get_query_args(Schema({
-            Optional("sql_id", default=None): scm_str,
+            "sql_id": scm_str,
 
-            Optional("target_name", default=None): scm_str,
+            "targetname": scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
+        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
@@ -121,20 +122,19 @@ class OptimizeHistoryPlanHandler(AuthReq):
     def get(self):
         """历史执行SQL"""
         params = self.get_query_args(Schema({
-            Optional("sql_id", default=None): scm_str,
+            "sql_id": scm_str,
 
-            Optional("target_name", default=None): scm_str,
+            "targetname": scm_str,
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        sql_id, targetname = params.pop('sql_id'), params.pop('target_name')
+        sql_id, targetname = params.pop('sql_id'), params.pop('targetname')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
 
         with make_session() as session:
-
             history_plan = session.query(AituneHistSqlStat). \
                 filter(AituneHistSqlStat.sql_id == sql_id,
                        AituneHistSqlStat.targetname == targetname)
