@@ -240,6 +240,7 @@ class SqlAudit(object):
             for parm in input_parms:
                 rule_cmd = rule_cmd.replace("@" + parm["parm_name"] + "@", str(parm["parm_value"]))
             rule_cmd = rule_cmd.replace("@username@", self.username)
+            print(rule_cmd)
             self.db_client.cursor.execute(rule_cmd)
             results = self.db_client.cursor.fetchall()
         # 解析复杂类规则
