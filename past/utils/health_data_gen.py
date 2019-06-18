@@ -67,6 +67,7 @@ def calculate():
         if score < 100:
             scores[instance_name][date].append(score)
 
+        print(f"going to update {job['_id']}")
         past.rule_analysis.db.mongo_operat.MongoHelper.update_one('job', {'_id': job['_id']}, {"$set": {'score': score}})
         save_scores(job, score)
 

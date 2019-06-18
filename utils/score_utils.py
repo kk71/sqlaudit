@@ -96,7 +96,9 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
         filter_succeed(session, TaskExecHistory.connect_name == cmdb.connect_name).\
         order_by(TaskExecHistory.task_end_date.desc()).first()
     if not last_exec_hist:
+        calc_score_by.tik("no last exec hist")
         return ret  # 无分析记录
+    calc_score_by.tik(f"last exec hist id {last_exec_hist.id}")
 
     rule_type_schema_scores = Job.filter_by_exec_hist_id(last_exec_hist.id). \
         values_list("desc__rule_type", "desc__owner", "score")
