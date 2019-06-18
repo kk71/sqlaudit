@@ -7,7 +7,7 @@ from .utils import BaseModel
 
 
 class AituneResultSummary(BaseModel):
-    __tablename__ = "AITUNR_RESULT_SUMMARY"
+    __tablename__ = "AITUNE_RESULT_SUMMARY"
 
     aituneid = Column("AITUNEID", Integer, primary_key=True)
     targetname = Column("TARGETNAME", String)
