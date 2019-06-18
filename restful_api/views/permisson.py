@@ -76,8 +76,10 @@ class RoleHandler(AuthReq):
                 scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
         }))
         role_id = params.pop("role_id")
-        privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
-                      for i in params.pop("privileges")]
+        privileges = params.pop("privileges")
+        if privileges:
+            privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
+                          for i in privileges]
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
             role.from_dict(params)
@@ -86,7 +88,8 @@ class RoleHandler(AuthReq):
             session.refresh(role)
             if privileges:
                 session.query(RolePrivilege).filter(RolePrivilege.role_id == role_id).delete()
-                session.bulk_save_objects([RolePrivilege(
+                session.commit()
+                session.add_all([RolePrivilege(
                     role_id=role.role_id,
                     privilege_id=i["id"],
                     privilege_type=i["type"]
