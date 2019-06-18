@@ -18,12 +18,12 @@ class OptimizeResultsHandler(AuthReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            results = session.query(AituneSqlExPlan)
+            results = session.query(AituneResultSummary)
             if keyword:
                 results = self.query_keyword(results, keyword,
-                                             AituneSqlExPlan.aituneid,
-                                             AituneSqlExPlan.targetname,
-                                             AituneSqlExPlan.sql_id)
+                                             AituneResultSummary.aituneid,
+                                             AituneResultSummary.targetname,
+                                             AituneResultSummary.sql_id)
             results, p = self.paginate(results, **p)
             results = [x.to_dict() for x in results]
             self.resp(results, **p)
