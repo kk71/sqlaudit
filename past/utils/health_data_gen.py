@@ -41,6 +41,7 @@ def calculate():
     for job in past.rule_analysis.db.mongo_operat.MongoHelper.find("job", sql):
 
         if job['desc']['owner'] not in weights[job['desc']['instance_name']]:
+            print(f" *** schema({job['desc']['owner']}) not in {weights[job['desc']['instance_name']]}")
             continue
 
         date = job['create_time'].split()[0]
@@ -67,7 +68,7 @@ def calculate():
         if score < 100:
             scores[instance_name][date].append(score)
 
-        print(f"going to update {job['_id']}")
+        print(f" *** going to update {job['_id']}")
         past.rule_analysis.db.mongo_operat.MongoHelper.update_one('job', {'_id': job['_id']}, {"$set": {'score': score}})
         save_scores(job, score)
 
