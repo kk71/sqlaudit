@@ -101,5 +101,5 @@ urls += [
 
 #self help online
 urls += [
-    (r"api/selfhelp/online",selfhelp.SelfHelpOnline)
+    (r"/api/selfhelp/online",selfhelp.SelfHelpOnline)
 ]

@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import arrow
-from schema import And, Use
+from schema import And, Use,Or
 
 from utils import const
 
@@ -19,6 +19,7 @@ __all__ = [
     "scm_date",
     "scm_datetime",
     "scm_bool",
+    "scm_week_or_month_int",
 ]
 
 
@@ -43,3 +44,6 @@ scm_bool = Use(lambda x: x not in (0, "0", False))
 # for date and time
 scm_datetime = Use(lambda x: arrow.get(x, const.COMMON_DATETIME_FORMAT).datetime)
 scm_date = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).date())
+
+#week_int or month_int
+scm_week_or_month_int=Or(lambda x: x==8)
