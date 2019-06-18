@@ -113,6 +113,18 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
                            WHITE_LIST_CATEGORY_TEXT)
 
 
+# 自动优化SQL前后
+
+AI_TUNE_PRE_OPTIMIZED = "B"
+AI_TUNE_POST_OPTIMIZED = "A"
+
+
+# 纳管数据库权限是否算分needcalc
+RANKING_CONFIG_NEED_CALC = "Y"
+RANKING_CONFIG_NO_CALC = "N"
+ALL_RANKING_CONFIG_CALC_OR_NOT = (RANKING_CONFIG_NEED_CALC, RANKING_CONFIG_NO_CALC)
+
+
 class PRIVILEGE:
 
     # 权限执行方
@@ -156,12 +168,6 @@ class PRIVILEGE:
     @classmethod
     def get_all_privilege_id(cls) -> [int]:
         return [i[0] for i in cls.ALL_PRIVILEGE]
-
-
-# 自动优化SQL前后
-
-AI_TUNE_PRE_OPTIMIZED = "B"
-AI_TUNE_POST_OPTIMIZED = "A"
 
 
 class CMDBNotFoundException(Exception):

@@ -314,115 +314,61 @@ class RankingConfigHandler(AuthReq):
     def get(self):
         """获取需要评分的数据库列表"""
         params = self.get_query_args(Schema({
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
+            **self.gen_p()
         }))
         p = self.pop_p(params)
         del params
 
-        if self.current_user != "admin":
-            return self.resp_bad_req(msg="No Authority")
-
         with make_session() as session:
-            ranking = session.query(
-                CMDB.connect_name,
+            qe = QueryEntity(
+                CMDB.cmdb_id,
                 DataHealthUserConfig.database_name,
                 DataHealthUserConfig.username,
                 DataHealthUserConfig.needcalc,
-                DataHealthUserConfig.weight). \
+                DataHealthUserConfig.weight
+            )
+            rankings = session.\
+                query(*qe).\
                 join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name)
-            rankings = []
-            for x in ranking:
-                rankings.append({
-                    'connect_name': x[0],
-                    'databese_name': x[1],
-                    'username': x[2],
-                    'needcalc': x[3],
-                    'weight': x[4]
-                })
-
-            rankings_this_page, p = self.paginate(rankings, **p)
-
-            # ?这个数据应该可不返回
-            cmdbs = session.query(CMDB).all()
-            cmdbs = [cmdb.to_dict() for cmdb in cmdbs]
-
-            self.resp(content={'rankings': rankings_this_page, 'cmdb': cmdbs}, **p)
+            items, p = self.paginate(rankings, **p)
+            self.resp([qe.to_dict(i) for i in items], **p)
 
     def patch(self):
         """局部修改评分的数据库，schema"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            "database_name": scm_unempty_str,
-            "schema_names": list  # 结合前端情况可调整
+            "schema_names": [scm_unempty_str]
         }))
         cmdb_id = params.pop("cmdb_id")
-        database_name = params.pop("database_name")
         schema_names = params.pop("schema_names")
         del params
-        with make_session() as session:
-            cmdb_objects = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).all()
-            for cmdb_object in cmdb_objects:
-                try:
-                    schemas = get_cmdb_available_schemas(cmdb_object)
-                except cx_Oracle.DatabaseError as err:
-                    print(err)
-                    return self.resp_bad_req(msg="无法连接到目标主机")
-            if set(schema_names) - set(schemas):
-                return self.resp_bad_req(msg="参数不正确")
-
-            existing_schemas = session.query(DataHealthUserConfig.username).\
-                filter(DataHealthUserConfig.database_name == database_name)
-            existing_schemas = [list(existing_schema)[0] for existing_schema in existing_schemas]
-            loading, existing = set(schema_names), set(existing_schemas)
-
-            insert_schemas = [x for x in (loading - existing)]
-            delete_schemas = [x for x in (existing - loading)]
-            if insert_schemas:
-                for schema in insert_schemas:
-                    config = DataHealthUserConfig()
-                    config.database_name = database_name
-                    config.username = schema
-                    config.needcalc = 'Y'
-                    config.weight = 1
-                    session.add(config)
-            if delete_schemas:
-                session.query(DataHealthUserConfig).filter(DataHealthUserConfig.database_name == database_name,
-                                                           DataHealthUserConfig.username.in_(delete_schemas)).delete(
-                    synchronize_session='fetch')
-            self.resp_created(msg="评分配置成功")
-
-    def post(self):
-        """修改评分的查询,schema"""
-        params = self.get_json_args(Schema({
-            'cmdb_id': scm_int,
-            'database_name': scm_unempty_str,
-        }))
-        cmdb_id, database_name = params.pop('cmdb_id'), params.pop('database_name')
-        del params
 
         with make_session() as session:
-            cmdb_objects = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).all()
-            for cmdb_object in cmdb_objects:
-                try:
-                    schemas = get_cmdb_available_schemas(cmdb_object)
-                except cx_Oracle.DatabaseError as err:
-                    # print(err)
-                    return self.resp_bad_req(msg="无法连接到目标主机")
-            authed_schemas = session.query(DataHealthUserConfig.username).\
-                filter(DataHealthUserConfig.database_name == database_name)
-            authed_schemas = [list(authed_schema)[0] for authed_schema in authed_schemas]
-            schemas = {schema: 1 if schema in authed_schemas else 0 for schema in schemas}
-
-            self.resp_created({'schemas': schemas})
+            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+            try:
+                schemas = get_cmdb_available_schemas(cmdb)
+            except cx_Oracle.DatabaseError as err:
+                print(err)
+                return self.resp_bad_req(msg="无法连接到目标主机")
+            schema_delta = set(schema_names) - set(schemas)
+            if schema_delta:
+                return self.resp_bad_req(msg=f"给出的schema中包含该库不存在的schema：{schema_delta}")
+            session.query(DataHealthUserConfig).\
+                filter(DataHealthUserConfig.database_name == cmdb.connect_name).delete(synchronize_session='fetch')
+            session.add_all([DataHealthUserConfig(
+                database_name=cmdb.connect_name,
+                username=i,
+                needcalc=RANKING_CONFIG_NEED_CALC,
+                weight=1
+            ) for i in schema_names])
+        self.resp_created(msg="评分配置成功")
 
     def delete(self):
         """删除需要评分的库"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             'database_name': scm_unempty_str,
-            'schema_name': scm_unempty_str
+            'username': scm_unempty_str
         }))
-
         with make_session() as session:
             session.query(DataHealthUserConfig).filter_by(**params).delete()
-            self.resp_created("删除评分schema成功")
+        self.resp_created("删除评分schema成功")
