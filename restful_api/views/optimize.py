@@ -68,8 +68,6 @@ class OptimizeBeforePlanHandler(AuthReq):
         p = self.pop_p(params)
         del params
 
-        if not (sql_id and targetname):
-            return self.redirect("/api/cmdb/cmdbs")  # TODO
         with make_session() as session:
             before_plan = session.query(AituneSqlExPlan). \
                 filter(AituneSqlExPlan.sql_id == sql_id,
@@ -102,8 +100,6 @@ class OptimizeAfterPlanHandler(AuthReq):
         p = self.pop_p(params)
         del params
 
-        if not (sql_id and targetname):
-            return self.redirect("/api/cmdb/cmdbs")
         with make_session() as session:
             after_plan = session.query(AituneSqlExPlan). \
                 filter(AituneSqlExPlan.sql_id == sql_id,
@@ -136,10 +132,6 @@ class OptimizeHistoryPlanHandler(AuthReq):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
-
-        if not (sql_id and targetname):
-            return self.redirect("/api/cmdb/cmdbs")
-            # TODO
 
         with make_session() as session:
 
