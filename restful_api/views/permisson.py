@@ -43,9 +43,10 @@ class RoleHandler(AuthReq):
         params = self.get_json_args(Schema({
             "role_name": scm_unempty_str,
             "comments": scm_str,
-            "privileges": [SystemPrivilegeHandler.privilege_schema()]
+            "privileges": [scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
         }))
-        privileges = params.pop("privileges")
+        privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
+                      for i in params.pop("privileges")]
         with make_session() as session:
             if session.query(Role).filter_by(role_name=params["role_name"]).count():
                 self.resp_forbidden(msg="已经存在该角色")
@@ -71,10 +72,12 @@ class RoleHandler(AuthReq):
 
             Optional("role_name"): scm_unempty_str,
             Optional("comments"): scm_str,
-            Optional("privileges", default=None): [SystemPrivilegeHandler.privilege_schema()]
+            Optional("privileges", default=None): [
+                scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
         }))
         role_id = params.pop("role_id")
-        privileges = params.pop("privileges")
+        privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
+                      for i in params.pop("privileges")]
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
             role.from_dict(params)
@@ -161,16 +164,16 @@ class SystemPrivilegeHandler(AuthReq):
         items, p = self.paginate(PRIVILEGE.ALL_PRIVILEGE, **p)
         self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
 
-    @staticmethod
-    def privilege_schema():
-        return PRIVILEGE.privilege_to_dict(
-            (
-                scm_int,
-                scm_one_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE),
-                scm_unempty_str,
-                scm_str
-            )
-        )
+    # @staticmethod
+    # def privilege_schema():
+    #     return PRIVILEGE.privilege_to_dict(
+    #         (
+    #             scm_int,
+    #             scm_one_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE),
+    #             scm_unempty_str,
+    #             scm_str
+    #         )
+    #     )
 
 
 class CMDBPermissionHandler(AuthReq):

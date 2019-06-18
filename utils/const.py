@@ -126,9 +126,9 @@ class PRIVILEGE:
 
     # 权限
     PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
-    PRIVILEGE_2 =         (2, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
-    PRIVILEGE_3 =         (3, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
-    PRIVILEGE_4 =         (4, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
+    PRIVILEGE_2 =         (2, TYPE_FE, "emm", "是否允许使用仪表盘")
+    PRIVILEGE_3 =         (3, TYPE_FE, "emmm", "是否允许使用仪表盘")
+    PRIVILEGE_4 =         (4, TYPE_FE, "emmmm", "是否允许使用仪表盘")
     ALL_PRIVILEGE = (
         PRIVILEGE_DASHBOARD,
 
@@ -139,19 +139,23 @@ class PRIVILEGE:
 
     @classmethod
     def privilege_to_dict(cls, x):
-        """
-        权限列表转为字典
-        :param cls:
-        :param x:
-        :return:
-        """
         return dict(zip(cls.NAMES, x))
 
     @classmethod
-    def get_privilege_by_id(cls, privilege_id):
+    def get_privilege_by_id(cls, privilege_id) -> tuple:
         for i in cls.ALL_PRIVILEGE:
             if i[0] == privilege_id:
                 return i
+
+    @classmethod
+    def get_privilege_by_type(cls, privilege_type) -> list:
+        if not isinstance(privilege_type, (tuple, list)):
+            privilege_type = (privilege_type,)
+        return [i for i in cls.ALL_PRIVILEGE if i[1] in privilege_type]
+
+    @classmethod
+    def get_all_privilege_id(cls) -> [int]:
+        return [i[0] for i in cls.ALL_PRIVILEGE]
 
 
 # 自动优化SQL前后
