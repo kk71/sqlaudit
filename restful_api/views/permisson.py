@@ -5,7 +5,6 @@ from schema import Schema, Optional
 
 from .base import AuthReq
 from utils.schema_utils import *
-from utils.datetime_utils import dt_to_str
 from models.oracle import *
 from utils.const import *
 
@@ -28,15 +27,25 @@ class RoleHandler(AuthReq):
                                                  Role.role_name,
                                                  Role.comments)
             items, p = self.paginate(role_q, **p)
-            self.resp([i.to_dict() for i in items], **p)
+            ret = []
+            for i in items:
+                r = i.to_dict()
+                r.update({
+                    "privileges": [PRIVILEGE.privilege_to_dict(
+                        PRIVILEGE.get_privilege_by_id(j.privilege_id)
+                    ) for j in session.query(RolePrivilege).filter_by(role_id=r["role_id"])]
+                })
+                ret.append(r)
+            self.resp(ret, **p)
 
     def post(self):
         """增加角色"""
         params = self.get_json_args(Schema({
             "role_name": scm_unempty_str,
             "comments": scm_str,
-            # "privilege_id": [int]
+            "privileges": [SystemPrivilegeHandler.privilege_schema()]
         }))
+        privileges = params.pop("privileges")
         with make_session() as session:
             if session.query(Role).filter_by(role_name=params["role_name"]).count():
                 self.resp_forbidden(msg="已经存在该角色")
@@ -45,8 +54,15 @@ class RoleHandler(AuthReq):
             session.add(role)
             session.commit()
             session.refresh(role)
-            # session.bulk_save_objects([RolePrivilege()])
-            self.resp_created(role.to_dict())
+            session.bulk_save_objects([RolePrivilege(
+                role_id=role.role_id,
+                privilege_id=i["id"],
+                privilege_type=i["type"]
+            ) for i in privileges])
+            self.resp_created({
+                **role.to_dict(),
+                "privileges": privileges
+            })
 
     def patch(self):
         """编辑角色"""
@@ -55,18 +71,27 @@ class RoleHandler(AuthReq):
 
             Optional("role_name"): scm_unempty_str,
             Optional("comments"): scm_str,
-            # Optional("privilege_id"): [int],
-            # Optional("privilege_id_append"): [int],
-            # Optional("privilege_id_exclude"): [int]
+            Optional("privileges", default=None): [SystemPrivilegeHandler.privilege_schema()]
         }))
         role_id = params.pop("role_id")
+        privileges = params.pop("privileges")
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
             role.from_dict(params)
             session.add(role)
             session.commit()
             session.refresh(role)
-            self.resp_created(role.to_dict())
+            if privileges:
+                session.query(RolePrivilege).filter(RolePrivilege.role_id == role_id).delete()
+                session.bulk_save_objects([RolePrivilege(
+                    role_id=role.role_id,
+                    privilege_id=i["id"],
+                    privilege_type=i["type"]
+                ) for i in privileges])
+            self.resp_created({
+                **role.to_dict(),
+                "privileges": privileges
+            })
 
     def delete(self):
         """删除角色"""
@@ -74,8 +99,9 @@ class RoleHandler(AuthReq):
             "role_id": scm_int,
         }))
         with make_session() as session:
-            session.query(Role).filter_by(**params).delete()
+            session.query(RolePrivilege).filter_by(**params).delete()
             session.query(UserRole).filter_by(**params).delete()
+            session.query(Role).filter_by(**params).delete()
         self.resp_created(msg="删除成功")
 
 
@@ -134,6 +160,17 @@ class SystemPrivilegeHandler(AuthReq):
         p = self.pop_p(params)
         items, p = self.paginate(PRIVILEGE.ALL_PRIVILEGE, **p)
         self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
+
+    @staticmethod
+    def privilege_schema():
+        return PRIVILEGE.privilege_to_dict(
+            (
+                scm_int,
+                scm_one_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE),
+                scm_unempty_str,
+                scm_str
+            )
+        )
 
 
 class CMDBPermissionHandler(AuthReq):

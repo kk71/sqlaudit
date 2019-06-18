@@ -121,19 +121,20 @@ class PRIVILEGE:
     TYPE_BOTH = 3     # 皆处理
     ALL_PRIVILEGE_TYPE = (TYPE_BE, TYPE_FE, TYPE_BOTH)
 
-    # 权限类别
-    CATEGORY_NORMAL = "通用类型"
-    ALL_PRIVILEGE_CATEGORY = (CATEGORY_NORMAL,)
-
     # 权限键名
-    NAMES = ("id", "type", "name", "description", "category")
+    NAMES = ("id", "type", "name", "description")
 
     # 权限
-    PRIVILEGE_DASHBOARD = (1,
-                           TYPE_FE,
-                           "仪表盘可见", "是否允许使用仪表盘", CATEGORY_NORMAL)
+    PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
+    PRIVILEGE_2 =         (2, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
+    PRIVILEGE_3 =         (3, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
+    PRIVILEGE_4 =         (4, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
     ALL_PRIVILEGE = (
         PRIVILEGE_DASHBOARD,
+
+        PRIVILEGE_2,
+        PRIVILEGE_3,
+        PRIVILEGE_4,
     )
 
     @classmethod
@@ -145,6 +146,12 @@ class PRIVILEGE:
         :return:
         """
         return dict(zip(cls.NAMES, x))
+
+    @classmethod
+    def get_privilege_by_id(cls, privilege_id):
+        for i in cls.ALL_PRIVILEGE:
+            if i[0] == privilege_id:
+                return i
 
 
 # 自动优化SQL前后
