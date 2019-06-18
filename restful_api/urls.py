@@ -94,7 +94,7 @@ urls += [
 urls += [
     (r"/api/optimize/results", optimize.OptimizeResultsHandler),
     (r"/api/optimize/details", optimize.OptimizeDetailsHandler),
-    (r"/api/optimize/before_plan", optimize.OptimizeBeforePlan),
-    (r"/api/optimize/after_plan", optimize.OptimizeAfterPlan),
-    (r"/api/optimize/history_plan", optimize.OptimizeHistoryPlan)
+    (r"/api/optimize/before_plan", optimize.OptimizeBeforePlanHandler),
+    (r"/api/optimize/after_plan", optimize.OptimizeAfterPlanHandler),
+    (r"/api/optimize/history_plan", optimize.OptimizeHistoryPlanHandler)
 ]

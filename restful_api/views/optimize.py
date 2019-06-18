@@ -52,7 +52,7 @@ class OptimizeDetailsHandler(AuthReq):
             self.resp(details, **p)
 
 
-class OptimizeBeforePlan(AuthReq):
+class OptimizeBeforePlanHandler(AuthReq):
 
     def get(self):
         """优化前SQL"""
@@ -80,12 +80,12 @@ class OptimizeBeforePlan(AuthReq):
                                                  AituneSqlExPlan.sql_id,
                                                  AituneSqlExPlan.aituneid,
                                                  AituneSqlExPlan.targetname)
-            before_plan = self.paginate(before_plan, **p)
+            before_plan, p = self.paginate(before_plan, **p)
             before_plan = [x.to_dict() for x in before_plan]
             self.resp(before_plan, **p)
 
 
-class OptimizeAfterPlan(AuthReq):
+class OptimizeAfterPlanHandler(AuthReq):
 
     def get(self):
         """优化后SQL"""
@@ -115,12 +115,12 @@ class OptimizeAfterPlan(AuthReq):
                                                 AituneSqlExPlan.targetname,
                                                 AituneSqlExPlan.aituneid
                                                 )
-            after_plan = self.paginate(after_plan, **p)
+            after_plan, p = self.paginate(after_plan, **p)
             after_plan = [x.to_dict() for x in after_plan]
             self.resp(after_plan, **p)
 
 
-class OptimizeHistoryPlan(AuthReq):
+class OptimizeHistoryPlanHandler(AuthReq):
 
     def get(self):
         """历史执行SQL"""
@@ -151,6 +151,6 @@ class OptimizeHistoryPlan(AuthReq):
                                                   AituneHistSqlStat.sql_id,
                                                   AituneHistSqlStat.targetname,
                                                   AituneHistSqlStat.snap_id)
-            history_plan = self.paginate(history_plan, **p)
+            history_plan, p = self.paginate(history_plan, **p)
             history_plan = [x.to_dict() for x in history_plan]
             self.resp(history_plan, **p)
