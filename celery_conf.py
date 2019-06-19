@@ -19,19 +19,25 @@ worker_concurrency = 2
 worker_max_tasks_per_child = 3
 
 # when add new tasks in new a module, add it below.
-imports = ("task.capture", "task.offline_ticket")
+imports = (
+    "task.capture",
+    "task.sqlaitune",
+    "task.offline_ticket")
 
 # when add a new task, add it to blow.
 _capture = "task.capture.task_run"
+_aitune = "task.sqlaitune.sqlaitune_run"
 _submit_ticket = "task.offline_ticket.offline_ticket"
 
+ALL_TASK = (
+    _capture,
+    _aitune,
+    _submit_ticket
+)
+
 task_routes = {
-    _capture: {
-        'queue': _capture, 'routing_key': _capture},
-    _submit_ticket: {
-        'queue': _submit_ticket, 'routing_key': _submit_ticket},
+    i: {'queue': i, 'routing_key': i} for i in ALL_TASK
 }
 task_queues = {
-    Queue(_capture, Exchange(_capture), routing_key=_capture),
-    Queue(_submit_ticket, Exchange(_submit_ticket), routing_key=_submit_ticket),
+    Queue(i, Exchange(i), routing_key=i) for i in ALL_TASK
 }
