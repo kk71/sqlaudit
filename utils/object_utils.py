@@ -1,11 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from sqlalchemy.orm.session import Session
+
 from models.oracle import *
 from models.mongo import *
 from utils.perf_utils import *
+from utils.cache_utils import *
 
 
 @timing()
+@cache_it(cache=sc, type_to_exclude=Session)
 def get_cmdb_phy_size(session, cmdb) -> int:
     """
     计算cmdb最近一次统计的物理体积（目前仅计算表的总体积）

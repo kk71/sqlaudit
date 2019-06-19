@@ -4,6 +4,7 @@ import re
 
 import sqlparse
 from mongoengine import Q
+from sqlalchemy.orm.session import Session
 
 from utils.perf_utils import *
 from models.mongo import *
@@ -11,6 +12,7 @@ from models.oracle import *
 from utils.datetime_utils import *
 from utils import rule_utils, cmdb_utils
 from utils.const import SQL_DDL, SQL_DML
+from utils.cache_utils import *
 
 
 TICKET_TYPE_STATIC_RULE = {
@@ -262,6 +264,7 @@ def parse_sql_file(sql_contents, sql_keyword):
 
 
 @timing()
+@cache_it(cache=sc)
 def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
     计算sql文本的统计信息
@@ -297,6 +300,7 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
 
 
 @timing()
+@cache_it(cache=sc)
 def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
     计算sql计划的统计信息
@@ -330,6 +334,7 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
 
 
 @timing()
+@cache_it(cache=sc)
 def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
     """
     获取最近捕获的sql文本统计信息(在给定的record_id中)
@@ -347,6 +352,7 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
 
 
 @timing()
+@cache_it(cache=sc, type_to_exclude=Session)
 def get_risk_sql_list(session,
                       cmdb_id: str,
                       date_range: (date, date),

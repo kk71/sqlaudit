@@ -66,7 +66,7 @@ MONGO_DB = env_get("MONGO_DB", "sqlreview")
 # cache setting
 
 CACHE_REDIS_SERVER = env_get("CACHE_REDIS_IP", WEB_IP)
-CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 27017, int)
+CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", 6379, int)
 CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1, int)
 CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int)  # in sec
 
