@@ -73,7 +73,7 @@ class UserHandler(AuthReq):
         with make_session() as session:
             try:
                 new_user = User(**params)
-                session.add_all(new_user)
+                session.add(new_user)
                 session.commit()
             except IntegrityError:
                 self.resp_forbidden(msg="用户名已存在，请修改后重试")
