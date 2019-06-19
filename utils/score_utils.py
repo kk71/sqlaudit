@@ -80,7 +80,6 @@ def calc_result(result, db_model) -> tuple:
 
 
 @timing()
-@cache_it(cache=sc, type_to_exclude=Session)
 def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     """
     获取某个纳管数据库最后一次的按照[规则类型/schema]分类的评分

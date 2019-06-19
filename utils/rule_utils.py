@@ -103,7 +103,6 @@ def get_risk_rules_dict(session) -> dict:
 
 
 @timing()
-@cache_it(cache=sc, type_to_exclude=Session)
 def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
@@ -140,7 +139,6 @@ def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple
 
 
 @timing()
-@cache_it(cache=sc)
 def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     """
     获取最近的风险率
