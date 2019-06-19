@@ -153,6 +153,17 @@ AI_TUNE_PRE_OPTIMIZED = "B"
 AI_TUNE_POST_OPTIMIZED = "A"
 
 
+#自助上线
+WEEK=7
+MONTH=30
+WEEK_OR_MONTH = (WEEK, MONTH)
+
+#WORK_LIST_STATUS
+STAY_AUDIT=0#待审核
+THROUGH_AUDIT=1#审核通过
+REJECTED=2#驳回
+HAS_BEEN_LAUNCHED=3#已上线
+
 class CMDBNotFoundException(Exception):
     """CMDB未找到错误"""
     pass
