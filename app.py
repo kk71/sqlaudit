@@ -108,6 +108,13 @@ def schedule():
     task.schedule.main()
 
 
+@click.command()
+def clear_cache():
+    """clear all cache"""
+    from utils.cache_utils import sc
+    print(sc.expire_all_in_set())
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
@@ -115,4 +122,5 @@ if __name__ == "__main__":
     cli.add_command(makedata)
     cli.add_command(createenv)
     cli.add_command(schedule)
+    cli.add_command(clear_cache)
     cli()

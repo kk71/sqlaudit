@@ -4,7 +4,6 @@ import settings
 
 import past.capture.sql
 import task.capture as task_capture
-from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
 from utils.const import *
 
@@ -47,11 +46,12 @@ def run(task_id, schema=None, use_queue=False):
         print(task_uuid)
 
     elif task['script'] == DB_TASK_TUNE:
-        args = (task['task_id'], task['connect_name'], task['business_name'])
-        if use_queue:
-            sqlaitune_run.delay(*args)
-        else:
-            sqlaitune_run(*args)
+        # args = (task['task_id'], task['connect_name'], task['business_name'])
+        # if use_queue:
+        #     sqlaitune_run.delay(*args)
+        # else:
+        #     sqlaitune_run(*args)
+        pass
 
 
 
