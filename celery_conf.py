@@ -26,12 +26,12 @@ imports = (
 
 # when add a new task, add it to blow.
 _capture = "task.capture.task_run"
-_aitune = "task.sqlaitune.sqlaitune_run"
+# _aitune = "task.sqlaitune.sqlaitune_run"
 _submit_ticket = "task.offline_ticket.offline_ticket"
 
 ALL_TASK = (
     _capture,
-    _aitune,
+    # _aitune,
     _submit_ticket
 )
 

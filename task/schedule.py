@@ -73,7 +73,8 @@ def run_capture(now):
             task_run.delay(*params)
 
         elif task['script'] == const.DB_TASK_TUNE:
-            sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
+            # sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
+            pass
 
         else:
             assert 0
