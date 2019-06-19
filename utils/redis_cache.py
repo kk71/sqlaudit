@@ -134,7 +134,6 @@ class SimpleCache(object):
         pipe.sadd(set_name, key)
         pipe.execute()
 
-
     def expire_all_in_set(self):
         """
         Method expires all keys in the namespace of this object.
@@ -147,11 +146,13 @@ class SimpleCache(object):
         :return: int, int
         """
         all_members = self.keys()
-        keys  = [self.make_key(k) for k in all_members]
+        keys = [self.make_key(k) for k in all_members]
 
-        with self.connection.pipeline() as pipe:
-            pipe.delete(*keys)
-            pipe.execute()
+        # with self.connection.pipeline() as pipe:
+        #     pipe.delete(*keys)
+        #     pipe.execute()
+
+        self.connection.delete(*keys)
 
         return len(self), len(all_members)
 
@@ -275,7 +276,6 @@ class SimpleCache(object):
 
     def keys(self):
         return self.connection.smembers(self.get_set_name())
-
 
     def flush(self):
         keys = list(self.keys())
