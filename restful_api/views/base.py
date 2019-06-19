@@ -179,7 +179,7 @@ class BaseReq(RequestHandler):
         elif isinstance(q, M_Query):
             to_query = Q()
             for s in args:
-                to_query = to_query | Q(**{f"{s}__": l})
+                to_query = to_query | Q(**{f"{s}__icontains": l})
             return q.filter(to_query)
 
         else:
