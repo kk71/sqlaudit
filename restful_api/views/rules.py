@@ -15,6 +15,7 @@ class RuleRepoHandler(AuthReq):
         """规则库列表"""
         params = self.get_query_args(Schema({
             Optional("rule_type"): scm_one_of_choices(ALL_RULE_TYPE),
+            Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
