@@ -352,6 +352,7 @@ class RankingConfigHandler(AuthReq):
                 return self.resp_bad_req(msg="无法连接到目标主机")
             schema_delta = set(schema_names) - set(schemas)
             if schema_delta:
+                print(schemas)
                 return self.resp_bad_req(msg=f"给出的schema中包含该库不存在的schema：{schema_delta}")
             session.query(DataHealthUserConfig).\
                 filter(DataHealthUserConfig.database_name == cmdb.connect_name).\

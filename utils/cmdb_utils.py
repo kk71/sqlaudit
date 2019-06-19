@@ -33,9 +33,9 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     :param cmdb_id:
     :return: list of schema
     """
-    q = session.query(DataPrivilege).filter(
+    q = session.query(DataPrivilege.schema_name).filter(
         DataPrivilege.login_user == user_login, DataPrivilege.cmdb_id == cmdb_id)
-    return list({i.schema_name for i in q})
+    return list(set(q))
 
 
 @timing()

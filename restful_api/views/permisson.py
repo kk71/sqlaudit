@@ -218,8 +218,9 @@ class CMDBPermissionHandler(AuthReq):
                 available_schema: set = set(cmdb_utils.get_cmdb_available_schemas(cmdb))
             except cx_Oracle.DatabaseError as e:
                 return self.resp(msg=f"获取可用的schema失败：{str(e)}")
-            unavailable_schemas: set =  set(schema_names) - available_schema
+            unavailable_schemas: set = set(schema_names) - available_schema
             if unavailable_schemas:
+                print(available_schema)
                 return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
             session.query(DataPrivilege).\
                 filter(
