@@ -9,7 +9,7 @@ import settings
 from .redis_cache import SimpleCache, cache_it
 
 sc = SimpleCache(
-    host=settings.CACHE_REDIS_SERVER,
+    host=settings.CACHE_REDIS_IP,
     port=settings.CACHE_REDIS_PORT,
     db=settings.CACHE_REDIS_DB,
     expire=settings.CACHE_DEFAULT_EXPIRE_TIME
