@@ -15,7 +15,7 @@ import settings
 from task.capture import task_run
 import past.capture.sql
 # from task_mail import timing_send_email
-# from task_sqlaitune import sqlaitune_run
+from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
 from utils import const
 # from task_mongo import clean_mongo
@@ -73,8 +73,7 @@ def run_capture(now):
             task_run.delay(*params)
 
         elif task['script'] == const.DB_TASK_TUNE:
-            # sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
-            pass
+            sqlaitune_run.delay(task['task_id'], task['connect_name'], task['business_name'])
 
         else:
             assert 0
