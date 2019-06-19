@@ -354,7 +354,8 @@ class RankingConfigHandler(AuthReq):
             if schema_delta:
                 return self.resp_bad_req(msg=f"给出的schema中包含该库不存在的schema：{schema_delta}")
             session.query(DataHealthUserConfig).\
-                filter(DataHealthUserConfig.database_name == cmdb.connect_name).delete(synchronize_session='fetch')
+                filter(DataHealthUserConfig.database_name == cmdb.connect_name).\
+                delete(synchronize_session='fetch')
             session.add_all([DataHealthUserConfig(
                 database_name=cmdb.connect_name,
                 username=i,

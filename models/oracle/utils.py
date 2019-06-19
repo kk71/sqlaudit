@@ -28,10 +28,12 @@ class QueryEntity(List):
 
     def __init__(self, *args, **kwargs):
         super(QueryEntity, self).__init__(args)
+        self.keys = [i.key for i in self]
 
-    def to_dict(self, v):
-        keys = [i.key for i in self]
-        return dict(zip(keys, v))
+    def to_dict(self, v, datetime_to_str: bool = True):
+        if datetime_to_str:
+            v = [dt_to_str(i) if isinstance(i, datetime) else i for i in v]
+        return dict(zip(self.keys, v))
 
 
 class BaseModel(base):
