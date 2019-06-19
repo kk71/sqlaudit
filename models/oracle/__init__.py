@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__ALL__ = [
+__all__ = [
     "make_session",
     "QueryEntity",
     "User",

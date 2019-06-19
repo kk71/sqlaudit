@@ -1,8 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__ALL__ = [
+__all__ = [
     "Rule",
-    "SQLPlan",
+    "MSQLPlan",
     "Results",
     "Job",
     "EmbeddedJobDesc",

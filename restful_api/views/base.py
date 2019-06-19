@@ -14,7 +14,7 @@ from sqlalchemy.orm.query import Query as S_Query
 from sqlalchemy import or_
 
 import settings
-from utils.schema_utils import scm_unempty_str, scm_int
+from utils.schema_utils import scm_unempty_str, scm_gt0_int
 
 
 __all__ = [
@@ -151,8 +151,8 @@ class BaseReq(RequestHandler):
     def gen_p(page=1, per_page=10):
         """分页的配置"""
         return {
-            scm_Optional("page", default=page): scm_int,
-            scm_Optional("per_page", default=per_page): scm_int,
+            scm_Optional("page", default=page): scm_gt0_int,
+            scm_Optional("per_page", default=per_page): scm_gt0_int,
         }
 
     @staticmethod

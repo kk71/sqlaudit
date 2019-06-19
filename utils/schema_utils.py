@@ -8,6 +8,7 @@ from utils import const
 __all__ = [
     "scm_str",
     "scm_int",
+    "scm_gt0_int",
     "scm_float",
     "scm_unempty_str",
     "scm_str_with_no_lr_spaces",
@@ -35,6 +36,7 @@ scm_one_of_choices = lambda choices: lambda x: x in choices
 # for integer and float
 scm_float = Use(float)
 scm_int = Use(int)
+scm_gt0_int = And(scm_int, lambda x: x > 0)
 scm_dot_split_int = scm_something_split_str(",", scm_int)
 
 # for bool(real boolean or string transformed)
