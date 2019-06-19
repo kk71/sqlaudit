@@ -33,7 +33,8 @@ class SelfHelpOnline(AuthReq):
             if cmdb_ids:
                 time=datetime.now()-timedelta(days=duration)
                 # 上线成功次数、失败次数。 成功率
-                worklist_online=session.query(func.count(),WorkList.work_list_status).\
+                q=QueryEntity(func.count().lable('count'),WorkList.work_list_status)
+                worklist_online=session.query(*q).\
                     filter(WorkList.work_list_status.in_([const.REJECTED,const.HAS_BEEN_LAUNCHED]),
                            WorkList.cmdb_id.in_(cmdb_ids),
                            ).\
