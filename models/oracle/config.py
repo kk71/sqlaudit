@@ -6,6 +6,7 @@ from sqlalchemy import Column, String, Integer, Boolean, Sequence
 from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
+from utils.const import *
 
 
 class CMDB(BaseModel):
@@ -68,8 +69,8 @@ class DataHealthUserConfig(BaseModel):
 
     database_name = Column("DATABASE_NAME", String, primary_key=True)
     username = Column("USERNAME", String)
-    needcalc = Column("NEEDCALC", String)
-    weight = Column("WEIGHT", Integer)
+    needcalc = Column("NEEDCALC", String, default=RANKING_CONFIG_NEED_CALC,)
+    weight = Column("WEIGHT", Integer, default=1)
 
 
 class Param(BaseModel):

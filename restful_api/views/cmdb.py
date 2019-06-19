@@ -14,8 +14,6 @@ from .base import *
 from utils import cmdb_utils
 from models.oracle import *
 
-from plain_db.oracleob import OracleOB
-
 
 class CMDBHandler(AuthReq):
 
@@ -140,6 +138,16 @@ class CMDBHandler(AuthReq):
                 session.add(new_task)
 
             session.commit()
+
+            # 默认增加全部schema
+            try:
+                all_schemas = cmdb_utils.get_cmdb_available_schemas(new_cmdb)
+            except cx_Oracle.DatabaseError as err:
+                return self.resp_bad_req(msg="无法连接到数据库,schema没有自动加入评分。")
+            session.add_all([DataHealthUserConfig(
+                database_name=new_cmdb.connect_name,
+                username=i
+            ) for i in all_schemas])
             self.resp_created(new_cmdb.to_dict())
 
     def patch(self):
@@ -253,15 +261,19 @@ class SchemaHandler(AuthReq):
         current = params.pop("current")
         with make_session() as session:
             if current:
+                # 当前登录用户可用(数据权限配置)的schema
                 current_schemas = cmdb_utils.get_current_schema(session,
                                                                 self.current_user,
                                                                 cmdb_id)
                 self.resp(current_schemas)
             else:
-                schema_names = session.query(DataPrivilege). \
-                    filter_by(cmdb_id=cmdb_id). \
-                    with_entities(DataPrivilege.schema_name)
-                self.resp(list({i.schema_name for i in schema_names}))
+                # 当前cmdb的全部的schema，不考虑数据权限
+                cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+                try:
+                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                except cx_Oracle.DatabaseError as err:
+                    return self.resp_bad_req(msg="无法连接到数据库")
+                self.resp(all_schemas)
 
 
 class CMDBHealthTrendHandler(AuthReq):
@@ -359,9 +371,7 @@ class RankingConfigHandler(AuthReq):
                 delete(synchronize_session='fetch')
             session.add_all([DataHealthUserConfig(
                 database_name=cmdb.connect_name,
-                username=i,
-                needcalc=RANKING_CONFIG_NEED_CALC,
-                weight=1
+                username=i
             ) for i in schema_names])
         self.resp_created(msg="评分配置成功")
 
