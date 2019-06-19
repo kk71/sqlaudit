@@ -102,6 +102,6 @@ class UserHandler(AuthReq):
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
-            the_user = session.query(User).filter_by(**params)
+            the_user = session.query(User).filter_by(**params).first()
             session.delete(the_user)
         self.resp_created(msg="已删除。")
