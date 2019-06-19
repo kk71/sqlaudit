@@ -4,7 +4,9 @@ import settings
 
 import past.capture.sql
 import task.capture as task_capture
+from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
+from utils.const import *
 
 
 def run(task_id, schema=None, use_queue=False):
@@ -22,16 +24,35 @@ def run(task_id, schema=None, use_queue=False):
         exit()
 
     cmdb_odb = plain_db.oracleob.OracleOB(task['host'], task['port'], task['user_name'], task['password'], task['sid'])
-    if task['script'] == "采集及分析":
+    print(task)
+    if task['script'] == DB_TASK_CAPTURE:
         users = [x[0] for x in cmdb_odb.select(past.capture.sql.GET_SCHEMA, one=False)]
         if schema and schema in users:
             users = [schema]
         print(users)
+        args = (task['host'],
+                task['port'],
+                task['sid'],
+                task['user_name'],
+                task['password'],
+                task['task_id'],
+                task['connect_name'],
+                task['business_name'],
+                users,
+                task['cmdb_id'])
         if use_queue:
-            task_uuid = task_capture.task_run.delay(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
+            task_uuid = task_capture.task_run.delay(*args)
         else:
-            task_uuid = task_capture.task_run(task['host'], task['port'], task['sid'], task['user_name'], task['password'], task['task_id'], task['connect_name'], task['business_name'], users, task['cmdb_id'])
+            task_uuid = task_capture.task_run(*args)
         print(task_uuid)
+
+    elif task['script'] == DB_TASK_TUNE:
+        args = (task['task_id'], task['connect_name'], task['business_name'])
+        if use_queue:
+            sqlaitune_run.delay(*args)
+        else:
+            sqlaitune_run(*args)
+
 
 
 if __name__ == "__main__":
