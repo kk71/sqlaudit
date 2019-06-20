@@ -98,7 +98,7 @@ class ExecuteHandler(AuthReq):
 
     def post(self):
         """执行上线"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "work_list_id": scm_int
         }))
         work_list_id = params.pop("work_list_id")

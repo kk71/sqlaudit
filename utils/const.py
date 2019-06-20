@@ -176,3 +176,8 @@ class CMDBNotFoundException(Exception):
 class NoRiskRuleSetException(Exception):
     """没有设置风险规则"""
     pass
+
+
+class PrivilegeRequired(Exception):
+    """权限不足"""
+    pass

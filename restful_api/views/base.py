@@ -1,5 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "BaseReq",
+    "AuthReq",
+    "RoleReq"
+]
+
 import json
 from typing import *
 
@@ -15,12 +21,7 @@ from sqlalchemy import or_
 
 import settings
 from utils.schema_utils import scm_unempty_str, scm_gt0_int
-
-
-__all__ = [
-    "BaseReq",
-    "AuthReq"
-]
+from utils.privilege_utils import *
 
 
 class SchemaErrorWithMessageResponsed(Exception):
@@ -33,6 +34,7 @@ class TokenHasExpiredException(Exception):
 
 class BaseReq(RequestHandler):
     """basic request handler"""
+
     def _resp_em(self, e):
         """return error message if a schema validation failed."""
         def s(*args, **kwargs):
@@ -193,6 +195,7 @@ class BaseReq(RequestHandler):
 
 class AuthReq(BaseReq):
     """a request handler with authenticating"""
+
     def __init__(self, *args, **kwargs):
         super(AuthReq, self).__init__(*args, **kwargs)
 
@@ -229,3 +232,20 @@ class AuthReq(BaseReq):
 
     def prepare(self) -> Optional[Awaitable[None]]:
         self.get_current_user()
+
+
+class RoleReq(AuthReq):
+    """a request handler with role & privilege check"""
+
+    def __init__(self, *args, **kwargs):
+        super(AuthReq, self).__init__(*args, **kwargs)
+
+    def acquire(self, *args):
+        """ask for privilege"""
+        privilege_list = get_privilege_towards_user(self.current_user)
+        unavailable_privileges = set(args) - set(privilege_list)
+        if unavailable_privileges:
+            unavailable_privileges_names = ", ".join([
+                PRIVILEGE.privilege_to_dict(i)["name"] for i in unavailable_privileges])
+            self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
+            raise PrivilegeRequired
