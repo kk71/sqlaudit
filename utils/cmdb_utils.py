@@ -96,7 +96,7 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
                 "connect_name": dh_dict.pop("database_name"),
                 **dh_dict
             })
-        if {i["connect_name"] for i in ret}.issubset(all_connect_names):
+        if all_connect_names.issubset({i["connect_name"] for i in ret}):
             break
     # sort
     ret = sorted(ret, key=lambda x: x["health_score"])
