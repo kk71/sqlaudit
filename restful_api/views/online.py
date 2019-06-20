@@ -261,7 +261,7 @@ class SQLRiskListHandler(AuthReq):
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
             Optional("rule_type", default="ALL"): scm_one_of_choices(
-                ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE),
+                ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
             Optional("enable_white_list", default=True):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="last"): scm_one_of_choices(["sum", "average"]),
@@ -281,7 +281,7 @@ class SQLRiskListHandler(AuthReq):
         with make_session() as session:
             try:
                 rst = sql_utils.get_risk_sql_list(session, **params, date_range=date_range)
-            except const.NoRiskRuleSetException:
+            except NoRiskRuleSetException:
                 self.resp(msg="未设置风险规则。")
                 return
             rst_this_page, p = self.paginate(rst, **p)
@@ -693,10 +693,10 @@ class OverviewScoreByHandler(AuthReq):
         """显示整个库评分(按照schema或者rule_type)的(柱状图或者雷达图)"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            "perspective": scm_one_of_choices(const.ALL_OVERVIEW_ITEM),
+            "perspective": scm_one_of_choices(ALL_OVERVIEW_ITEM),
             Optional("score_type", default=None): And(
                 scm_int,
-                scm_one_of_choices(const.ALL_SCORE_BY)
+                scm_one_of_choices(ALL_SCORE_BY)
             )
         }))
         score_type = params.pop("score_type")
@@ -712,7 +712,7 @@ class OverviewScoreByHandler(AuthReq):
                 if overview_rate:
                     score_type = overview_rate.type
                 else:
-                    score_type = const.SCORE_BY_LOWEST
+                    score_type = SCORE_BY_LOWEST
             elif score_type and not overview_rate:
                 overview_rate = OverviewRate(
                     login_user=self.current_user,
@@ -724,12 +724,12 @@ class OverviewScoreByHandler(AuthReq):
                 overview_rate.type = score_type
                 session.add(overview_rate)
             ret = score_utils.calc_score_by(session, cmdb, perspective, score_type)
-            if perspective == const.OVERVIEW_ITEM_SCHEMA:
+            if perspective == OVERVIEW_ITEM_SCHEMA:
                 d = sorted(
                     self.dict_to_verbose_dict_in_list(ret, "schema", "num"),
                     key=lambda k: k["num"]
                 )
-            elif perspective == const.OVERVIEW_ITEM_RADAR:
+            elif perspective == OVERVIEW_ITEM_RADAR:
                 d = ret
             else:
                 assert 0
