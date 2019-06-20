@@ -29,14 +29,13 @@ class TicketHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
-            Optional("keyword", default=None): scm_str
+            Optional("keyword", default=None): scm_str,
+            **self.gen_p()
         }))
         keyword = params.pop("keyword")
         work_list_status = params.pop("work_list_status")
         with make_session() as session:
-            q = session.query(WorkList)
+            q = session.query(WorkList).order_by(WorkList.work_list_id.desc())
             if work_list_status is not None:  # take care of the value 0!
                 q = q.filter_by(work_list_status=work_list_status)
             if keyword:
@@ -324,9 +323,8 @@ class SQLUploadHandler(AuthReq):
         """获取上传的临时sql数据"""
         params = self.get_query_args(Schema({
             "session_id": scm_str,
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
-            Optional("keyword", default=None): scm_str
+            Optional("keyword", default=None): scm_str,
+            **self.gen_p()
         }))
         keyword = params.pop("keyword")
         p = self.pop_p(params)
@@ -436,9 +434,7 @@ class SubTicketHandler(AuthReq):
     def get(self):
         """子工单列表"""
         params = self.get_query_args(Schema({
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
-
+            **self.gen_p(),
             Optional(object): object
         }))
         p = self.pop_p(params)
