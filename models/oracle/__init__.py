@@ -20,7 +20,8 @@ __all__ = [
     "TaskExecHistory",
     "OverviewRate",
     "Notice",
-    "Param"
+    "Param",
+    "DataHealthUserConfig"
 ]
 
 from .utils import make_session, QueryEntity
