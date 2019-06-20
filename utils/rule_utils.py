@@ -2,11 +2,12 @@
 
 import re
 import json
+from collections import defaultdict
 
 from mongoengine import Q
 from sqlalchemy.orm.session import Session
 
-from models.oracle import RiskSQLRule
+from models.oracle import RiskSQLRule, WhiteListRules
 from models.mongo import *
 from utils.perf_utils import *
 from utils.const import *
@@ -211,3 +212,7 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     return ret
 
 
+def get_white_list(session, cmdb_id) -> [dict]:
+    """白名单信息"""
+    return [i.to_dict() for i in WhiteListRules.filter_enabled(
+        session, WhiteListRules.cmdb_id == cmdb_id)]

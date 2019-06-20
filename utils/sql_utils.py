@@ -358,7 +358,6 @@ def get_risk_sql_list(session,
                       risk_sql_rule_id: list = (),
                       sort_by: str = "last",
                       enable_white_list: bool = True,
-                      current_user: str = None,
                       sql_id_only: bool = False,
                       sqltext_stats: bool = True,
                       **kwargs
@@ -373,7 +372,6 @@ def get_risk_sql_list(session,
     :param risk_sql_rule_id:
     :param sort_by:
     :param enable_white_list:
-    :param current_user: 需要过滤登录用户
     :param sql_id_only: 仅仅返回sql_id的set
     :param sqltext_stats: 返回是否需要包含sqltext的统计信息（首末出现时间）
     :param kwargs: 多余的参数，会被收集到这里，并且会提示
@@ -390,10 +388,6 @@ def get_risk_sql_list(session,
     risk_rule_q = session.query(RiskSQLRule)
     result_q = Results.objects(cmdb_id=cmdb_id)
     if schema_name:
-        if schema_name not in \
-                cmdb_utils.get_current_schema(session, current_user, cmdb_id):
-            raise Exception(f"无法在编号为{cmdb_id}的数据库中"
-                            f"操作名为{schema_name}的schema。")
         result_q = result_q.filter(schema_name=schema_name)
     if rule_type == "ALL":
         rule_type: list = const.ALL_RULE_TYPES_FOR_SQL_RULE
@@ -442,6 +436,9 @@ def get_risk_sql_list(session,
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
         last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(list(result_q.distinct("record_id")))
 
+    if enable_white_list:
+        white_list_dict = rule_utils.get_white_list(session, cmdb_id)
+
     for result in result_q:
 
         # result具有可变字段，具体结构请参阅models.mongo.results
@@ -473,7 +470,18 @@ def get_risk_sql_list(session,
                 sql_id = sql_text_dict["sql_id"]
                 if sql_id in rst_sql_id_set:
                     continue
+
                 sqlstat_dict = last_sql_id_sqlstat_dict[sql_id]
+
+                if enable_white_list:
+                    for wl_dict in white_list_dict:
+                        if wl_dict["rule_category"] == const.WHITE_LIST_CATEGORY_TEXT:
+                            if wl_dict["rule_text"] in sql_text_dict["sql_text"]:
+                                continue
+                        elif wl_dict["rule_category"] == const.WHITE_LIST_CATEGORY_USER:
+                            if wl_dict["rule_text"] == sqlstat_dict["schema"]:
+                                continue
+
                 execution_time_cost_sum = round(sqlstat_dict["elapsed_time_delta"], 2)  # in ms
                 execution_times = sqlstat_dict.get('executions_delta', 0)
                 execution_time_cost_on_average = 0

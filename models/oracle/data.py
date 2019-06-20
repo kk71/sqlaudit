@@ -5,6 +5,7 @@ from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
 from utils.datetime_utils import *
+from utils import const
 
 
 class RiskSQLRule(BaseModel):
@@ -37,3 +38,7 @@ class WhiteListRules(BaseModel):
     create_date = Column("CREATE_DATE", DATE, default=datetime.now)
     creator = Column("CREATOR", String)
     comments = Column("COMMENTS", String)
+
+    @classmethod
+    def filter_enabled(cls, session, *args, **kwargs):
+        return session.query(cls).filter(cls.status == True, *args, **kwargs)
