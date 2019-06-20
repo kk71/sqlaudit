@@ -74,7 +74,7 @@ ALL_SQL_TYPE = (SQL_DML, SQL_DDL)
 # 评分显示类型
 
 SCORE_BY_AVERAGE = 1  # 按照平均分展示
-SCORE_BY_LOWEST = 2   # 按照最低分展示
+SCORE_BY_LOWEST = 2  # 按照最低分展示
 ALL_SCORE_BY = (SCORE_BY_AVERAGE, SCORE_BY_LOWEST)
 
 # 评分对象名(对应T_OVERVIEW_RATE.ITEM)
@@ -85,23 +85,24 @@ ALL_OVERVIEW_ITEM = (OVERVIEW_ITEM_SCHEMA, OVERVIEW_ITEM_RADAR)
 
 # 线下审核工单状态
 
-OFFLINE_TICKET_PENDING = 0   # 等待审核
-OFFLINE_TICKET_PASSED = 1    # 审核通过
+OFFLINE_TICKET_PENDING = 0  # 等待审核
+OFFLINE_TICKET_PASSED = 1  # 审核通过
 OFFLINE_TICKET_REJECTED = 2  # 审核拒绝
 OFFLINE_TICKET_EXECUTED = 3  # 已上线
+OFFLINE_TICKET_FAILED = 4  # 上线失败
 ALL_OFFLINE_TICKET_STATUS = (
     OFFLINE_TICKET_PENDING,
     OFFLINE_TICKET_PASSED,
     OFFLINE_TICKET_REJECTED,
-    OFFLINE_TICKET_EXECUTED
+    OFFLINE_TICKET_EXECUTED,
+    OFFLINE_TICKET_FAILED
 )
 
 # PARAM_TYPE
 
-PARAM_TYPE_ENV = 4              # 环境
-PARAM_TYPE_DATA_CENTER = 1      # 数据中心
+PARAM_TYPE_ENV = 4  # 环境
+PARAM_TYPE_DATA_CENTER = 1  # 数据中心
 ALL_PARAM_TYPE = (PARAM_TYPE_ENV, PARAM_TYPE_DATA_CENTER)
-
 
 # 风险白名单类型
 
@@ -112,12 +113,10 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
                            WHITE_LIST_CATEGORY_MODULE,
                            WHITE_LIST_CATEGORY_TEXT)
 
-
 # 自动优化SQL前后
 
 AI_TUNE_PRE_OPTIMIZED = "B"
 AI_TUNE_POST_OPTIMIZED = "A"
-
 
 # 纳管数据库权限是否算分needcalc
 RANKING_CONFIG_NEED_CALC = "Y"
@@ -126,11 +125,10 @@ ALL_RANKING_CONFIG_CALC_OR_NOT = (RANKING_CONFIG_NEED_CALC, RANKING_CONFIG_NO_CA
 
 
 class PRIVILEGE:
-
     # 权限执行方
-    TYPE_BE = 1       # 仅后端处理
-    TYPE_FE = 2       # 仅前端处理
-    TYPE_BOTH = 3     # 皆处理
+    TYPE_BE = 1  # 仅后端处理
+    TYPE_FE = 2  # 仅前端处理
+    TYPE_BOTH = 3  # 皆处理
     ALL_PRIVILEGE_TYPE = (TYPE_BE, TYPE_FE, TYPE_BOTH)
 
     # 权限键名
@@ -138,9 +136,9 @@ class PRIVILEGE:
 
     # 权限
     PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
-    PRIVILEGE_2 =         (2, TYPE_FE, "emm", "是否允许使用仪表盘")
-    PRIVILEGE_3 =         (3, TYPE_FE, "emmm", "是否允许使用仪表盘")
-    PRIVILEGE_4 =         (4, TYPE_FE, "emmmm", "是否允许使用仪表盘")
+    PRIVILEGE_2 = (2, TYPE_FE, "emm", "是否允许使用仪表盘")
+    PRIVILEGE_3 = (3, TYPE_FE, "emmm", "是否允许使用仪表盘")
+    PRIVILEGE_4 = (4, TYPE_FE, "emmmm", "是否允许使用仪表盘")
     ALL_PRIVILEGE = (
         PRIVILEGE_DASHBOARD,
 
