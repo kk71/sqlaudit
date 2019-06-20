@@ -230,7 +230,7 @@ class WhiteListHandler(AuthReq):
 
             Optional("rule_name"): scm_unempty_str,
             Optional("rule_category"): scm_one_of_choices(
-                const.ALL_WHITE_LIST_CATEGORY),
+                ALL_WHITE_LIST_CATEGORY),
             Optional("rule_text"): scm_unempty_str,
             Optional("status"): scm_bool,
             Optional("comments"): scm_str,
@@ -246,7 +246,7 @@ class WhiteListHandler(AuthReq):
             'cmdb_id': scm_int,
             'rule_name': scm_unempty_str,
             'rule_text': scm_unempty_str,
-            'rule_category': scm_one_of_choices(const.ALL_WHITE_LIST_CATEGORY),
+            'rule_category': scm_one_of_choices(ALL_WHITE_LIST_CATEGORY),
             'status': scm_bool,
             Optional('comments'): scm_str,
         }))

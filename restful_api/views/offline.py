@@ -563,8 +563,7 @@ class SubTicketSQLPlanHandler(AuthReq):
         with make_session() as session:
             sql_plan_row = session.query(OSQLPlan).filter_by(**params).first()
             if not sql_plan_row:
-                self.resp(msg="执行计划为空")
-                return
+                return self.resp(msg="执行计划为空")
             hash_plan_value = sql_plan_row.plan_id
 
             sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value, **params)

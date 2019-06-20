@@ -90,8 +90,8 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     :return:
     """
     # TODO make it cached
-    assert perspective in const.ALL_OVERVIEW_ITEM
-    assert score_by in const.ALL_SCORE_BY
+    assert perspective in ALL_OVERVIEW_ITEM
+    assert score_by in ALL_SCORE_BY
 
     ret = {}
 
@@ -108,21 +108,21 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     scores_by_sth = defaultdict(lambda: defaultdict(lambda: 0.0))
     for rule_type, schema, score in rule_type_schema_scores:
         if score:
-            if perspective == const.OVERVIEW_ITEM_RADAR:
+            if perspective == OVERVIEW_ITEM_RADAR:
                 scores_by_sth[rule_type][schema] += score
-            elif perspective == const.OVERVIEW_ITEM_SCHEMA:
+            elif perspective == OVERVIEW_ITEM_SCHEMA:
                 scores_by_sth[schema][rule_type] += score
     calc_score_by.tik("end calcing scores")
 
     for persp_1, persp_2_score_dict in scores_by_sth.items():
         ret[persp_1] = None
-        if score_by == const.SCORE_BY_LOWEST:
+        if score_by == SCORE_BY_LOWEST:
             scores_sorted = [s for s in
                              sorted(persp_2_score_dict.items(), key=lambda k: k[1]) if s]
             if scores_sorted:
                 ret[persp_1] = scores_sorted[0][1]
 
-        elif score_by == const.SCORE_BY_AVERAGE:
+        elif score_by == SCORE_BY_AVERAGE:
             persp_2_num = len(persp_2_score_dict)
             if persp_2_num:
                 ret[persp_1] = sum(persp_2_score_dict.values()) / persp_2_num
