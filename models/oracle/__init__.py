@@ -22,7 +22,11 @@ __all__ = [
     "Notice",
     "Param",
     "DataHealthUserConfig",
-    "WhiteListRules"
+    "WhiteListRules",
+    "AituneResultSummary",
+    "AituneResultDetails",
+    "AituneHistSqlStat",
+    "AituneSqlExPlan",
 ]
 
 from .utils import make_session, QueryEntity
