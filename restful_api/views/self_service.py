@@ -113,8 +113,13 @@ class ExecuteHandler(AuthReq):
             for sub_ticket in sub_ticket_q:
                 online_date = datetime.now()
                 start = time.time()
+                cmdb_dict = cmdb.to_dict(iter_if=lambda k, v: k in (
+                    "ip_address", "port", "user_name", "password", "service_name"))
+                cmdb_dict["host"] = cmdb_dict.pop("ip_address")
+                cmdb_dict["username"] = cmdb_dict.pop("user_name")
+                cmdb_dict["sid"] = cmdb_dict.pop("service_name")
                 err_msg = past.utils.check.Check.sql_online(
-                    sub_ticket.sql_text, cmdb, ticket.schema_name)
+                    sub_ticket.sql_text, cmdb_dict, ticket.schema_name)
                 if not err_msg:
                     elapsed = int((time.time() - start) * 1000)
                     sub_ticket.online_date = online_date
