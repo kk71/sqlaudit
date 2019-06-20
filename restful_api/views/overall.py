@@ -40,7 +40,7 @@ class DashboardHandler(AuthReq):
             # 维度的数据库
             envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)).\
                 filter(Param.param_id == CMDB.domain_env,
-                       Param.param_type == const.PARAM_TYPE_ENV).\
+                       Param.param_type == PARAM_TYPE_ENV).\
                 group_by(Param.param_value)
             # 线下审核工单状态归类
             offline_tickets = session.query(
