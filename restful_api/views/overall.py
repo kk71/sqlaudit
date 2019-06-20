@@ -44,7 +44,11 @@ class DashboardHandler(AuthReq):
                        Param.param_type == PARAM_TYPE_ENV). \
                 group_by(Param.param_value)
             # 智能优化执行次数
-            optimized_execution_times = session.query(AituneResultDetails).with_entities(func.count())[0][0]
+            optimized_execution_times = 0
+            optimized_execution_q = list(session.query(AituneResultDetails).with_entities(func.count()))
+            if optimized_execution_q:
+                optimized_execution_times = optimized_execution_q[0][0]
+                
             # 线下审核工单状态归类
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)). \
