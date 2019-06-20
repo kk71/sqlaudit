@@ -21,10 +21,10 @@ from models.mongo import *
 
 class ObjectRiskListHandler(AuthReq):
 
-    @timing()
-    def get_list(self, session, query_parser: FunctionType):
-        # Notice：如果下面的参数修改了，必须要能同时兼容query_args和json，不然需要修改schema parse方式。
-        params = query_parser(Schema({
+    @classmethod
+    def parsing_schema_dict(cls):
+        """给接口用的schema，防止反复写"""
+        return {
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
@@ -32,142 +32,20 @@ class ObjectRiskListHandler(AuthReq):
             Optional("date_end", default=None): scm_date,
 
             Optional(object): object
-        }))
-        cmdb_id = params.pop("cmdb_id")
-        schema_name = params.pop("schema_name")
-        risk_sql_rule_id_list = params.pop("risk_sql_rule_id")
-        date_start, date_end = params.pop("date_start"), params.pop("date_end")
-        del params  # shouldn't use params anymore
-
-        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-        if not cmdb:
-            self.resp_bad_req(msg=f"不存在编号为{cmdb_id}的cmdb。")
-            return
-        result_q = Results.objects(cmdb_id=cmdb_id, rule_type=rule_utils.RULE_TYPE_OBJ)
-        if schema_name:
-            if schema_name not in \
-                    cmdb_utils.get_current_schema(session, self.current_user, cmdb_id):
-                self.resp_bad_req(msg=f"无法在编号为{cmdb_id}的数据库中"
-                f"操作名为{schema_name}的schema。")
-                return
-            result_q = result_q.filter(schema_name=schema_name)
-
-        risk_rule_q = session.query(RiskSQLRule). \
-            filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ)
-        if risk_sql_rule_id_list:
-            risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
-                                             in_(risk_sql_rule_id_list))
-        if date_start:
-            result_q = result_q.filter(create_date__gte=date_start)
-        if date_end:
-            result_q = result_q.filter(create_date__lte=date_end)
-        risky_rules = Rule.objects(
-            rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
-            db_model=cmdb.db_model,
-            db_type=DB_ORACLE
-        )
-        risk_rules_dict = rule_utils.get_risk_rules_dict(session)
-        risky_rule_name_object_dict = {risky_rule.rule_name:
-                                           risky_rule for risky_rule in risky_rules.all()}
-        if not risky_rule_name_object_dict:
-            self.resp(msg="无任何风险规则。")
-            return
-
-        # 过滤出包含问题的结果
-        Qs = None
-        for risky_rule_name in risky_rule_name_object_dict.keys():
-            if not Qs:
-                Qs = Q(**{f"{risky_rule_name}__records__nin": [None, []]})
-            else:
-                Qs = Qs | Q(**{f"{risky_rule_name}__records__nin": [None, []]})
-        if Qs:
-            result_q = result_q.filter(Qs)
-
-        # results, p = self.paginate(result_q, **p)
-        results = result_q.all()
-        risky_rule_appearance = defaultdict(dict)
-        rst = []
-        rst_set_for_deduplicate = set()  # 集合内为tuples，tuple内的值是返回字典内的values（按顺序）
-        for result in results:
-            for risky_rule_name, risky_rule_object in risky_rule_name_object_dict.items():
-                risk_rule_object = risk_rules_dict[risky_rule_object.get_3_key()]
-
-                # risky_rule_object is a record of Rule from mongodb
-
-                # risk_rule_object is a record of RiskSQLRule from oracle
-
-                if not getattr(result, risky_rule_name, None):
-                    continue  # 规则key不存在，或者值直接是个空dict
-                if not getattr(result, risky_rule_name).get("records", None):
-                    continue  # 规则key存在，值非空，但是其下records的值为空
-                if not risky_rule_appearance.get(risky_rule_name):
-                    # 没统计过当前rule的最早出现和最后出现时间
-                    to_aggregate = [
-                        {
-                            "$match": {
-                                "$and": [
-                                    {risky_rule_name + ".records": {"$exists": True}},
-                                    {risky_rule_name + ".records": {"$not": {"$size": 0}}}
-                                ]
-                            }
-                        },
-                        {
-                            "$group": {
-                                '_id': risky_rule_name,
-                                "first_appearance": {"$min": "$create_date"},
-                                "last_appearance": {"$max": "$create_date"}
-                            }
-                        },
-                        {
-                            "$project": {
-                                '_id': 0,
-                                'first_appearance': 1,
-                                'last_appearance': 1
-                            }
-                        }
-                    ]
-                    agg_rest = list(Results.objects.aggregate(*to_aggregate))
-                    risky_rule_appearance[risky_rule_name] = {
-                        "first_appearance": dt_to_str(agg_rest[0]['first_appearance']
-                                                      if agg_rest else None),
-                        "last_appearance": dt_to_str(agg_rest[0]['last_appearance']
-                                                     if agg_rest else None),
-                    }
-                for record in getattr(result, risky_rule_name)["records"]:
-                    r = {
-                        "object_name": record[0],
-                        "rule_desc": risky_rule_object.rule_desc,
-                        "risk_detail": rule_utils.format_rule_result_detail(
-                            risky_rule_object, record),
-                        "optimized_advice": risk_rule_object.optimized_advice,
-                        "severity": risk_rule_object.severity,
-                        "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
-                        **risky_rule_appearance[risky_rule_name]
-                    }
-                    # 用于去重
-                    r_tuple = tuple(r.values())
-                    if r_tuple in rst_set_for_deduplicate:
-                        continue
-                    rst_set_for_deduplicate.add(r_tuple)
-                    rst.append(r)
-
-        return rst
+        }
 
     def get(self):
         """风险列表"""
         params = self.get_query_args(Schema({
+            **self.parsing_schema_dict(),
+
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
-
-            Optional(object): object
         }))
         p = self.pop_p(params)
-        del params  # shouldn't use params anymore
 
         with make_session() as session:
-            rst = self.get_list(session, self.get_query_args)
-            if rst is None:
-                return
+            rst = object_utils.get_risk_object_list(session, **params)
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
 
@@ -186,9 +64,8 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
         with make_session() as session:
             if export_type == "all_filtered":
-                object_list = self.get_list(session, self.get_json_args)
-                if object_list is None:
-                    return
+                params = self.get_json_args(Schema(**self.parsing_schema_dict()))
+                object_list = object_utils.get_risk_object_list(session, **params)
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({

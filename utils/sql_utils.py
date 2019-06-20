@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import re
+from typing import Union
 
 import sqlparse
 from mongoengine import Q
