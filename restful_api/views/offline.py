@@ -556,7 +556,6 @@ class SubTicketSQLPlanHandler(AuthReq):
         content = '|' + '|\t'.join([row_id, operation, name, rows, row_bytes, cost, time]) + "|\n"
         return content, len(content) + 5
 
-    @timing()
     def get(self):
         """获取子工单的sql执行计划"""
         params = self.get_query_args(Schema({
@@ -568,7 +567,10 @@ class SubTicketSQLPlanHandler(AuthReq):
                 return self.resp(msg="执行计划为空")
             hash_plan_value = sql_plan_row.plan_id
 
-            sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value, **params)
+            sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value,
+                                         sql_id=params["statement_id"]).values_list("index", "operation",
+                                                                                    "object_name", "cardinality",
+                                                                                    "bytes", "cpu_cost", "time")
             sql_plan_head = OrderedDict({
                 'Id': "ID",
                 'Operation': "OPERATION",
@@ -580,15 +582,12 @@ class SubTicketSQLPlanHandler(AuthReq):
             })
 
             sql_plan_text_head, dash_len = self.get_plan_row(sql_plan_head.keys())
-            self.get.tik("got plan row")
-            sql_plans = [[sql_plan[x] for x in sql_plan_head.values()] for sql_plan in sql_plans]
-            self.get.tik("got sql plans")
+            # sql_plans = [[sql_plan[x] for x in sql_plan_head.values()] for sql_plan in sql_plans]
             sql_plan_text_content = ''.join([self.get_plan_row(row)[0] for row in sql_plans])
-            self.get.tik("got plan text content")
 
             dashes = "-" * dash_len
             sql_plan_text = f"""Plan hash value: {hash_plan_value}\n\n{dashes}\n{sql_plan_text_head}{dashes}\n{sql_plan_text_content}{dashes}\n"""
             self.resp({
                 'sql_plan_text': sql_plan_text,
-                'sql_plans': sql_plans
+                # 'sql_plans': sql_plans
             })

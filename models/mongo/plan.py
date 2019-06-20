@@ -45,5 +45,8 @@ class MSQLPlan(BaseDocRecordID):
     time = IntField(db_field="TIME", null=True)
 
     meta = {
-        "collection": "sqlplan"
+        "collection": "sqlplan",
+        "indexes": [
+            "plan_hash_value"
+        ]
     }
