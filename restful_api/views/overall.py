@@ -42,6 +42,8 @@ class DashboardHandler(AuthReq):
                 filter(Param.param_id == CMDB.domain_env,
                        Param.param_type == PARAM_TYPE_ENV).\
                 group_by(Param.param_value)
+            #智能优化执行次数
+            # session.query(func.count(),Ai)
             # 线下审核工单状态归类
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)).\
@@ -75,13 +77,13 @@ class DashboardHandler(AuthReq):
                 "index_num": index_num,
                 "sequence_num": 0,
 
-                "env": self.dict_to_verbose_dict_in_list(dict(envs)),
-                "cmdb_num": session.query(CMDB).count(),
+                "env": self.dict_to_verbose_dict_in_list(dict(envs)),#
+                "cmdb_num": session.query(CMDB).count(),#
                 "ai_tune_num": 0,
-                "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
+                "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},#
 
-                "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
-                "notice": notice.contents if notice else ""
+                "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),#
+                "notice": notice.contents if notice else ""#
             })
 
 
