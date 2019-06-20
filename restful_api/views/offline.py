@@ -16,6 +16,7 @@ from utils import sql_utils, stream_utils
 from .base import AuthReq
 from models.mongo import *
 from models.oracle import *
+from utils.perf_utils import *
 from task.offline_ticket import offline_ticket
 
 import plain_db.oracleob
@@ -555,6 +556,7 @@ class SubTicketSQLPlanHandler(AuthReq):
         content = '|' + '|\t'.join([row_id, operation, name, rows, row_bytes, cost, time]) + "|\n"
         return content, len(content) + 5
 
+    @timing()
     def get(self):
         """获取子工单的sql执行计划"""
         params = self.get_query_args(Schema({
@@ -578,8 +580,11 @@ class SubTicketSQLPlanHandler(AuthReq):
             })
 
             sql_plan_text_head, dash_len = self.get_plan_row(sql_plan_head.keys())
+            self.get.tik("got plan row")
             sql_plans = [[sql_plan[x] for x in sql_plan_head.values()] for sql_plan in sql_plans]
+            self.get.tik("got sql plans")
             sql_plan_text_content = ''.join([self.get_plan_row(row)[0] for row in sql_plans])
+            self.get.tik("got plan text content")
 
             dashes = "-" * dash_len
             sql_plan_text = f"""Plan hash value: {hash_plan_value}\n\n{dashes}\n{sql_plan_text_head}{dashes}\n{sql_plan_text_content}{dashes}\n"""
