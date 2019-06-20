@@ -74,7 +74,7 @@ class TicketHandler(AuthReq):
     def post(self):
         """创建DDL，DML工单"""
         params = self.get_json_args(Schema({
-            "work_list_type": scm_one_of_choices(const.ALL_SQL_TYPE),
+            "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
             "audit_owner": scm_unempty_str,
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
@@ -247,7 +247,7 @@ class SQLUploadHandler(AuthReq):
             self.resp_bad_req(msg="未选择文件。")
             return
         params = self.get_query_args(Schema({
-            "ticket_type": And(scm_int, scm_one_of_choices(const.ALL_SQL_TYPE)),
+            "ticket_type": And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
             "if_filter": scm_bool
         }))
         file_object = self.request.files.get("file")[0]
