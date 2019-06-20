@@ -97,3 +97,9 @@ urls += [
     (r"/api/optimize/after_plan", optimize.OptimizeAfterPlanHandler),
     (r"/api/optimize/history_plan", optimize.OptimizeHistoryPlanHandler)
 ]
+
+# self help online
+urls += [
+    (r"/api/self_service/overview", self_service.OverviewHandler),
+    (r"/api/self_service/execute", self_service.ExecuteHandler),
+]

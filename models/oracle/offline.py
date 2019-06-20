@@ -41,7 +41,7 @@ class SubWorkList(BaseModel):
     online_date = Column("ONLINE_DATE", DATE, default=datetime.now)
     online_owner = Column("ONLINE_OWNER", String)
     elapsed_seconds = Column("ELAPSED_SECONDS", Integer)
-    status = Column("STATUS", Boolean)
+    status = Column("STATUS", Boolean)  # 上线是否成功
     error_msg = Column("ERROR_MSG", String)
     comments = Column("COMMENTS", String)
     sql_text = Column("SQL_TEXT", CLOB)
