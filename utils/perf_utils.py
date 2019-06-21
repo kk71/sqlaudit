@@ -17,6 +17,9 @@ import redis
 import settings
 
 
+dict_keys = type(dict().keys())
+
+
 def func_info(method):
     return f"{method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}"
 
@@ -78,6 +81,17 @@ class RedisCache:
 
     def get_func_key(self, func: FunctionType):
         return f"{self.prefix}-{func.__name__}-*"
+
+    def should_exclude(self, obj):
+        if self.key_type_exclude and isinstance(obj, self.key_type_exclude):
+            return True
+        return False
+
+    @classmethod
+    def prepare_to_serialize(cls, obj):
+        if isinstance(obj, dict_keys):
+            return list(obj)
+        return obj
 
     def get_key(self,
                 func: FunctionType,
