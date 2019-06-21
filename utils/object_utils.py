@@ -184,3 +184,16 @@ def get_risk_object_list(session,
                 rst.append(r)
 
     return rst
+
+
+@timing(cache=r_cache)
+def dashboard_3_sum(task_exec_hist_id_list):
+    """
+    仪表盘的三个数字
+    :param task_exec_hist_id_list:
+    :return:
+    """
+    sql_num = len(SQLText.filter_by_exec_hist_id(task_exec_hist_id_list).distinct("sql_id"))
+    table_num = ObjTabInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
+    index_num = ObjIndColInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
+    return sql_num, table_num, index_num
