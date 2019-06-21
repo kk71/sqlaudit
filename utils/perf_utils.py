@@ -99,11 +99,10 @@ class RedisCache:
                 func_call_kwargs: dict
                 ) -> str:
         """获取一个key"""
-        if self.key_type_exclude:
-            func_call_args = [i for i in func_call_args
-                              if not isinstance(i, self.key_type_exclude)]
-            func_call_kwargs = {k: v for k, v in func_call_kwargs.items()
-                                if not isinstance(v, self.key_type_exclude)}
+        func_call_args = [self.prepare_to_serialize(i) for i in func_call_args
+                          if not self.should_exclude(i)]
+        func_call_kwargs = {k: self.prepare_to_serialize(v) for k, v in func_call_kwargs.items()
+                            if not self.should_exclude(k)}
         args_dumped = self.key_serializer.dumps(func_call_args)
         func_call_kwargs = dict(sorted(func_call_kwargs.items()))
         kwargs_dumped = self.key_serializer.dumps(func_call_kwargs)
