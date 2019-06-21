@@ -116,18 +116,19 @@ class MetadataListHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
-            Optional("table_name", default=None): scm_unempty_str,
-            Optional("search_type", default="eq"): And(
-                scm_str, scm_one_of_choices(("icontains", "eq"))),
+            Optional("table_name"): scm_unempty_str,
+            Optional("search_type", default="exact"): And(
+                scm_str, scm_one_of_choices(("icontains", "exact"))),
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        if params["table_name"]:
-            params["table_name"] = f"{params.pop('table_name')}__{params.pop('search_type')}"
+        search_type = params.pop('search_type')
+        if params.get("table_name", None):
+            params[f"table_name__{search_type}"] = params.pop('table_name')
         keyword = params.pop("keyword")
         p = self.pop_p(params)
-        
+
         obj_table_info_q = ObjTabInfo.objects.filter(**params).order_by("-etl_date")
         if keyword:
             obj_table_info_q = self.query_keyword(obj_table_info_q, keyword, "schema_name",
