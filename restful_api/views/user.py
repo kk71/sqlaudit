@@ -8,11 +8,11 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from .base import *
-from utils import privilege_utils
 from models.oracle import *
 
 
 class AuthHandler(BaseReq):
+
     def post(self):
         """登录"""
         params = self.get_json_args(Schema({
@@ -51,6 +51,7 @@ class AuthHandler(BaseReq):
 
 
 class UserHandler(AuthReq):
+
     def get(self):
         """用户列表"""
         params = self.get_query_args(Schema(self.gen_p()))

@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import cx_Oracle
-from schema import Schema, Optional
+from schema import Schema, Optional, And
 
 from .base import AuthReq
 from utils.schema_utils import *
@@ -163,21 +163,31 @@ class SystemPrivilegeHandler(AuthReq):
 
     def get(self):
         """权限列表"""
-        params = self.get_query_args(Schema(self.gen_p()))
+        params = self.get_query_args(Schema({
+            Optional("type", default=PRIVILEGE.ALL_PRIVILEGE_TYPE):
+                And(scm_dot_split_int, scm_subset_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE)),
+            Optional("current_user", default=False): scm_bool,
+            **self.gen_p()
+        }))
+        privilege_type: list = params.pop("type")
+        current_user = params.pop("current_user")
         p = self.pop_p(params)
-        items, p = self.paginate(PRIVILEGE.ALL_PRIVILEGE, **p)
-        self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
 
-    # @staticmethod
-    # def privilege_schema():
-    #     return PRIVILEGE.privilege_to_dict(
-    #         (
-    #             scm_int,
-    #             scm_one_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE),
-    #             scm_unempty_str,
-    #             scm_str
-    #         )
-    #     )
+        if current_user:
+            with make_session() as session:
+                privilege_ids = [i[0] for i in session.query(RolePrivilege.privilege_id).
+                    join(UserRole, RolePrivilege.role_id == UserRole.role_id).
+                    filter(UserRole.login_user == self.current_user)]
+            privilege_dicts = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
+                               for i in privilege_ids]
+            privilege_dicts = [i for i in privilege_dicts if i["type"] in privilege_type]
+
+        else:
+            privilege_dicts = [PRIVILEGE.privilege_to_dict(i)
+                               for i in PRIVILEGE.get_privilege_by_type(privilege_type)]
+
+        items, p = self.paginate(privilege_dicts, **p)
+        self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
 
 
 class CMDBPermissionHandler(AuthReq):

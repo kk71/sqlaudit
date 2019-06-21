@@ -135,16 +135,43 @@ class PRIVILEGE:
     NAMES = ("id", "type", "name", "description")
 
     # 权限
-    PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘可见", "是否允许使用仪表盘")
-    PRIVILEGE_2 = (2, TYPE_FE, "emm", "是否允许使用仪表盘")
-    PRIVILEGE_3 = (3, TYPE_FE, "emmm", "是否允许使用仪表盘")
-    PRIVILEGE_4 = (4, TYPE_FE, "emmmm", "是否允许使用仪表盘")
+    # 新增权限的时候，请保持id不断增大，不要复用旧id，哪怕已经删掉的权限的id也不要用)
+    # 删除权限请全代码搜索删除
+    PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘页", "是否允许使用")
+    PRIVILEGE_SQL_HEALTH = (2, TYPE_FE, "SQL健康度页", "是否允许使用")
+    PRIVILEGE_ONLINE = (3, TYPE_FE, "线上审核页", "是否允许使用")
+    PRIVILEGE_OFFLINE = (4, TYPE_FE, "线下审核页", "是否允许使用")
+    PRIVILEGE_SELF_SERVICE_ONLINE = (5, TYPE_FE, "自助上线页", "是否允许使用")
+    PRIVILEGE_SQL_TUNE = (6, TYPE_FE, "SQL智能优化", "是否允许使用")
+    PRIVILEGE_USER_MANAGER = (7, TYPE_FE, "用户管理", "是否允许使用")
+    PRIVILEGE_CMDB = (8, TYPE_FE, "纳管数据库管理", "是否允许使用")
+    PRIVILEGE_TASK = (9, TYPE_FE, "任务管理", "是否允许使用")
+    PRIVILEGE_RULE = (10, TYPE_FE, "规则管理", "是否允许使用")
+    PRIVILEGE_SIMPLE_RULE = (11, TYPE_FE, "增加简单规则", "是否允许使用")
+    PRIVILEGE_COMPLEX_RULE = (12, TYPE_FE, "增加复杂规则", "是否允许使用")
+    PRIVILEGE_WHITE_LIST = (13, TYPE_FE, "白名单管理", "是否允许使用")
+    PRIVILEGE_RISK_RULE = (14, TYPE_FE, "风险规则管理", "是否允许使用")
+    PRIVILEGE_MAIL_SEND = (15, TYPE_FE, "发送报告", "是否允许使用")
+    PRIVILEGE_METADATA = (16, TYPE_FE, "元数据", "是否允许使用")
+
+    # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
         PRIVILEGE_DASHBOARD,
-
-        PRIVILEGE_2,
-        PRIVILEGE_3,
-        PRIVILEGE_4,
+        PRIVILEGE_SQL_HEALTH,
+        PRIVILEGE_ONLINE,
+        PRIVILEGE_OFFLINE,
+        PRIVILEGE_SELF_SERVICE_ONLINE,
+        PRIVILEGE_SQL_TUNE,
+        PRIVILEGE_USER_MANAGER,
+        PRIVILEGE_CMDB,
+        PRIVILEGE_TASK,
+        PRIVILEGE_RULE,
+        PRIVILEGE_SIMPLE_RULE,
+        PRIVILEGE_COMPLEX_RULE,
+        PRIVILEGE_WHITE_LIST,
+        PRIVILEGE_RISK_RULE,
+        PRIVILEGE_MAIL_SEND,
+        PRIVILEGE_METADATA
     )
 
     @classmethod
