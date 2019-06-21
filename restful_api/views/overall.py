@@ -102,3 +102,43 @@ class NoticeHandler(AuthReq):
             session.commit()
             session.refresh(notice)
             self.resp_created(notice.to_dict())
+
+
+class MetadataListHandler(AuthReq):
+
+    def post(self):
+        """元数据查询"""
+        params=self.get_json_args(Schema({
+            "cmdb_id":scm_int,
+
+            "schema":scm_unempty_str,#owner
+            "search_type":And(scm_unempty_str,scm_one_of_choices(("contains","equal"))),
+            Optional("table_name",default=None):scm_unempty_str,
+
+            Optional("keyword", default=None): scm_str,
+            **self.gen_p()
+        }))
+        cmdb_id,schema,search_type,table_name=\
+            params.pop("cmdb_id"),params.pop('schema'),\
+            params("table_name")
+        p =self.pop_p(params)
+        keyword=params.pop("keyword")
+
+        record=ObjTabInfo.objects(cmdb_id=cmdb_id,owner=schema).order_by("-etl_date").first()
+        if not record:
+            self.resp({}, msg="表中数据为空")
+
+        table_basic = ObjTabInfo.objects(cmdb_id=cmdb_id, owner=schema, record_id=record.record_id)
+        if table_name:
+            tabel_basic=table_basic.filter(table_name=table_name) \
+                if search_type=="equal" \
+                else table_basic.filter(table_name__contains=table_name)
+        if keyword:
+            self.query_keyword()
+        self.paginate()
+
+
+
+        self.resp_created()
+
+

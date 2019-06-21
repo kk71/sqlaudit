@@ -101,5 +101,10 @@ urls += [
 # self help online
 urls += [
     (r"/api/self_service/overview", self_service.OverviewHandler),
-    (r"/api/self_service/execute", self_service.ExecuteHandler),
+]
+
+#metadata
+urls += [
+    (r"/api/metadata/list",overall.MetadataListHandler)
+
 ]
