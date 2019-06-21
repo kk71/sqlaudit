@@ -5,13 +5,12 @@ from typing import Union
 
 import sqlparse
 from mongoengine import Q
-from sqlalchemy.orm.session import Session
 
 from utils.perf_utils import *
 from models.mongo import *
 from models.oracle import *
 from utils.datetime_utils import *
-from utils import rule_utils, cmdb_utils, const
+from utils import rule_utils, const
 from utils.const import SQL_DDL, SQL_DML
 
 

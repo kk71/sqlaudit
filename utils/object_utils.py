@@ -1,16 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from collections import defaultdict
 from typing import Iterable, Union
 
-from sqlalchemy.orm.session import Session
 from mongoengine import Q
 
 from models.oracle import *
 from models.mongo import *
 from utils.perf_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, cmdb_utils, const
+from utils import rule_utils, const
 
 
 @timing(cache=r_cache)

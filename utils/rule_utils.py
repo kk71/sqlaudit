@@ -2,10 +2,8 @@
 
 import re
 import json
-from collections import defaultdict
 
 from mongoengine import Q
-from sqlalchemy.orm.session import Session
 
 from models.oracle import RiskSQLRule, WhiteListRules
 from models.mongo import *

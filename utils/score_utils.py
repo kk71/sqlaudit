@@ -1,9 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from collections import defaultdict
-from typing import *
-
-from sqlalchemy.orm.session import Session
 
 from utils.const import *
 from utils.perf_utils import timing
