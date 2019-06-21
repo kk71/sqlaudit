@@ -42,6 +42,16 @@ def get_cmdb_phy_size(session, cmdb) -> int:
             return ret[0]["sum"]
 
 
+def __prefetch():
+    with make_session() as session:
+        for cmdb in session.query(CMDB):
+            get_cmdb_phy_size(session, cmdb)
+
+
+get_cmdb_phy_size.prefetch = __prefetch
+del __prefetch
+
+
 @timing(cache=r_cache)
 def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
     """
@@ -83,6 +93,18 @@ def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
                 k: dt_to_str(v)
                 for k, v in r[0].items()}
     return ret
+
+
+def __prefetch():
+    with make_session() as session:
+        for cmdb in session.query(CMDB).all():
+            rule_names = list(Rule.objects.filter(db_model=cmdb.db_model).
+                              values_list("rule_name"))
+            get_object_stats_towards_cmdb(rule_names, cmdb.cmdb_id)
+
+
+get_object_stats_towards_cmdb.prefetch = __prefetch
+del __prefetch
 
 
 @timing(cache=r_cache)

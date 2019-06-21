@@ -101,12 +101,11 @@ def get_risk_rules_dict(session) -> dict:
 
 
 @timing(cache=r_cache)
-def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
+def get_all_risk_towards_a_sql(session, sql_id, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
     :param session:
     :param sql_id:
-    :param db_model:
     :param date_range: a tuple of two datetime objects
     :return: risk rule_name set
     """

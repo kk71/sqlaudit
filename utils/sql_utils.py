@@ -297,6 +297,16 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
     return {i["_id"]: i for i in ret}
 
 
+def __prefetch():
+    with make_session() as session:
+        for cmdb in session.query(CMDB).all():
+            get_sql_id_stats(cmdb.cmdb_id)
+
+
+get_sql_id_stats.prefetch = __prefetch
+del __prefetch
+
+
 @timing(cache=r_cache)
 def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
@@ -330,6 +340,16 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     return {i["_id"]: i for i in ret}
 
 
+def __prefetch():
+    with make_session() as session:
+        for cmdb in session.query(CMDB):
+            get_sql_plan_stats(cmdb.cmdb_id)
+
+
+get_sql_plan_stats.prefetch = __prefetch
+del __prefetch
+
+
 @timing(cache=r_cache)
 def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
     """
@@ -345,6 +365,19 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
     keys = ["sql_id", "elapsed_time_delta", "executions_delta", "schema"]
     return {i[0]: dict(zip(keys[1:], i[1:])) for i in
             SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
+
+
+def __prefetch():
+    from utils.datetime_utils import *
+    with make_session() as session:
+        record_ids = Results.objects().\
+            filter(create_date__gte=arrow.now().shift(months=-1).datetime).\
+            distinct("record_id")
+        get_sql_id_sqlstat_dict(list(record_ids))
+
+
+get_sql_id_sqlstat_dict.prefetch = __prefetch
+del __prefetch
 
 
 @timing(cache=r_cache)
