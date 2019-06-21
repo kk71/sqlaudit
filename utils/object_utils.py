@@ -10,11 +10,10 @@ from models.oracle import *
 from models.mongo import *
 from utils.perf_utils import *
 from utils.datetime_utils import *
-from utils.cache_utils import *
 from utils import rule_utils, cmdb_utils, const
 
 
-@timing()
+@timing(cache=r_cache)
 def get_cmdb_phy_size(session, cmdb) -> int:
     """
     计算cmdb最近一次统计的物理体积（目前仅计算表的总体积）
@@ -45,7 +44,7 @@ def get_cmdb_phy_size(session, cmdb) -> int:
             return ret[0]["sum"]
 
 
-@timing()
+@timing(cache=r_cache)
 def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
     """
     统计某个库的obj的规则的首末次出现时间
@@ -88,7 +87,7 @@ def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
     return ret
 
 
-@timing()
+@timing(cache=r_cache)
 def get_risk_object_list(session,
                          cmdb_id,
                          date_start=None,

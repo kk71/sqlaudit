@@ -57,7 +57,8 @@ class DashboardHandler(AuthReq):
                 0: "待审核",
                 1: "审核通过",
                 2: "被驳回",
-                3: "已上线"
+                3: "已上线",
+                4: "上线失败"
             }
             self.get.tik("finished offline ticket")
             # 线上审核的采集任务

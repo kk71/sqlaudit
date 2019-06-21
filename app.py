@@ -111,8 +111,8 @@ def schedule():
 @click.command()
 def clear_cache():
     """clear all cache"""
-    from utils.cache_utils import sc
-    print(sc.expire_all_in_set())
+    from utils.perf_utils import r_cache
+    print(r_cache.expire())
 
 
 if __name__ == "__main__":

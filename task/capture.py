@@ -12,7 +12,6 @@ import past.utils.log
 import past.utils.health_data_gen
 
 import utils.const
-from utils.cache_utils import sc
 from task.base import *
 
 

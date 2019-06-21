@@ -11,7 +11,6 @@ from models.oracle import RiskSQLRule, WhiteListRules
 from models.mongo import *
 from utils.perf_utils import *
 from utils.const import *
-from utils.cache_utils import *
 
 
 def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
@@ -103,7 +102,7 @@ def get_risk_rules_dict(session) -> dict:
     return {(r.db_type, r.db_model, r.rule_name): r for r in risk_rule_list}
 
 
-@timing()
+@timing(cache=r_cache)
 def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple) -> set:
     """
     用当前配置的风险规则，去遍历results
@@ -139,7 +138,7 @@ def get_all_risk_towards_a_sql(session, sql_id, db_model: str, date_range: tuple
     return rule_name_set
 
 
-@timing()
+@timing(cache=r_cache)
 def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     """
     获取最近的风险率

@@ -10,7 +10,6 @@ from utils.perf_utils import timing
 from models.mongo import *
 from models.oracle import *
 from utils import rule_utils
-from utils.cache_utils import *
 
 
 def calc_deduction(scores):

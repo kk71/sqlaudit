@@ -38,7 +38,7 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     return list(set(q))
 
 
-@timing()
+@timing(cache=r_cache)
 def get_cmdb_available_schemas(cmdb_object) -> [str]:
     """
     获取一个cmdb可用的全部schema
