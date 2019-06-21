@@ -368,7 +368,6 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
 
 
 def __prefetch():
-    from utils.datetime_utils import *
     with make_session() as session:
         record_ids = Results.objects().\
             filter(create_date__gte=arrow.now().shift(months=-1).datetime).\
