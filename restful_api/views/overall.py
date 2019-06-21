@@ -48,7 +48,7 @@ class DashboardHandler(AuthReq):
             optimized_execution_q = list(session.query(AituneResultDetails).with_entities(func.count()))
             if optimized_execution_q:
                 optimized_execution_times = optimized_execution_q[0][0]
-                
+
             # 线下审核工单状态归类
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)). \
@@ -111,39 +111,31 @@ class NoticeHandler(AuthReq):
 
 class MetadataListHandler(AuthReq):
 
-    def post(self):
+    def get(self):
         """元数据查询"""
-        params=self.get_json_args(Schema({
-            "cmdb_id":scm_int,
-
-            "schema":scm_unempty_str,#owner
-            "search_type":And(scm_unempty_str,scm_one_of_choices(("contains","equal"))),
-            Optional("table_name",default=None):scm_unempty_str,
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            "schema_name": scm_unempty_str,
+            Optional("table_name", default=None): scm_unempty_str,
+            Optional("search_type", default="eq"): And(
+                scm_str, scm_one_of_choices(("icontains", "eq"))),
 
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
-        cmdb_id,schema,search_type,table_name=\
-            params.pop("cmdb_id"),params.pop('schema'),\
-            params("table_name")
-        p =self.pop_p(params)
-        keyword=params.pop("keyword")
-
-        record=ObjTabInfo.objects(cmdb_id=cmdb_id,owner=schema).order_by("-etl_date").first()
-        if not record:
-            self.resp({}, msg="表中数据为空")
-
-        table_basic = ObjTabInfo.objects(cmdb_id=cmdb_id, owner=schema, record_id=record.record_id)
-        if table_name:
-            tabel_basic=table_basic.filter(table_name=table_name) \
-                if search_type=="equal" \
-                else table_basic.filter(table_name__contains=table_name)
+        if params["table_name"]:
+            params["table_name"] = f"{params.pop('table_name')}__{params.pop('search_type')}"
+        keyword = params.pop("keyword")
+        p = self.pop_p(params)
+        
+        obj_table_info_q = ObjTabInfo.objects.filter(**params).order_by("-etl_date")
         if keyword:
-            self.query_keyword()
-        self.paginate()
-
-
-
-        self.resp_created()
-
-
+            obj_table_info_q = self.query_keyword(obj_table_info_q, keyword, "schema_name",
+                                                  "ip_address",
+                                                  "sid",
+                                                  "table_name",
+                                                  "table_type",
+                                                  "object_type",
+                                                  "iot_name")
+        items, p = self.paginate(obj_table_info_q, **p)
+        self.resp([i.to_dict() for i in items], **p)

@@ -48,6 +48,7 @@ urls += [
     # 仪表盘
     (r"/api/dashboard", overall.DashboardHandler),
     (r"/api/dashboard/notice", overall.NoticeHandler),
+    (r"/api/metadata/list", overall.MetadataListHandler),
 ]
 
 # task
@@ -101,10 +102,5 @@ urls += [
 # self help online
 urls += [
     (r"/api/self_service/overview", self_service.OverviewHandler),
-]
-
-#metadata
-urls += [
-    (r"/api/metadata/list",overall.MetadataListHandler)
-
+    (r"/api/self_service/execute", self_service.ExecuteHandler),
 ]

@@ -9,7 +9,7 @@ from .utils import BaseDocRecordID
 class ObjTabInfo(BaseDocRecordID):
     """表"""
     _id = ObjectIdField()
-    owner = StringField(db_field="OWNER")#TODO
+    schema_name = StringField(db_field="OWNER")
     etl_date = DateTimeField(db_field="ETL_DATE")
     ip_address = StringField(db_field="IPADDR")
     sid = StringField(db_field="SID")
