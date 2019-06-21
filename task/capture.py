@@ -13,6 +13,7 @@ import past.utils.health_data_gen
 
 import utils.const
 from task.base import *
+from utils.perf_utils import r_cache
 
 
 logger = past.utils.log.get_logger("capture")
@@ -215,5 +216,5 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         logger.error("Exception", exc_info=True)
         update_record(task_id, record_id, False, err_msg=str(e))
 
-    logger.warning(sc.expire_all_in_set())
+    logger.warning(r_cache.expire())
     logger.warning("finish task ..........")
