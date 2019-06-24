@@ -436,7 +436,7 @@ class OverviewHandler(SQLRiskListHandler):
         """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name", default=None): scm_str,
+            Optional("schema_name", default=None): scm_unempty_str,
             "date_start": scm_date,
             "date_end": scm_date,
         }))
@@ -570,6 +570,26 @@ class OverviewHandler(SQLRiskListHandler):
                 # 以下是取最近一次扫描的结果
                 "phy_size_mb": phy_size,
             }
+
+    @staticmethod
+    def __prefetch():
+        arrow_now = arrow.now()
+        date_end = arrow_now.date()
+        date_start = arrow_now.shift(weeks=-1).date()
+        with make_session() as session:
+            for cmdb in session.query(CMDB.cmdb_id).query():
+                cmdb_id = cmdb[0]
+                OverviewHandler.online_overview_using_cache(
+                    date_start=date_start,
+                    date_end=date_end,
+                    cmdb_id=cmdb_id,
+                    schema_name=None
+                )
+
+    online_overview_using_cache.prefetch = __prefetch
+    del __prefetch
+
+
 
 class OverviewScoreByHandler(AuthReq):
 
