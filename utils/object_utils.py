@@ -13,14 +13,14 @@ from utils import rule_utils, const, cmdb_utils
 
 
 @timing(cache=r_cache)
-def get_cmdb_phy_size(session, cmdb) -> int:
+def get_cmdb_phy_size(session, cmdb_id) -> int:
     """
     计算cmdb最近一次统计的物理体积（目前仅计算表的总体积）
     :param session:
-    :param cmdb:
+    :param cmdb_id:
     :return: int
     """
-    # TODO make it cached
+    cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
     latest_task_exec_hist_obj = session.query(TaskExecHistory). \
         filter(TaskExecHistory.connect_name == cmdb.connect_name). \
         order_by(TaskExecHistory.task_end_date.desc()).first()
@@ -46,7 +46,7 @@ def get_cmdb_phy_size(session, cmdb) -> int:
 def __prefetch():
     with make_session() as session:
         for cmdb in session.query(CMDB):
-            get_cmdb_phy_size(session=session, cmdb=cmdb)
+            get_cmdb_phy_size(session=session, cmdb_id=cmdb.cmdb_id)
 
 
 get_cmdb_phy_size.prefetch = __prefetch
