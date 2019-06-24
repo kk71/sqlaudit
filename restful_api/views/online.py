@@ -431,7 +431,6 @@ class TableInfoHandler(AuthReq):
 
 class OverviewHandler(SQLRiskListHandler):
 
-    @timing()
     def get(self):
         """风险详情的sql plan详情"""
         """数据库健康度概览"""
@@ -446,7 +445,16 @@ class OverviewHandler(SQLRiskListHandler):
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
         del params  # shouldn't use params anymore
+        self.resp(self.online_overview_using_cache(
+            date_start=date_start,
+            date_end=date_end,
+            cmdb_id=cmdb_id,
+            schema_name=schema_name
+        ))
 
+    @staticmethod
+    @timing(cache=r_cache)
+    def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
         with make_session() as session:
             dt_now = arrow.get(date_start)
             dt_end = arrow.get(date_end)
@@ -503,7 +511,7 @@ class OverviewHandler(SQLRiskListHandler):
                         continue
                     if result_rule_dict.get("records", []) or result_rule_dict.get("sqls", []):
                         risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
-                        risk_rule_name_sql_num_dict[rule_name]["schema_set"].\
+                        risk_rule_name_sql_num_dict[rule_name]["schema_set"]. \
                             add(result.schema_name)
             risk_rule_rank = [
                 {
@@ -549,7 +557,7 @@ class OverviewHandler(SQLRiskListHandler):
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb_id=cmdb_id)
 
-            self.resp({
+            return {
                 # 以下是按照给定的时间区间搜索的结果
                 "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
                 "risk_rule_rank": risk_rule_rank,
@@ -561,8 +569,7 @@ class OverviewHandler(SQLRiskListHandler):
                     cmdb_id=cmdb_id, date_range=(date_start, date_end)),
                 # 以下是取最近一次扫描的结果
                 "phy_size_mb": phy_size,
-            })
-
+            }
 
 class OverviewScoreByHandler(AuthReq):
 
