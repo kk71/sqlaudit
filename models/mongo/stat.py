@@ -40,5 +40,8 @@ class SQLStat(BaseDocRecordID):
     per_row_blk = FloatField(db_field="PER_ROW_BLK")
 
     meta = {
-        "collection": "sqlstat"
+        "collection": "sqlstat",
+        "indexes": [
+            "etl_date"
+        ]
     }

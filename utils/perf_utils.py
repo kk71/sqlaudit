@@ -7,6 +7,7 @@ __all__ = [
 
 import time
 import pickle
+import importlib
 from functools import wraps
 from typing import Union, Any
 from types import FunctionType
@@ -35,7 +36,7 @@ class RedisCache:
                  key_serializer=pickle,
                  cache_serializer=pickle,
                  key_type_exclude=(),
-                 ttl=settings.CACHE_DEFAULT_EXPIRE_TIME
+                 ttl=settings.CACHE_DEFAULT_EXPIRE_TIME,
                  ):
         self.prefix = prefix
         self.key_serializer = key_serializer
@@ -58,10 +59,9 @@ class RedisCache:
         deleted_num = 0
         if keys:
             deleted_num = self.redis_conn.delete(*keys)
-        prefetch_num = self.prefetch()
-        return {"deleted_keys": deleted_num, "prefetch_funcs": prefetch_num}
+        return {"deleted_keys": deleted_num, **self.prefetch()}
 
-    def prefetch(self, func: FunctionType = None) -> int:
+    def prefetch(self, func: FunctionType = None) -> dict:
         prefetch_num = 0
         for a_func in self.bound_functions:
             if func and a_func != func:
@@ -71,13 +71,14 @@ class RedisCache:
                 print(f"* function {func} has no prefetch method.")
                 continue
             try:
+                print(f"fetching {func_info(method)} ...")
                 ret = method()
             except Exception as e:
                 print(f"* failed when prefetch function {a_func.__name__}.prefetch: {str(e)}")
                 continue
             print(f"* prefetch {a_func.__name__} returned with {ret}")
             prefetch_num += 1
-        return prefetch_num
+        return {"prefetch_num": prefetch_num, "bound_funcs": len(self.bound_functions)}
 
     def get_func_key(self, func: FunctionType):
         return f"{self.prefix}-{func.__name__}-*"
@@ -189,7 +190,9 @@ def timing(
 
 from sqlalchemy.orm.session import Session
 
-r_cache = RedisCache(key_type_exclude=Session)
+r_cache = RedisCache(
+    key_type_exclude=Session,
+)
 
 
 if __name__ == "__main__":
