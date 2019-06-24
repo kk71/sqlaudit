@@ -3,6 +3,7 @@
 import cx_Oracle
 
 from models.oracle import *
+from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
 
@@ -130,3 +131,146 @@ def test_cmdb_connectivity(cmdb):
     finally:
         conn and conn.close()
     return {"connectivity": True, "info": ""}
+
+
+@timing(cache=r_cache)
+def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
+
+    from utils import object_utils, rule_utils, sql_utils
+
+    with make_session() as session:
+        dt_now = arrow.get(date_start)
+        dt_end = arrow.get(date_end)
+        sql_num_active = []
+        sql_num_at_risk = []
+
+        # SQL count
+        while dt_now <= dt_end:
+            sql_text_q = SQLText.objects(
+                cmdb_id=cmdb_id,
+                etl_date__gte=dt_now.datetime,
+                etl_date__lt=dt_now.shift(days=+1).datetime,
+            )
+            if schema_name:
+                sql_text_q = sql_text_q.filter(schema=schema_name)
+            active_sql_num = len(sql_text_q.distinct("sql_id"))
+            at_risk_sql_num = len(sql_utils.get_risk_sql_list(
+                session=session,
+                cmdb_id=cmdb_id,
+                schema_name=schema_name,
+                sql_id_only=True,
+                date_range=(dt_now.date(), dt_now.shift(days=+1).date())
+            ))
+            sql_num_active.append({
+                "date": dt_to_str(dt_now),
+                "value": active_sql_num
+            })
+            sql_num_at_risk.append({
+                "date": dt_to_str(dt_now),
+                "value": at_risk_sql_num
+            })
+            dt_now = dt_now.shift(days=+1)
+
+        # risk_rule_rank
+
+        # 只需要拿到rule_name即可，不需要知道其他两个key,
+        # 因为当前仅对某一个库做分析，数据库类型和db_model都是确定的
+        risk_rule_name_sql_num_dict = {
+            # rule_name: {...}
+            r3key[2]: {
+                "violation_num": 0,
+                "schema_set": set(),
+                **robj.to_dict(iter_if=lambda k, v: k in ("risk_name", "severity"))
+            }
+            for r3key, robj in rule_utils.get_risk_rules_dict(session).items()}
+        results_q = Results.objects(
+            cmdb_id=cmdb_id, create_date__gte=date_start, create_date__lte=date_end)
+        if schema_name:
+            results_q = results_q.filter(schema_name=schema_name)
+        for result in results_q:
+            for rule_name in risk_rule_name_sql_num_dict.keys():
+                result_rule_dict = getattr(result, rule_name, None)
+                if not result_rule_dict:
+                    continue
+                if result_rule_dict.get("records", []) or result_rule_dict.get("sqls", []):
+                    risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
+                    risk_rule_name_sql_num_dict[rule_name]["schema_set"]. \
+                        add(result.schema_name)
+        risk_rule_rank = [
+            {
+                "rule_name": rule_name,
+                "num": k["violation_num"],
+                "risk_name": k["risk_name"],
+                "severity": k["severity"],
+            } for rule_name, k in risk_rule_name_sql_num_dict.items()
+        ]
+
+        risk_rule_rank = sorted(risk_rule_rank, key=lambda x: x["num"], reverse=True)
+
+        # top 10 execution cost by sum and by average
+        sqls = sql_utils.get_risk_sql_list(
+            session=session,
+            cmdb_id=cmdb_id,
+            schema_name=schema_name,
+            date_range=(date_start, date_end),
+            sqltext_stats=False
+        )
+        sql_by_sum = [
+            {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]}
+            for sql in sqls
+        ]
+        top_10_sql_by_sum = sorted(
+            sql_by_sum,
+            key=lambda x: x["time"],
+            reverse=True
+        )[:10]
+        top_10_sql_by_sum.reverse()
+        sql_by_average = [
+            {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]}
+            for sql in sqls
+        ]
+        top_10_sql_by_average = sorted(
+            sql_by_average,
+            key=lambda x: x["time"],
+            reverse=True
+        )[:10]
+        top_10_sql_by_average.reverse()
+
+        # physical size of current CMDB
+        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+        phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb_id=cmdb_id)
+
+        return {
+            # 以下是按照给定的时间区间搜索的结果
+            "sql_num": {"active": sql_num_active, "at_risk": sql_num_at_risk},
+            "risk_rule_rank": risk_rule_rank,
+            "sql_execution_cost_rank": {
+                "by_sum": top_10_sql_by_sum,
+                "by_average": top_10_sql_by_average
+            },
+            "risk_rates": rule_utils.get_risk_rate(
+                cmdb_id=cmdb_id, date_range=(date_start, date_end)),
+            # 以下是取最近一次扫描的结果
+            "phy_size_mb": phy_size,
+        }
+
+
+def __prefetch():
+    arrow_now = arrow.now()
+    date_end = arrow_now.date()
+    date_start = arrow_now.shift(weeks=-1).date()
+    with make_session() as session:
+        for cmdb in session.query(CMDB.cmdb_id).query():
+            cmdb_id = cmdb[0]
+            online_overview_using_cache(
+                date_start=date_start,
+                date_end=date_end,
+                cmdb_id=cmdb_id,
+                schema_name=None
+            )
+
+
+online_overview_using_cache.prefetch = __prefetch
+del __prefetch
+
+
