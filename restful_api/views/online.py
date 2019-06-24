@@ -45,7 +45,7 @@ class ObjectRiskListHandler(AuthReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            rst = object_utils.get_risk_object_list(session, **params)
+            rst = object_utils.get_risk_object_list(session=session, **params)
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
 
@@ -157,7 +157,8 @@ class SQLRiskListHandler(AuthReq):
 
         with make_session() as session:
             try:
-                rst = sql_utils.get_risk_sql_list(session, **params, date_range=date_range)
+                rst = sql_utils.get_risk_sql_list(
+                    session=session, **params, date_range=date_range)
             except NoRiskRuleSetException:
                 self.resp(msg="未设置风险规则。")
                 return
@@ -281,13 +282,13 @@ class SQLRiskDetailHandler(AuthReq):
                     RiskSQLRule.risk_sql_rule_id.in_(risk_rule_id_list))
             else:
                 rule_names = rule_utils.get_all_risk_towards_a_sql(
-                    session,
-                    sql_id,
+                    session=session,
+                    sql_id=sql_id,
                     date_range=(date_start, date_end)
                 )
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
-            sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id)
+            sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id=cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id).\
                 order_by("-etl_date").\
                 first()
@@ -299,7 +300,7 @@ class SQLRiskDetailHandler(AuthReq):
 
             hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                               distinct("plan_hash_value"))
-            sql_plan_stats = sql_utils.get_sql_plan_stats(cmdb_id)
+            sql_plan_stats = sql_utils.get_sql_plan_stats(cmdb_id=cmdb_id)
             plans = [
                 # {check codes blow for structure details}
             ]
@@ -464,7 +465,7 @@ class OverviewHandler(SQLRiskListHandler):
                     sql_text_q = sql_text_q.filter(schema=schema_name)
                 active_sql_num = len(sql_text_q.distinct("sql_id"))
                 at_risk_sql_num = len(sql_utils.get_risk_sql_list(
-                    session,
+                    session=session,
                     cmdb_id=cmdb_id,
                     schema_name=schema_name,
                     sql_id_only=True,
@@ -518,7 +519,7 @@ class OverviewHandler(SQLRiskListHandler):
 
             # top 10 execution cost by sum and by average
             sqls = sql_utils.get_risk_sql_list(
-                session,
+                session=session,
                 cmdb_id=cmdb_id,
                 schema_name=schema_name,
                 date_range=(date_start, date_end),
@@ -547,7 +548,7 @@ class OverviewHandler(SQLRiskListHandler):
 
             # physical size of current CMDB
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            phy_size = object_utils.get_cmdb_phy_size(session, cmdb)
+            phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb=cmdb)
 
             self.resp({
                 # 以下是按照给定的时间区间搜索的结果
@@ -557,7 +558,8 @@ class OverviewHandler(SQLRiskListHandler):
                     "by_sum": top_10_sql_by_sum,
                     "by_average": top_10_sql_by_average
                 },
-                "risk_rates": rule_utils.get_risk_rate(cmdb_id, (date_start, date_end)),
+                "risk_rates": rule_utils.get_risk_rate(
+                    cmdb_id=cmdb_id, date_range=(date_start, date_end)),
                 # 以下是取最近一次扫描的结果
                 "phy_size_mb": phy_size,
             })

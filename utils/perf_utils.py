@@ -7,10 +7,10 @@ __all__ = [
 
 import time
 import pickle
-import importlib
 from functools import wraps
 from typing import Union, Any
 from types import FunctionType
+from utils import const
 
 import redis
 
@@ -103,7 +103,7 @@ class RedisCache:
         func_call_args = [self.prepare_to_serialize(i) for i in func_call_args
                           if not self.should_exclude(i)]
         func_call_kwargs = {k: self.prepare_to_serialize(v) for k, v in func_call_kwargs.items()
-                            if not self.should_exclude(k)}
+                            if not self.should_exclude(v)}
         args_dumped = self.key_serializer.dumps(func_call_args)
         func_call_kwargs = dict(sorted(func_call_kwargs.items()))
         kwargs_dumped = self.key_serializer.dumps(func_call_kwargs)
@@ -137,6 +137,8 @@ def timing(
         def timed(*args, **kwargs):
 
             if cache:
+                if args:
+                    raise const.CannotUsePositionArgs
                 the_key = cache.get_key(timed, args, kwargs)
                 cached_result = cache.get(the_key)
                 if cached_result:

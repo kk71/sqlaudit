@@ -300,7 +300,7 @@ def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
 def __prefetch():
     with make_session() as session:
         for cmdb in session.query(CMDB).all():
-            get_sql_id_stats(cmdb.cmdb_id)
+            get_sql_id_stats(cmdb_id=cmdb.cmdb_id)
 
 
 get_sql_id_stats.prefetch = __prefetch
@@ -343,7 +343,7 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
 def __prefetch():
     with make_session() as session:
         for cmdb in session.query(CMDB):
-            get_sql_plan_stats(cmdb.cmdb_id)
+            get_sql_plan_stats(cmdb_id=cmdb.cmdb_id)
 
 
 get_sql_plan_stats.prefetch = __prefetch
@@ -462,9 +462,9 @@ def get_risk_sql_list(session,
         # ====== 如果仅统计sql_id，以下信息不需要 ======
         sql_text_stats = {}
         if sqltext_stats:
-            sql_text_stats = get_sql_id_stats(cmdb_id)
+            sql_text_stats = get_sql_id_stats(cmdb_id=cmdb_id)
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
-        last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(list(result_q.distinct("record_id")))
+        last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(record_id=list(result_q.distinct("record_id")))
 
     if enable_white_list:
         white_list_dict = rule_utils.get_white_list(session, cmdb_id)

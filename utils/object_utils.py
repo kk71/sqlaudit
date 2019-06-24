@@ -46,7 +46,7 @@ def get_cmdb_phy_size(session, cmdb) -> int:
 def __prefetch():
     with make_session() as session:
         for cmdb in session.query(CMDB):
-            get_cmdb_phy_size(session, cmdb)
+            get_cmdb_phy_size(session=session, cmdb=cmdb)
 
 
 get_cmdb_phy_size.prefetch = __prefetch
@@ -101,7 +101,7 @@ def __prefetch():
         for cmdb in session.query(CMDB).all():
             rule_names = list(Rule.objects.filter(db_model=cmdb.db_model).
                               values_list("rule_name"))
-            get_object_stats_towards_cmdb(rule_names, cmdb.cmdb_id)
+            get_object_stats_towards_cmdb(rule_names=rule_names, cmdb_id=cmdb.cmdb_id)
 
 
 get_object_stats_towards_cmdb.prefetch = __prefetch
@@ -167,7 +167,7 @@ def get_risk_object_list(session,
         result_q = result_q.filter(Qs)
 
     risky_rule_appearance = get_object_stats_towards_cmdb(
-        risky_rule_name_object_dict.keys(),
+        rule_names=risky_rule_name_object_dict.keys(),
         cmdb_id=cmdb_id
     )
     rst = []
@@ -238,7 +238,7 @@ def __prefetch():
     with make_session() as session:
         users = session.query(User.login_user).all()
         for user in users:
-            dashboard_3_sum(session, user[0])
+            dashboard_3_sum(session=session, login_user=user[0])
 
 
 dashboard_3_sum.prefetch = __prefetch

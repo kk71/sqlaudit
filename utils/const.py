@@ -208,3 +208,8 @@ class NoRiskRuleSetException(Exception):
 class PrivilegeRequired(Exception):
     """权限不足"""
     pass
+
+
+class CannotUsePositionArgs(Exception):
+    """函数参数必须带key"""
+    pass
