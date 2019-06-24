@@ -2,19 +2,18 @@
 
 from os import path
 from collections import defaultdict
-from types import FunctionType
 
 import sqlparse
 import xlsxwriter
 from schema import Schema, Optional, And
-from mongoengine import Q
 
+import settings
 from utils.const import *
 from utils.perf_utils import *
 from .base import AuthReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, cmdb_utils, sql_utils, object_utils, score_utils
+from utils import rule_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
 
@@ -469,7 +468,7 @@ class OverviewHandler(SQLRiskListHandler):
                     cmdb_id=cmdb_id,
                     schema_name=schema_name,
                     sql_id_only=True,
-                    date_range=(dt_now.datetime, dt_now.shift(days=+1).datetime)
+                    date_range=(dt_now.date(), dt_now.shift(days=+1).date())
                 ))
                 sql_num_active.append({
                     "date": dt_to_str(dt_now),
@@ -548,7 +547,7 @@ class OverviewHandler(SQLRiskListHandler):
 
             # physical size of current CMDB
             cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb=cmdb)
+            phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb_id=cmdb_id)
 
             self.resp({
                 # 以下是按照给定的时间区间搜索的结果

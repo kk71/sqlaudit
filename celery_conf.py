@@ -21,18 +21,19 @@ worker_max_tasks_per_child = 3
 # when add new tasks in new a module, add it below.
 imports = (
     "task.capture",
-    "task.sqlaitune",
-    "task.offline_ticket")
+    "task.offline_ticket",
+    "task.clear_cache",
+)
 
 # when add a new task, add it to blow.
 _capture = "task.capture.task_run"
-# _aitune = "task.sqlaitune.sqlaitune_run"
 _submit_ticket = "task.offline_ticket.offline_ticket"
+_clear_cache = "task.clear_cache.clear_cache"
 
 ALL_TASK = (
     _capture,
-    # _aitune,
-    _submit_ticket
+    _submit_ticket,
+    _clear_cache,
 )
 
 task_routes = {
