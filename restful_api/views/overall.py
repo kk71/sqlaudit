@@ -19,20 +19,9 @@ class DashboardHandler(AuthReq):
     def get(self):
         """仪表盘"""
         with make_session() as session:
-            cmdb_id_set = cmdb_utils.get_current_cmdb(session, self.current_user)
-            # 获取每个库最后一次抓取分析成功的历史记录的id
-            sub_q = session. \
-                query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
-                join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
-                filter(TaskManage.cmdb_id.in_(list(cmdb_id_set)),
-                       TaskManage.task_exec_scripts == DB_TASK_CAPTURE,
-                       TaskExecHistory.status == True).subquery()
-            cmdb_id_exec_hist_id_list_q = session. \
-                query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
-            task_exec_hist_id_list: [str] = [str(i[1]) for i in cmdb_id_exec_hist_id_list_q]
-
             # 计算值
-            sql_num, table_num, index_num = object_utils.dashboard_3_sum(task_exec_hist_id_list)
+            sql_num, table_num, index_num, task_exec_hist_id_list = object_utils.\
+                dashboard_3_sum(login_user=self.current_user)
 
             # 维度的数据库
             envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)). \

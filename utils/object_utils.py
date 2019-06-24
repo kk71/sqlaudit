@@ -3,12 +3,13 @@
 from typing import Iterable, Union
 
 from mongoengine import Q
+from sqlalchemy import func
 
 from models.oracle import *
 from models.mongo import *
 from utils.perf_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, const
+from utils import rule_utils, const, cmdb_utils
 
 
 @timing(cache=r_cache)
@@ -207,13 +208,38 @@ def get_risk_object_list(session,
 
 
 @timing(cache=r_cache)
-def dashboard_3_sum(task_exec_hist_id_list):
+def dashboard_3_sum(session, login_user):
     """
-    仪表盘的三个数字
-    :param task_exec_hist_id_list:
+    仪表盘的三个数字 以及可用的exec hist id列表
+    :param session:
+    :param login_user:
     :return:
     """
+    cmdb_id_set = cmdb_utils.get_current_cmdb(session, login_user)
+    # 获取每个库最后一次抓取分析成功的历史记录的id
+    sub_q = session. \
+        query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
+        join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
+        filter(TaskManage.cmdb_id.in_(list(cmdb_id_set)),
+               TaskManage.task_exec_scripts == const.DB_TASK_CAPTURE,
+               TaskExecHistory.status == True).subquery()
+    cmdb_id_exec_hist_id_list_q = session. \
+        query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
+    task_exec_hist_id_list: [str] = [str(i[1]) for i in cmdb_id_exec_hist_id_list_q]
+
     sql_num = len(SQLText.filter_by_exec_hist_id(task_exec_hist_id_list).distinct("sql_id"))
     table_num = ObjTabInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
     index_num = ObjIndColInfo.filter_by_exec_hist_id(task_exec_hist_id_list).count()
-    return sql_num, table_num, index_num
+
+    return sql_num, table_num, index_num, task_exec_hist_id_list
+
+
+def __prefetch():
+    with make_session() as session:
+        users = session.query(User.login_user).all()
+        for user in users:
+            dashboard_3_sum(session, user[0])
+
+
+dashboard_3_sum.prefetch = __prefetch
+del __prefetch

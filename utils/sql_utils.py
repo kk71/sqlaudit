@@ -367,16 +367,16 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
             SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
 
 
-def __prefetch():
-    with make_session() as session:
-        record_ids = Results.objects().\
-            filter(create_date__gte=arrow.now().shift(months=-1).datetime).\
-            distinct("record_id")
-        get_sql_id_sqlstat_dict(list(record_ids))
-
-
-get_sql_id_sqlstat_dict.prefetch = __prefetch
-del __prefetch
+# def __prefetch():
+#     with make_session() as session:
+#         record_ids = Results.objects().\
+#             filter(create_date__gte=arrow.now().shift(months=-1).datetime).\
+#             distinct("record_id")
+#         get_sql_id_sqlstat_dict(list(record_ids))
+#
+#
+# get_sql_id_sqlstat_dict.prefetch = __prefetch
+# del __prefetch
 
 
 @timing(cache=r_cache)

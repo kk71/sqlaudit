@@ -66,17 +66,17 @@ class RedisCache:
         for a_func in self.bound_functions:
             if func and a_func != func:
                 continue
-            method = getattr(a_func, "prefetch")
+            method = getattr(a_func, "prefetch", None)
             if not method:
-                print(f"* function {func} has no prefetch method.")
+                print(f"* function {func_info(a_func)} has no prefetch method.")
                 continue
             try:
-                print(f"fetching {func_info(method)} ...")
+                print(f"fetching {func_info(a_func)} ...")
                 ret = method()
             except Exception as e:
-                print(f"* failed when prefetch function {a_func.__name__}.prefetch: {str(e)}")
+                print(f"* failed when prefetch function {func_info(a_func)}.prefetch: {str(e)}")
                 continue
-            print(f"* prefetch {a_func.__name__} returned with {ret}")
+            print(f"* prefetch {func_info(a_func)} returned with {ret}")
             prefetch_num += 1
         return {"prefetch_num": prefetch_num, "bound_funcs": len(self.bound_functions)}
 
