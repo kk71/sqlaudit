@@ -21,7 +21,7 @@ class DashboardHandler(AuthReq):
         with make_session() as session:
             # 计算值
             sql_num, table_num, index_num, task_exec_hist_id_list = object_utils.\
-                dashboard_3_sum(session, login_user=self.current_user)
+                dashboard_3_sum(session, self.current_user)
 
             # 维度的数据库
             envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)). \
