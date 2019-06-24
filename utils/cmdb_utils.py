@@ -260,7 +260,7 @@ def __prefetch():
     date_end = arrow_now.date()
     date_start = arrow_now.shift(weeks=-1).date()
     with make_session() as session:
-        for cmdb in session.query(CMDB.cmdb_id).query():
+        for cmdb in session.query(CMDB.cmdb_id).all():
             cmdb_id = cmdb[0]
             online_overview_using_cache(
                 date_start=date_start,
