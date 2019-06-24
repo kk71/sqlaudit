@@ -207,6 +207,35 @@ def get_risk_object_list(session,
     return rst
 
 
+def __prefetch():
+    arrow_now = arrow.now()
+    date_end = arrow_now.date()
+    date_start_week = arrow_now.shift(weeks=-1).date()
+    date_start_month = arrow_now.shift(days=-30).date()
+    with make_session() as session:
+        for cmdb in session.query(CMDB).all():
+            get_risk_object_list(
+                session=session,
+                cmdb_id=cmdb.cmdb_id,
+                date_start=date_start_week,
+                date_end=date_end,
+                schema_name=None,
+                risk_sql_rule_id=None
+            )
+            get_risk_object_list(
+                session=session,
+                cmdb_id=cmdb.cmdb_id,
+                date_start=date_start_month,
+                date_end=date_end,
+                schema_name=None,
+                risk_sql_rule_id=None
+            )
+
+
+get_risk_object_list.prefetch = __prefetch
+del __prefetch
+
+
 @timing(cache=r_cache)
 def dashboard_3_sum(session, login_user):
     """

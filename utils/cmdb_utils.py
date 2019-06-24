@@ -258,12 +258,19 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
 def __prefetch():
     arrow_now = arrow.now()
     date_end = arrow_now.date()
-    date_start = arrow_now.shift(weeks=-1).date()
+    date_start_week = arrow_now.shift(weeks=-1).date()
+    date_start_month = arrow_now.shift(days=-30).date()
     with make_session() as session:
         for cmdb in session.query(CMDB.cmdb_id).all():
             cmdb_id = cmdb[0]
             online_overview_using_cache(
-                date_start=date_start,
+                date_start=date_start_week,
+                date_end=date_end,
+                cmdb_id=cmdb_id,
+                schema_name=None
+            )
+            online_overview_using_cache(
+                date_start=date_start_month,
                 date_end=date_end,
                 cmdb_id=cmdb_id,
                 schema_name=None
