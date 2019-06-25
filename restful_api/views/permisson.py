@@ -180,7 +180,7 @@ class SystemPrivilegeHandler(AuthReq):
                     filter(UserRole.login_user == self.current_user)]
             privilege_dicts = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
                                for i in privilege_ids]
-            privilege_dicts = [i for i in privilege_dicts if i["type"] in privilege_type]
+            privilege_dicts = [i["name"] for i in privilege_dicts if i["type"] in privilege_type]
 
         else:
             privilege_dicts = [PRIVILEGE.privilege_to_dict(i)
