@@ -294,6 +294,7 @@ class CMDBHealthTrendHandler(AuthReq):
             else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB.connect_name).
                                                     filter(CMDB.cmdb_id.in_(cmdb_id_list))]
+            fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cn in cmdb_connect_name_list:
                 dh_q = session.query(DataHealth).filter(
@@ -303,6 +304,7 @@ class CMDBHealthTrendHandler(AuthReq):
                 ).order_by(DataHealth.collect_date)
                 for dh in dh_q:
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score
+                    fields.add(dh.database_name)
             if len(ret) > 0:
                 base_lines = [i[0] for i in session.query(CMDB.baseline).
                                 filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
@@ -318,7 +320,10 @@ class CMDBHealthTrendHandler(AuthReq):
                 "基线": base_line,
                 **v
             } for k, v in ret.items()]
-            self.resp(ret)
+            self.resp({
+                "data": ret,
+                "fields": list(fields)
+            })
 
 
 class RankingConfigHandler(AuthReq):
