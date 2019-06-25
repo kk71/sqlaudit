@@ -21,6 +21,7 @@ class OnlineReportTaskListHandler(AuthReq):
         """在线查看报告任务列表"""
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,
+            Optional("connect_name"): scm_unempty_str,
             Optional("schema_name", default=None): scm_unempty_str,
             "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
