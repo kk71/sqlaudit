@@ -83,6 +83,8 @@ class RoleHandler(AuthReq):
                           for i in privileges]
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
+            if not role:
+                return self.resp_not_found(msg="role not found.")
             role.from_dict(params)
             session.add(role)
             session.commit()
@@ -95,6 +97,7 @@ class RoleHandler(AuthReq):
                     privilege_id=i["id"],
                     privilege_type=i["type"]
                 ) for i in privileges])
+                session.commit()
         self.resp_created(msg="finished.")
 
     def delete(self):
