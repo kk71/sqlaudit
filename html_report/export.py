@@ -1,9 +1,10 @@
 import tarfile
 
 import os.path
+from bson import ObjectId
+
 import settings
 from utils.datetime_utils import *
-
 from .utils import print_html_script
 from .utils import print_html_body
 from .utils import print_html_js
@@ -59,7 +60,7 @@ def main_task(task_uuid, page):
                     sql_plans[key] = [x for x in MongoHelper.find('sqlplan', condition, {'_id': 0})]
                 value[sqlid_num]['plan'] = sql_plans[key]
 
-    job_info = MongoHelper.find_one("job", {"_id": task_uuid})
+    job_info = MongoHelper.find_one("job", {"_id": ObjectId(task_uuid)})
     host = job_info["desc"]["db_ip"]
     schema = job_info["desc"]["owner"]
     rule_type = job_info["desc"]["rule_type"].upper()

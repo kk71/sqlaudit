@@ -254,12 +254,19 @@ class SchemaHandler(AuthReq):
     def get(self):
         """获取schema列表"""
         params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
+            Optional("cmdb_id", default=None): scm_int,
+            Optional("connect_name", default=None): scm_unempty_str,
             Optional("current", default=False): scm_bool
         }))
         cmdb_id = params.pop("cmdb_id")
+        connect_name = params.pop("connect_name")
+        if not connect_name and not cmdb_id:
+            return self.resp_bad_req(msg="neither cmdb_id or connect_name nor is present.")
         current = params.pop("current")
         with make_session() as session:
+            if connect_name and not cmdb_id:
+                cmdb = session.query(CMDB).filter_by(connect_name=connect_name).first()
+                cmdb_id = cmdb.cmdb_id
             if current:
                 # 当前登录用户可用(数据权限配置)的schema
                 current_schemas = cmdb_utils.get_current_schema(session,
