@@ -34,34 +34,34 @@ class ManageHandler(AuthReq):
             send_mail_data, p = self.paginate(send_mail_data, **p)
             send_mail_data=[x.to_dict() for x in send_mail_data]
 
-            # 报告内容
-            report_content = {x['send_mail_id']: x['title'] for x in send_mail_data}
-
-            #收件人邮箱列表
-            users_mail_data=session.query(User).with_entities(User.email)
-            users_mail_data=[x[0] for x in users_mail_data]
-
-
-            #收件人类型姓名
-            q=QueryEntity(Role.role_name,User.user_name,User.login_user)
-            user_type_name_list=session.query(*q).join(UserRole,User.login_user==UserRole.login_user).\
-                join(Role,Role.role_id==UserRole.role_id).filter(User.login_user !="admin")
-            user_type_name_list = [q.to_dict(x) for x in user_type_name_list]
-            for user in user_type_name_list:
-                if user["role_name"]=="administrator":
-                    user["role_name"]=TYPE_ADMINISTRATOR
-                elif user["role_name"]=="dba":
-                    user["role_name"]=TYPE_DBA
-                elif user["role_name"]=="operator":
-                    user["role_name"]=TYPE_OPERATOR
-                else:
-                    pass
+            # # 报告内容
+            # report_content = {x['send_mail_id']: x['title'] for x in send_mail_data}
+            #
+            # #收件人邮箱列表
+            # users_mail_data=session.query(User).with_entities(User.email)
+            # users_mail_data=[x[0] for x in users_mail_data]
+            #
+            #
+            # #收件人类型姓名
+            # q=QueryEntity(Role.role_name,User.user_name,User.login_user)
+            # user_type_name_list=session.query(*q).join(UserRole,User.login_user==UserRole.login_user).\
+            #     join(Role,Role.role_id==UserRole.role_id).filter(User.login_user !="admin")
+            # user_type_name_list = [q.to_dict(x) for x in user_type_name_list]
+            # for user in user_type_name_list:
+            #     if user["role_name"]=="administrator":
+            #         user["role_name"]=TYPE_ADMINISTRATOR
+            #     elif user["role_name"]=="dba":
+            #         user["role_name"]=TYPE_DBA
+            #     elif user["role_name"]=="operator":
+            #         user["role_name"]=TYPE_OPERATOR
+            #     else:
+            #         pass
 
             self.resp({'send_mail_data':send_mail_data,
-                       "users_mail_data": users_mail_data,
-                       "user_type_name_list":user_type_name_list,
+                       # "users_mail_data": users_mail_data,
+                       # "user_type_name_list":user_type_name_list,
                        "login_user":login_user,
-                       **report_content,
+                       # **report_content,
                        **p
 
                        })
@@ -73,7 +73,7 @@ class ManageHandler(AuthReq):
             "mail_sender":[scm_str],#收件人
             "send_date":scm_one_of_choices(ALL_SEND_DATE),
             "send_time":scm_one_of_choices(ALL_SEND_TIME),
-            "send_content_item":scm_unempty_str,
+            # "send_content_item":scm_unempty_str,
         }))
         mail_sender=params.pop("mail_sender")
         mail_sender=";".join(mail_sender)
@@ -104,11 +104,9 @@ class ManageHandler(AuthReq):
         send_mail_id=params.pop("send_mail_id")
         with make_session() as session:
             w=session.query(SendMailList).\
-                filter_by(send_mail_id=send_mail_id)
-            w.update(dict(mail_sender,**params))
+                filter_by(send_mail_id=send_mail_id).update(dict(mail_sender,**params))
 
-            for x in w:
-                self.resp_created(x.to_dict())#TODO
+            self.resp_created(msg="")#TODO
 
 
     def delete(self):
@@ -126,11 +124,9 @@ class ConfigSenderHandler(AuthReq):
     def get(self):
 
         with make_session() as session:
-            server_data=session.query(MailServer)
+            server_data=session.query(MailServer).first()
 
-            server_data=[x.to_dict() for x in server_data]
-            for x in server_data:#TODO
-                self.resp(x)
+            self.resp(server_data.to_dict())
 
     def patch(self):
 
