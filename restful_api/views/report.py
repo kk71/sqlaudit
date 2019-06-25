@@ -25,9 +25,7 @@ class OnlineReportTaskListHandler(AuthReq):
             "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date,
-
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
+            **self.gen_p(),
         }))
         p = self.pop_p(params)
         schema_name = params.pop("schema_name")

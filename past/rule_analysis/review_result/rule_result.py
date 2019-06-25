@@ -3,6 +3,8 @@ import time
 import random
 import string
 
+from utils.datetime_utils import *
+
 
 class ReviewResult(object):
 
@@ -76,8 +78,8 @@ class ReviewResult(object):
             "cmdb_id": kwargs.get("cmdb_id"),
             # "id": self.task_id,
             "status": 2,
-            "create_time": task_start_time,
-            "etl_date": task_start_time,
+            "create_time": arrow.get(task_start_time).datetime,
+            "etl_date": arrow.get(task_start_time).datetime,
             "end_time": "",
             "operator_user": operator_user,
             "connect_name": kwargs.get("connect_name"),
