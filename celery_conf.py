@@ -23,17 +23,15 @@ imports = (
     "task.capture",
     "task.offline_ticket",
     "task.clear_cache",
+    "task.export"
 )
 
-# when add a new task, add it to blow.
-_capture = "task.capture.task_run"
-_submit_ticket = "task.offline_ticket.offline_ticket"
-_clear_cache = "task.clear_cache.clear_cache"
-
+# add task method below
 ALL_TASK = (
-    _capture,
-    _submit_ticket,
-    _clear_cache,
+    "task.capture.task_run",
+    "task.offline_ticket.offline_ticket",
+    "task.clear_cache.clear_cache",
+    "task.export.export",
 )
 
 task_routes = {
