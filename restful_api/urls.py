@@ -103,3 +103,11 @@ urls += [
     (r"/api/self_service/overview", self_service.OverviewHandler),
     (r"/api/self_service/execute", self_service.ExecuteHandler),
 ]
+
+#report sending manage
+urls += [
+    (r"/api/report_sending/manage",report_sending.ManageHandler),
+    (r"/api/report_sending/config_sender",report_sending.ConfigSenderHandler),
+    (r"/api/report_sending/send_mail",report_sending.SendMailHandler),
+    (r"/api/report_sending/mail_history",report_sending.MailHistory),
+]
