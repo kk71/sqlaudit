@@ -64,7 +64,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
         with make_session() as session:
             if export_type == "all_filtered":
                 params = self.get_json_args(Schema(**self.parsing_schema_dict()))
-                object_list = object_utils.get_risk_object_list(session, **params)
+                object_list = object_utils.get_risk_object_list(session=session, **params)
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
@@ -187,7 +187,8 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
                     Optional(object): object
                 }))
                 date_range = params.pop("date_start"), params.pop("date_end")
-                sql_list = sql_utils.get_risk_sql_list(session, **params, date_range=date_range)
+                sql_list = sql_utils.get_risk_sql_list(
+                    session=session, **params, date_range=date_range)
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
