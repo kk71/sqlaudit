@@ -63,7 +63,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
         with make_session() as session:
             if export_type == "all_filtered":
-                params = self.get_json_args(Schema(**self.parsing_schema_dict()))
+                params = self.get_json_args(Schema(self.parsing_schema_dict()))
                 object_list = object_utils.get_risk_object_list(session=session, **params)
 
             elif export_type == "selected":
