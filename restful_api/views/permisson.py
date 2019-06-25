@@ -167,7 +167,7 @@ class SystemPrivilegeHandler(AuthReq):
             Optional("type", default=PRIVILEGE.ALL_PRIVILEGE_TYPE):
                 And(scm_dot_split_int, scm_subset_of_choices(PRIVILEGE.ALL_PRIVILEGE_TYPE)),
             Optional("current_user", default=False): scm_bool,
-            **self.gen_p()
+            **self.gen_p(per_page=99)
         }))
         privilege_type: list = params.pop("type")
         current_user = params.pop("current_user")
