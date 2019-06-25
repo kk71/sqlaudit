@@ -116,14 +116,14 @@ def clear_cache():
 
 
 @click.command()
-@click.option("--task_id")
-def export_task(task_id):
+@click.option("--job_id")
+def export_task(job_id):
     """export html report"""
-    if not task_id:
-        print("task_id is required.")
+    if not job_id:
+        print("job_id is required.")
         return
     from task.export import export
-    export(task_id)
+    export(job_id)
 
 
 if __name__ == "__main__":
