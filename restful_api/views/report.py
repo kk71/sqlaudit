@@ -12,6 +12,7 @@ from utils import score_utils, const
 from restful_api.views.base import AuthReq
 from models.mongo import *
 from models.oracle import *
+import html_report.export
 
 
 class OnlineReportTaskListHandler(AuthReq):
@@ -325,4 +326,13 @@ class ExportReportHTMLHandler(AuthReq):
 
     def get(self):
         """导出报告为html"""
-        self.resp()
+        params = self.get_query_args(Schema({
+            "job_id": scm_unempty_str,
+        }))
+        job_id = params.pop("job_id")
+        self.resp({
+            "url": path.join(
+                settings.EXPORT_PREFIX,
+                html_report.export.export_task(job_id)
+            )
+        })

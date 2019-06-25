@@ -112,12 +112,13 @@ def export_task(job_id):
     # MongoHelper.update_one("job", {'_id': job_id}, {'$set': {'exported': 1}})
 
     result = MongoHelper.find_one("results", {"task_uuid": job_id})
-    file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] + "_" + datetime.now().strftime("%Y%m%d")
+    file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
+                "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
 
     v_page = print_html_script()
     main_task(job_id, v_page)
     v_page.printOut("html_report/sqlreview.html")
-    path = os.path.join(settings.EXPORT_DIR, file_name + ".tar.gz")
+    path = os.path.join(settings.EXPORT_DIR, file_name)
     tar = tarfile.open(str(path), "w:gz")
     tar.add("html_report/css")
     tar.add("html_report/assets")
@@ -129,3 +130,4 @@ def export_task(job_id):
 
     # 文件生成完毕，状态export设置为True
     Job.objects(id=job_id).update(set__exported=True)
+    return file_name
