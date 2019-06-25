@@ -118,21 +118,18 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
 AI_TUNE_PRE_OPTIMIZED = "B"
 AI_TUNE_POST_OPTIMIZED = "A"
 
+
 # 纳管数据库权限是否算分needcalc
 RANKING_CONFIG_NEED_CALC = "Y"
 RANKING_CONFIG_NO_CALC = "N"
 ALL_RANKING_CONFIG_CALC_OR_NOT = (RANKING_CONFIG_NEED_CALC, RANKING_CONFIG_NO_CALC)
 
-#发送时间
-ALL_SEND_DATE=("星期一","星期二","星期三","星期四","星期五","星期六","星期日")
-ALL_SEND_TIME=("0:00","1:00","2:00","3:00","4:00","5:00","6:00","7:00","8:00",
-               "9:00","10:00","11:00","12:00","13:00","14:00","15:00",
-               "16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00")
-#用户类型
-TYPE_ADMINISTRATOR="管理员"
-TYPE_DBA="数据库管理员"
-TYPE_OPERATOR="开发人员"
 
+# mail发送时间
+ALL_SEND_DATE = ("星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日")
+ALL_SEND_TIME = ("0:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00",
+                 "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00",
+                 "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 
 
 class PRIVILEGE:

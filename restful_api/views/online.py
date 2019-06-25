@@ -124,6 +124,9 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
+    def get(self):
+        raise NotImplementedError
+
 
 class SQLRiskListHandler(AuthReq):
 
@@ -252,6 +255,9 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
                 ws.write(row_num, 9, sql_text, format_text)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+    def get(self):
+        raise NotImplementedError
 
 
 class SQLRiskDetailHandler(AuthReq):
