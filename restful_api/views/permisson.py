@@ -187,7 +187,7 @@ class SystemPrivilegeHandler(AuthReq):
                                for i in PRIVILEGE.get_privilege_by_type(privilege_type)]
 
         items, p = self.paginate(privilege_dicts, **p)
-        self.resp([PRIVILEGE.privilege_to_dict(i) for i in items], **p)
+        self.resp([i for i in items], **p)
 
 
 class CMDBPermissionHandler(AuthReq):
