@@ -5,6 +5,7 @@ from bson import ObjectId
 
 import settings
 from utils.datetime_utils import *
+from utils import const
 from .utils import print_html_script
 from .utils import print_html_body
 from .utils import print_html_js
@@ -65,7 +66,7 @@ def main_task(task_uuid, page):
     schema = job_info["desc"]["owner"]
     rule_type = job_info["desc"]["rule_type"].upper()
     port = int(job_info["desc"]["port"])
-    db_type = "O" if port == 1521 else "mysql"
+    db_type = const.DB_ORACLE
     mongo_rules = [x for x in MongoHelper.find("rule", {"rule_type": rule_type})]
 
     total_score = sum([float(data["max_score"]) for data in [x for x in mongo_rules if x['db_type'] == db_type]])
