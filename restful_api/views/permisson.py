@@ -95,10 +95,7 @@ class RoleHandler(AuthReq):
                     privilege_id=i["id"],
                     privilege_type=i["type"]
                 ) for i in privileges])
-            self.resp_created({
-                **role.to_dict(),
-                "privileges": privileges
-            })
+        self.resp_created(msg="finished.")
 
     def delete(self):
         """删除角色"""
