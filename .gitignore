@@ -58,7 +58,6 @@ fabric.properties
 .Python
 [Bb]in
 [Ii]nclude
-[Ll]ib
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
@@ -79,10 +78,8 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
