@@ -84,7 +84,7 @@ def makedata(task_id, schema, q):
     import past.mkdata
     if not task_id:
         print("task_id is required.")
-        exit()
+        return
     q = int(q)
     q = True if q else False
     print(f"task_id={task_id} schema={schema} use_queue={q}")
@@ -115,6 +115,17 @@ def clear_cache():
     clear_cache.delay()
 
 
+@click.command()
+@click.option("--task_id")
+def export_task(task_id):
+    """export html report"""
+    if not task_id:
+        print("task_id is required.")
+        return
+    from task.export import export
+    export(task_id)
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
@@ -123,4 +134,5 @@ if __name__ == "__main__":
     cli.add_command(createenv)
     cli.add_command(schedule)
     cli.add_command(clear_cache)
+    cli.add_command(export_task)
     cli()

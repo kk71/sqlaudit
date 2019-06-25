@@ -1,7 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from os import path
-from collections import defaultdict
 
 import xlsxwriter
 from schema import Optional, Schema, And
@@ -9,7 +8,7 @@ from schema import Optional, Schema, And
 import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
-from utils import rule_utils, score_utils, const
+from utils import score_utils, const
 from restful_api.views.base import AuthReq
 from models.mongo import *
 from models.oracle import *

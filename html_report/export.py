@@ -1,5 +1,7 @@
 import tarfile
 
+import os.path
+import settings
 from utils.datetime_utils import *
 
 from .utils import print_html_script
@@ -100,27 +102,27 @@ def main_task(task_uuid, page):
             print_html_rule_text_detail_info(page, result, rules)
 
 
-def export_task(task_uuid):
+def export_task(job_id):
     """
     生成报告的离线压缩包，可配合下载服务器使用
     """
-    MongoHelper.update_one("job", {'id': task_uuid}, {'$set': {'exported': "1"}})
+    # MongoHelper.update_one("job", {'_id': job_id}, {'$set': {'exported': 1}})
 
-    result = MongoHelper.find_one("results", {"task_uuid": task_uuid})
-    file_name = result['sid'] + "_" + task_uuid + "_" + result['rule_type'] + "_" + datetime.now().strftime("%Y%m%d")
+    result = MongoHelper.find_one("results", {"task_uuid": job_id})
+    file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] + "_" + datetime.now().strftime("%Y%m%d")
 
     v_page = print_html_script()
-    main_task(task_uuid, v_page)
-    v_page.printOut("task_export/sqlreview.html")
-    path = "webui/static/files/" + file_name + ".tar.gz"
+    main_task(job_id, v_page)
+    v_page.printOut("html_report/sqlreview.html")
+    path = os.path.join(settings.EXPORT_DIR, file_name + ".tar.gz")
     tar = tarfile.open(str(path), "w:gz")
-    tar.add("task_export/css")
-    tar.add("task_export/assets")
-    tar.add("task_export/js")
-    tar.add("task_export/sqlreview.html")
-    tar.add("task_export/readme.txt")
+    tar.add("html_report/css")
+    tar.add("html_report/assets")
+    tar.add("html_report/js")
+    tar.add("html_report/sqlreview.html")
+    tar.add("html_report/readme.txt")
     tar.close()
     # os.remove("task_export/sqlreview.html")
 
-    # 文件生成完毕，状态export设置为2
-    MongoHelper.update_one("job", {'id': task_uuid}, {'$set': {'exported': "2"}})
+    # 文件生成完毕，状态export设置为True
+    MongoHelper.update_one("job", {'_id': job_id}, {'$set': {'exported': True}})
