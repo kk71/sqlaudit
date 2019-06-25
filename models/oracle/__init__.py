@@ -27,6 +27,9 @@ __all__ = [
     "AituneResultDetails",
     "AituneHistSqlStat",
     "AituneSqlExPlan",
+    "SendMailList",
+    "MailServer",
+    "SendMailHist",
 ]
 
 from .utils import make_session, QueryEntity
