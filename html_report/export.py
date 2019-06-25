@@ -6,6 +6,7 @@ from bson import ObjectId
 import settings
 from utils.datetime_utils import *
 from utils import const
+from models.mongo import Job
 from .utils import print_html_script
 from .utils import print_html_body
 from .utils import print_html_js
@@ -127,4 +128,4 @@ def export_task(job_id):
     # os.remove("task_export/sqlreview.html")
 
     # 文件生成完毕，状态export设置为True
-    MongoHelper.update_one("job", {'_id': job_id}, {'$set': {'exported': True}})
+    Job.objects(id=job_id).update({'exported': True})
