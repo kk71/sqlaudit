@@ -128,4 +128,4 @@ def export_task(job_id):
     # os.remove("task_export/sqlreview.html")
 
     # 文件生成完毕，状态export设置为True
-    Job.objects(id=job_id).update({'exported': True})
+    Job.objects(id=job_id).update(set__exported=True)
