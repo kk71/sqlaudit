@@ -55,5 +55,12 @@ class Results(BaseDocRecordID):
     # }
 
     meta = {
-        "collection": "results"
+        "collection": "results",
+        "indexes": [
+            "cmdb_id",
+            "task_uuid",
+            "schema_name",
+            "create_date",
+            "rule_type"
+        ]
     }

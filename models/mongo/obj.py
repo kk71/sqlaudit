@@ -31,7 +31,13 @@ class ObjTabInfo(BaseDocRecordID):
     phy_size_mb = FloatField(db_field="PHY_SIZE(MB)")
 
     meta = {
-        "collection": "obj_tab_info"
+        "collection": "obj_tab_info",
+        "indexes": [
+            "schema_name",
+            "etl_date",
+            "cmdb_id",
+            "table_name"
+        ]
     }
 
 
@@ -56,7 +62,14 @@ class ObjTabCol(BaseDocRecordID):
     avg_col_len = IntField(db_field="AVG_COL_LEN")
 
     meta = {
-        "collection": "obj_tab_col"
+        "collection": "obj_tab_col",
+        "indexes": [
+            "schema_name",
+            "etl_date",
+            "cmdb_id",
+            "table_name",
+            "column_name"
+        ]
     }
 
 
@@ -105,7 +118,14 @@ class ObjIndColInfo(BaseDocRecordID):
     descend = StringField(db_field="DESCEND")
 
     meta = {
-        "collection": "obj_ind_col_info"
+        "collection": "obj_ind_col_info",
+        "indexes": [
+            "schema_name",
+            "etl_date",
+            "cmdb_id",
+            "table_name",
+            "index_name"
+        ]
     }
 
 
@@ -126,6 +146,12 @@ class ObjViewInfo(BaseDocRecordID):
     referenced_type = StringField(db_field="REFERENCED_TYPE")
 
     meta = {
-        "collection": "obj_view_info"
+        "collection": "obj_view_info",
+        "indexes": [
+            "obj_pk",
+            "schema_name",
+            "etl_date",
+            "cmdb_id",
+        ]
     }
 

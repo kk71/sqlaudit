@@ -33,7 +33,13 @@ class Job(BaseDocRecordID):
     score = FloatField(null=True, help_text="only some of Job objects contains score")
 
     meta = {
-        "collection": "job"
+        "collection": "job",
+        "indexes": [
+            "cmdb_id",
+            "etl_date",
+            "exported",
+            "connect_name"
+        ]
     }
 
     @classmethod

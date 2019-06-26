@@ -48,8 +48,12 @@ class MSQLPlan(BaseDocRecordID):
     meta = {
         "collection": "sqlplan",
         "indexes": [
+            "schema",
+            "cmdb_id",
             "plan_hash_value",
-            "etl_date"
+            "etl_date",
+            "index",
+            "sql_id"
         ]
     }
 

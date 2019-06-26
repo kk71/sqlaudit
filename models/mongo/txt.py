@@ -18,5 +18,11 @@ class SQLText(BaseDocRecordID):
     sql_text = StringField(db_field="SQL_TEXT_DETAIL")
 
     meta = {
-        "collection": "sqltext"
+        "collection": "sqltext",
+        "indexes": [
+            "schema",
+            "cmdb_id",
+            "etl_date",
+            "sql_id"
+        ]
     }

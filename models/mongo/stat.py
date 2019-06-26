@@ -42,6 +42,10 @@ class SQLStat(BaseDocRecordID):
     meta = {
         "collection": "sqlstat",
         "indexes": [
-            "etl_date"
+            "etl_date",
+            "sql_id",
+            "cmdb_id",
+            "plan_hash_value",
+            "schema"
         ]
     }
