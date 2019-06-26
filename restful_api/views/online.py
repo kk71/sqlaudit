@@ -28,7 +28,7 @@ class ObjectRiskListHandler(AuthReq):
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             "date_start": scm_date,
-            "date_end": scm_date,
+            "date_end": scm_date_end,
 
             Optional(object): object
         }
@@ -138,7 +138,7 @@ class SQLRiskListHandler(AuthReq):
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             "date_start": scm_date,
-            "date_end": scm_date,
+            "date_end": scm_date_end,
             Optional("rule_type", default="ALL"): scm_one_of_choices(
                 ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
             Optional("enable_white_list", default=True):
@@ -271,7 +271,7 @@ class SQLRiskDetailHandler(AuthReq):
             "sql_id": scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date,
+            Optional("date_end", default=None): scm_date_end,
         }))
         cmdb_id = params.pop("cmdb_id")
         sql_id = params.pop("sql_id")
@@ -445,7 +445,7 @@ class OverviewHandler(SQLRiskListHandler):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
             "date_start": scm_date,
-            "date_end": scm_date,
+            "date_end": scm_date_end,
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")

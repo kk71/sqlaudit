@@ -25,7 +25,7 @@ class OnlineReportTaskListHandler(AuthReq):
             Optional("schema_name", default=None): scm_unempty_str,
             "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date,
+            Optional("date_end", default=None): scm_date_end,
             **self.gen_p(),
         }))
         p = self.pop_p(params)
