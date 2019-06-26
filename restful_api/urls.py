@@ -107,8 +107,8 @@ urls += [
 
 # report sending manage
 urls += [
-    (r"/api/report_sending/manage", report_sending.ManageHandler),
-    (r"/api/report_sending/config_sender", report_sending.ConfigSenderHandler),
-    (r"/api/report_sending/send_mail", report_sending.SendMailHandler),
-    (r"/api/report_sending/mail_history", report_sending.MailHistory),
+    (r"/api/mail/list", report_sending.SendListHandler),
+    (r"/api/mail/sender", report_sending.ConfigSenderHandler),
+    (r"/api/mail/send", report_sending.SendMailHandler),
+    (r"/api/mail/history", report_sending.MailHistory),
 ]

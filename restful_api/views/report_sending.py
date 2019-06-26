@@ -6,7 +6,7 @@ from utils.schema_utils import *
 from utils.const import *
 
 
-class ManageHandler(AuthReq):
+class SendListHandler(AuthReq):
 
     def get(self):
         """报告发送管理页面"""
@@ -70,7 +70,7 @@ class ManageHandler(AuthReq):
 
     def delete(self):
         """删除收件人"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "send_mail_id": scm_int
         }))
         with make_session() as session:
@@ -90,7 +90,7 @@ class ConfigSenderHandler(AuthReq):
     def patch(self):
         params = self.get_json_args(Schema({
             "mail_server_name": scm_unempty_str,
-            'usessl': scm_bool,
+            'use_ssl': scm_bool,
             "port": scm_int,
             "username": scm_unempty_str,
             "password": scm_unempty_str,
