@@ -184,15 +184,15 @@ class OnlineReportSQLPlanHandler(AuthReq):
                     plan_hash_value = sql_dict["plan_hash_value"]
                     break
         if plan_hash_value:
-            plans = MSQLPlan.get_plans(plan_hash_value=plan_hash_value, sql_id=sql_id).\
-                values_list(
+            plans = MSQLPlan.get_plans(plan_hash_value=plan_hash_value, sql_id=sql_id).items()
+            plans = [i.to_dict(iter_if=lambda k, v: k in (
                 "operation",
                 "options",
                 "object_owner",
                 "object_name",
                 "cost",
-                "cardinality").items()
-            plans = dict(sorted(plans)).values()
+                "cardinality"
+            )) for i in dict(sorted(plans)).values()]
 
         self.resp({
             "sql_text": sql.sql_text,
