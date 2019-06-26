@@ -47,6 +47,7 @@ class MSQLPlan(BaseDocRecordID):
     meta = {
         "collection": "sqlplan",
         "indexes": [
-            "plan_hash_value"
+            "plan_hash_value",
+            "etl_date"
         ]
     }
