@@ -57,7 +57,7 @@ class SendListHandler(AuthReq):
             "mail_sender": [scm_str],  # 收件人
             "send_date": scm_one_of_choices(ALL_SEND_DATE),
             "send_time": scm_one_of_choices(ALL_SEND_TIME),
-            "send_content_item": scm_unempty_str,
+            # "send_content_item": scm_unempty_str,
         }))
         mail_sender = params.pop("mail_sender")
         mail_sender = ";".join(mail_sender)
