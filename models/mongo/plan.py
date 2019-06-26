@@ -1,4 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
+from collections import defaultdict
 
 from mongoengine import StringField, IntField, BooleanField, FloatField, \
     DateTimeField, LongField, ObjectIdField
@@ -51,3 +52,13 @@ class MSQLPlan(BaseDocRecordID):
             "etl_date"
         ]
     }
+
+    @classmethod
+    def get_plans(cls, *args, **kwargs):
+        plan_q = cls.objects(*args, **kwargs).order_by("-etl_date")
+        filter_id = defaultdict(list)
+        for plan in plan_q:
+            if plan.index in filter_id:
+                break
+            filter_id[plan.index] = plan
+        return filter_id
