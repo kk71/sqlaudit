@@ -45,16 +45,25 @@ class DashboardHandler(AuthReq):
                 3: "已上线",
                 4: "上线失败"
             }
+
             # 线上审核的采集任务
-            capture_tasks = session.query(TaskExecHistory.status, TaskExecHistory.task_id). \
-                filter(TaskExecHistory.id.in_([int(i) for i in task_exec_hist_id_list]))
             task_status_desc = {
                 None: "正在执行",
                 True: "成功",
-                False: "失败"
+                False: "失败",
+                "no": "从未执行过"
             }
+            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+            capture_tasks_status = {i[0]: "no" for i in session.query(TaskManage.task_id).
+                    filter(TaskManage.cmdb_id.in_(cmdb_ids),
+                           TaskManage.task_exec_scripts == DB_TASK_CAPTURE)}
+            for hist in session.query(TaskExecHistory.task_id, TaskExecHistory.status).\
+                    filter(TaskExecHistory.id.in_(task_exec_hist_id_list)):
+                task_id, status = hist
+                capture_tasks_status[task_id] = status
+
             task_status = {i: 0 for i in task_status_desc.values()}
-            for status, task_id in capture_tasks:
+            for task_id, status in capture_tasks_status.items():
                 if task_id:
                     task_status[task_status_desc[status]] += 1
             # 公告板

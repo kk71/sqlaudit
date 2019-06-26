@@ -244,12 +244,12 @@ def dashboard_3_sum(session, login_user):
     :param login_user:
     :return:
     """
-    cmdb_id_set = cmdb_utils.get_current_cmdb(session, login_user)
+    cmdb_ids = cmdb_utils.get_current_cmdb(session, login_user)
     # 获取每个库最后一次抓取分析成功的历史记录的id
     sub_q = session. \
         query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
         join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
-        filter(TaskManage.cmdb_id.in_(list(cmdb_id_set)),
+        filter(TaskManage.cmdb_id.in_(cmdb_ids),
                TaskManage.task_exec_scripts == const.DB_TASK_CAPTURE,
                TaskExecHistory.status == True).subquery()
     cmdb_id_exec_hist_id_list_q = session. \

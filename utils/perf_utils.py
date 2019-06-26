@@ -50,7 +50,7 @@ class RedisCache:
         )
         self.bound_functions = []
 
-    def expire(self, func: FunctionType = None) -> dict:
+    def expire(self, func: FunctionType = None, no_prefetch=False) -> dict:
         key = f"{self.prefix}-*"
         if func:
             key = self.get_func_key(func)
@@ -59,7 +59,10 @@ class RedisCache:
         deleted_num = 0
         if keys:
             deleted_num = self.redis_conn.delete(*keys)
-        return {"deleted_keys": deleted_num, **self.prefetch()}
+        p = {}
+        if not no_prefetch:
+            p = self.prefetch()
+        return {"deleted_keys": deleted_num, **p}
 
     def prefetch(self, func: FunctionType = None) -> dict:
         prefetch_num = 0
