@@ -10,6 +10,7 @@ import plain_db.oracleob
 import past.utils.utils
 import past.utils.log
 import past.utils.health_data_gen
+import past.capture.sql
 
 import utils.const
 from task.base import *
@@ -201,6 +202,10 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
     record_id = init_job(task_id, connect_name, business_name, task_uuid)
 
     try:
+        if not db_users:
+            cmdb_odb = plain_db.oracleob.OracleOB(host, port, username, password, sid)
+            sql = past.capture.sql.GET_SCHEMA
+            db_users = [x[0] for x in cmdb_odb.select(sql, one=False)]
         for user in db_users:
             run_default_script(host, port, sid, username, password, user, cmdb_id, connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
