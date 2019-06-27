@@ -307,7 +307,7 @@ def print_html_rule_text_detail_info(page, results, rules):
             index_id = key.replace("#", "-")
             div_id = rule[0] + "-" + index_id
             text_id = div_id + "-text"
-            sql_fulltext = sqlparse.format(results[rule[0]][key]["sql_text"] or "",
+            sql_fulltext = sqlparse.format(sql_dict["sql_text"] or "",
                                            reindent=True)
             sql_fulltext = json.dumps(sql_fulltext)
             stat_info = results[rule[0]][key]["stat"]
