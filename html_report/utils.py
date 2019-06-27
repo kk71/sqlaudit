@@ -310,7 +310,7 @@ def print_html_rule_text_detail_info(page, results, rules):
             sql_fulltext = sqlparse.format(sql_dict["sql_text"] or "",
                                            reindent=True)
             sql_fulltext = json.dumps(sql_fulltext)
-            stat_info = results[rule[0]][key]["stat"]
+            stat_info = sql_dict["stat"]
             temp_stat_columns = []
             temp_stat_info = []
             stat_id = div_id + "-stat"
