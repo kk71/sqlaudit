@@ -5,6 +5,7 @@ import sqlparse
 
 from past.utils.pyh import PyH, br
 from utils import const
+from utils.datetime_utils import *
 
 
 def print_html_script():
@@ -288,7 +289,7 @@ def print_html_rule_detail_info(page, result, rules):
             temp_stat_columns = json.dumps(temp_stat_columns)
 
             plan_id = div_id + "-plan"
-            plans = json.dumps(sql_dict["plan"])
+            plans = json.dumps(dt_to_str(sql_dict["plan"]))
 
             page << "<script>genMultiTable('#base', '" + div_id + "', '" + obj_id +\
             "', " + temp_obj_info + ", " + temp_obj_columns + ", '" + stat_id + "', " +\
