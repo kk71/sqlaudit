@@ -6,6 +6,7 @@ from collections import defaultdict
 import plain_db.oracleob
 import past.rule_analysis.db.mongo_operat
 import past.utils.utils
+from utils.datetime_utils import *
 
 '''
 获取mongodb内数据库级别的统计数据
@@ -36,7 +37,7 @@ def calculate():
 
     today = datetime.now()
     tomorrow = today + timedelta(days=1)
-    sql = {'create_time': {'$gte': today.strftime('%Y-%m-%d'), '$lt': tomorrow.strftime('%Y-%m-%d')}}
+    sql = {'create_time': {'$gte': today, '$lt': tomorrow}}
 
     for job in past.rule_analysis.db.mongo_operat.MongoHelper.find("job", sql):
 
@@ -44,7 +45,7 @@ def calculate():
             print(f" *** schema({job['desc']['owner']}) not in {weights[job['connect_name']]}")
             continue
 
-        date = job['create_time'].split()[0]
+        date = d_to_str(job['create_time'].date())
         select = {'_id': 0, 'task_uuid': 0, 'username': 0, 'ip_address': 0, 'sid': 0, 'create_time': 0}
         result = past.rule_analysis.db.mongo_operat.MongoHelper.find_one("results", {'task_uuid': str(job['_id'])}, select)
 
