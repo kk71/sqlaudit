@@ -253,7 +253,7 @@ def print_html_rule_detail_info(page, result, rules):
         for sql_dict in result[rule_name].get("sqls", []):
 
             # index_id = '-'.join(key.split("#")[:2])
-            index_id = "-".join([sql_dict["sql_id"], sql_dict["plan_hash_value"]])
+            index_id = f"{sql_dict['sql_id']}-{sql_dict['plan_hash_value']}"
             div_id = rule_name + "-" + index_id
 
             if div_id in keys:
