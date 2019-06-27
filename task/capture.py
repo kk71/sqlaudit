@@ -209,7 +209,7 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         for user in db_users:
             run_default_script(host, port, sid, username, password, user, cmdb_id, connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
-            past.utils.health_data_gen.calculate()
+            past.utils.health_data_gen.calculate(record_id)
 
         update_record(task_id, record_id, True)
 

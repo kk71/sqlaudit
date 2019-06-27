@@ -23,7 +23,7 @@ def save_scores(job, score):
     plain_db.oracleob.OracleHelper.insert(sql, [job['desc']['instance_name'], job['desc']['owner'], job['desc']['rule_type'].lower(), score, now, today])
 
 
-def calculate():
+def calculate(task_exec_hist_id):
 
     cmdbs = plain_db.oracleob.OracleHelper.select("SELECT cmdb_id, connect_name, service_name FROM T_CMDB", one=False)
     cmdb_id2name = {x[0]: x[1] for x in cmdbs}
@@ -35,10 +35,10 @@ def calculate():
 
     scores = defaultdict(lambda _=None: defaultdict(list))
 
-    today = datetime.now()
-    tomorrow = today + timedelta(days=1)
-    sql = {'create_time': {'$gte': today, '$lt': tomorrow}}
-
+    # today = datetime.now()
+    # tomorrow = today + timedelta(days=1)
+    # sql = {'create_time': {'$gte': today.date(), '$lt': tomorrow.date()}}
+    sql = {"record_id": {"$regex": f"^{task_exec_hist_id}"}}
     for job in past.rule_analysis.db.mongo_operat.MongoHelper.find("job", sql):
 
         if job['desc']['owner'] not in weights[job['connect_name']]:
@@ -91,5 +91,5 @@ def calculate():
                 plain_db.oracleob.OracleHelper.update(sql, [score, dbname, day])
 
 
-if __name__ == "__main__":
-    calculate()
+# if __name__ == "__main__":
+#     calculate()
