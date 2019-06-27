@@ -222,7 +222,7 @@ def print_html_rule_detail_table(page, result, rules, rule_type):
         data = []
         for sql_dict in result[rule_name].get("sqls", []):
             sql_id = sql_dict["sql_id"]
-            hash_value = sql_dict["plan_hash_value"]
+            hash_value = sql_dict.get("plan_hash_value", "1")
             sql_text = sql_dict["sql_text"] or ""
             if rule_type.upper() == const.RULE_TYPE_SQLPLAN or \
                     rule_type.upper() == const.RULE_TYPE_SQLSTAT:
