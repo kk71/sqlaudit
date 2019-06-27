@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import json
+
+import sqlparse
 
 from past.utils.pyh import PyH, br
-import json
-import sqlparse
+from utils import const
 
 
 def print_html_script():
@@ -169,7 +171,8 @@ def print_html_rule_detail_table(page, result, rules, rule_type):
     """
     生成违反的规则的具体信息，由表格和文本构成
     """
-    if rule_type.upper() == "SQLPLAN" or rule_type.upper() == "SQLSTAT":
+    if rule_type.upper() == const.RULE_TYPE_SQLPLAN or \
+            rule_type.upper() == const.RULE_TYPE_SQLSTAT:
         columns = """[
                         {
                             "title": "rulename",
@@ -193,7 +196,7 @@ def print_html_rule_detail_table(page, result, rules, rule_type):
                             "title": "object_name"
                         }
                     ]"""
-    elif rule_type.upper() == "TEXT":
+    elif rule_type.upper() == const.RULE_TYPE_TEXT:
         columns = """[
                         {
                             "title": "rulename"
@@ -209,23 +212,25 @@ def print_html_rule_detail_table(page, result, rules, rule_type):
                         }
                     ]
             """
+    else:
+        assert 0
 
     # rule: [rule_name, rule_summary[rule_name][0], num, value.get("scores", 0), rule_summary[rule_name][2]]
     for rule in rules:
         rule_name, rule_summary, num, scores, solution = rule
 
         data = []
-        for key, value in result[rule_name].items():
-            if "#" not in key:
-                continue
-
-            sql_id, hash_value, _ = key.split("#")
-            sql_text = value["sql_text"] or ""
-            if rule_type.upper() == "SQLPLAN" or rule_type.upper() == "SQLSTAT":
+        for sql_dict in result[rule_name].get("sqls", []):
+            sql_id = sql_dict["sql_id"]
+            hash_value = sql_dict["plan_hash_value"]
+            sql_text = sql_dict["sql_text"] or ""
+            if rule_type.upper() == const.RULE_TYPE_SQLPLAN or \
+                    rule_type.upper() == const.RULE_TYPE_SQLSTAT:
                 sql_text = sql_text.replace("\n", " ").replace("'", "\"")
-                obj_name = value["obj_name"] if value.get("obj_name", None) else "空"
-                data.append(f"['{rule_name}', '{sql_id}', '{sql_text}', '{hash_value}', '{_}', '{obj_name}']")
-            elif rule_type.upper() == "TEXT":
+                obj_name = sql_dict["obj_name"] if sql_dict.get("obj_name", None) else "空"
+                data.append(f"['{rule_name}', '{sql_id}', '{sql_text}', '{hash_value}', '', '{obj_name}']")
+
+            elif rule_type.upper() == const.RULE_TYPE_TEXT:
                 sql_text = sql_text[:40] if len(sql_text) > 40 else sql_text
                 sql_text = sql_text.replace("\n", " ").replace("'", "\"")
                 data.append(f"['{rule_name}', '{sql_id}', '{sql_text}']")
@@ -245,11 +250,10 @@ def print_html_rule_detail_info(page, result, rules):
     keys = set()
     for rule in rules:
         rule_name, rule_summary, num, scores, solution = rule
-        for key, detail in result[rule_name].items():
-            if "#" not in key:
-                continue
+        for sql_dict in result[rule_name].get("sqls", []):
 
-            index_id = '-'.join(key.split("#")[:2])
+            # index_id = '-'.join(key.split("#")[:2])
+            index_id = "-".join([sql_dict["sql_id"], sql_dict["plan_hash_value"]])
             div_id = rule_name + "-" + index_id
 
             if div_id in keys:
@@ -258,11 +262,11 @@ def print_html_rule_detail_info(page, result, rules):
             keys.add(div_id)
 
             text_id = div_id + "-text"
-            sql_fulltext = sqlparse.format(detail["sql_fulltext"] or "", reindent=True)
+            sql_fulltext = sqlparse.format(sql_dict["sql_text"] or "", reindent=True)
             sql_fulltext = json.dumps(sql_fulltext)
 
             obj_id = div_id + "-obj"
-            obj_info = detail["obj_info"]
+            obj_info = sql_dict["obj_info"]
             temp_obj_columns = []
             temp_obj_info = []
             if obj_info:
@@ -273,7 +277,7 @@ def print_html_rule_detail_info(page, result, rules):
             temp_obj_columns = json.dumps(temp_obj_columns)
 
             stat_id = div_id + "-stat"
-            stat_info = detail["stat"]
+            stat_info = sql_dict["stat"]
             temp_stat_columns = []
             temp_stat_info = []
             if stat_info:
@@ -284,7 +288,7 @@ def print_html_rule_detail_info(page, result, rules):
             temp_stat_columns = json.dumps(temp_stat_columns)
 
             plan_id = div_id + "-plan"
-            plans = json.dumps(detail["plan"])
+            plans = json.dumps(sql_dict["plan"])
 
             page << "<script>genMultiTable('#base', '" + div_id + "', '" + obj_id +\
             "', " + temp_obj_info + ", " + temp_obj_columns + ", '" + stat_id + "', " +\
@@ -298,32 +302,32 @@ def print_html_rule_text_detail_info(page, results, rules):
     文本类规则的具体信息
     """
     for rule in rules:
-        for key in results[rule[0]].keys():
-            if "#" in key:
-                index_id = key.replace("#", "-")
-                div_id = rule[0] + "-" + index_id
-                text_id = div_id + "-text"
-                sql_fulltext = sqlparse.format(results[rule[0]][key]["sql_text"] or "",
-                                               reindent=True)
-                sql_fulltext = json.dumps(sql_fulltext)
-                stat_info = results[rule[0]][key]["stat"]
-                temp_stat_columns = []
-                temp_stat_info = []
-                stat_id = div_id + "-stat"
-                if stat_info:
-                    for stat_key in stat_info[0].keys():
-                        temp_stat_columns.append({"title": stat_key})
-                    for stat in stat_info:
-                        temp = []
-                        for stat_key in stat.keys():
-                            temp.append(str(stat[stat_key]))
-                        temp_stat_info.append(temp)
-                temp_stat_info = json.dumps(temp_stat_info)
-                temp_stat_columns = json.dumps(temp_stat_columns)
-                page << "<script>genMultiTextTable('#base', '" + div_id + "', '" + stat_id +\
-                "', " + temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " +\
-                sql_fulltext + ", '" + div_id + "')</script>"
-                page << br()
+        for sql_dict in results[rule[0]].get("sqls", []):
+            key = "#".join([sql_dict["sql_id"], "1", "v"])
+            index_id = key.replace("#", "-")
+            div_id = rule[0] + "-" + index_id
+            text_id = div_id + "-text"
+            sql_fulltext = sqlparse.format(results[rule[0]][key]["sql_text"] or "",
+                                           reindent=True)
+            sql_fulltext = json.dumps(sql_fulltext)
+            stat_info = results[rule[0]][key]["stat"]
+            temp_stat_columns = []
+            temp_stat_info = []
+            stat_id = div_id + "-stat"
+            if stat_info:
+                for stat_key in stat_info[0].keys():
+                    temp_stat_columns.append({"title": stat_key})
+                for stat in stat_info:
+                    temp = []
+                    for stat_key in stat.keys():
+                        temp.append(str(stat[stat_key]))
+                    temp_stat_info.append(temp)
+            temp_stat_info = json.dumps(temp_stat_info)
+            temp_stat_columns = json.dumps(temp_stat_columns)
+            page << "<script>genMultiTextTable('#base', '" + div_id + "', '" + stat_id +\
+            "', " + temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " +\
+            sql_fulltext + ", '" + div_id + "')</script>"
+            page << br()
 
 
 def print_html_obj_detail_info(page, results, rules, rule_summary):

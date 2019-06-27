@@ -44,23 +44,22 @@ def main_task(task_uuid, page):
     rule_type = result['rule_type'].upper()
 
     result = {k: v for k, v in result.items() if v and isinstance(v, dict)}
-    if rule_type == "OBJ":
+    if rule_type == const.RULE_TYPE_OBJ:
         result = {k: v for k, v in result.items() if v.get("records")}
 
     # result = format_sqlplan_result(result)
 
-    if rule_type in ["SQLPLAN", "SQLSTAT"]:
+    if rule_type in (const.RULE_TYPE_SQLPLAN, const.RULE_TYPE_SQLSTAT):
         sql_plans = dict()
-        for rule_name, value in result.items():
-            for sqlid_num in value:
-                if sqlid_num == "scores":
-                    continue
-                sql_id, hash_value, *_ = sqlid_num.split("#")
-                key = '#'.join([sql_id, str(hash_value), record_id])
-                if key not in sql_plans:
+        for rule_name, rule_result_dict in result.items():
+            for sql_dict in rule_result_dict.get("sqls", []):
+                sql_id = sql_dict["sql_id"]
+                hash_value = sql_dict["plan_hash_value"]
+                key = (sql_id, str(hash_value), record_id)
+                if key not in sql_plans.keys():
                     condition = {'SQL_ID': sql_id, 'PLAN_HASH_VALUE': int(hash_value), 'record_id': record_id}
                     sql_plans[key] = [x for x in MongoHelper.find('sqlplan', condition, {'_id': 0})]
-                value[sqlid_num]['plan'] = sql_plans[key]
+                sql_dict['plan'] = sql_plans[key]
 
     job_info = MongoHelper.find_one("job", {"_id": ObjectId(task_uuid)})
     host = job_info["desc"]["db_ip"]
@@ -80,28 +79,33 @@ def main_task(task_uuid, page):
         rule_summary[rule["rule_name"]] = values
 
     rules = []
-    if rule_type.upper() == "OBJ":
+    if rule_type.upper() == const.RULE_TYPE_OBJ:
         for rule_name, value in result.items():
             rules.append([rule_name, rule_summary[rule_name][0], len(value["records"]), value["scores"],
                           rule_summary[rule_name][3]])
-    elif rule_type.upper() in ["SQLPLAN", "SQLSTAT", "TEXT"]:
-        for rule_name, value in result.items():
-            num = sum([1 for x in result[rule_name] if "#" in x])
-            rules.append(
-                [rule_name, rule_summary[rule_name][0], num, value.get("scores", 0), rule_summary[rule_name][2]])
+    elif rule_type.upper() in const.ALL_RULE_TYPES_FOR_SQL_RULE:
+        for rule_name, rule_result_dict in result.items():
+            num = len(rule_result_dict.get("sqls", []))
+            rules.append([
+                rule_name,
+                rule_summary[rule_name][0],
+                num,
+                rule_result_dict.get("scores", 0),
+                rule_summary[rule_name][2]
+            ])
 
     print_html_body(page, str(host), str(port), str(schema))
     print_html_js(page)
     print_html_chart(total_score, page, rules)
     print_html_rule_table(page, host, port, schema, rules)
 
-    if rule_type == "OBJ":
+    if rule_type == const.RULE_TYPE_OBJ:
         print_html_obj_detail_info(page, result, rules, rule_summary)
     else:
         print_html_rule_detail_table(page, result, rules, rule_type)
-        if rule_type in ["SQLPLAN", "SQLSTAT"]:
+        if rule_type in (const.RULE_TYPE_SQLSTAT, const.RULE_TYPE_SQLPLAN):
             print_html_rule_detail_info(page, result, rules)
-        elif rule_type == "TEXT":
+        elif rule_type == const.RULE_TYPE_TEXT:
             print_html_rule_text_detail_info(page, result, rules)
 
 

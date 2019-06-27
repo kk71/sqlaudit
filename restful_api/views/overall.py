@@ -51,7 +51,7 @@ class DashboardHandler(AuthReq):
                 None: "正在执行",
                 True: "成功",
                 False: "失败",
-                "no": "从未执行过"
+                "no": "从未执行"
             }
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             capture_tasks_status = {i[0]: "no" for i in session.query(TaskManage.task_id).
