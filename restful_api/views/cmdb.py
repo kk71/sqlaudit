@@ -321,12 +321,12 @@ class CMDBHealthTrendHandler(AuthReq):
                 base_line = base_lines[0]
             ret = [{
                 "date": d_to_str(k),
-                "基线": base_line,
                 **v
             } for k, v in ret.items()]
             self.resp({
                 "data": ret,
-                "fields": list(fields)
+                "fields": list(fields),
+                "base_line": base_line
             })
 
 
