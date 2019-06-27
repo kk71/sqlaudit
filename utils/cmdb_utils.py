@@ -71,7 +71,7 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
 
 
 @timing()
-def get_latest_health_score_cmdb(session, user_login=None, collect_month=6):
+def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> list:
     """
     获取用户可见的cmdb最新的health score排名
     :param session:

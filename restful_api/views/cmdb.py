@@ -296,8 +296,9 @@ class CMDBHealthTrendHandler(AuthReq):
         with make_session() as session:
             if not cmdb_id_list:
                 # 如果没有给出cmdb_id，则去查找最近的健康度，把最差的前十个拿出来
-                cmdb_connect_name_list = [i["connect_name"]
-                                          for i in cmdb_utils.get_latest_health_score_cmdb(session)[:10]]
+                worst_10 = cmdb_utils.get_latest_health_score_cmdb(
+                    session=session, user_login=self.current_user)[:10]
+                cmdb_connect_name_list = [i["connect_name"] for i in worst_10]
             else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB.connect_name).
                                                     filter(CMDB.cmdb_id.in_(cmdb_id_list))]
@@ -306,8 +307,7 @@ class CMDBHealthTrendHandler(AuthReq):
             for cn in cmdb_connect_name_list:
                 dh_q = session.query(DataHealth).filter(
                     DataHealth.database_name == cn,
-                    DataHealth.collect_date > now.shift(weeks=-1).datetime,
-                    DataHealth.collect_date <= now.datetime
+                    DataHealth.collect_date > now.shift(weeks=-1).datetime
                 ).order_by(DataHealth.collect_date)
                 for dh in dh_q:
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score

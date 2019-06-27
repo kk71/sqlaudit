@@ -84,7 +84,7 @@ def calculate(task_exec_hist_id):
                   """
             exist = plain_db.oracleob.OracleHelper.select(sql, [dbname, day], one=True)
             if not exist:
-                sql = "INSERT INTO T_DATA_HEALTH(database_name, collect_date, health_score) VALUES(:1, to_date(:2, 'yyyy-mm-dd'), :3)"
+                sql = "INSERT INTO T_DATA_HEALTH(database_name, collect_date, health_score, id) VALUES(:1, to_date(:2, 'yyyy-mm-dd'), :3, SEQ_DATA_HEALTH.nextval)"
                 plain_db.oracleob.OracleHelper.insert(sql, [dbname, day, score])
             else:
                 sql = "UPDATE T_DATA_HEALTH set health_score=:1 WHERE database_name = :2 AND collect_date = to_date(:3, 'yyyy-mm-dd')"

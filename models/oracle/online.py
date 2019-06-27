@@ -10,9 +10,10 @@ from utils.datetime_utils import *
 class DataHealth(BaseModel):
     __tablename__ = "T_DATA_HEALTH"
 
+    id = Column("ID", Sequence("SEQ_DATA_HEALTH"), String, primary_key=True)
     database_name = Column("DATABASE_NAME", String)
     health_score = Column("HEALTH_SCORE", Integer)
-    collect_date = Column("COLLECT_DATE", DATE, primary_key=True)
+    collect_date = Column("COLLECT_DATE", DATE)
 
 
 class TaskManage(BaseModel):
