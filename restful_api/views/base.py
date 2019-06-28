@@ -233,6 +233,9 @@ class AuthReq(BaseReq):
     def prepare(self) -> Optional[Awaitable[None]]:
         self.get_current_user()
 
+    def is_admin(self):
+        return settings.ADMIN_LOGIN_USER == self.current_user
+
 
 class RoleReq(AuthReq):
     """a request handler with role & privilege check"""

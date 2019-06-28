@@ -17,7 +17,7 @@ class User(BaseModel):
     email = Column("EMAIL", String)
     mobile_phone = Column("MOBILE_PHONE", String)
     department = Column("DEPARTMENT", String)
-    status = Column("STATUS", Boolean)
+    status = Column("STATUS", Boolean, default=True)
     last_login_time = Column("LAST_LOGIN_TIME", DATE)
     last_login_ip = Column("LAST_LOGIN_IP", String)
     login_counts = Column("LOGIN_COUNTS", Integer)

@@ -127,7 +127,6 @@ def clear_cache(use_q=True, no_prefetch=False):
     to_run(no_prefetch=no_prefetch)
 
 
-
 @click.command()
 @click.option("--job_id")
 def export_task(job_id):
@@ -139,6 +138,20 @@ def export_task(job_id):
     export(job_id)
 
 
+@click.command()
+def create_admin():
+    """create an admin user"""
+    from models.oracle import User, make_session
+    with make_session() as session:
+        default_password = "123456"
+        admin = User(
+            login_user=settings.ADMIN_LOGIN_USER,
+            user_name="系统管理员",
+            password=default_password)
+        session.add(admin)
+    print(f"* admin user named {settings.ADMIN_LOGIN_USER} created with password {default_password}")
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
@@ -148,4 +161,5 @@ if __name__ == "__main__":
     cli.add_command(schedule)
     cli.add_command(clear_cache)
     cli.add_command(export_task)
+    cli.add_command(create_admin)
     cli()
