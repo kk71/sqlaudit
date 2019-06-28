@@ -4,7 +4,7 @@ from schema import Schema, And
 from sqlalchemy import func
 
 from utils.datetime_utils import *
-from .base import AuthReq
+from .base import RoleReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
@@ -12,9 +12,11 @@ from models.oracle import *
 import past.utils.check
 
 
-class OverviewHandler(AuthReq):
+class OverviewHandler(RoleReq):
 
     def get(self):
+        self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
+
         """上线情况概览"""
         params = self.get_query_args(Schema({
             "duration": And(scm_unempty_str, scm_one_of_choices(("week", "month"))),
@@ -94,10 +96,12 @@ class OverviewHandler(AuthReq):
             })
 
 
-class ExecuteHandler(AuthReq):
+class ExecuteHandler(RoleReq):
 
     def post(self):
         """执行上线"""
+        self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
+
         params = self.get_json_args(Schema({
             "work_list_id": scm_int
         }))

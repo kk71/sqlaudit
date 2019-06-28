@@ -13,7 +13,7 @@ from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
 from utils import sql_utils, stream_utils
-from .base import AuthReq
+from .base import AuthReq, RoleReq
 from models.mongo import *
 from models.oracle import *
 from task.offline_ticket import offline_ticket
@@ -22,7 +22,7 @@ import plain_db.oracleob
 import past.utils.utils
 
 
-class TicketHandler(AuthReq):
+class TicketHandler(RoleReq):
 
     def get(self):
         """线下审核工单列表"""
@@ -51,6 +51,15 @@ class TicketHandler(AuthReq):
                                        WorkList.audit_owner,
                                        WorkList.audit_comments
                                        )
+            if not self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
+                # 只能看:自己提交的工单
+                q = q.filter(WorkList.submit_owner == self.current_user)
+            else:
+                # 能看:自己提交的工单+指派给自己的工单
+                q = q.filter(
+                    WorkList.submit_owner == self.current_user,
+                    WorkList.audit_owner == self.current_user
+                )
             items, p = self.paginate(q, **params)
             ret = []
             for ticket in items:
@@ -95,6 +104,8 @@ class TicketHandler(AuthReq):
 
     def patch(self):
         """更新工单的审阅状态"""
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
+
         params = self.get_json_args(Schema({
             "work_list_id": scm_int,
             Optional("audit_comments"): scm_str,

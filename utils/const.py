@@ -149,7 +149,7 @@ class PRIVILEGE:
     PRIVILEGE_SQL_HEALTH = (2, TYPE_FE, "SQL健康度", "是否允许使用")
     PRIVILEGE_ONLINE = (3, TYPE_FE, "线上审核", "是否允许使用")
     PRIVILEGE_OFFLINE = (4, TYPE_FE, "线下审核", "是否允许使用")
-    PRIVILEGE_SELF_SERVICE_ONLINE = (5, TYPE_FE, "自助上线", "是否允许使用")
+    PRIVILEGE_SELF_SERVICE_ONLINE = (5, TYPE_BOTH, "自助上线", "是否允许使用")
     PRIVILEGE_SQL_TUNE = (6, TYPE_FE, "智能优化", "是否允许使用")
     PRIVILEGE_USER_MANAGER = (7, TYPE_FE, "用户管理", "是否允许使用")
     PRIVILEGE_CMDB = (8, TYPE_FE, "纳管数据库管理", "是否允许使用")
@@ -161,6 +161,7 @@ class PRIVILEGE:
     PRIVILEGE_RISK_RULE = (14, TYPE_FE, "风险SQL规则管理", "是否允许使用")
     PRIVILEGE_MAIL_SEND = (15, TYPE_FE, "报告发送管理", "是否允许使用")
     PRIVILEGE_METADATA = (16, TYPE_FE, "元数据", "是否允许使用")
+    PRIVILEGE_OFFLINE_TICKET_APPROVAL = (17, TYPE_BOTH, "审批线下工单", "是否允许使用")
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (

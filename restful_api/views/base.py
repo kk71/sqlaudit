@@ -243,12 +243,23 @@ class RoleReq(AuthReq):
     def __init__(self, *args, **kwargs):
         super(AuthReq, self).__init__(*args, **kwargs)
 
-    def acquire(self, *args):
-        """ask for privilege"""
+    def should_have(self, *args):
+        """judge what privilege is not present for current user"""
         privilege_list = get_privilege_towards_user(self.current_user)
-        unavailable_privileges = set(args) - set(privilege_list)
+        return set(args) - set(privilege_list)
+
+    def has(self, *args):
+        """judge if privilege is all present for current user"""
+        if self.should_have(*args):
+            return False
+        return True
+
+    def acquire(self, *args):
+        """ask for privilege, if not, response forbidden"""
+        unavailable_privileges = self.should_have(*args)
         if unavailable_privileges:
             unavailable_privileges_names = ", ".join([
                 PRIVILEGE.privilege_to_dict(i)["name"] for i in unavailable_privileges])
             self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
             raise PrivilegeRequired
+
