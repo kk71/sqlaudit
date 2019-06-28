@@ -245,6 +245,8 @@ class RoleReq(AuthReq):
 
     def should_have(self, *args):
         """judge what privilege is not present for current user"""
+        if self.current_user == settings.ADMIN_LOGIN_USER:
+            return set()  # 如果是admin用户，则认为任何权限都是拥有的
         privilege_list = get_privilege_towards_user(self.current_user)
         return set(args) - set(privilege_list)
 
