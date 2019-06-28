@@ -3,7 +3,8 @@
 import cx_Oracle
 from schema import Schema, Optional, And
 
-from .base import AuthReq
+import settings
+from .base import AuthReq, RoleReq
 from utils.schema_utils import *
 from models.oracle import *
 from utils.const import *
@@ -159,7 +160,7 @@ class RoleUserHandler(AuthReq):
         self.resp_created(msg="deleted")
 
 
-class SystemPrivilegeHandler(AuthReq):
+class SystemPrivilegeHandler(RoleReq):
 
     def get(self):
         """权限列表"""
@@ -174,10 +175,14 @@ class SystemPrivilegeHandler(AuthReq):
         p = self.pop_p(params)
 
         if current_user:
-            with make_session() as session:
-                privilege_ids = [i[0] for i in session.query(RolePrivilege.privilege_id).
-                    join(UserRole, RolePrivilege.role_id == UserRole.role_id).
-                    filter(UserRole.login_user == self.current_user)]
+            if self.current_user == settings.ADMIN_LOGIN_USER:
+                # admin用户拥有任何权限
+                privilege_ids = PRIVILEGE.get_all_privilege_id()
+            else:
+                with make_session() as session:
+                    privilege_ids = [i[0] for i in session.query(RolePrivilege.privilege_id).
+                        join(UserRole, RolePrivilege.role_id == UserRole.role_id).
+                        filter(UserRole.login_user == self.current_user)]
             privilege_dicts = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
                                for i in privilege_ids]
             privilege_dicts = [i["name"] for i in privilege_dicts if i["type"] in privilege_type]
