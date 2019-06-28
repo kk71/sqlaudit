@@ -43,17 +43,15 @@ def calc_result(result, db_model) -> tuple:
                                     db_model=db_model,
                                     db_type=DB_ORACLE):
         rule_result = getattr(result, rule_object.rule_name, None)
-        if rule_result:
+        if rule_result and (rule_result.get("sqls", []) or rule_result.get("records", [])):
             if result.rule_type == RULE_TYPE_OBJ:
                 rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
                     len(rule_result.get("records", []))
 
-            elif result.rule_type in [
-                RULE_TYPE_TEXT,
-                RULE_TYPE_SQLSTAT,
-                RULE_TYPE_SQLPLAN]:
+            elif result.rule_type in ALL_RULE_TYPES_FOR_SQL_RULE:
                 rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
                     len(rule_result.get("sqls", []))
+
             else:
                 assert 0
 
