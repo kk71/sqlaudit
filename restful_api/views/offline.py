@@ -16,7 +16,6 @@ from utils import sql_utils, stream_utils
 from .base import AuthReq
 from models.mongo import *
 from models.oracle import *
-from utils.perf_utils import *
 from task.offline_ticket import offline_ticket
 
 import plain_db.oracleob

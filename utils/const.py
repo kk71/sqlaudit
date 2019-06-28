@@ -145,7 +145,7 @@ class PRIVILEGE:
     # 权限
     # 新增权限的时候，请保持id不断增大，不要复用旧id，哪怕已经删掉的权限的id也不要用)
     # 删除权限请全代码搜索删除
-    PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘", "是否允许使用")
+    # PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘", "是否允许使用")
     PRIVILEGE_SQL_HEALTH = (2, TYPE_FE, "SQL健康度", "是否允许使用")
     PRIVILEGE_ONLINE = (3, TYPE_FE, "线上审核", "是否允许使用")
     PRIVILEGE_OFFLINE = (4, TYPE_FE, "线下审核", "是否允许使用")
@@ -164,7 +164,7 @@ class PRIVILEGE:
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
-        PRIVILEGE_DASHBOARD,
+        # PRIVILEGE_DASHBOARD,
         PRIVILEGE_SQL_HEALTH,
         PRIVILEGE_ONLINE,
         PRIVILEGE_OFFLINE,
