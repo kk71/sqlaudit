@@ -161,7 +161,8 @@ class PRIVILEGE:
     PRIVILEGE_RISK_RULE = (14, TYPE_FE, "风险SQL规则管理", "是否允许使用")
     PRIVILEGE_MAIL_SEND = (15, TYPE_FE, "报告发送管理", "是否允许使用")
     PRIVILEGE_METADATA = (16, TYPE_FE, "元数据", "是否允许使用")
-    PRIVILEGE_OFFLINE_TICKET_APPROVAL = (17, TYPE_BOTH, "审批线下工单", "是否允许使用")
+    PRIVILEGE_OFFLINE_TICKET_APPROVAL = (17, TYPE_BOTH, "审批线下工单", "")
+    PRIVILEGE_OFFLINE_TICKET_ADMIN = (18, TYPE_BE, "查看全部线下工单", "")
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
@@ -180,7 +181,9 @@ class PRIVILEGE:
         PRIVILEGE_WHITE_LIST,
         PRIVILEGE_RISK_RULE,
         PRIVILEGE_MAIL_SEND,
-        PRIVILEGE_METADATA
+        PRIVILEGE_METADATA,
+        PRIVILEGE_OFFLINE_TICKET_APPROVAL,
+        PRIVILEGE_OFFLINE_TICKET_ADMIN,
     )
 
     @classmethod

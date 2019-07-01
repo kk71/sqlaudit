@@ -23,7 +23,51 @@ import plain_db.oracleob
 import past.utils.utils
 
 
-class TicketHandler(PrivilegeReq):
+class OfflineTicketCommonHandler(PrivilegeReq):
+
+    def privilege_filter_ticket(self, q):
+        """根据登录用户的权限过滤工单"""
+        if self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
+            # 超级权限，可看所有的工单
+            pass
+
+        elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
+            # 能看:自己提交的工单+指派给自己的工单
+            q = q.filter(
+                or_(WorkList.submit_owner == self.current_user,
+                    WorkList.audit_owner == self.current_user)
+            )
+
+        else:
+            # 只能看:自己提交的工单
+            q = q.filter(WorkList.submit_owner == self.current_user)
+        return q
+
+    def privilege_filter_sub_ticket(self, q, session):
+        """根据登录用户的权限过滤子工单"""
+        if self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
+            # 超级权限，可看所有子工单
+            pass
+
+        elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
+            # 能看:自己提交的子工单+指派给自己的子工单
+            sq = session.query(WorkList.work_list_id). \
+                filter(or_(
+                    WorkList.submit_owner == self.current_user,
+                    WorkList.audit_owner == self.current_user,
+                ))
+            q = q.filter(SubWorkList.work_list_id.in_(sq))
+
+        else:
+            # 只能看:自己提交的子工单
+            sq = session.query(WorkList.work_list_id).\
+                filter(WorkList.submit_owner == self.current_user)
+            q = q.filter(SubWorkList.work_list_id.in_(sq))
+
+        return q
+
+
+class TicketHandler(OfflineTicketCommonHandler):
 
     def get(self):
         """线下审核工单列表"""
@@ -52,15 +96,7 @@ class TicketHandler(PrivilegeReq):
                                        WorkList.audit_owner,
                                        WorkList.audit_comments
                                        )
-            if not self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
-                # 只能看:自己提交的工单
-                q = q.filter(WorkList.submit_owner == self.current_user)
-            else:
-                # 能看:自己提交的工单+指派给自己的工单
-                q = q.filter(
-                    or_(WorkList.submit_owner == self.current_user,
-                        WorkList.audit_owner == self.current_user)
-                )
+            q = self.privilege_filter_ticket(q)
             items, p = self.paginate(q, **params)
             ret = []
             for ticket in items:
@@ -379,7 +415,7 @@ class SQLUploadHandler(AuthReq):
     #     self.resp_created()
 
 
-class SubTicketHandler(AuthReq):
+class SubTicketHandler(OfflineTicketCommonHandler):
 
     def filter_sub_ticket(self, session):
         params = self.get_query_args(Schema({
@@ -441,6 +477,7 @@ class SubTicketHandler(AuthReq):
             pass  # reserved but should be useless
         else:
             assert 0
+        q = self.privilege_filter_sub_ticket(q, session)
         return q
 
     def get(self):

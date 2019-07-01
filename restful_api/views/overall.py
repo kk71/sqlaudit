@@ -2,7 +2,6 @@
 
 from schema import Schema, Optional, And
 from sqlalchemy import func
-from sqlalchemy import or_
 
 from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
@@ -12,6 +11,7 @@ from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils, object_utils
 from models.oracle.optimize import *
+from restful_api.views.offline import OfflineTicketCommonHandler
 
 
 class DashboardHandler(PrivilegeReq):
@@ -39,15 +39,8 @@ class DashboardHandler(PrivilegeReq):
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)). \
                 group_by(WorkList.work_list_status)
-            if not self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
-                # 只能看:自己提交的工单
-                offline_tickets = offline_tickets.filter(WorkList.submit_owner == self.current_user)
-            else:
-                # 能看:自己提交的工单+指派给自己的工单
-                offline_tickets = offline_tickets.filter(
-                    or_(WorkList.submit_owner == self.current_user,
-                        WorkList.audit_owner == self.current_user)
-                )
+            offline_tickets = OfflineTicketCommonHandler.privilege_filter_ticket(
+                self=self, q=offline_tickets)
             offline_status_desc = {
                 0: "待审核",
                 1: "审核通过",

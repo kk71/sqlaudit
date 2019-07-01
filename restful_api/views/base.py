@@ -125,7 +125,7 @@ class BaseReq(RequestHandler):
         self.resp(msg=msg, status_code=401)
 
     def resp_bad_username_password(self, msg: str = "bad username or password") -> NoReturn:
-        self.resp(msg=msg, status_code=403)
+        self.resp(msg=msg, status_code=401)
 
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):
