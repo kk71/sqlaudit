@@ -3,7 +3,7 @@
 __all__ = [
     "BaseReq",
     "AuthReq",
-    "RoleReq"
+    "PrivilegeReq"
 ]
 
 import json
@@ -237,7 +237,7 @@ class AuthReq(BaseReq):
         return settings.ADMIN_LOGIN_USER == self.current_user
 
 
-class RoleReq(AuthReq):
+class PrivilegeReq(AuthReq):
     """a request handler with role & privilege check"""
 
     def __init__(self, *args, **kwargs):

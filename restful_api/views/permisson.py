@@ -4,7 +4,7 @@ import cx_Oracle
 from schema import Schema, Optional, And
 
 import settings
-from .base import AuthReq, RoleReq
+from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from models.oracle import *
 from utils.const import *
@@ -160,7 +160,7 @@ class RoleUserHandler(AuthReq):
         self.resp_created(msg="deleted")
 
 
-class SystemPrivilegeHandler(RoleReq):
+class SystemPrivilegeHandler(PrivilegeReq):
 
     def get(self):
         """权限列表"""

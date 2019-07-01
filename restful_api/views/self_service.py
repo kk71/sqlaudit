@@ -4,7 +4,7 @@ from schema import Schema, And
 from sqlalchemy import func
 
 from utils.datetime_utils import *
-from .base import RoleReq
+from .base import PrivilegeReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
@@ -12,7 +12,7 @@ from models.oracle import *
 import past.utils.check
 
 
-class OverviewHandler(RoleReq):
+class OverviewHandler(PrivilegeReq):
 
     def get(self):
         self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
@@ -96,7 +96,7 @@ class OverviewHandler(RoleReq):
             })
 
 
-class ExecuteHandler(RoleReq):
+class ExecuteHandler(PrivilegeReq):
 
     def post(self):
         """执行上线"""

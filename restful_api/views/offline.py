@@ -7,13 +7,14 @@ from collections import OrderedDict
 import xlrd
 import xlsxwriter
 from schema import Schema, Optional, And
+from sqlalchemy import or_
 
 import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
 from utils import sql_utils, stream_utils
-from .base import AuthReq, RoleReq
+from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
 from task.offline_ticket import offline_ticket
@@ -22,7 +23,7 @@ import plain_db.oracleob
 import past.utils.utils
 
 
-class TicketHandler(RoleReq):
+class TicketHandler(PrivilegeReq):
 
     def get(self):
         """线下审核工单列表"""
@@ -57,8 +58,8 @@ class TicketHandler(RoleReq):
             else:
                 # 能看:自己提交的工单+指派给自己的工单
                 q = q.filter(
-                    WorkList.submit_owner == self.current_user,
-                    WorkList.audit_owner == self.current_user
+                    or_(WorkList.submit_owner == self.current_user,
+                        WorkList.audit_owner == self.current_user)
                 )
             items, p = self.paginate(q, **params)
             ret = []
