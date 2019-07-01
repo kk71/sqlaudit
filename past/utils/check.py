@@ -98,7 +98,7 @@ class Check:
         if rule_complexity == "simple" and re.search(rule_cmd, sql):
             violate = True
         elif rule_complexity == "complex":
-            module_name = ".".join(["rule_analysis.rule.text", key.lower()])
+            module_name = ".".join(["past.rule_analysis.rule.text", key.lower()])
             module = __import__(module_name, globals(), locals(), "execute_rule")
             if module.execute_rule(sql=sql, **args):
                 violate = True
