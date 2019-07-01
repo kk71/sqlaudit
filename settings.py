@@ -98,6 +98,9 @@ ORACLE_MAX_CONN = 5
 ORACLE_INCREMENT = 1
 
 
+CLIENT_NAME = "25测试"
+
+
 # print out all referred environment variables with default value and the final value
 
 from prettytable import PrettyTable

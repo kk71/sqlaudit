@@ -5,6 +5,8 @@ from models.oracle import *
 from utils.schema_utils import *
 from utils.const import *
 
+from task.mail_report import *
+
 
 class SendListHandler(AuthReq):
 
@@ -123,6 +125,7 @@ class SendMailHandler(AuthReq):
                 x.update({**params})
             # TODO
             # timing_send_email.delay(send_mail)
+            timing_send_email(send_mail)
         self.resp_created(msg="发送正在发送邮件, 请注意查收")
 
 
