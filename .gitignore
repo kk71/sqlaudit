@@ -172,3 +172,4 @@ venv.bak/
 downloads/export/*.xls
 downloads/export/*.xlsx
 downloads/export/*.csv
+downloads/mail_files/*.zip

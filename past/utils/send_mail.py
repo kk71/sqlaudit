@@ -31,5 +31,6 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
     print(result, errors)
     return result, errors
 
+
 if __name__ == '__main__':
     send_mail(title='测试邮件', contents='您好 这是一封测试邮件', receivers='574691837@qq.com', server_data=dict(mail_server_name='smtp.qq.com', port=25, username='1002751472@qq.com', password='ftvcpmagklagbeii', usessl=0), path='/home/sqlaudit/sqlauditcg/sqlaudit2/downloads/mail_files/25测试2802201907011030.zip', filename="SQL审核报告.zip")

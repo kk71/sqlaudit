@@ -368,7 +368,7 @@ def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
         sql = [
             {"$match": condition},
             {"$group": {
-                "_id": str("$SQL_ID"),
+                "_id": "$SQL_ID",
                 "first_appear": {"$min": "$ETL_DATE"},
                 "record_id": {"$max": "$record_id"},
                 "SQL_TEXT": {"$max": "$SQL_TEXT"},
