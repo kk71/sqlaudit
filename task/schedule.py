@@ -9,16 +9,12 @@ import time
 import traceback
 from datetime import datetime
 
-import cx_Oracle
-
 import settings
 from task.capture import task_run
-import past.capture.sql
-# from task_mail import timing_send_email
-from task.sqlaitune import sqlaitune_run
+from .mail_report import timing_send_email
+# from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
 from utils import const
-# from task_mongo import clean_mongo
 
 
 def get_time():
@@ -104,13 +100,12 @@ def run_mail(time_structure):
                     "title": mail_detail['title'],
                     "contents": mail_detail['contents'],
                     "mail_sender": send_user,
-                    # "mail_list": [],
                 }
             )
 
     if send_user_list:
         print("Mail ready to send: %s" % send_user_list)
-        # timing_send_email.delay(send_user_list)
+        timing_send_email.delay(send_user_list)
 
 
 def main():
@@ -129,8 +124,8 @@ def main():
             time.sleep(t)
             run_capture(next_minute_ts + 3600 * 8)
 
-            # if next_minute_structure.minute == 0:  # 每小时执行一次
-            #     run_mail(next_minute_structure)
+            if next_minute_structure.minute == 0:  # 每小时执行一次
+                run_mail(next_minute_structure)
 
             # if next_minute_structure.minute == 0 & next_minute_structure.hour == 0 & next_minute_structure.day == 1:
             #     clean_mongo.delay()

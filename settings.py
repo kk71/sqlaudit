@@ -26,7 +26,7 @@ def env_get(k, default, parser=None):
 # web server settings
 
 DEBUG = True
-WEB_IP = env_get("WEB_IP", "localhost")  # TODO : DO NOT USE LOCALHOST
+WEB_IP = env_get("WEB_IP", "localhost")  # TODO : DO NOT USE LOCALHOST!!!
 WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1")
@@ -39,6 +39,7 @@ EXPORT_PREFIX = "/downloads/export"
 TIMING_ENABLED = bool(env_get("TIMING_ENABLED", 1, int))
 TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.3, float)
 ADMIN_LOGIN_USER = "admin"
+CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
 
 
 # celery broker & backend settings
