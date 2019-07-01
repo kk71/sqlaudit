@@ -40,7 +40,8 @@ class UserRole(BaseModel):
 class RolePrivilege(BaseModel):
     __tablename__ = "T_ROLE_PRIVILEGE"
 
-    role_id = Column("ROLE_ID", Integer, primary_key=True)
+    id = Column("ID", Integer, Sequence("SEQ_ROLE_PRIVILEGE"), primary_key=True)
+    role_id = Column("ROLE_ID", Integer)
     privilege_type = Column("PRIVILEGE_TYPE", Integer)
     privilege_id = Column("PRIVILEGE_ID", Integer)
     create_date = Column("CREATE_DATE", DATE, default=datetime.now)
