@@ -47,12 +47,12 @@ def get_authed_cmdbs(login_user):
 
 
 def get_rules(rule_type="all"):
-    sql = "select RULE_NAME, RISK_SQL_DIMENSION FROM T_RISK_SQL_RULE"
+    sql = "select RULE_NAME, RULE_TYPE FROM T_RISK_SQL_RULE"
     rules = OracleHelper.select(sql=sql, one=False)
-    sql_text = [x[0] for x in rules if x[1] == 'SQL文本']
-    sql_plan = [x[0] for x in rules if x[1] == 'SQL执行计划']
-    sql_stat = [x[0] for x in rules if x[1] == 'SQL执行效率']
-    obj_rules = [x[0] for x in rules if x[1] == '对象']
+    sql_text = [x[0] for x in rules if x[1] == 'SQL文本' or 'TEXT']
+    sql_plan = [x[0] for x in rules if x[1] == 'SQL执行计划'or 'SQLPLAN']
+    sql_stat = [x[0] for x in rules if x[1] == 'SQL执行效率' or 'SQLATAT']
+    obj_rules = [x[0] for x in rules if x[1] == '对象' or 'OBJ']
     return {
         'sql': sql_text,
         'plan': sql_plan,

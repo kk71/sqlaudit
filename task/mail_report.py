@@ -35,7 +35,7 @@ def update_send_mail(result, error, send_mail_id):
 
 def insert_send_mail_history(login_user, send_mail_id, result, file_path):
     sql = """INSERT INTO t_send_mail_hist(id, send_mail_list_id, receiver, file_path, status, create_time)
-                     VALUES(SEQ_SENDMAIL_HIST.nextval, :1, :2, :3, :4, to_date(:5, 'yyyy-mm-dd hh24:mi:ss'))
+                     VALUES(SEQ_SENDMAIL_HIST.nextval, :1, :2, :3, :4, :5)
                   """
 
     sql_params = [send_mail_id, login_user, file_path, result, get_time()]
@@ -53,7 +53,7 @@ def timing_send_email(send_user_list):
     server_data = OracleHelper.select_dict(sql, one=True)
 
     for send_detail in send_user_list:
-        for login_user in send_detail['mail_sender']:
+        for login_user in send_detail['user_type_name_list']:
             params = [login_user]
             user_sql = "SELECT EMAIL FROM T_USER WHERE LOGIN_USER=:1"
             user_data = OracleHelper.select(user_sql, params=params, one=True)
@@ -132,9 +132,10 @@ def create_excel(username, send_list_id):
         str(send_list_id),
         datetime.now().strftime("%Y%m%d%H%M") + ".zip"
     ]
+    print(ROOT_PATH)
     # print(ROOT_PATH + "/webui/static/files/mail_files/", ''.join(file_path_list))
     zipPath = zip_file_path(
-        path, ROOT_PATH + "/webui/static/files/mail_files/", ''.join(file_path_list))
+        path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
     return zipPath
 
 
@@ -292,16 +293,16 @@ def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
         ws.write(row, col, value['connect_name'], text_format)
         ws.write(row, col + 1, value["name"].split("#")[0], text_format)
         ws.write(row, col + 2, value["create_time"][:-3], text_format)
-        ws.write(row, col + 3, status_map[value['status']], text_format)
+        ws.write(row, col + 3, status_map[str(value['status'])], text_format)
         ws.write(row, col + 4, value["name"].split("#")[1], text_format)
         if int(value.get("score", 0)) < 75:
             ws.write(row, col + 5, value.get("score", ""), content_format)
         else:
             ws.write(row, col + 5, value.get("score", ""), text_format)
-        ws.write(row, col + 6, value["desc"]
-                               ["capture_time_s"][:-3], text_format)
-        ws.write(row, col + 7, value["desc"]
-                               ["capture_time_e"][:-3], text_format)
+        ws.write(row, col + 6, str(value["desc"]
+                               ["capture_time_start"])[:-3], text_format)
+        ws.write(row, col + 7, str(value["desc"]
+                               ["capture_time_end"])[:-3], text_format)
         row += 1
 
 
@@ -333,8 +334,8 @@ def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
     if login_user != "admin":
         condition["desc.owner"] = {"$in": schemas}
 
-    task_info = MongoHelper.find('job', condition, {"id": 1, "_id": 0})
-    task_ids = [item['id'] for item in task_info]
+    task_info = MongoHelper.find('job', condition, {"_id": 1})
+    task_ids = [str(item['_id']) for item in task_info]
 
     rule_list = get_rules("both")
     rule_list = [x for rules in rule_list for x in rules]
@@ -367,7 +368,7 @@ def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
         sql = [
             {"$match": condition},
             {"$group": {
-                "_id": "$SQL_ID",
+                "_id": str("$SQL_ID"),
                 "first_appear": {"$min": "$ETL_DATE"},
                 "record_id": {"$max": "$record_id"},
                 "SQL_TEXT": {"$max": "$SQL_TEXT"},
@@ -461,8 +462,9 @@ def format_results(results, rule_list, key='rule_name') -> dict:
             if rule_name not in rule_list or not sql_ids or 'records' in sql_ids:
                 continue
             if key == 'rule_name':
+                kvalues=[kvalue for krisk, kvalue in sql_ids.items() if krisk != 'scores']
                 [set_dict[rule_name].add(
-                    kvalue['sql_id']) for krisk, kvalue in sql_ids.items() if krisk != 'scores']
+                    kvalue['sql_id']) for k in kvalues for kvalue in k]
             elif key == 'schemas':
                 [set_dict[result['username']].add(kvalue['sql_id']) for krisk, kvalue in sql_ids.items() if
                  krisk != 'scores']
@@ -562,7 +564,7 @@ def create_appendx(wb):
     ws.set_column(4, 4, 55)
     ws.write_row(0, 0, title, title_format)
 
-    sql = "SELECT RULE_NAME, RISK_NAME, RISK_SQL_DIMENSION, SEVERITY, OPTIMIZED_ADVICE FROM T_RISK_SQL_RULE"
+    sql = "SELECT RULE_NAME, RISK_NAME, RULE_TYPE, SEVERITY, OPTIMIZED_ADVICE FROM T_RISK_SQL_RULE"
     data = OracleHelper.select(sql, one=False)
 
     for index, row in enumerate(data):

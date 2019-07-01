@@ -10,19 +10,20 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
     mail_pass = server_data['password']
     use_ssl = True if server_data['usessl'] else False
     smtp_skip_login = True if not mail_pass else False
-    contents = [contents]
-    data = {
-        'to': receivers,
-        'subject': title,
-        'contents': contents,
-    }
-    if path and filename:
-        data['attachments'] = {path: filename}
+    # contents = [contents]
+    # data = {
+    #     'to': receivers,
+    #     'subject': title,
+    #     'contents': contents,
+    # }
+    # if path and filename:
+    #     data['attachments'] = {path: filename}
     result = True
     errors = ''
     try:
         yag = yagmail.SMTP(user=mail_user, password=mail_pass, host=mail_host, port=mail_port, smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
-        yag.send(**data)
+        # yag.send(**data)
+        yag.send(to=receivers,subject=title,contents=contents,attachments=path)
     except Exception as error:
         result = False
         errors = error.__str__()
@@ -31,4 +32,4 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
     return result, errors
 
 if __name__ == '__main__':
-    send_mail(title='测试邮件', contents='您好 这是一封测试邮件', receivers='278917846@qq.com', server_data=dict(mail_server_name='smtp.qq.com', port=25, username='1002751472@qq.com', password='ftvcpmagklagbeii', usessl=0), path='/tmp/114测试11201810241124.zip', filename="SQL审核报告.zip")
+    send_mail(title='测试邮件', contents='您好 这是一封测试邮件', receivers='574691837@qq.com', server_data=dict(mail_server_name='smtp.qq.com', port=25, username='1002751472@qq.com', password='ftvcpmagklagbeii', usessl=0), path='/home/sqlaudit/sqlauditcg/sqlaudit2/downloads/mail_files/25测试2802201907011030.zip', filename="SQL审核报告.zip")
