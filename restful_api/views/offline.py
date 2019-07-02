@@ -132,6 +132,7 @@ class TicketHandler(OfflineTicketCommonHandler):
         }))
         session_id = params.pop("session_id")
         with make_session() as session:
+            params["audit_owner"] = self.current_user
             ticket = WorkList(**params)
             session.add(ticket)
             session.commit()
