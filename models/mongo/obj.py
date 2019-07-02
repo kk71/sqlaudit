@@ -158,8 +158,8 @@ class ObjViewInfo(BaseDocRecordID):
 
 class ObjSeqInfo(BaseCapturingDoc):
     """采集索引"""
-    min_value = IntField()
-    max_value = IntField()
+    min_value = StringField()
+    max_value = StringField()
     increment_by = IntField()
     cache_size = IntField()
     sequence_name = StringField()
@@ -174,3 +174,10 @@ class ObjSeqInfo(BaseCapturingDoc):
     def command_to_execute(cls, obj_owner) -> str:
         return f"""select MIN_VALUE,MAX_VALUE,INCREMENT_BY,CACHE_SIZE, SEQUENCE_NAME, 
         sequence_owner, last_number from dba_sequences where sequence_owner = '{obj_owner}'"""
+
+    @classmethod
+    def post_captured(cls, docs: list, obj_owner: str, cmdb_id: int, task_record_id):
+        BaseCapturingDoc.post_captured(docs, obj_owner, cmdb_id, task_record_id)
+        for d in docs:
+            d.min_value = str(d.min_value)
+            d.max_value = str(d.max_value)
