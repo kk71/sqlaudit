@@ -43,6 +43,9 @@ def capture(task_record_id, cmdb_id, schema_name):
             print(f"Going to capture: {sql}")
             docs = [m(**c) for c in cmdb_conn.select_dict(sql, one=False)]
             m.post_captured(docs, schema_name, cmdb_id, task_record_id)
+            if not docs:
+                print("no objects captured.")
+                continue
             m.objects.insert(docs)
 
 

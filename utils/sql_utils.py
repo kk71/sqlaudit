@@ -255,8 +255,10 @@ def parse_sql_file(sql_contents, sql_keyword):
         if is_annotation(sql):
             annotation_sql += sql
         else:
+            # new_sql_list.append(
+            #     (annotation_sql + "\n" + sql).lstrip().replace('\n\n', '\n').replace('\n', '<br/>').replace("\"", "'"))
             new_sql_list.append(
-                (annotation_sql + "\n" + sql).lstrip().replace('\n\n', '\n').replace('\n', '<br/>').replace("\"", "'"))
+                (annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
 
     return new_sql_list

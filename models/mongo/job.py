@@ -38,10 +38,7 @@ class Job(BaseDocRecordID):
             "cmdb_id",
             "etl_date",
             "exported",
-            "connect_name"
+            "connect_name",
+            "create_time"
         ]
     }
-
-    @classmethod
-    def filter_finished(cls, *args, **kwargs):
-        return cls.objects(status=const.JOB_STATUS_FINISHED)
