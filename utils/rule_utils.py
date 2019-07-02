@@ -143,7 +143,6 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     :param date_range:
     :return:
     """
-    # TODO make it cached
     date_start, date_end = date_range
     results_q = Results.objects(cmdb_id=cmdb_id, create_date__gte=date_start,
                                 create_date__lte=date_end)
@@ -160,7 +159,7 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     ret = {
         # OBJ
         "table": {"violation_num": 0, "sum": 0, "rate": 0.0},  # table包括普通表及分区表,无属性或类型可定义，故以table表示
-        "sequence": {"violation_num": 0, "sum": 0, "rate": 0.0},
+        OBJ_RULE_TYPE_SEQ: {"violation_num": 0, "sum": 0, "rate": 0.0},
         OBJ_RULE_TYPE_INDEX: {"violation_num": 0, "sum": 0, "rate": 0.0},
         # others
         RULE_TYPE_TEXT: {"violation_num": 0, "sum": 0, "rate": 0.0},
@@ -182,6 +181,8 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
                     ret["table"]["violation_num"] += len(records)
                 elif rule_obj.obj_info_type == OBJ_RULE_TYPE_INDEX:
                     ret[OBJ_RULE_TYPE_INDEX]["violation_num"] += len(records)
+                elif rule_obj.obj_info_type == OBJ_RULE_TYPE_SEQ:
+                    ret[OBJ_RULE_TYPE_SEQ]["violation_num"] += len(records)
             else:
                 sqls = result_rule_dict["sqls"]
                 ret[result.rule_type]["violation_num"] += len(sqls)
@@ -195,6 +196,10 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     ret["table"]["sum"] += part_tab_info_q.filter(record_id__in=record_id_list).count()
     # OBJ index
     ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id__in=record_id_list).count()
+    # OBJ sequence
+    ret[OBJ_RULE_TYPE_SEQ]["sum"] += ObjSeqInfo.objects(task_record_id__in=[
+        int(i.split("##")[0])
+        for i in record_id_list]).count()
     # other
     ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__in=record_id_list).count()
     ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__in=record_id_list).count()
