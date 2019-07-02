@@ -124,15 +124,18 @@ class TicketHandler(OfflineTicketCommonHandler):
         """创建DDL，DML工单"""
         params = self.get_json_args(Schema({
             "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
-            "audit_owner": scm_unempty_str,
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
+            "audit_owner": scm_unempty_str,
             "task_name": scm_unempty_str,
             "session_id": scm_unempty_str
         }))
+        params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")
         with make_session() as session:
-            params["audit_owner"] = self.current_user
+            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+            params["system_name"] = cmdb.business_name
+            params["database_name"] = cmdb.connect_name
             ticket = WorkList(**params)
             session.add(ticket)
             session.commit()

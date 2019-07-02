@@ -86,3 +86,6 @@ def offline_ticket(work_list_id, sqls):
                 comments=comments
             )
             session.add(sub_ticket)
+
+        ticket.sql_counts = len(sqls)
+        session.add(ticket)
