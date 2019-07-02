@@ -1,12 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from collections import defaultdict
+
 import jwt
-from schema import Schema, Optional
+from schema import Schema, Optional, And
 from sqlalchemy.exc import IntegrityError
 
 import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
+from utils.const import *
 from .base import *
 from models.oracle import *
 
@@ -54,10 +57,29 @@ class UserHandler(AuthReq):
 
     def get(self):
         """用户列表"""
-        params = self.get_query_args(Schema(self.gen_p()))
+        params = self.get_query_args(Schema({
+            Optional("has_privilege", default=None):
+                And(scm_dot_split_int, scm_subset_of_choices(PRIVILEGE.get_all_privilege_id())),
+            **self.gen_p()
+        }))
         p = self.pop_p(params)
+        has_privilege = params.pop("has_privilege")
         with make_session() as session:
             user_q = session.query(User)
+            if has_privilege:
+                login_users = [settings.ADMIN_LOGIN_USER]
+                login_user_privilege_id_dict = defaultdict(set)
+                qe = QueryEntity(User.login_user, RolePrivilege.privilege_id)
+                login_user_privilege_id = session.query(*qe).\
+                    join(UserRole, User.login_user == UserRole.login_user).\
+                    join(RolePrivilege, UserRole.role_id == RolePrivilege.role_id).\
+                    filter(RolePrivilege.privilege_id.in_(has_privilege))
+                for login_user, privilege_id in login_user_privilege_id:
+                    login_user_privilege_id_dict[login_user].add(privilege_id)
+                for login_user, privilege_ids in login_user_privilege_id_dict.items():
+                    if privilege_ids == set(has_privilege):
+                        login_users.append(login_user)
+                user_q = user_q.filter(User.login_user.in_(login_users))
             items, p = self.paginate(user_q, **p)
             self.resp([i.to_dict() for i in items], **p)
 
