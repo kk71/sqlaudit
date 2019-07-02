@@ -145,7 +145,7 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
         sql_num_at_risk = []
 
         # SQL count
-        while dt_now <= dt_end:
+        while dt_now < dt_end:
             sql_text_q = SQLText.objects(
                 cmdb_id=cmdb_id,
                 etl_date__gte=dt_now.datetime,
@@ -257,7 +257,7 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
 
 def __prefetch():
     arrow_now = arrow.now()
-    date_end = arrow_now.shift(days=-1).date()
+    date_end = arrow_now.shift(days=+1).date()
     date_start_week = arrow_now.shift(weeks=-1).date()
     date_start_month = arrow_now.shift(days=-30).date()
     with make_session() as session:
