@@ -75,9 +75,10 @@ class DashboardHandler(PrivilegeReq):
                 "sql_num": sql_num,
                 "table_num": table_num,
                 "index_num": index_num,
-                "sequence_num": 0,
+                "sequence_num": ObjSeqInfo.objects(
+                    cmdb_id__in=cmdb_ids, task_record_id__in=task_exec_hist_id_list.count()),
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
-                "cmdb_num": session.query(CMDB).count(),
+                "cmdb_num": len(cmdb_ids),
                 "ai_tune_num": optimized_execution_times,
                 "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),

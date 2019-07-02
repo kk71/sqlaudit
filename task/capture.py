@@ -15,6 +15,7 @@ import past.capture.sql
 import utils.const
 from task.base import *
 from utils.perf_utils import r_cache
+import utils.capture_utils
 
 
 logger = past.utils.log.get_logger("capture")
@@ -210,6 +211,8 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
             run_default_script(host, port, sid, username, password, user, cmdb_id, connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
             past.utils.health_data_gen.calculate(record_id)
+
+            utils.capture_utils.capture(record_id, cmdb_id, user)  # 新版采集
 
         update_record(task_id, record_id, True)
 

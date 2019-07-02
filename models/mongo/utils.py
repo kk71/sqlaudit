@@ -5,7 +5,8 @@ from types import FunctionType
 from typing import *
 
 from bson import ObjectId
-from mongoengine import DynamicDocument, EmbeddedDocument
+from mongoengine import DynamicDocument, EmbeddedDocument, ObjectIdField,\
+    IntField, StringField, DateTimeField
 
 from utils.datetime_utils import *
 from utils import const
@@ -107,3 +108,39 @@ class BaseDocRecordID(BaseDoc):
                     "record_id": {"$regex": exp}
                 }
             }
+
+
+class BaseCapturingDoc(BaseDoc):
+    """新的采集基类"""
+
+    _id = ObjectIdField()
+    cmdb_id = IntField()
+    schema_name = StringField()
+    task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
+    etl_date = DateTimeField(default=datetime.now)
+
+    meta = {
+        'abstract': True,
+        "indexes": [
+            "cmdb_id",
+            "schema_name",
+            "etl_date",
+        ]
+    }
+
+    @classmethod
+    def command_to_execute(cls, obj_owner) -> str:
+        """返回本类采集所需的语句（SQL）"""
+        raise NotImplementedError
+
+    @classmethod
+    def post_captured(cls, docs: list, obj_owner: str, cmdb_id: int, task_record_id):
+        """采集到原始数据后，在文档保存之前，做一些操作。一般不需要改"""
+        etl_date = arrow.now().datetime
+        for d in docs:
+            d.from_dict({
+                "cmdb_id": cmdb_id,
+                "schema_name": obj_owner,
+                "task_record_id": task_record_id,
+                "etl_date": etl_date
+            })

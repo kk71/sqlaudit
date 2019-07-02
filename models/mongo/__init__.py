@@ -13,6 +13,7 @@ __all__ = [
     "ObjPartTabParent",
     "ObjIndColInfo",
     "ObjViewInfo",
+    "ObjSeqInfo",
 ]
 
 from .job import *

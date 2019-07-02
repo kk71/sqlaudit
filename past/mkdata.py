@@ -54,7 +54,6 @@ def run(task_id, schema=None, use_queue=False):
         pass
 
 
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("please enter the task_id")

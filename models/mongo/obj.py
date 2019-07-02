@@ -3,7 +3,7 @@
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
     DynamicField, FloatField
 
-from .utils import BaseDocRecordID
+from .utils import BaseDocRecordID, BaseCapturingDoc
 
 
 class ObjTabInfo(BaseDocRecordID):
@@ -155,3 +155,22 @@ class ObjViewInfo(BaseDocRecordID):
         ]
     }
 
+
+class ObjSeqInfo(BaseCapturingDoc):
+    """采集索引"""
+    min_value = IntField()
+    max_value = IntField()
+    increment_by = IntField()
+    cache_size = IntField()
+    sequence_name = StringField()
+    sequence_owner = StringField()
+    last_number = IntField()
+
+    meta = {
+        "collection": "obj_seq_info"
+    }
+
+    @classmethod
+    def command_to_execute(cls, obj_owner) -> str:
+        return f"""select MIN_VALUE,MAX_VALUE,INCREMENT_BY,CACHE_SIZE, SEQUENCE_NAME, 
+        sequence_owner, last_number from dba_sequences where sequence_owner = '{obj_owner}'"""
