@@ -79,6 +79,9 @@ class TicketHandler(OfflineTicketCommonHandler):
         }))
         keyword = params.pop("keyword")
         work_list_status = params.pop("work_list_status")
+        p = self.pop_p(params)
+        del params
+
         with make_session() as session:
             q = session.query(WorkList).order_by(WorkList.work_list_id.desc())
             if work_list_status is not None:  # take care of the value 0!
@@ -97,7 +100,7 @@ class TicketHandler(OfflineTicketCommonHandler):
                                        WorkList.audit_comments
                                        )
             q = self.privilege_filter_ticket(q)
-            items, p = self.paginate(q, **params)
+            items, p = self.paginate(q, **p)
             ret = []
             for ticket in items:
                 r = session.query(SubWorkList).\
@@ -115,7 +118,7 @@ class TicketHandler(OfflineTicketCommonHandler):
                     }
                 }
                 ret.append(ret_item)
-        self.resp(ret, **p)
+            self.resp(ret, **p)
 
     def post(self):
         """创建DDL，DML工单"""
