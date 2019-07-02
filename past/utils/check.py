@@ -19,7 +19,7 @@ from utils.const import SQL_DDL as DDL
 from .constant import worklist_type_static_rule
 from .constant import worklist_type_dynamic_sqlplan_rule
 from .constant import RULE_COMMANDS
-from .utils import is_annotation
+from .utils import is_annotation, filter_annotation
 from .constant import CREATE_APP_SQL, CREATE_DBA_SQL, OTHER_SQL, SQLPLUS_SQL
 
 
@@ -251,7 +251,7 @@ class Check:
                 return [], False
 
             # TODO commented it since our sql is passed through json, it has no annotations
-            # sql = filter_annotation(sql)
+            sql = filter_annotation(sql)
 
             odb.execute(f"alter session set current_schema={schema_user}")
             odb.execute(f"EXPLAIN PLAN SET statement_id='{statement_id}' for {sql}")
