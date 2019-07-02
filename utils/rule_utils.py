@@ -150,6 +150,7 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     tab_info_q = ObjTabInfo.objects(cmdb_id=cmdb_id)
     part_tab_info_q = ObjPartTabParent.objects(cmdb_id=cmdb_id)
     index_q = ObjIndColInfo.objects(cmdb_id=cmdb_id)
+    seq_q = ObjSeqInfo.objects(cmdb_id=cmdb_id)
     # others
     sql_text_q = SQLText.objects(cmdb_id=cmdb_id)
     sql_plan_q = MSQLPlan.objects(cmdb_id=cmdb_id)
@@ -191,15 +192,15 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     get_risk_rate.tik("start query mongo count")
 
     record_id_list = list(record_id_set)
+    task_record_ids: list = list({int(i.split("##")[0]) for i in record_id_list})
+    print(f"task_record_ids: {task_record_ids}")
     # table include normal table and part-table, so calc twice.
     ret["table"]["sum"] += tab_info_q.filter(record_id__in=record_id_list).count()
     ret["table"]["sum"] += part_tab_info_q.filter(record_id__in=record_id_list).count()
     # OBJ index
     ret[OBJ_RULE_TYPE_INDEX]["sum"] += index_q.filter(record_id__in=record_id_list).count()
     # OBJ sequence
-    ret[OBJ_RULE_TYPE_SEQ]["sum"] += ObjSeqInfo.objects(task_record_id__in=[
-        int(i.split("##")[0])
-        for i in record_id_list]).count()
+    ret[OBJ_RULE_TYPE_SEQ]["sum"] += seq_q.filter(task_record_id__in=task_record_ids).count()
     # other
     ret[RULE_TYPE_TEXT]["sum"] += sql_text_q.filter(record_id__in=record_id_list).count()
     ret[RULE_TYPE_SQLSTAT]["sum"] += sql_stats_q.filter(record_id__in=record_id_list).count()
