@@ -76,7 +76,7 @@ class DashboardHandler(PrivilegeReq):
                 "table_num": table_num,
                 "index_num": index_num,
                 "sequence_num": ObjSeqInfo.objects(
-                    cmdb_id__in=cmdb_ids, task_record_id__in=task_exec_hist_id_list.count()),
+                    cmdb_id__in=cmdb_ids, task_record_id__in=task_exec_hist_id_list).count(),
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": len(cmdb_ids),
                 "ai_tune_num": optimized_execution_times,

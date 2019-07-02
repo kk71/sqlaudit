@@ -103,7 +103,10 @@ class CMDBHandler(AuthReq):
             Optional("white_list_status"): scm_bool,
             Optional("while_list_rule_counts"): scm_int,
             "db_model": scm_unempty_str,
-            "baseline": scm_int
+            "baseline": scm_int,
+            "is_pdb": scm_bool,
+            "version": scm_unempty_str,
+            "sid": scm_str
         }))
         params["create_owner"] = self.current_user
         with make_session() as session:
@@ -172,7 +175,10 @@ class CMDBHandler(AuthReq):
             Optional("is_rac"): scm_bool,
             Optional("white_list_status"): scm_bool,
             Optional("db_model"): scm_unempty_str,
-            Optional("baseline"): scm_int
+            Optional("baseline"): scm_int,
+            Optional("is_pdb"): scm_bool,
+            Optional("version"): scm_unempty_str,
+            Optional("sid"): scm_str
         }))
         cmdb_id = params.pop("cmdb_id")
         with make_session() as session:
