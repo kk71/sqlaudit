@@ -14,7 +14,7 @@ import past.capture.sql
 
 import utils.const
 from task.base import *
-from utils.perf_utils import r_cache
+import task.clear_cache
 import utils.capture_utils
 
 
@@ -224,5 +224,5 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         logger.error("Exception", exc_info=True)
         update_record(task_id, record_id, False, err_msg=str(e))
 
-    logger.warning(r_cache.expire())
+    task.clear_cache.clear_cache.delay()
     logger.warning("finish task ..........")
