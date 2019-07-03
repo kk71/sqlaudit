@@ -209,7 +209,7 @@ def get_risk_object_list(session,
 
 def __prefetch():
     arrow_now = arrow.now()
-    date_end = arrow_now.shift(days=-1).date()
+    date_end = arrow_now.shift(days=+1).date()
     date_start_week = arrow_now.shift(weeks=-1).date()
     date_start_month = arrow_now.shift(days=-30).date()
     with make_session() as session:
