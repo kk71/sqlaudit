@@ -33,7 +33,7 @@ ALL_TASK = (
     "task.offline_ticket.offline_ticket",
     "task.clear_cache.clear_cache",
     # "task.export.export",
-    "task.mail_report.timing_sending_mail"
+    "task.mail_report.timing_send_mail"
 )
 
 task_routes = {
