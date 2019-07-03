@@ -29,7 +29,7 @@ class CMDBHandler(AuthReq):
             Optional("business_name"): scm_unempty_str,
 
             # 模糊匹配多个字段
-            Optional("keyword", default=None): scm_unempty_str,
+            Optional("keyword", default=None): scm_str,
 
             # 分页
             Optional("page", default=1): scm_int,

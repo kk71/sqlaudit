@@ -13,7 +13,7 @@ class SendListHandler(AuthReq):
     def get(self):
         """报告发送管理页面"""
         params = self.get_query_args(Schema({
-            Optional("keyword", default=None): scm_unempty_str,
+            Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
