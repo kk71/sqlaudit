@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, ListField, ObjectIdField
+from mongoengine import StringField, IntField, FloatField, ListField, \
+    ObjectIdField, DynamicField
 
 from .utils import BaseDoc
 from utils import const
@@ -11,7 +12,7 @@ class Rule(BaseDoc):
     _id = ObjectIdField()
     db_type = StringField(required=True)
     db_model = StringField(required=True)
-    exclude_obj_type = ListField()
+    exclude_obj_type = DynamicField(default=list)
     input_parms = ListField()
     max_score = IntField()
     output_parms = ListField()
