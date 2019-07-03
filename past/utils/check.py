@@ -250,7 +250,6 @@ class Check:
             if cls.is_explain_unvalid_sql(sql):
                 return [], False
 
-            # TODO commented it since our sql is passed through json, it has no annotations
             sql = filter_annotation(sql)
 
             odb.execute(f"alter session set current_schema={schema_user}")
