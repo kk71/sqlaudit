@@ -7,7 +7,7 @@ worklist_type_static_rule = {
           "TOOMANY_BIND", "TOOMANY_IN_LIST", "TOOMANY_OR", "UNION", "WHERE_FUNC", "WHERE_NOT"],
     DML: ["BAD_JOIN", "DML_ALLDATA", "DML_SORT", "LIKE_UNINDEX", "LONG_TEXT", "SELECT_ANY",
           # 子查询相关
-          "SUBQUERY_HAVING", "SUBQUERY_SELECT", "SUBQUERY_FROM", "SUBQUERY_WHERE",
+          "SUBQUERY_HAVING", "SUBQUERY_SELECT", "SUBQUERY_FROM", "SUBQUERY_WHERE", "SUBQUERY_REP",
           "TOOMANY_BIND", "TOOMANY_IN_LIST", "TOOMANY_OR", "UNION", "WHERE_FUNC", "WHERE_NOT"]
 }
 worklist_type_dynamic_sqlplan_rule = {
