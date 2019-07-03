@@ -110,6 +110,7 @@ class RuleRepoHandler(AuthReq):
         rule_id = params.pop("_id")
         rule = Rule.objects(_id=rule_id).first()
         rule.from_dict(params)
+        rule.save()
         self.resp_created(rule.to_dict())
 
 
