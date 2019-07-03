@@ -11,6 +11,7 @@ from models.mongo import *
 from models.oracle import *
 from utils.datetime_utils import *
 from utils import rule_utils, const
+from past.utils.constant import SQLPLUS_SQL
 
 
 def parse_sql_file(sql_contents, sql_keyword):
