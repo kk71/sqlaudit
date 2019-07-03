@@ -11,7 +11,7 @@ from datetime import datetime
 
 import settings
 from task.capture import task_run
-from .mail_report import timing_send_email
+from .mail_report import timing_send_mail
 # from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
 from utils import const
@@ -105,7 +105,7 @@ def run_mail(time_structure):
 
     if send_user_list:
         print("Mail ready to send: %s" % send_user_list)
-        timing_send_email.delay(send_user_list)
+        timing_send_mail.delay(send_user_list)
 
 
 def main():

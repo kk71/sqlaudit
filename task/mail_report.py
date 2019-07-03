@@ -43,7 +43,7 @@ def insert_send_mail_history(login_user, send_mail_id, result, file_path):
 
 
 @celery.task
-def timing_send_email(send_user_list):
+def timing_send_mail(send_user_list):
     """
     发送邮件
     :param send_user_list:
@@ -621,5 +621,5 @@ def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):
 
 
 if __name__ == "__main__":
-    timing_send_email.delay([{'title': "测试", 'contents': "测试发邮件",
+    timing_send_mail.delay([{'title': "测试", 'contents': "测试发邮件",
                               'mail_sender': ['operator'], 'send_mail_id': 1001}])
