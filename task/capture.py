@@ -224,5 +224,5 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         logger.error("Exception", exc_info=True)
         update_record(task_id, record_id, False, err_msg=str(e))
 
-    task.clear_cache.clear_cache.delay()
+    task.clear_cache.clear_cache.delay(no_prefetch=False)
     logger.warning("finish task ..........")
