@@ -26,7 +26,7 @@ class RuleRepoHandler(AuthReq):
         if keyword:
             rules = self.query_keyword(rules, keyword,
                                        "db_model", "rule_desc", "rule_name",
-                                       "rule_summary", "rule_type")
+                                       "rule_summary", "rule_type", "rule_status")
         items, p = self.paginate(rules, **p)
         self.resp([i.to_dict() for i in items], **p)
 
