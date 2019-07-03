@@ -93,11 +93,15 @@ def main_task(task_uuid, page):
                 rule_result_dict.get("scores", 0),
                 rule_summary[rule_name][2]
             ])
+    deduct_marks = 0
+    for value in rules:
+        deduct_marks += float(value[3])
+    score = (total_score - deduct_marks) / total_score * 100
 
     print_html_body(page, str(host), str(port), str(schema))
     print_html_js(page)
-    print_html_chart(total_score, page, rules)
-    print_html_rule_table(page, host, port, schema, rules)
+    # print_html_chart(total_score, page, rules)
+    print_html_rule_table(page, host, port, schema, rules,score)
 
     if rule_type == const.RULE_TYPE_OBJ:
         print_html_obj_detail_info(page, result, rules, rule_summary)

@@ -154,11 +154,11 @@ def print_html_chart(total_score, page, rules):
     page << br()
 
 
-def print_html_rule_table(page, ipaddress, port, schema, rules):
+def print_html_rule_table(page, ipaddress, port, schema, rules,score):
     """
     生成离线页面中的规则表格
     """
-    title = ipaddress + " " + str(port) + " " + schema + "规则概览"
+    title = ipaddress + " " + str(port) + " " + schema + "规则概览" + "(" + "规则总分" + str(round(score, 3)) + ")"
     data = ""
     columns = """[{ "title": "规则名称", "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {$(nTd).html("<a href='#" + oData[0] + "'>" + oData[0] + "</a>");}},{ "title": "规则描述"},{ "title": "违反次数"},{ "title": "扣分"}]"""
     for value in rules:
