@@ -123,9 +123,7 @@ class SendMailHandler(AuthReq):
             send_mail = [q.to_dict(x) for x in send_mail]
             for x in send_mail:
                 x.update({**params})
-            # TODO
-            # timing_send_email.delay(send_mail)
-            timing_send_email(send_mail)
+            timing_send_email.delay(send_mail)
         self.resp_created(msg="发送正在发送邮件, 请注意查收")
 
 
