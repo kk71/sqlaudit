@@ -67,7 +67,17 @@ a session object with both autocommit and autoflush on is created named ss.
 
 @click.command()
 @click.option("--filename", help="the json filename", default="./files/rule.json")
-def importrules(filename):
+def export_rules(filename):
+    """export rules to a json file"""
+    from utils import rule_utils
+    print(f"going to export rule to {filename}...")
+    all_num = rule_utils.export_rule_to_json_file(filename)
+    print(f"Done({all_num}).")
+
+
+@click.command()
+@click.option("--filename", help="the json filename", default="./files/rule.json")
+def import_rules(filename):
     """import rules from a json file, deduplicated"""
     from utils import rule_utils
     print(f"going to import rule from {filename}...")
@@ -160,7 +170,8 @@ def create_admin():
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
-    cli.add_command(importrules)
+    cli.add_command(export_rules)
+    cli.add_command(import_rules)
     cli.add_command(makedata)
     cli.add_command(createenv)
     cli.add_command(schedule)

@@ -37,6 +37,14 @@ def format_rule_result_detail(rule_object, record: list):
     return risk_detail
 
 
+def export_rule_to_json_file(filename: str):
+    """导出rule"""
+    rules = [i.to_dict() for i in Rule.objects()]
+    with open(filename, "w") as z:
+        z.write(json.dumps(rules, indent=4))
+    return len(rules)
+
+
 def import_from_json_file(filename: str):
     """
     从json文件导入规则至mongodb
@@ -58,15 +66,15 @@ def set_all_rules_as_risk_rule(session):
     """把当前mongo的全部rule都设置为风险规则"""
     risks = []
     for rule in Rule.objects():
-        k = rule.to_dict(iter_if=lambda k, v: k in (
+        key = rule.to_dict(iter_if=lambda k, v: k in (
                 "rule_name", "rule_type", "db_model", "db_type"))
-        if session.query(RiskSQLRule).filter_by(**k).count():
+        if session.query(RiskSQLRule).filter_by(**key).count():
             continue
         risks.append(RiskSQLRule(
             risk_name=rule.rule_desc,
             severity="严重",
             optimized_advice=", ".join(rule.solution),
-            **k
+            **key
         ))
     session.add_all(risks)
     return len(risks)
