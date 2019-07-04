@@ -76,8 +76,8 @@ def importrules(filename):
     if input("Do you want to set all rules as risk rule? y/n") == "y":
         from models.oracle import make_session
         with make_session() as session:
-            rule_utils.set_all_rules_as_risk_rule(session)
-        print("done")
+            r = rule_utils.set_all_rules_as_risk_rule(session)
+        print(f"Done({r})")
 
 
 @click.command()
