@@ -66,18 +66,14 @@ def set_all_rules_as_risk_rule(session):
     """把当前mongo的全部rule都设置为风险规则"""
     risks = []
     for rule in Rule.objects():
-        key = {
-            "rule_name": rule.rule_name,
-            "rule_type": rule.rule_type,
-            "db_model": rule.db_model,
-            "db_type": rule.db_type
-        }
+        key = rule.to_dict(iter_if=lambda k, v: k in (
+                "rule_name", "rule_type", "db_model", "db_type"))
         if session.query(RiskSQLRule).filter_by(**key).count():
             continue
         risks.append(RiskSQLRule(
             risk_name=rule.rule_desc,
             severity="严重",
-            optimized_advice=", ".join(rule.solution),
+            optimized_advice='',#'", ".join(rule.solution),
             **key
         ))
     session.add_all(risks)
