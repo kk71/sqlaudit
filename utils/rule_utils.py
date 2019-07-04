@@ -72,8 +72,8 @@ def set_all_rules_as_risk_rule(session):
             continue
         risks.append(RiskSQLRule(
             risk_name=rule.rule_desc,
-            severity="严重",
-            optimized_advice='',#'", ".join(rule.solution),
+            # severity="严重",
+            optimized_advice=", ".join(rule.solution),
             **key
         ))
     session.add_all(risks)
