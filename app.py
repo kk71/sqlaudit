@@ -73,6 +73,11 @@ def importrules(filename):
     print(f"going to import rule from {filename}...")
     imported_num, all_num = rule_utils.import_from_json_file(filename)
     print(f"Done({imported_num} of {all_num}).")
+    if input("Do you want to set all rules as risk rule? y/n") == "y":
+        from models.oracle import make_session
+        with make_session() as session:
+            rule_utils.set_all_rules_as_risk_rule(session)
+        print("done")
 
 
 @click.command()
