@@ -214,7 +214,7 @@ def get_risk_sql_list(session,
     date_start, date_end = date_range
     assert isinstance(date_start, date) and not isinstance(date_start, datetime)
     assert isinstance(date_end, date) and not isinstance(date_end, datetime)
-    assert sort_by in ("last", "average")
+    assert sort_by in ("sum", "average")
     assert rule_type in ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE
     if kwargs:
         print(f"got extra useless kwargs: {kwargs}")
