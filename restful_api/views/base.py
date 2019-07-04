@@ -121,11 +121,11 @@ class BaseReq(RequestHandler):
     def resp_not_found(self, msg: str = "not found", content: Union[dict, list] = None, **kwargs) -> NoReturn:
         self.resp(msg=msg, content=content, status_code=404, **kwargs)
 
-    def resp_unauthorized(self, msg: str = "please login before any operations") -> NoReturn:
+    def resp_unauthorized(self, msg: str = "未登录。") -> NoReturn:
         self.resp(msg=msg, status_code=401)
 
-    def resp_bad_username_password(self, msg: str = "bad username or password") -> NoReturn:
-        self.resp(msg=msg, status_code=401)
+    def resp_bad_username_password(self, msg: str = "用户名或者密码错误。") -> NoReturn:
+        self.resp(msg=msg, status_code=400)
 
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):
@@ -226,7 +226,7 @@ class AuthReq(BaseReq):
             return
         except TokenHasExpiredException:
             self.current_user = None
-            self.resp_unauthorized(msg="token已过期，请重新登录。")
+            self.resp_unauthorized(msg="请重新登录。")
             return
         print(f'* {self.current_user} - {settings.JWT_EXPIRE_SEC - (now_timestamp - data["timestamp"])}s to expire - {token}')
 
