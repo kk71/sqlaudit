@@ -32,6 +32,10 @@ __all__ = [
     "SendMailHist",
 ]
 
+import os
+
+os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
+
 from .utils import make_session, QueryEntity
 from .user import *
 from .data import *

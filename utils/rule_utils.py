@@ -3,6 +3,7 @@
 import re
 import json
 
+import chardet
 from mongoengine import Q
 
 from models.oracle import RiskSQLRule, WhiteListRules
@@ -57,8 +58,13 @@ def import_from_json_file(filename: str):
     for rule in rules:
         the_rule = Rule()
         the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", ))
+        if Rule.objects(**the_rule.to_dict(iter_if=lambda k, v: k in (
+                "db_type", "db_model", "rule_name"))).count():
+            print(f"this rule existed: {the_rule.get_3_key()}")
+            continue
         rules_to_import.append(the_rule)
-    Rule.objects.insert(rules_to_import)
+    if rules_to_import:
+        Rule.objects.insert(rules_to_import)
     return len(rules_to_import), len(rules)
 
 
@@ -66,16 +72,17 @@ def set_all_rules_as_risk_rule(session):
     """把当前mongo的全部rule都设置为风险规则"""
     risks = []
     for rule in Rule.objects():
-        key = rule.to_dict(iter_if=lambda k, v: k in (
-                "rule_name", "rule_type", "db_model", "db_type"))
+        key = json.loads(json.dumps(rule.to_dict(iter_if=lambda k, v: k in (
+                "rule_name", "rule_type", "db_model", "db_type"))))
         if session.query(RiskSQLRule).filter_by(**key).count():
             continue
-        risks.append(RiskSQLRule(
-            risk_name=rule.rule_desc,
-            # severity="严重",
-            optimized_advice=", ".join(rule.solution),
-            **key
-        ))
+        if not isinstance(rule.rule_desc, str):
+            print(chardet.detect(rule.rule_desc))
+        rr = RiskSQLRule(**key)
+        rr.risk_name = json.loads(json.dumps(rule.rule_desc))
+        rr.severity = json.loads(json.dumps("严重"))
+        rr.optimized_advice = ", ".join(json.loads(json.dumps(rule.solution)))
+        risks.append(rr)
     session.add_all(risks)
     return len(risks)
 
