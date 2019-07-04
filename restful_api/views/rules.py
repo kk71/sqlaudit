@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, Or
+from schema import Schema, Optional, Or, And
 
 from utils.schema_utils import *
 from utils.const import *
@@ -119,15 +119,19 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
-            Optional("rule_type"): scm_one_of_choices(ALL_RULE_TYPE),
+            Optional("rule_type"): And(scm_dot_split_str, scm_subset_of_choices(ALL_RULE_TYPE)),
+            Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         keyword = params.pop("keyword")
+        rule_types: list = params.pop("rule_type")
         p = self.pop_p(params)
         with make_session() as session:
             q = session.query(RiskSQLRule).filter_by(**params)
+            if rule_types:
+                q = q.filter(RiskSQLRule.rule_type.in_(rule_types))
             if keyword:
                 mq = Rule.filter_enabled()  # search in mongo
                 rule_name_list_in_m = list(self.query_keyword(mq, keyword,

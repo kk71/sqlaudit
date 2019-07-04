@@ -143,7 +143,7 @@ class SQLRiskListHandler(AuthReq):
                 ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
             Optional("enable_white_list", default=True):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
-            Optional("sort_by", default="last"): scm_one_of_choices(["sum", "average"]),
+            Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
         }
 
     def get(self):
