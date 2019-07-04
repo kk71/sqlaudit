@@ -119,7 +119,7 @@ class RiskRuleHandler(AuthReq):
     def get(self):
         """风险规则列表"""
         params = self.get_query_args(Schema({
-            Optional("rule_type"): And(scm_dot_split_str, scm_subset_of_choices(ALL_RULE_TYPE)),
+            Optional("rule_type", default=None): And(scm_dot_split_str, scm_subset_of_choices(ALL_RULE_TYPE)),
             Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
