@@ -200,9 +200,11 @@ class CMDBPermissionHandler(AuthReq):
 
     def get(self):
         params = self.get_query_args(Schema({
-            **self.gen_p()
+            **self.gen_p(),
+            Optional("keyword",default=None):scm_str
         }))
         p = self.pop_p(params)
+        keyword = params.pop("keyword")
         with make_session() as session:
             qe = QueryEntity(CMDB.connect_name,
                              CMDB.cmdb_id,
@@ -214,6 +216,11 @@ class CMDBPermissionHandler(AuthReq):
             perm_datas = session.query(*qe). \
                 join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id). \
                 join(User, User.login_user == DataPrivilege.login_user)
+            if keyword:
+                perm_datas = self.query_keyword(perm_datas, keyword,
+                                             User.user_name,
+                                             CMDB.connect_name,
+                                             DataPrivilege.schema_name)
             items, p = self.paginate(perm_datas, **p)
             self.resp([qe.to_dict(i) for i in perm_datas], **p)
 
