@@ -10,7 +10,7 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 
 import settings
-from webui.utils.oracleob import OracleHelper, DBError
+from plain_db.oracleob import OracleHelper,DBError
 
 def count_time(start):
     s = time.time() - start
@@ -183,9 +183,9 @@ class SqlAuditLicenseKeyManager:
 
     @staticmethod
     def latest_license_key():
-        sql = '''SELECT * FROM (
-                SELECT * FROM T_LICENSE_MANAGE ORDER BY UPDATE_TIME DESC
-                ) WHERE rownum=1'''
+        sql = """SELECT * FROM (
+        SELECT * FROM T_LICENSE_MANAGE ORDER BY UPDATE_TIME DESC
+        ) WHERE rownum=1"""
         res = OracleHelper.select_dict(sql, one=True)
         return res.get("license_key")
 
