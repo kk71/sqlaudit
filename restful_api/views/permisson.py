@@ -25,9 +25,9 @@ class RoleHandler(AuthReq):
             role_q = session.query(Role)
             if keyword:
                 role_q = self.query_keyword(role_q, keyword,
-                                                 Role.role_id,
-                                                 Role.role_name,
-                                                 Role.comments)
+                                            Role.role_id,
+                                            Role.role_name,
+                                            Role.comments)
             items, p = self.paginate(role_q, **p)
             ret = []
             for i in items:
@@ -130,8 +130,8 @@ class RoleUserHandler(AuthReq):
                 Role.role_name,
                 User.login_user
             )
-            user_role = session.query(*keys).\
-                join(Role, UserRole.role_id == Role.role_id).\
+            user_role = session.query(*keys). \
+                join(Role, UserRole.role_id == Role.role_id). \
                 join(User, UserRole.login_user == User.login_user)
             items, p = self.paginate(user_role, **p)
             self.resp([keys.to_dict(i) for i in items])
@@ -201,7 +201,7 @@ class CMDBPermissionHandler(AuthReq):
     def get(self):
         params = self.get_query_args(Schema({
             **self.gen_p(),
-            Optional("keyword",default=None):scm_str
+            Optional("keyword", default=None): scm_str
         }))
         p = self.pop_p(params)
         keyword = params.pop("keyword")
@@ -218,9 +218,9 @@ class CMDBPermissionHandler(AuthReq):
                 join(User, User.login_user == DataPrivilege.login_user)
             if keyword:
                 perm_datas = self.query_keyword(perm_datas, keyword,
-                                             User.user_name,
-                                             CMDB.connect_name,
-                                             DataPrivilege.schema_name)
+                                                User.user_name,
+                                                CMDB.connect_name,
+                                                DataPrivilege.schema_name)
             items, p = self.paginate(perm_datas, **p)
             self.resp([qe.to_dict(i) for i in perm_datas], **p)
 
@@ -244,10 +244,10 @@ class CMDBPermissionHandler(AuthReq):
             if unavailable_schemas:
                 print(available_schema)
                 return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
-            session.query(DataPrivilege).\
+            session.query(DataPrivilege). \
                 filter(
-                    DataPrivilege.login_user == login_user,
-                    DataPrivilege.cmdb_id == cmdb_id).\
+                DataPrivilege.login_user == login_user,
+                DataPrivilege.cmdb_id == cmdb_id). \
                 delete(synchronize_session='fetch')
             session.add_all([DataPrivilege(
                 cmdb_id=cmdb_id,
