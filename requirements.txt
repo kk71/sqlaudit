@@ -16,4 +16,4 @@ chardet
 xlsxwriter
 yagmail
 pymysql # for past
-pycryptodomex    #最新版本，合并去掉哦
+pycryptodomex

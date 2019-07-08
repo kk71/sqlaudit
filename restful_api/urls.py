@@ -16,15 +16,15 @@ urls = [
     )
 ]
 
-# user, authentication, privilege, role and other permissions,licence
+# user, authentication, privilege, role and other permissions, licence
 urls += [
     (r"/api/user/login", user.AuthHandler),
     (r"/api/user/users", user.UserHandler),
-    (r'/api/product/license',user.ProductLicenseHandler),
     (r"/api/role", permisson.RoleHandler),
     (r"/api/role/user", permisson.RoleUserHandler),
     (r"/api/role/privilege", permisson.SystemPrivilegeHandler),
     (r"/api/permission/cmdb", permisson.CMDBPermissionHandler),
+    (r'/api/product/license', product.ProductLicenseHandler),
 ]
 
 # rule and risk rules

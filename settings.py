@@ -10,7 +10,6 @@ from os import path
 
 SETTINGS_FILE_DIR = path.dirname(path.realpath(__file__))
 ALL_ENV_VARS = list()
-# print(f"-------------------{SETTINGS_FILE_DIR}-----------")
 
 
 def env_get(k, default, parser=None):
@@ -75,9 +74,8 @@ CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int) 
 
 
 # license keys
-import sys,os
-PRIVATE_KEY =SETTINGS_FILE_DIR+"/sqlaudit_license"
-PUBLIC_KEY = SETTINGS_FILE_DIR+"/sqlaudit_license.pub"
+PRIVATE_KEY = path.join(SETTINGS_FILE_DIR, "/sqlaudit_license")
+PUBLIC_KEY = path.join(SETTINGS_FILE_DIR, "/sqlaudit_license.pub")
 
 
 # logging
