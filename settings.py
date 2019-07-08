@@ -74,8 +74,8 @@ CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int) 
 
 
 # license keys
-PRIVATE_KEY = path.join(SETTINGS_FILE_DIR, "/sqlaudit_license")
-PUBLIC_KEY = path.join(SETTINGS_FILE_DIR, "/sqlaudit_license.pub")
+PRIVATE_KEY = path.join(SETTINGS_FILE_DIR, "license/sqlaudit_license")
+PUBLIC_KEY = path.join(SETTINGS_FILE_DIR, "license/sqlaudit_license.pub")
 
 
 # logging

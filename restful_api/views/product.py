@@ -1,24 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, And, Or
+from schema import Schema
 
-import settings
 from utils.schema_utils import *
 from .base import BaseReq
 from past.utils.product_license import *
 
 
 class ProductLicenseHandler(BaseReq):
-    name = "ProductLicenseHandler>"
-    CALLBACK_TIME = 24 * 60 * 60 * 1000
-
-    def __init__(self, *args, **kwargs):
-        super(ProductLicenseHandler, self).__init__(*args, **kwargs)
 
     def get(self):
         """查询序列号状态"""
         DEFAULT_DISPLAY_LENGTH = 128
-        license_key = ""
         try:
             license_key = SqlAuditLicenseKeyManager.latest_license_key()
             license_key_ins = SqlAuditLicenseKey.decode(license_key)
@@ -40,27 +33,23 @@ class ProductLicenseHandler(BaseReq):
 
     def post(self):
         """更新序列号"""
-        receive_license = license_info = ""
         param = self.get_json_args(Schema({
             "license": scm_unempty_str
         }))
+        license_text = param.pop("license")
         try:
-            if not SqlAuditLicenseKey.decode(receive_license).is_valid():
-                print(f"receive_license {receive_license}")
-                raise DecryptError(f"{flag} the license code is invalid")
-            SqlAuditLicenseKeyManager(receive_license,
+            if not SqlAuditLicenseKey.decode(license_text).is_valid():
+                print(f"receive_license {license_text}")
+                raise DecryptError("the license code is invalid")
+            SqlAuditLicenseKeyManager(license_text,
                                       SqlAuditLicenseKeyManager.DB_LICENSE_STATUS["valid"],
                                       "get from website").insert()
-            self.resp_body["detail"] = "license code is valid and save successfully"
-
+            return self.resp_created(msg="license code is valid and save successfully")
         except DecryptError as e:
-            logger.error(f"{flag} error: ", exc_info=1)
-            self.status_code = self.STATUS_CODE_REQUEST_ERROR
-            self.status_desc = DecryptError.__name__
+            msg = str(e)
+            print(msg)
+            return self.resp_forbidden(msg=msg)
         except Exception as e:
-            logger.warning(f"{flag} receive_license {receive_license}")
-            logger.warning(f"{flag} license_info {license_info}")
-            logger.error(f"{flag} error: ", exc_info=1)
-            self.status_code = self.STATUS_CODE_SERVER_ERROR
-            self.status_desc = ServiceError.__name__
-        return self.resp()
+            msg = str(e)
+            print(msg)
+            return self.resp_bad_req(msg=str(e))
