@@ -44,11 +44,11 @@ class ProductLicenseHandler(BaseReq):
             SqlAuditLicenseKeyManager(license_text,
                                       SqlAuditLicenseKeyManager.DB_LICENSE_STATUS["valid"],
                                       "get from website").insert()
-            return self.resp_created(msg="license code is valid and save successfully")
+            return self.resp_created(msg="")
         except DecryptError as e:
             msg = str(e)
             print(msg)
-            return self.resp_forbidden(msg=msg)
+            return self.resp_bad_req(msg=f"解密错误--{msg}")
         except Exception as e:
             msg = str(e)
             print(msg)
