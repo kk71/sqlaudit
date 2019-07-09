@@ -281,7 +281,7 @@ class SQLRiskDetailHandler(AuthReq):
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            db_model = session.query(CMDB.db_model).filter(CMDB.cmdb_id == cmdb_id)[0]
+            db_model = session.query(CMDB.db_model).filter(CMDB.cmdb_id == cmdb_id)[0][0]
             risk_rules = session.query(RiskSQLRule).filter(RiskSQLRule.db_model == db_model)
             if risk_rule_id_list:
                 # 给出了risk sql id就好办
