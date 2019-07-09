@@ -120,9 +120,12 @@ class RoleUserHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("role_id", default=None): scm_int,
             Optional("login_user", default=None): scm_unempty_str,
+            Optional("keyword", default="hanyongjie"): scm_str,
             **self.gen_p()
         }))
         p = self.pop_p(params)
+        keyword = params.pop("keyword")
+
         with make_session() as session:
             keys = QueryEntity(
                 User.user_name,
@@ -133,6 +136,10 @@ class RoleUserHandler(AuthReq):
             user_role = session.query(*keys). \
                 join(Role, UserRole.role_id == Role.role_id). \
                 join(User, UserRole.login_user == User.login_user)
+            if keyword:
+                user_role = self.query_keyword(user_role, keyword,
+                                               User.user_name,
+                                               Role.role_name)
             items, p = self.paginate(user_role, **p)
             self.resp([keys.to_dict(i) for i in items])
 
