@@ -245,7 +245,7 @@ class PrivilegeReq(AuthReq):
 
     def should_have(self, *args):
         """judge what privilege is not present for current user"""
-        if self.current_user == settings.ADMIN_LOGIN_USER:
+        if self.is_admin():
             return set()  # 如果是admin用户，则认为任何权限都是拥有的
         privilege_list = get_privilege_towards_user(self.current_user)
         return set(args) - set(privilege_list)
@@ -264,4 +264,3 @@ class PrivilegeReq(AuthReq):
                 PRIVILEGE.privilege_to_dict(i)["name"] for i in unavailable_privileges])
             self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
             raise PrivilegeRequired
-

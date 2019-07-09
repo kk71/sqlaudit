@@ -175,7 +175,7 @@ class SystemPrivilegeHandler(PrivilegeReq):
         p = self.pop_p(params)
 
         if current_user:
-            if self.current_user == settings.ADMIN_LOGIN_USER:
+            if self.is_admin():
                 # admin用户拥有任何权限
                 privilege_ids = PRIVILEGE.get_all_privilege_id()
             else:

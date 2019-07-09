@@ -5,6 +5,7 @@ from collections import defaultdict
 
 from schema import Schema, Optional, And
 
+import settings
 from utils.schema_utils import *
 from utils.perf_utils import *
 from utils.const import *
@@ -233,7 +234,7 @@ class CMDBHandler(AuthReq):
             self.resp(cmdb_utils.test_cmdb_connectivity(cmdb))
 
 
-class CMDBAggregationHandler(AuthReq):
+class CMDBAggregationHandler(PrivilegeReq):
 
     def get(self):
         """获取某个，某些字段的全部值的类型"""
@@ -248,6 +249,9 @@ class CMDBAggregationHandler(AuthReq):
             ret = defaultdict(set)
             real_keys = [getattr(CMDB, k) for k in key]
             query_ret = session.query(CMDB).with_entities(*real_keys)
+            if not self.is_admin():
+                query_ret = query_ret.filter(
+                    CMDB.cmdb_id.in_(cmdb_utils.get_current_cmdb(session, self.current_user)))
             for i, k in enumerate(key):
                 for qr in query_ret:
                     ret[k].add(qr[i])
