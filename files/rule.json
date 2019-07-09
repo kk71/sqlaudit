@@ -7115,45 +7115,6 @@
         "output_datas": []
     },
     {
-        "_id": "5d1dc60317e30676efdfcb6a",
-        "db_type": "oracle",
-        "db_model": "OLAP",
-        "exclude_obj_type": [
-            "asd"
-        ],
-        "input_parms": [
-            {
-                "parm_name": "ddd",
-                "parm_value": "1",
-                "parm_unit": "a",
-                "parm_desc": "dddd"
-            }
-        ],
-        "max_score": 1,
-        "output_parms": [
-            {
-                "parm_name": "dddd",
-                "parm_desc": "dddd"
-            }
-        ],
-        "rule_desc": "\u963f\u8428\u65af\u5927\u6240\u591a",
-        "rule_name": "asdddd",
-        "rule_complexity": "simple",
-        "rule_cmd": "select",
-        "rule_status": "ON",
-        "rule_summary": "dsdsd",
-        "rule_type": "OBJ",
-        "rule_type_detail": null,
-        "solution": [
-            "asdasd",
-            "acccc",
-            "123123"
-        ],
-        "weight": 1.0,
-        "obj_info_type": null,
-        "output_datas": []
-    },
-    {
         "_id": "5d1dc60317e30676efdfcb6b",
         "db_type": "oracle",
         "db_model": "OLTP",
