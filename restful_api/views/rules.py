@@ -123,8 +123,7 @@ class RiskRuleHandler(AuthReq):
                 scm_dot_split_str, scm_subset_of_choices(ALL_RULE_TYPE)),
             Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             Optional("keyword", default=None): scm_str,
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
+            **self.gen_p()
         }))
         keyword = params.pop("keyword")
         rule_types: list = params.pop("rule_type")
@@ -139,7 +138,8 @@ class RiskRuleHandler(AuthReq):
                                                               "db_model",
                                                               "rule_desc",
                                                               "rule_name",
-                                                              "rule_summary").values_list("rule_name"))
+                                                              "rule_summary").
+                                           values_list("rule_name"))
                 # search in oracle
                 rule_name_list_in_o = [i[0] for i in self.query_keyword(q, keyword,
                                                                         RiskSQLRule.risk_name,
