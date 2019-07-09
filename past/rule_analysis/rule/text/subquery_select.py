@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-
-
 def execute_rule(**kwargs):
     sql = kwargs.get("sql")
     m = 0
     n = 0
     sql_content = []
     sqlbegin = 0
-    sqlend = 0
     str_len = len(sql)
     for k in range(str_len):
         if sql[k] == "(":

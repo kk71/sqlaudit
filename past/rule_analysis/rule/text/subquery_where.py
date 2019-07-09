@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-
-
 def execute_rule(**kwargs):
     sql = kwargs.get("sql")
-    subquery = []
     str_len = len(sql)
     sql_content = []
     sqlbegin = 0
-    sqlend = 0
     m = 0
     n = 0
     for k in range(str_len):

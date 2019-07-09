@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
-
 def execute_rule(**kwargs):
     sql = kwargs.get("sql")
     str_len = len(sql)
     m = 0
     n = 0
+    sqlbegin = 0
     sql_content = []
     for k in range(str_len):
         if sql[k] == "(":
@@ -15,7 +13,7 @@ def execute_rule(**kwargs):
         if sql[k: k + 4] == "from" and m == 0:
             sqlbegin = k + 5
             n = n + 1
-        if (sql[k: k + 5] == "where" or sql[k: k + 6] == "having" and m == 0):
+        if sql[k: k + 5] == "where" or sql[k: k + 6] == "having" and m == 0:
             sqlend = k - 1
             n = n - 1
             sql_content.append(sql[sqlbegin: sqlend])
@@ -32,4 +30,3 @@ if __name__ == "__main__":
     sql = """ """
     kwargs = {"sql": sql}
     flag = execute_rule(kwargs)
-
