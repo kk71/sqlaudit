@@ -316,6 +316,7 @@ class SQLRiskDetailHandler(AuthReq):
                     'cpu_time_delta': defaultdict(list),
                     'disk_reads_delta': defaultdict(list),
                     'elapsed_time_delta': defaultdict(list),
+                    'buffer_gets_delta': defaultdict(list),
                 } for plan_hash_value in hash_values
             }
             for plan_hash_value in hash_values:
@@ -349,6 +350,10 @@ class SQLRiskDetailHandler(AuthReq):
                     gp['disk_reads_delta'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
                         "value": round(sql_stat_obj.disk_reads_delta, 2)
+                    })
+                    gp['buffer_gets_delta'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.buffer_gets_delta, 2)
                     })
 
             self.resp({
