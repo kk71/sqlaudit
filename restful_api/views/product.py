@@ -19,6 +19,8 @@ class ProductLicenseHandler(BaseReq):
                 raise DecryptError("license info is invalid")
             self.resp({
                 'enterprise_name': license_key_ins.enterprise_name,
+                'available_days':license_key_ins.available_days,
+                'expired_day':license_key_ins.expired_day,
                 'database_counts': license_key_ins.database_counts,
                 'license_status': license_key_ins.license_status,
                 'license_code': license_key[:DEFAULT_DISPLAY_LENGTH]
