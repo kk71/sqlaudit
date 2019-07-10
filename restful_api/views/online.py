@@ -364,23 +364,23 @@ class SQLRiskDetailHandler(AuthReq):
                         "value": round(sql_stat_obj.buffer_gets_delta, 2)
                     })
 
-                    exec_delta = sql_stat_obj.executions_delta
+                    get_delta_average = lambda x: x / sql_stat_obj.executions_delta if x > 0 else 0
                     # 平均数
                     gp['cpu_time_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
-                        "value": round(sql_stat_obj.cpu_time_delta / exec_delta, 2)
+                        "value": round(get_delta_average(sql_stat_obj.cpu_time_delta), 2)
                     })
                     gp['elapsed_time_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
-                        "value": round(sql_stat_obj.elapsed_time_delta / exec_delta, 2)
+                        "value": round(get_delta_average(sql_stat_obj.elapsed_time_delta), 2)
                     })
                     gp['disk_reads_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
-                        "value": round(sql_stat_obj.disk_reads_delta / exec_delta, 2)
+                        "value": round(get_delta_average(sql_stat_obj.disk_reads_delta), 2)
                     })
                     gp['buffer_gets_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
-                        "value": round(sql_stat_obj.buffer_gets_delta / exec_delta, 2)
+                        "value": round(get_delta_average(sql_stat_obj.buffer_gets_delta), 2)
                     })
 
             self.resp({

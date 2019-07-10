@@ -10,11 +10,13 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 
 import settings
-from plain_db.oracleob import OracleHelper,DBError
+from plain_db.oracleob import OracleHelper, DBError
+
 
 def count_time(start):
     s = time.time() - start
     print(s)
+
 
 def generate_keys():
     start = time.time()
@@ -24,11 +26,13 @@ def generate_keys():
     count_time(start)
     return key, pub_key
 
+
 def _encrypt_msg(a_message, public_key):
     encryptor = PKCS1_OAEP.new(public_key)
     encrypted_msg = encryptor.encrypt(a_message)
     encoded_encrypted_msg = base64.b64encode(encrypted_msg)
     return encoded_encrypted_msg.decode("utf8")
+
 
 def _decrypt_msg(encoded_encrypted_msg, private_key):
     encryptor = PKCS1_OAEP.new(private_key)
@@ -36,15 +40,18 @@ def _decrypt_msg(encoded_encrypted_msg, private_key):
     decoded_decrypted_msg = encryptor.decrypt(decoded_encrypted_msg)
     return decoded_decrypted_msg.decode("utf8")
 
+
 def export_keys():
     private, public = generate_keys()
     print((private.exportKey()).decode("utf8"))
     print((public.exportKey()).decode("utf8"))
 
+
 def read_key_file(path):
     with open(path) as f:
         key = f.read()
         return RSA.importKey(key)
+
 
 def generate_raw_msg(enterprise_name, unique_key, license_status,
                      install_date, available_days, expired_day, database_counts):
@@ -59,9 +66,11 @@ def generate_raw_msg(enterprise_name, unique_key, license_status,
     }
     return json.dumps(msg)
 
+
 def encrypt_msg(raw, public_key_file=settings.PRIVATE_KEY):
     public_key = read_key_file(public_key_file)
     return _encrypt_msg(raw.encode('utf8'), public_key)
+
 
 def decrypt_msg(encoded, private_key_file=settings.PRIVATE_KEY):
     try:
@@ -72,14 +81,18 @@ def decrypt_msg(encoded, private_key_file=settings.PRIVATE_KEY):
         raise DecryptError(e.__str__())
     return plaintext
 
+
 class DecryptError(Exception):
     pass
+
 
 class EncryptError(Exception):
     pass
 
+
 class InvalidLicenseKey(Exception):
     pass
+
 
 class SqlAuditLicenseKey:
     INVALID_LICENSE = -1
@@ -155,6 +168,7 @@ class SqlAuditLicenseKey:
         except Exception as e:
             return False
 
+
 class SqlAuditLicenseKeyManager:
     DB_LICENSE_STATUS = {
         "valid": 1,
@@ -197,6 +211,7 @@ def available_license(method):
     else valid
     :return:
     """
+
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         name = "<decorator-available_license> works"
@@ -218,7 +233,9 @@ def available_license(method):
             self.redirect(url)
             return
         return method(self, *args, **kwargs)
+
     return wrapper
+
 
 def main(raw, private_key, public_key):
     message = raw.encode('utf8')
@@ -228,6 +245,7 @@ def main(raw, private_key, public_key):
     print("encode msg length", len(encoded))
     decoded = _decrypt_msg(encoded, private_key)
     print("decode msg: ", json.loads(decoded))
+
 
 if __name__ == "__main__":
     enterprise_name = "xxxxx"
