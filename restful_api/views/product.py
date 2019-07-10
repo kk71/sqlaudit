@@ -11,7 +11,6 @@ class ProductLicenseHandler(BaseReq):
 
     def get(self):
         """查询序列号状态"""
-        DEFAULT_DISPLAY_LENGTH = 128
         try:
             license_key = SqlAuditLicenseKeyManager.latest_license_key()
             license_key_ins = SqlAuditLicenseKey.decode(license_key)
@@ -23,8 +22,7 @@ class ProductLicenseHandler(BaseReq):
                 'expired_day':license_key_ins.expired_day,
                 'database_counts': license_key_ins.database_counts,
                 'license_status': license_key_ins.license_status,
-                'license_code': license_key[:DEFAULT_DISPLAY_LENGTH]
-                if len(license_key) > DEFAULT_DISPLAY_LENGTH else license_key,
+                'license_code': license_key,
             })
         except DecryptError as e:
             print("license expired or invalid")
