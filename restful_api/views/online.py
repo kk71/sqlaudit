@@ -313,10 +313,17 @@ class SQLRiskDetailHandler(AuthReq):
             ]
             graphs = {
                 plan_hash_value: {
+                    # 总数
                     'cpu_time_delta': defaultdict(list),
                     'disk_reads_delta': defaultdict(list),
                     'elapsed_time_delta': defaultdict(list),
-                    'buffer_gets_delta': defaultdict(list),
+                    'buffer_gets_delta': defaultdict(list),  # 逻辑读
+
+                    # 平均数
+                    'cpu_time_average': defaultdict(list),
+                    'disk_reads_average': defaultdict(list),
+                    'elapsed_time_average': defaultdict(list),
+                    'buffer_gets_average': defaultdict(list),
                 } for plan_hash_value in hash_values
             }
             for plan_hash_value in hash_values:
@@ -339,6 +346,7 @@ class SQLRiskDetailHandler(AuthReq):
                 for sql_stat_obj in sql_stat_objects:
                     gp = graphs[plan_hash_value]
                     etl_date_str = dt_to_str(sql_stat_obj.etl_date)
+                    # 总数
                     gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
                         "value": round(sql_stat_obj.cpu_time_delta, 2)
@@ -354,6 +362,25 @@ class SQLRiskDetailHandler(AuthReq):
                     gp['buffer_gets_delta'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date_str,
                         "value": round(sql_stat_obj.buffer_gets_delta, 2)
+                    })
+
+                    exec_delta = sql_stat_obj.executions_delta
+                    # 平均数
+                    gp['cpu_time_average'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.cpu_time_delta / exec_delta, 2)
+                    })
+                    gp['elapsed_time_average'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.elapsed_time_delta / exec_delta, 2)
+                    })
+                    gp['disk_reads_average'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.disk_reads_delta / exec_delta, 2)
+                    })
+                    gp['buffer_gets_average'][str(sql_stat_obj.plan_hash_value)].append({
+                        "date": etl_date_str,
+                        "value": round(sql_stat_obj.buffer_gets_delta / exec_delta, 2)
                     })
 
             self.resp({
