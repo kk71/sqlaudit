@@ -11,7 +11,7 @@ platforms.C_FORCE_ROOT = True
 broker_url = settings.REDIS_BROKER
 result_backend = settings.REDIS_BACKEND
 
-timezone = 'Asia/Shanghai'
+# timezone = 'Asia/Shanghai'
 task_serializer = 'json'
 accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 result_serializer = 'json'
