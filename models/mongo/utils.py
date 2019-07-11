@@ -117,7 +117,7 @@ class BaseCapturingDoc(BaseDoc):
     cmdb_id = IntField()
     schema_name = StringField()
     task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
-    etl_date = DateTimeField(default=datetime.now)
+    etl_date = DateTimeField(default=lambda: arrow.now().datetime)
 
     meta = {
         'abstract': True,
