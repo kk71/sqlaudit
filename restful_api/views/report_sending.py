@@ -92,6 +92,7 @@ class ConfigSenderHandler(AuthReq):
     def patch(self):
         params = self.get_json_args(Schema({
             "mail_server_name": scm_unempty_str,
+            "ip_address":scm_unempty_str,
             'use_ssl': scm_bool,
             "port": scm_int,
             "username": scm_unempty_str,
