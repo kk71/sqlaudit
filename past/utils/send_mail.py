@@ -7,7 +7,7 @@ import yagmail
 
 def send_mail(title, contents, receivers, server_data, path=None, filename=None):
     print(f"Mail parameters: title: {title}, contents: {contents}, receivers: {receivers}, path: {path}, filename: {filename}, server_data: {server_data}")
-    mail_host = server_data['mail_server_name']
+    mail_host = server_data['ip_address']
     mail_port = server_data['port']
     mail_user = server_data['username']
     mail_pass = server_data['password']
