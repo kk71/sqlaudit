@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+import traceback
+
 import yagmail
 
 
@@ -25,6 +28,7 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
         # yag.send(**data)
         yag.send(to=receivers,subject=title,contents=contents,attachments=path)
     except Exception as error:
+        print(traceback.format_exc())
         result = False
         errors = error.__str__()
         errors = str(errors)
