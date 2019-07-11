@@ -136,11 +136,9 @@ class BaseCapturingDoc(BaseDoc):
     @classmethod
     def post_captured(cls, docs: list, obj_owner: str, cmdb_id: int, task_record_id):
         """采集到原始数据后，在文档保存之前，做一些操作。一般不需要改"""
-        etl_date = arrow.now().datetime
         for d in docs:
             d.from_dict({
                 "cmdb_id": cmdb_id,
                 "schema_name": obj_owner,
                 "task_record_id": task_record_id,
-                "etl_date": etl_date
             })
