@@ -249,7 +249,7 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
                 "by_average": top_10_sql_by_average
             },
             "risk_rates": rule_utils.get_risk_rate(
-                cmdb_id=cmdb_id, date_range=(date_start, date_end)),
+                session=session, cmdb_id=cmdb_id, date_range=(date_start, date_end)),
             # 以下是取最近一次扫描的结果
             "phy_size_mb": phy_size,
         }

@@ -6,7 +6,7 @@ import json
 import chardet
 from mongoengine import Q
 
-from models.oracle import RiskSQLRule, WhiteListRules
+from models.oracle import RiskSQLRule, WhiteListRules, CMDB
 from models.mongo import *
 from utils.perf_utils import *
 from utils.const import *
@@ -105,16 +105,6 @@ def merge_risk_rule_and_rule(
     return {**risk_rule_dict, **rule_dict}
 
 
-def get_rules_dict() -> dict:
-    """
-    parse all rules into a dict with 3-key indexing
-    :param rule_status:
-    :return:
-    """
-    # TODO make it cached
-    return {(r.db_type, r.db_model, r.rule_name): r for r in Rule.filter_enabled()}
-
-
 def calc_sum_of_rule_max_score(db_type, db_model, rule_type) -> float:
     """
     计算某个类型的规则的最大分总合
@@ -169,9 +159,10 @@ def get_all_risk_towards_a_sql(session, sql_id, date_range: tuple) -> set:
 
 
 @timing(cache=r_cache)
-def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
+def get_risk_rate(session, cmdb_id, date_range: tuple) -> dict:
     """
     获取最近的风险率
+    :param session:
     :param cmdb_id:
     :param date_range:
     :return:
@@ -189,7 +180,8 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
     sql_plan_q = MSQLPlan.objects(cmdb_id=cmdb_id)
     sql_stats_q = SQLStat.objects(cmdb_id=cmdb_id)
     # rule dict for searching obj_info_type
-    rule_dict = get_rules_dict()
+    db_model = session.query(CMDB.db_model).filter(CMDB.cmdb_id == cmdb_id)[0][0]
+    rule_q = Rule.filter_enabled(db_model=db_model)
     ret = {
         # OBJ
         "table": {"violation_num": 0, "sum": 0, "rate": 0.0},  # table包括普通表及分区表,无属性或类型可定义，故以table表示
@@ -205,8 +197,8 @@ def get_risk_rate(cmdb_id, date_range: tuple) -> dict:
 
     record_id_set: set = set()
     for result in results_q:
-        for rule_3k, rule_obj in rule_dict.items():
-            result_rule_dict = getattr(result, rule_3k[2], None)
+        for rule_obj in rule_q:
+            result_rule_dict = getattr(result, rule_obj.rule_name, None)
             if not result_rule_dict:
                 continue
             if result.rule_type == RULE_TYPE_OBJ:
