@@ -24,9 +24,13 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
     result = True
     errors = ''
     try:
-        yag = yagmail.SMTP(user=mail_user, password=mail_pass, host=mail_host, port=mail_port, smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
-        # yag.send(**data)
-        yag.send(to=receivers,subject=title,contents=contents,attachments=path)
+        smtp_kwargs = dict(user=mail_user, password=mail_pass, host=mail_host, port=mail_port,
+                           smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
+        print(smtp_kwargs)
+        yag = yagmail.SMTP(**smtp_kwargs)
+        send_kwargs = dict(to=receivers, subject=title, contents=contents, attachments=path)
+        print(send_kwargs)
+        yag.send(**send_kwargs)
     except Exception as error:
         print(traceback.format_exc())
         result = False
