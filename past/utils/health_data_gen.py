@@ -54,7 +54,7 @@ def calculate(task_exec_hist_id):
 
         # mongo里有数据但是oracle里没有
         if result['cmdb_id'] not in cmdb_id2name:
-            return
+            continue
 
         connect_name = cmdb_id2name[result['cmdb_id']]
         instance_name = connect_name
