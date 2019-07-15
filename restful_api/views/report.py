@@ -31,7 +31,7 @@ class OnlineReportTaskListHandler(AuthReq):
         p = self.pop_p(params)
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
-        job_q = Job.objects(**params).order_by("-create_time")
+        job_q = Job.objects(score__nin=[None, 0], **params).order_by("-create_time")
         if schema_name:
             job_q = job_q.filter(desc__owner=schema_name)
         if date_start:
