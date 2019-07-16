@@ -125,7 +125,22 @@ class MetadataListHandler(AuthReq):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
 
-        obj_table_info_q = ObjTabInfo.objects.filter(**params).order_by("-etl_date")
+        with make_session() as session:
+            last_success_task_record_id = session.query(TaskExecHistory.id).\
+                join(CMDB, TaskExecHistory.connect_name == CMDB.connect_name).\
+                filter(CMDB.cmdb_id == params["cmdb_id"], TaskExecHistory.status == True).\
+                order_by(TaskExecHistory.id.desc()).\
+                first()
+            if last_success_task_record_id:
+                last_success_task_record_id = last_success_task_record_id[0]
+            else:
+                print("no task exec hist was found.")
+                return self.resp([])
+
+        obj_table_info_q = ObjTabInfo.\
+            filter_by_exec_hist_id(last_success_task_record_id).\
+            filter(**params).\
+            order_by("-etl_date")
         if keyword:
             obj_table_info_q = self.query_keyword(obj_table_info_q, keyword, "schema_name",
                                                   "ip_address",
