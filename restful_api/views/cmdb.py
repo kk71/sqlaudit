@@ -5,7 +5,6 @@ from collections import defaultdict
 
 from schema import Schema, Optional, And
 
-import settings
 from utils.schema_utils import *
 from utils.perf_utils import *
 from utils.const import *
@@ -32,16 +31,12 @@ class CMDBHandler(AuthReq):
             # 模糊匹配多个字段
             Optional("keyword", default=None): scm_str,
 
-            # 特殊字段
-            Optional("login_user", default=None): scm_str,
-
             # 分页
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
-        login_user = params.pop("login_user")
         p = self.pop_p(params)
 
         with make_session() as session:
@@ -56,11 +51,10 @@ class CMDBHandler(AuthReq):
                                        CMDB.server_name,
                                        CMDB.ip_address
                                        )
-            if current or login_user:
-                user_to_get = self.current_user if current else login_user
-                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, user_to_get)
+            if current:
+                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, user_to_get)
+                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, self.current_user)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
             ret = []
@@ -272,7 +266,7 @@ class SchemaHandler(AuthReq):
             Optional("cmdb_id", default=None): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
             Optional("current", default=False): scm_bool,
-            Optional("login_user", default=False): scm_str  # 仅返回该用户绑定的schema
+            Optional("login_user", default=None): scm_str  # 仅返回该用户绑定的schema
         }))
         cmdb_id = params.pop("cmdb_id")
         connect_name = params.pop("connect_name")
@@ -285,13 +279,28 @@ class SchemaHandler(AuthReq):
             if connect_name and not cmdb_id:
                 cmdb = session.query(CMDB).filter_by(connect_name=connect_name).first()
                 cmdb_id = cmdb.cmdb_id
-            if current or login_user:
-                # 当前登录用户可用(数据权限配置)的schema 或者 指定某个用户的schema
-                user_to_get = self.current_user if current else login_user
+            if current:
+                # 当前登录用户可用(数据权限配置)的schema
                 current_schemas = cmdb_utils.get_current_schema(session,
-                                                                user_to_get,
+                                                                self.current_user,
                                                                 cmdb_id)
                 self.resp(current_schemas)
+
+            elif login_user:
+                # 返回给出的用户所绑定的schema，以及未绑定的
+                bound = cmdb_utils.get_current_schema(session,
+                                                      login_user,
+                                                      cmdb_id)
+                cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+                try:
+                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                except cx_Oracle.DatabaseError as err:
+                    return self.resp_bad_req(msg="无法连接到数据库")
+                self.resp({
+                    "bound": bound,
+                    "else": [i for i in all_schemas if i not in bound]
+                })
+
             else:
                 # 当前cmdb的全部的schema，不考虑数据权限
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
