@@ -36,7 +36,7 @@ def get_current_schema(session, user_login, cmdb_id) -> list:
     """
     q = session.query(DataPrivilege.schema_name).filter(
         DataPrivilege.login_user == user_login, DataPrivilege.cmdb_id == cmdb_id)
-    return list(set(q))
+    return [i[0] for i in q]
 
 
 @timing()

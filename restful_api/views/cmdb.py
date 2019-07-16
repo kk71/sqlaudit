@@ -277,7 +277,7 @@ class SchemaHandler(AuthReq):
         cmdb_id = params.pop("cmdb_id")
         connect_name = params.pop("connect_name")
         if not connect_name and not cmdb_id:
-            return self.resp_bad_req(msg="neither cmdb_id or connect_name nor is present.")
+            return self.resp_bad_req(msg="neither cmdb_id nor connect_name is present.")
         current = params.pop("current")
         login_user = params.pop("login_user")
         del params
