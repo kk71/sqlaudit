@@ -150,7 +150,7 @@ class BaseReq(RequestHandler):
         elif isinstance(query, (list, tuple)):
             total = len(query)
         else:
-            total = paginate_count_using_cache(query)
+            total = paginate_count_using_cache(qs=query)
         pages = total // per_page
         if total % per_page > 0:
             pages += 1
