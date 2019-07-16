@@ -149,6 +149,8 @@ class BaseReq(RequestHandler):
             total = len(items)
         elif isinstance(query, (list, tuple)):
             total = len(query)
+        elif isinstance(query, S_Query):
+            total = query.order_by(None).count()
         else:
             total = paginate_count_using_cache(qs=query)
         pages = total // per_page
