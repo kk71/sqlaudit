@@ -20,6 +20,7 @@ from sqlalchemy.orm.query import Query as S_Query
 from sqlalchemy import or_
 
 import settings
+from utils.perf_utils import timing, r_cache
 from utils.schema_utils import scm_unempty_str, scm_gt0_int
 from utils.privilege_utils import *
 
@@ -30,6 +31,12 @@ class SchemaErrorWithMessageResponsed(Exception):
 
 class TokenHasExpiredException(Exception):
     pass
+
+
+@timing(cache=r_cache)
+def paginate_count_using_cache(qs):
+    """用于给分页器存储总数，因为总数查询有的时候也很耗时"""
+    return qs.order_by(None).count()
 
 
 class BaseReq(RequestHandler):
@@ -143,7 +150,7 @@ class BaseReq(RequestHandler):
         elif isinstance(query, (list, tuple)):
             total = len(query)
         else:
-            total = query.order_by(None).count()  # this is so bad
+            total = paginate_count_using_cache(query)
         pages = total // per_page
         if total % per_page > 0:
             pages += 1
