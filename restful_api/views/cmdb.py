@@ -32,12 +32,16 @@ class CMDBHandler(AuthReq):
             # 模糊匹配多个字段
             Optional("keyword", default=None): scm_str,
 
+            # 特殊字段
+            Optional("login_user", default=None): scm_str,
+
             # 分页
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
+        login_user = params.pop("login_user")
         p = self.pop_p(params)
 
         with make_session() as session:
@@ -52,10 +56,11 @@ class CMDBHandler(AuthReq):
                                        CMDB.server_name,
                                        CMDB.ip_address
                                        )
-            if current:
-                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+            if current or login_user:
+                user_to_get = self.current_user if current else login_user
+                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, user_to_get)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, self.current_user)
+                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, user_to_get)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
             ret = []
