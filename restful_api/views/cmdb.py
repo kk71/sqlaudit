@@ -271,21 +271,25 @@ class SchemaHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("cmdb_id", default=None): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
-            Optional("current", default=False): scm_bool
+            Optional("current", default=False): scm_bool,
+            Optional("login_user", default=False): scm_str  # 仅返回该用户绑定的schema
         }))
         cmdb_id = params.pop("cmdb_id")
         connect_name = params.pop("connect_name")
         if not connect_name and not cmdb_id:
             return self.resp_bad_req(msg="neither cmdb_id or connect_name nor is present.")
         current = params.pop("current")
+        login_user = params.pop("login_user")
+        del params
         with make_session() as session:
             if connect_name and not cmdb_id:
                 cmdb = session.query(CMDB).filter_by(connect_name=connect_name).first()
                 cmdb_id = cmdb.cmdb_id
-            if current:
-                # 当前登录用户可用(数据权限配置)的schema
+            if current or login_user:
+                # 当前登录用户可用(数据权限配置)的schema 或者 指定某个用户的schema
+                user_to_get = self.current_user if current else login_user
                 current_schemas = cmdb_utils.get_current_schema(session,
-                                                                self.current_user,
+                                                                user_to_get,
                                                                 cmdb_id)
                 self.resp(current_schemas)
             else:
