@@ -108,12 +108,13 @@ get_object_stats_towards_cmdb.prefetch = __prefetch
 del __prefetch
 
 
-@timing(cache=r_cache)
+# @timing(cache=r_cache)
 def get_risk_object_list(session,
                          cmdb_id,
                          date_start=None,
                          date_end=None,
                          schema_name=None,
+                         severity=None,
                          risk_sql_rule_id: Union[tuple, list] = (),
                          **kwargs):
     """
@@ -142,6 +143,8 @@ def get_risk_object_list(session,
     if risk_sql_rule_id_list:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id_list))
+    if severity:
+        risk_rule_q=risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start:
         result_q = result_q.filter(create_date__gte=date_start)
     if date_end:
