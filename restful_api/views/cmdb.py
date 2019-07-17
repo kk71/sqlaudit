@@ -310,7 +310,7 @@ class SchemaHandler(AuthReq):
                     "else": [i for i in all_schemas if i not in bound]
                 })
 
-            elif login_user and divide_by == HEALTH_USER_CONFIG:
+            elif divide_by == HEALTH_USER_CONFIG:
                 # 返回给出的库需要加入数据评分的schema，以及不需要的
                 if connect_name:
                     bound = session.query(DataHealthUserConfig.username).\
