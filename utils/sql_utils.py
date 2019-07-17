@@ -193,6 +193,7 @@ def get_risk_sql_list(session,
                       enable_white_list: bool = True,
                       sql_id_only: bool = False,
                       sqltext_stats: bool = True,
+                      severity: list = (),
                       **kwargs
                       ) -> Union[dict, set]:
     """
@@ -234,6 +235,8 @@ def get_risk_sql_list(session,
     if risk_sql_rule_id:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id))
+    if severity:
+        risk_rule_q=risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start:
         result_q = result_q.filter(create_date__gte=date_start)
     if date_end:

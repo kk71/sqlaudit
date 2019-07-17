@@ -27,6 +27,7 @@ class ObjectRiskListHandler(AuthReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            Optional("severity",default=None):scm_dot_split_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
 
@@ -144,6 +145,7 @@ class SQLRiskListHandler(AuthReq):
             Optional("enable_white_list", default=True):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
+            Optional("severity",default=None):scm_dot_split_str,
         }
 
     def get(self):
