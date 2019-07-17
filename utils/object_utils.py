@@ -108,7 +108,7 @@ get_object_stats_towards_cmdb.prefetch = __prefetch
 del __prefetch
 
 
-# @timing(cache=r_cache)
+@timing(cache=r_cache)
 def get_risk_object_list(session,
                          cmdb_id,
                          date_start=None,
