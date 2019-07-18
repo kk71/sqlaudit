@@ -11,8 +11,7 @@ import datetime
 
 class ProductLicenseHandler(BaseReq):
 
-
-    def Caltime(self,expire,now):
+    def Caltime(self, expire, now):
 
         expire = time.strptime(expire, "%Y-%m-%d")
         now = time.strptime(now, "%Y-%m-%d")
@@ -20,7 +19,7 @@ class ProductLicenseHandler(BaseReq):
         expire = datetime.datetime(expire[0], expire[1], expire[2])
         now = datetime.datetime(now[0], now[1], now[2])
 
-        return expire-now
+        return expire - now
 
     def get(self):
         """查询序列号状态"""
@@ -30,13 +29,13 @@ class ProductLicenseHandler(BaseReq):
             if not license_key_ins.is_valid():
                 raise DecryptError("license info is invalid")
             now = time.strftime("%Y-%m-%d", time.localtime(time.time()))
-            expire=license_key_ins.expired_day.rstrip(' 00:00:00')
-            available_days=self.Caltime(expire,now)
+            expire = license_key_ins.expired_day.rstrip(' 00:00:00')
+            available_days = self.Caltime(expire, now)
             available_days = str(available_days).rstrip(' days, 0:00:00')
             self.resp({
                 'enterprise_name': license_key_ins.enterprise_name,
-                'available_days':available_days,
-                'expired_day':license_key_ins.expired_day,
+                'available_days': available_days,
+                'expired_day': license_key_ins.expired_day,
                 'database_counts': license_key_ins.database_counts,
                 'license_status': license_key_ins.license_status,
                 'license_code': license_key,

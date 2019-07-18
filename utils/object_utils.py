@@ -108,7 +108,8 @@ get_object_stats_towards_cmdb.prefetch = __prefetch
 del __prefetch
 
 
-@timing(cache=r_cache)
+# @timing(cache=r_cache)
+@timing()
 def get_risk_object_list(session,
                          cmdb_id,
                          date_start=None,
@@ -140,7 +141,8 @@ def get_risk_object_list(session,
     if schema_name:
         result_q = result_q.filter(schema_name=schema_name)
     risk_rule_q = session.query(RiskSQLRule). \
-        filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ)
+        filter(RiskSQLRule.rule_type == rule_utils.RULE_TYPE_OBJ,
+               RiskSQLRule.db_model == cmdb.db_model)
     if risk_sql_rule_id_list:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id_list))
@@ -156,7 +158,7 @@ def get_risk_object_list(session,
     )
     risk_rules_dict = rule_utils.get_risk_rules_dict(session)
     risky_rule_name_object_dict = {risky_rule.rule_name:
-                                       risky_rule for risky_rule in risky_rules.all()}
+                                       risky_rule for risky_rule in risky_rules}
     if not risky_rule_name_object_dict:
         raise const.NoRiskRuleSetException
 

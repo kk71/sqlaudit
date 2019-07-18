@@ -182,7 +182,8 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
             SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
 
 
-@timing(cache=r_cache)
+# @timing(cache=r_cache)
+@timing()
 def get_risk_sql_list(session,
                       cmdb_id: str,
                       date_range: (date, date),
@@ -230,7 +231,8 @@ def get_risk_sql_list(session,
     else:
         rule_type: list = [rule_type]
     risk_rule_q = session.query(RiskSQLRule).\
-        filter(RiskSQLRule.rule_type.in_(rule_type))
+        filter(RiskSQLRule.rule_type.in_(rule_type),
+               RiskSQLRule.db_model == cmdb.db_model)
     result_q = result_q.filter(rule_type__in=rule_type)
 
     if risk_sql_rule_id:

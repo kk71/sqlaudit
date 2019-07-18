@@ -4,6 +4,7 @@
 import json
 import time
 import base64
+import os.path
 from functools import wraps
 
 from Cryptodome.PublicKey import RSA
@@ -247,18 +248,17 @@ def main(raw, private_key, public_key):
     print("decode msg: ", json.loads(decoded))
 
 
-if __name__ == "__main__":
-    enterprise_name = "xxxxx"
+def gen_license():
+    """创建新的license"""
+    enterprise_name = "苏州银行"
     unique_key = "BFEBFBFF00000F27;" * 8
     license_status = "1"
-    install_date = "2019-2-28 00:00:00"
-    available_days = 1
-    expired_day = "2020-2-28 00:00:00"
-    database_counts = 6
-    private_key = read_key_file("/oradata/sqlaudit/sqlaudit_license")
-    public_key = read_key_file("/oradata/sqlaudit/sqlaudit_license.pub")
+    install_date = "2019-7-18 00:00:00"
+    available_days = 365
+    expired_day = "2020-7-18 00:00:00"
+    database_counts = 10
+
     raw_msg = generate_raw_msg(enterprise_name, unique_key, license_status,
                                install_date, available_days, expired_day, database_counts)
     print("raw_msg", len(raw_msg))
-    # decrypt_msg("eeee")
-    main(raw_msg, private_key, public_key)
+    print(encrypt_msg(raw_msg))

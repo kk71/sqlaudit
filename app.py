@@ -167,6 +167,13 @@ def create_admin():
     print(f"* admin user named {settings.ADMIN_LOGIN_USER} created with password {default_password}")
 
 
+@click.command()
+def gen_license():
+    """generate license"""
+    from past.utils.product_license import gen_license
+    gen_license()
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
@@ -178,4 +185,5 @@ if __name__ == "__main__":
     cli.add_command(clear_cache)
     cli.add_command(export_task)
     cli.add_command(create_admin)
+    cli.add_command(gen_license)
     cli()
