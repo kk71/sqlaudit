@@ -182,8 +182,7 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
             SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
 
 
-# @timing(cache=r_cache)
-@timing()
+@timing(cache=r_cache)
 def get_risk_sql_list(session,
                       cmdb_id: str,
                       date_range: (date, date),
