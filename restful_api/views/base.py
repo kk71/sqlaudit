@@ -113,6 +113,7 @@ class BaseReq(RequestHandler):
             resp_structure_base.update(resp_structure_kwargs)
         self.set_status(status_code)
         self.set_header("Content-Type", "application/json")
+        self.set_header("Cache-control", "no-cache")
         self.finish(json.dumps(resp_structure_base, ensure_ascii=False))
 
     def resp_created(self, *args, **kwargs) -> NoReturn:
