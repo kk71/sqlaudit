@@ -114,7 +114,7 @@ def get_risk_object_list(session,
                          date_start=None,
                          date_end=None,
                          schema_name=None,
-                         severity=None,
+                         severity: Union[None, tuple, list] = None,
                          risk_sql_rule_id: Union[tuple, list] = (),
                          **kwargs):
     """
@@ -124,6 +124,7 @@ def get_risk_object_list(session,
     :param date_start:
     :param date_end:
     :param schema_name:
+    :param severity: 严重程度过滤
     :param risk_sql_rule_id:
     :return:
     """

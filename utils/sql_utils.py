@@ -193,7 +193,7 @@ def get_risk_sql_list(session,
                       enable_white_list: bool = True,
                       sql_id_only: bool = False,
                       sqltext_stats: bool = True,
-                      severity: list = (),
+                      severity: Union[tuple, list, None] = None,
                       **kwargs
                       ) -> Union[dict, set]:
     """
@@ -208,6 +208,7 @@ def get_risk_sql_list(session,
     :param enable_white_list:
     :param sql_id_only: 仅仅返回sql_id的set
     :param sqltext_stats: 返回是否需要包含sqltext的统计信息（首末出现时间）
+    :param severity: 严重程度过滤
     :param kwargs: 多余的参数，会被收集到这里，并且会提示
     :return:
     """
