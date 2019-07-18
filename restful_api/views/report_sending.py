@@ -90,7 +90,7 @@ class ConfigSenderHandler(AuthReq):
             if server_data:
                 self.resp(server_data.to_dict())
             else:
-                self.resp()
+                self.resp(content={})
 
     def patch(self):
         params = self.get_json_args(Schema({
