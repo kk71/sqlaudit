@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import sqlalchemy.exc
 from schema import Schema, Optional, Or, And
 
 from utils.schema_utils import *
@@ -168,11 +169,15 @@ class RiskRuleHandler(AuthReq):
             "rule_type": scm_one_of_choices(ALL_RULE_TYPE),
         }))
         with make_session() as session:
-            risk_rule = RiskSQLRule(**params)
-            session.add(risk_rule)
-            session.commit()
-            session.refresh(risk_rule)
-            self.resp_created(rule_utils.merge_risk_rule_and_rule(risk_rule))
+            try:
+                risk_rule = RiskSQLRule(**params)
+                session.add(risk_rule)
+                session.commit()
+                session.refresh(risk_rule)
+            except sqlalchemy.exc.IntegrityError:
+                return self.resp_bad_req(msg="规则重复。")
+            else:
+                self.resp_created(rule_utils.merge_risk_rule_and_rule(risk_rule))
 
     def patch(self):
         """修改风险规则"""

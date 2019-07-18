@@ -222,7 +222,6 @@ def get_risk_sql_list(session,
         print(f"got extra useless kwargs: {kwargs}")
 
     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-    risk_rule_q = session.query(RiskSQLRule)
     result_q = Results.objects(cmdb_id=cmdb_id)
     if schema_name:
         result_q = result_q.filter(schema_name=schema_name)
@@ -230,14 +229,15 @@ def get_risk_sql_list(session,
         rule_type: list = const.ALL_RULE_TYPES_FOR_SQL_RULE
     else:
         rule_type: list = [rule_type]
-    risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_type.in_(rule_type))
+    risk_rule_q = session.query(RiskSQLRule).\
+        filter(RiskSQLRule.rule_type.in_(rule_type))
     result_q = result_q.filter(rule_type__in=rule_type)
 
     if risk_sql_rule_id:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id))
     if severity:
-        risk_rule_q=risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start:
         result_q = result_q.filter(create_date__gte=date_start)
     if date_end:
