@@ -87,7 +87,10 @@ class ConfigSenderHandler(AuthReq):
         """发件人邮件服务器配置"""
         with make_session() as session:
             server_data = session.query(MailServer).first()
-            self.resp(server_data.to_dict())
+            if server_data:
+                self.resp(server_data.to_dict())
+            else:
+                self.resp()
 
     def patch(self):
         params = self.get_json_args(Schema({
@@ -103,8 +106,13 @@ class ConfigSenderHandler(AuthReq):
 
         with make_session() as session:
             mailserver = session.query(MailServer).first()
-            session.query(MailServer). \
-                filter_by(mail_server_id=mailserver.mail_server_id).update(params)
+            if mailserver:
+                session.query(MailServer). \
+                    filter_by(mail_server_id=mailserver.mail_server_id).update(params)
+            else:
+                mailserver=MailServer(**params)
+                session.add(mailserver)
+                session.commit()
             self.resp_created(mailserver.to_dict(), msg="修改发件人配置成功")
 
 
