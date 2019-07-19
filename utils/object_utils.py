@@ -158,8 +158,8 @@ def get_risk_object_list(session,
     risk_rules_dict = rule_utils.get_risk_rules_dict(session)
     risky_rule_name_object_dict = {risky_rule.rule_name:
                                        risky_rule for risky_rule in risky_rules}
-    if not risky_rule_name_object_dict:
-        raise const.NoRiskRuleSetException
+    # if not risky_rule_name_object_dict:
+    #     raise const.NoRiskRuleSetException
 
     # 过滤出包含问题的结果
     Qs = None

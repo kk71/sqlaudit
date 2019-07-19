@@ -250,8 +250,8 @@ def get_risk_sql_list(session,
     risk_rules_dict = rule_utils.get_risk_rules_dict(session)
     risky_rule_name_object_dict = {risky_rule.rule_name:
                                        risky_rule for risky_rule in risky_rules.all()}
-    if not risky_rule_name_object_dict:
-        raise const.NoRiskRuleSetException
+    # if not risky_rule_name_object_dict:
+    #     raise const.NoRiskRuleSetException
     get_risk_sql_list.tik(f"risk sql rule count: {len(risky_rule_name_object_dict)}")
 
     # 过滤出包含风险SQL规则结果的result
