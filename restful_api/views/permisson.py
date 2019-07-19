@@ -120,7 +120,7 @@ class RoleUserHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("role_id", default=None): scm_int,
             Optional("login_user", default=None): scm_unempty_str,
-            Optional("keyword", default="hanyongjie"): scm_str,
+            Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         p = self.pop_p(params)
