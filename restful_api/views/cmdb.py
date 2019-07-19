@@ -106,7 +106,7 @@ class CMDBHandler(AuthReq):
             "baseline": scm_int,
             "is_pdb": scm_bool,
             "version": scm_unempty_str,
-            "sid": scm_str
+            Optional("sid"): scm_str
         }))
         params["create_owner"] = self.current_user
         with make_session() as session:
@@ -394,9 +394,11 @@ class RankingConfigHandler(AuthReq):
     def get(self):
         """获取需要评分的数据库列表"""
         params = self.get_query_args(Schema({
+            Optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         p = self.pop_p(params)
+        keyword = params.pop("keyword")
         del params
 
         with make_session() as session:
@@ -410,6 +412,14 @@ class RankingConfigHandler(AuthReq):
             rankings = session.\
                 query(*qe).\
                 join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name)
+            if keyword:
+                rankings = self.query_keyword(rankings, keyword,
+                                              CMDB.cmdb_id,
+                                              CMDB.connect_name,
+                                              CMDB.user_name,
+                                              CMDB.create_owner,
+                                              DataHealthUserConfig.database_name,
+                                              DataHealthUserConfig.username)
             items, p = self.paginate(rankings, **p)
             self.resp([qe.to_dict(i) for i in items], **p)
 
