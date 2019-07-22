@@ -13,6 +13,7 @@ from utils.cmdb_utils import get_cmdb_available_schemas
 from .base import *
 from utils import cmdb_utils
 from models.oracle import *
+from task.clear_cache import clear_cache
 
 
 class CMDBHandler(AuthReq):
@@ -54,7 +55,8 @@ class CMDBHandler(AuthReq):
             if current:
                 current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session, self.current_user)
+                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(
+                    session, self.current_user)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
             ret = []
@@ -71,7 +73,8 @@ class CMDBHandler(AuthReq):
             else:
                 db_data_health, p = self.paginate(all_db_data_health, **p)
                 for data_health in db_data_health:
-                    cmdb_obj_of_this_dh = q.filter(CMDB.connect_name == data_health["connect_name"]). \
+                    cmdb_obj_of_this_dh = q.\
+                        filter(CMDB.connect_name == data_health["connect_name"]). \
                         first()
                     if not cmdb_obj_of_this_dh:
                         continue
@@ -152,6 +155,7 @@ class CMDBHandler(AuthReq):
                 database_name=new_cmdb.connect_name,
                 username=i
             ) for i in all_schemas])
+            clear_cache()
             self.resp_created(new_cmdb.to_dict())
 
     def patch(self):
@@ -222,6 +226,7 @@ class CMDBHandler(AuthReq):
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
             session.query(TaskManage).filter_by(**params).delete()
+        clear_cache()
         self.resp_created(msg="已删除。")
 
     def options(self):

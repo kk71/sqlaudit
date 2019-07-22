@@ -5,7 +5,7 @@ from models import init_models
 
 
 @celery.task
-def clear_cache(no_prefetch):
+def clear_cache(no_prefetch=False):
 
     init_models()
 

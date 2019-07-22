@@ -84,8 +84,7 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> l
     if user_login:
         all_connect_names: set = set(get_current_cmdb(session, user_login, id_name="connect_name"))
     else:
-        all_connect_names: set = {i[0] for i in session.query(CMDB).filter_by().
-            with_entities(CMDB.connect_name)}
+        all_connect_names: set = {i[0] for i in session.query(CMDB.connect_name)}
     dh_objects = session.query(DataHealth).filter(
         DataHealth.collect_date >= arrow.now().shift(months=-collect_month).datetime
     ).order_by(DataHealth.collect_date.desc()).all()
