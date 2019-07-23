@@ -15,9 +15,10 @@ __all__ = [
     "ObjViewInfo",
     "ObjSeqInfo",
     "ObjTabSpace",
-    "Dashboard",
-    "DashboardTopStatsDrillDown",
-    "CMDBOverview"
+    "StatsDashboard",
+    "StatsDashboardDrillDown",
+    "StatsCMDBOverview",
+    "StatsCMDBOverviewTabSpace"
 ]
 
 from .job import *

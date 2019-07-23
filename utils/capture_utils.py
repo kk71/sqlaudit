@@ -48,7 +48,7 @@ def capture(
             # service_name=cmdb.sid
         )
         for m in CAPTURE_ITEMS:
-            if not isinstance(m, capture_type):
+            if not issubclass(m, capture_type):
                 continue
             print(f"* starting {capture_type.__doc__} for {m.__doc__} ...")
             sql = m.command_to_execute(schema_name)

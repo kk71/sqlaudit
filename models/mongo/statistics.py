@@ -12,25 +12,39 @@ from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
 from .utils import BaseStatisticsDoc
 
 
-class Dashboard(BaseStatisticsDoc):
+class StatsDashboard(BaseStatisticsDoc):
     """仪表盘统计数据"""
 
+
+
     meta = {
-        "collection": "dashboard"
+        "collection": "stats_dashboard"
     }
 
+    @classmethod
+    def generate(cls, task_record_id: int):
+        return
 
-class DashboardTopStatsDrillDown(BaseStatisticsDoc):
+
+class StatsDashboardDrillDown(BaseStatisticsDoc):
     """仪表盘四个数据的下钻"""
 
     meta = {
-        "collection": "dashboard_top_data"
+        "collection": "stats_dashboard_drill_down"
     }
 
 
-class CMDBOverview(BaseStatisticsDoc):
+class StatsCMDBOverview(BaseStatisticsDoc):
     """纳管库概览页统计数据"""
 
     meta = {
-        "collection": "cmdb_overview"
+        "collection": "stats_cmdb_overview"
+    }
+
+
+class StatsCMDBOverviewTabSpace(BaseStatisticsDoc):
+    """纳管数据库概览页表空间数据"""
+
+    meta = {
+        "collection": "stats_cmdb_overview_tab_space"
     }
