@@ -5,6 +5,7 @@ from schema import Schema, Optional, And
 from .base import AuthReq
 from models.oracle import *
 from utils.schema_utils import *
+from past import mkdata
 
 
 class TaskHandler(AuthReq):
@@ -24,22 +25,22 @@ class TaskHandler(AuthReq):
             task_q = session.query(TaskManage)
             if keyword:
                 task_q = self.query_keyword(task_q, keyword,
-                                   TaskManage.connect_name,
-                                   TaskManage.group_name,
-                                   TaskManage.business_name,
-                                   TaskManage.server_name,
-                                   TaskManage.ip_address)
+                                            TaskManage.connect_name,
+                                            TaskManage.group_name,
+                                            TaskManage.business_name,
+                                            TaskManage.server_name,
+                                            TaskManage.ip_address)
             items, p = self.paginate(task_q, **p)
             ret = []
             for t in items:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = None
-                last_task_exec_history = session.\
-                    query(TaskExecHistory).\
+                last_task_exec_history = session. \
+                    query(TaskExecHistory). \
                     filter(
-                        TaskExecHistory.task_id == t.task_id,
-                        TaskExecHistory.task_end_date.isnot(None)
-                ).\
+                    TaskExecHistory.task_id == t.task_id,
+                    TaskExecHistory.task_end_date.isnot(None)
+                ). \
                     order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
@@ -72,7 +73,19 @@ class TaskExecutionHistoryHandler(AuthReq):
         }))
         p = self.pop_p(params)
         with make_session() as session:
-            task_exec_hist_q = session.query(TaskExecHistory).\
+            task_exec_hist_q = session.query(TaskExecHistory). \
                 filter_by(**params).order_by(TaskExecHistory.id.desc())
             items, p = self.paginate(task_exec_hist_q, **p)
             self.resp([i.to_dict() for i in items], **p)
+
+
+class TaskManualCapture(AuthReq):
+    """手动执行采集任务"""
+
+    def post(self):
+        params = self.get_json_args(Schema({
+            "task_id": scm_int
+        }))
+        mkdata.run(params.pop("task_id"), use_queue=False)
+
+        return self.resp("手动执行采集任务正在执行")
