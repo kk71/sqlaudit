@@ -163,7 +163,7 @@ class BaseCapturingDoc(BaseDoc):
 
 
 class SchemaCapture(BaseCapturingDoc):
-    """每个schema都采集"""
+    """schema capturing"""
 
     meta = {
         'abstract': True
@@ -171,7 +171,7 @@ class SchemaCapture(BaseCapturingDoc):
 
 
 class CMDBCapture(BaseCapturingDoc):
-    """每个cmdb只采集一次，不考虑schema"""
+    """CMDB capturing"""
 
     meta = {
         'abstract': True

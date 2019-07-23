@@ -50,6 +50,7 @@ def capture(
         for m in CAPTURE_ITEMS:
             if not isinstance(m, capture_type):
                 continue
+            print(f"* starting {capture_type.__doc__} for {m.__doc__} ...")
             sql = m.command_to_execute(schema_name)
             print(f"Going to capture: {sql}")
             docs = [m(**c) for c in cmdb_conn.select_dict(sql, one=False)]

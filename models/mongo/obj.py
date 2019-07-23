@@ -184,7 +184,7 @@ class ObjSeqInfo(SchemaCapture):
 
 
 class ObjTabSpace(CMDBCapture):
-    """容量信息"""
+    """表空间信息"""
     tablespace_name = StringField()
     total = LongField()
     free = LongField()
