@@ -14,6 +14,10 @@ __all__ = [
     "ObjIndColInfo",
     "ObjViewInfo",
     "ObjSeqInfo",
+    "ObjTabSpace",
+    "Dashboard",
+    "DashboardTopStatsDrillDown",
+    "CMDBOverview"
 ]
 
 from .job import *
@@ -23,3 +27,4 @@ from .rule import *
 from .stat import *
 from .txt import *
 from .results import *
+from .statistics import *

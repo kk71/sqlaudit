@@ -1,9 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, ObjectIdField, DateTimeField, \
-    DynamicField, FloatField
+    DynamicField, FloatField, LongField
 
-from .utils import BaseDocRecordID, BaseCapturingDoc
+from .utils import *
 
 
 class ObjTabInfo(BaseDocRecordID):
@@ -156,7 +156,7 @@ class ObjViewInfo(BaseDocRecordID):
     }
 
 
-class ObjSeqInfo(BaseCapturingDoc):
+class ObjSeqInfo(SchemaCapture):
     """采集索引"""
     min_value = StringField()
     max_value = StringField()
@@ -176,8 +176,39 @@ class ObjSeqInfo(BaseCapturingDoc):
         sequence_owner, last_number from dba_sequences where sequence_owner = '{obj_owner}'"""
 
     @classmethod
-    def post_captured(cls, docs: list, obj_owner: str, cmdb_id: int, task_record_id):
-        BaseCapturingDoc.post_captured(docs, obj_owner, cmdb_id, task_record_id)
+    def post_captured(cls, docs: list, cmdb_id: int, task_record_id, obj_owner: str):
+        SchemaCapture.post_captured(docs, cmdb_id, task_record_id, obj_owner)
         for d in docs:
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)
+
+
+class ObjTabSpace(CMDBCapture):
+    """容量信息"""
+    tablespace_name = StringField()
+    total = LongField()
+    free = LongField()
+    used = LongField()
+    usage_ratio = FloatField()
+
+    meta = {
+        "collection": "obj_tab_space"
+    }
+
+    @classmethod
+    def command_to_execute(cls, obj_owner=None) -> str:
+        return f"""SELECT a.tablespace_name as tablespace_name,
+       total,
+       free,
+       ( total - free ) as used,
+       Round(( total - free ) / total, 4) as usage_ratio
+FROM   (SELECT tablespace_name,
+               Sum(bytes) free
+        FROM   DBA_FREE_SPACE
+        GROUP  BY tablespace_name) a,
+       (SELECT tablespace_name,
+               Sum(bytes) total
+        FROM   DBA_DATA_FILES
+        GROUP  BY tablespace_name) b
+WHERE  a.tablespace_name = b.tablespace_name"""
+

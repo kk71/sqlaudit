@@ -1,5 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "BaseDoc",
+    "BaseDocRecordID",
+    "SchemaCapture",
+    "CMDBCapture",
+    "BaseStatisticsDoc"
+]
+
 import re
 from types import FunctionType
 from typing import *
@@ -111,11 +119,12 @@ class BaseDocRecordID(BaseDoc):
 
 
 class BaseCapturingDoc(BaseDoc):
-    """新的采集基类"""
-
+    """
+    采集基类
+    """
     _id = ObjectIdField()
     cmdb_id = IntField()
-    schema_name = StringField()
+    schema_name = StringField(help_text="执行时所在的schema,不代表数据一定只归属于当前schema")
     task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
     etl_date = DateTimeField(default=datetime.now)
 
@@ -134,11 +143,71 @@ class BaseCapturingDoc(BaseDoc):
         raise NotImplementedError
 
     @classmethod
-    def post_captured(cls, docs: list, obj_owner: str, cmdb_id: int, task_record_id):
-        """采集到原始数据后，在文档保存之前，做一些操作。一般不需要改"""
+    def post_captured(cls,
+                      docs: list,
+                      cmdb_id: int,
+                      task_record_id: int,
+                      obj_owner: Union[str, None]
+                      ):
+        """
+        采集到原始数据后，在文档保存之前，做一些操作。一般不需要改
+        注意：如果是涉及多个数据来源的统计信息，请写入统计表，而不是在采集表里追加
+        统计表更加灵活，会随着业务修改和增加，但是采集表应当保持最初来源于纳管库的数据
+        """
         for d in docs:
             d.from_dict({
                 "cmdb_id": cmdb_id,
                 "schema_name": obj_owner,
                 "task_record_id": task_record_id,
             })
+
+
+class SchemaCapture(BaseCapturingDoc):
+    """每个schema都采集"""
+
+    meta = {
+        'abstract': True
+    }
+
+
+class CMDBCapture(BaseCapturingDoc):
+    """每个cmdb只采集一次，不考虑schema"""
+
+    meta = {
+        'abstract': True
+    }
+
+    @classmethod
+    def command_to_execute(cls, obj_owner=None) -> str:
+        """返回本类采集所需的语句（SQL）"""
+        raise NotImplementedError
+
+    @classmethod
+    def post_captured(cls, docs: list, cmdb_id: int, task_record_id: int, obj_owner=None):
+        BaseCapturingDoc.post_captured(docs, cmdb_id, task_record_id, obj_owner)
+
+
+class BaseStatisticsDoc(BaseDoc):
+    """
+    与业务相关的统计数据基类
+    注意：统计信息是采集分析结束后做的，每个模块只分析一次，鉴于统计可能是基于库或者基于某个库的某个schema做的，
+    所以如何统计需要靠代码来判断
+    """
+
+    _id = ObjectIdField()
+    task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
+    etl_date = DateTimeField(default=datetime.now)
+
+    meta = {
+        'abstract': True,
+        "indexes": [
+            "cmdb_id",
+            "schema_name",
+            "etl_date",
+        ]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int):
+        """产生统计数据"""
+        raise NotImplementedError

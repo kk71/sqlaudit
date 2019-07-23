@@ -5,14 +5,18 @@ __all__ = [
     "capture"
 ]
 
+from typing import Union, Type
+
 from utils.perf_utils import timing
 from plain_db.oracleob import OracleOB
 from models.oracle import CMDB, make_session
 from models.mongo import *
+from models.mongo.utils import *
 
 # 普通采集涉及的模块
 CAPTURE_ITEMS = (
     ObjSeqInfo,
+    ObjTabSpace
 )
 
 # 实时采集涉及的模块
@@ -20,12 +24,17 @@ REALTIME_CAPTURE_ITEMS = ()
 
 
 @timing()
-def capture(task_record_id, cmdb_id, schema_name):
+def capture(
+        task_record_id,
+        cmdb_id,
+        schema_name: Union[None, str],
+        capture_type: Type[SchemaCapture, CMDBCapture]):
     """
     采集
     :param task_record_id:
     :param cmdb_id:
     :param schema_name:
+    :param capture_type:
     :return:
     """
     with make_session() as session:
@@ -39,10 +48,12 @@ def capture(task_record_id, cmdb_id, schema_name):
             # service_name=cmdb.sid
         )
         for m in CAPTURE_ITEMS:
+            if not isinstance(m, capture_type):
+                continue
             sql = m.command_to_execute(schema_name)
             print(f"Going to capture: {sql}")
             docs = [m(**c) for c in cmdb_conn.select_dict(sql, one=False)]
-            m.post_captured(docs, schema_name, cmdb_id, task_record_id)
+            m.post_captured(docs, cmdb_id, task_record_id, schema_name)
             if not docs:
                 print("no objects captured.")
                 continue

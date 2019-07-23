@@ -16,6 +16,8 @@ import utils.const
 from task.base import *
 import task.clear_cache
 import utils.capture_utils
+import utils.analyse_utils
+from models.mongo.utils import *
 
 
 logger = past.utils.log.get_logger("capture")
@@ -211,8 +213,9 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
             run_default_script(host, port, sid, username, password, user, cmdb_id, connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
             past.utils.health_data_gen.calculate(record_id)
-
-            utils.capture_utils.capture(record_id, cmdb_id, user)  # 新版采集
+            utils.capture_utils.capture(record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
+        utils.capture_utils.capture(record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
+        utils.analyse_utils.calc_statistics(record_id)  # 业务统计信息
 
         update_record(task_id, record_id, True)
 
