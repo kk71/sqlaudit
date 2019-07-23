@@ -5,7 +5,7 @@ __all__ = [
     "capture"
 ]
 
-from typing import Union, Type
+from typing import Union
 
 from utils.perf_utils import timing
 from plain_db.oracleob import OracleOB
@@ -28,7 +28,7 @@ def capture(
         task_record_id,
         cmdb_id,
         schema_name: Union[None, str],
-        capture_type: Type[SchemaCapture, CMDBCapture]):
+        capture_type: Union[SchemaCapture, CMDBCapture]):
     """
     采集
     :param task_record_id:
