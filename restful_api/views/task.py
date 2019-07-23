@@ -38,10 +38,9 @@ class TaskHandler(AuthReq):
                 last_task_exec_history = session. \
                     query(TaskExecHistory). \
                     filter(
-                    TaskExecHistory.task_id == t.task_id,
-                    TaskExecHistory.task_end_date.isnot(None)
-                ). \
-                    order_by(TaskExecHistory.id.desc()).first()
+                        TaskExecHistory.task_id == t.task_id,
+                        TaskExecHistory.task_end_date.isnot(None)
+                    ).order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 ret.append(t_dict)
@@ -79,13 +78,12 @@ class TaskExecutionHistoryHandler(AuthReq):
             self.resp([i.to_dict() for i in items], **p)
 
 
-class TaskManualCapture(AuthReq):
-    """手动执行采集任务"""
+class TaskManualExecute(AuthReq):
 
     def post(self):
+        """手动运行任务"""
         params = self.get_json_args(Schema({
             "task_id": scm_int
         }))
-        mkdata.run(params.pop("task_id"), use_queue=False)
-
-        return self.resp("手动执行采集任务正在执行")
+        mkdata.run(params.pop("task_id"), use_queue=True)
+        self.resp_created({})
