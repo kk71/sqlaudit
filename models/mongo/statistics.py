@@ -61,7 +61,7 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                 DataPrivilege.schema_name
             )
             rst = session.query(*qe).join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id)
-            cmdb_ids = [i["cmdb_id"] for i in qe.to_dict(rst)]
+            cmdb_ids = [qe.to_dict(i)["cmdb_id"] for i in rst]
             cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in qe.to_dict(rst)}
             latest_task_record_id_dict = get_latest_task_record_id(session, cmdb_ids)
             for cmdb_id, connect_name, schema_name in set(rst):  # 必须去重
@@ -125,7 +125,8 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
         ret = []
         with make_session() as session:
             qe = QueryEntity(CMDB.cmdb_id, CMDB.connect_name)
-            for cmdb_dict in qe.to_dict(session.query(*qe)):
+            for cmdb_info in session.query(*qe):
+                cmdb_dict = qe.to_dict(cmdb_info)
                 cmdb_id = cmdb_dict["cmdb_id"]
                 doc = cls(
                     task_record_id=task_record_id,
