@@ -6,16 +6,14 @@ __all__ = [
 ]
 
 from utils.perf_utils import timing
-from plain_db.oracleob import OracleOB
-from models.oracle import CMDB, make_session
 from models.mongo import *
 
 # 统计数据model
+# 注意：如果统计数据有先后依赖，需要在这里体现。
 STATS_MODELS = (
     StatsDashboard,
     StatsDashboardDrillDown,
-    StatsCMDBOverview,
-    StatsCMDBOverviewTabSpace
+    StatsCMDBPhySize,
 )
 
 

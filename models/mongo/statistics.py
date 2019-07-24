@@ -48,10 +48,10 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int) -> list:
-        from utils.score_utils import get_latest_task_record_id, get_result_object_by_type
+        from utils.score_utils import get_latest_task_record_id
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
         from models.mongo import SQLText, ObjSeqInfo, ObjTabInfo, ObjIndColInfo
-
+        ret = []
         with make_session() as session:
             # the type: cmdb_id: schema_name: num
             num_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
@@ -91,41 +91,56 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                             task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-            ret = []
             for t in num_dict:
                 for cmdb_id in num_dict[t]:
                     for schema_name in num_dict[t][cmdb_id]:
                         ret.append(cls(
+                            task_record_id=task_record_id,
                             drill_down_type=t,
                             cmdb_id=cmdb_id,
                             connect_name=cmdb_id_cmdb_info_dict[cmdb_id],
                             schema_name=schema_name,
                             num=num_dict[t][cmdb_id][schema_name]
                         ))
-            return ret
+        return ret
 
 
+class StatsCMDBPhySize(BaseStatisticsDoc):
+    """概览页库容量"""
 
-
-class StatsCMDBOverview(BaseStatisticsDoc):
-    """纳管库概览页统计数据"""
+    cmdb_id = IntField()
+    connect_name = StringField()
+    total = LongField(help_text="bytes")
+    free = LongField(help_text="bytes")
+    used = LongField(help_text="bytes")
+    usage_ratio = FloatField()
 
     meta = {
-        "collection": "stats_cmdb_overview"
+        "collection": "stats_cmdb_phy_size"
     }
 
     @classmethod
     def generate(cls, task_record_id: int) -> list:
-        return []
-
-
-class StatsCMDBOverviewTabSpace(BaseStatisticsDoc):
-    """纳管数据库概览页表空间数据"""
-
-    meta = {
-        "collection": "stats_cmdb_overview_tab_space"
-    }
-
-    @classmethod
-    def generate(cls, task_record_id: int) -> list:
-        return []
+        from models.oracle import make_session, CMDB, QueryEntity
+        from models.mongo import ObjTabSpace
+        ret = []
+        with make_session() as session:
+            qe = QueryEntity([CMDB.cmdb_id, CMDB.connect_name])
+            for cmdb_dict in qe.to_dict(session.query(*qe)):
+                cmdb_id = cmdb_dict["cmdb_id"]
+                doc = cls(
+                    task_record_id=task_record_id,
+                    cmdb_id=cmdb_id,
+                    total=0,
+                    free=0,
+                    used=0,
+                    usage_ratio=0
+                )
+                for ts in ObjTabSpace.\
+                        objects(task_record_id=task_record_id, cmdb_id=cmdb_id).all():
+                    doc.total += ts.total
+                    doc.free += ts.free
+                    doc.used += ts.used
+                doc.usage_ratio = doc.used / doc.total
+                ret.append(doc)
+        return ret

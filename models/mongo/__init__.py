@@ -17,8 +17,7 @@ __all__ = [
     "ObjTabSpace",
     "StatsDashboard",
     "StatsDashboardDrillDown",
-    "StatsCMDBOverview",
-    "StatsCMDBOverviewTabSpace"
+    "StatsCMDBPhySize",
 ]
 
 from .job import *

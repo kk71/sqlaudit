@@ -189,13 +189,14 @@ class ObjSeqInfo(SchemaCapture):
 class ObjTabSpace(CMDBCapture):
     """表空间信息"""
     tablespace_name = StringField()
-    total = LongField()
-    free = LongField()
-    used = LongField()
+    total = LongField(help_text="bytes")
+    free = LongField(help_text="bytes")
+    used = LongField(help_text="bytes")
     usage_ratio = FloatField()
 
     meta = {
-        "collection": "obj_tab_space"
+        "collection": "obj_tab_space",
+        "indexes": ["tablespace_name"]
     }
 
     @classmethod
