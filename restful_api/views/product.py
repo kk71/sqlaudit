@@ -18,7 +18,13 @@ class ProductLicenseHandler(BaseReq):
             if not license_key_ins.is_valid():
                 raise DecryptError("license info is invalid")
             now = arrow.now()
-            expire = arrow.get(license_key_ins.expired_day).shift(days=1)
+            expire = arrow.get(license_key_ins.expired_day, [
+                "YYYY-M-DD HH:mm:ss",
+                "YYYY-MM-DD HH:mm:ss",
+                "YYYY-MM-D HH:mm:ss",
+                "YYYY-MM-DD HH:mm:ss",
+                "YYYY-M-D HH:mm:ss",
+            ]).shift(days=1)
             available_days = (expire - now).days
             self.resp({
                 'enterprise_name': license_key_ins.enterprise_name,
