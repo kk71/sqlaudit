@@ -182,6 +182,9 @@ class ObjSeqInfo(SchemaCapture):
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)
 
+    def get_key(self):
+        return self.sequence_owner, self.sequence_name
+
 
 class ObjTabSpace(CMDBCapture):
     """表空间信息"""
@@ -212,3 +215,5 @@ FROM   (SELECT tablespace_name,
         GROUP  BY tablespace_name) b
 WHERE  a.tablespace_name = b.tablespace_name"""
 
+    def get_key(self):
+        return self.tablespace_name

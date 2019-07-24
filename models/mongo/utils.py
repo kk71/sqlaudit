@@ -161,6 +161,10 @@ class BaseCapturingDoc(BaseDoc):
                 "task_record_id": task_record_id,
             })
 
+    def get_key(self):
+        """获取对象的唯一标识"""
+        raise NotImplementedError
+
 
 class SchemaCapture(BaseCapturingDoc):
     """schema capturing"""
