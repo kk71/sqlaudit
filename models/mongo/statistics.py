@@ -6,6 +6,7 @@
 编码注意：所有涉及sqlalchemy的import，必须在函数内！
 """
 
+from typing import Union
 from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, \
@@ -29,7 +30,7 @@ class StatsDashboard(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
         return []
 
 
@@ -37,7 +38,6 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
     """仪表盘四个数据的下钻"""
 
     drill_down_type = StringField(choices=ALL_DASHBOARD_STATS_NUM_TYPE)
-    cmdb_id = IntField()
     connect_name = StringField()
     schema_name = StringField()
     num = LongField()
@@ -47,7 +47,7 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
         from utils.score_utils import get_latest_task_record_id
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
         from models.mongo import SQLText, ObjSeqInfo, ObjTabInfo, ObjIndColInfo
@@ -108,7 +108,6 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
 class StatsCMDBPhySize(BaseStatisticsDoc):
     """概览页库容量"""
 
-    cmdb_id = IntField()
     connect_name = StringField()
     total = LongField(help_text="bytes")
     free = LongField(help_text="bytes")
@@ -120,7 +119,7 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
         from models.oracle import make_session, CMDB, QueryEntity
         from models.mongo import ObjTabSpace
         ret = []

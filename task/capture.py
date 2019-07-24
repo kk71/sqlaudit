@@ -215,7 +215,7 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
             past.utils.health_data_gen.calculate(record_id)
             utils.capture_utils.capture(record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
         utils.capture_utils.capture(record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
-        utils.analyse_utils.calc_statistics(record_id)  # 业务统计信息
+        utils.analyse_utils.calc_statistics(record_id, cmdb_id)  # 业务统计信息
 
         update_record(task_id, record_id, True)
 

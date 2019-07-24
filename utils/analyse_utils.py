@@ -18,15 +18,14 @@ STATS_MODELS = (
 
 
 @timing()
-def calc_statistics(task_record_id):
+def calc_statistics(*args, **kwargs):
     """
     计算统计数据
-    :param task_record_id:
     :return:
     """
     for m in STATS_MODELS:
         print(f"* gonna make statistics data for {m.__doc__} ...")
-        docs = m.generate(task_record_id)
+        docs = m.generate(*args, **kwargs)
         if not docs:
             print("no statistics object to be saved.")
             continue
