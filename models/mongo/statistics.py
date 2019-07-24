@@ -55,11 +55,11 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
         with make_session() as session:
             # the type: cmdb_id: schema_name: num
             num_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
-            qe = QueryEntity([
+            qe = QueryEntity(
                 CMDB.cmdb_id,
                 CMDB.connect_name,
                 DataPrivilege.schema_name
-            ])
+            )
             rst = session.query(*qe).join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id)
             cmdb_ids = [i["cmdb_id"] for i in qe.to_dict(rst)]
             cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in qe.to_dict(rst)}
@@ -124,7 +124,7 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
         from models.mongo import ObjTabSpace
         ret = []
         with make_session() as session:
-            qe = QueryEntity([CMDB.cmdb_id, CMDB.connect_name])
+            qe = QueryEntity(CMDB.cmdb_id, CMDB.connect_name)
             for cmdb_dict in qe.to_dict(session.query(*qe)):
                 cmdb_id = cmdb_dict["cmdb_id"]
                 doc = cls(
