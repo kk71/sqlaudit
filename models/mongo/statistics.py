@@ -61,9 +61,9 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                 DataPrivilege.schema_name
             )
             rst = session.query(*qe).join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id)
-            cmdb_ids = [qe.to_dict(i)["cmdb_id"] for i in rst]
-            cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in qe.to_dict(rst)}
-            latest_task_record_id_dict = get_latest_task_record_id(session, cmdb_ids)
+            cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in [qe.to_dict(j) for j in rst]}
+            latest_task_record_id_dict = get_latest_task_record_id(
+                session, list(cmdb_id_cmdb_info_dict.keys()))
             for cmdb_id, connect_name, schema_name in set(rst):  # 必须去重
                 latest_task_record_id = latest_task_record_id_dict[cmdb_id]
                 for t in ALL_DASHBOARD_STATS_NUM_TYPE:
