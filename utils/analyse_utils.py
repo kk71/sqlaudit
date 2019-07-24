@@ -28,7 +28,11 @@ def calc_statistics(task_record_id):
     """
     for m in STATS_MODELS:
         print(f"* gonna make statistics data for {m.__doc__} ...")
-        m.generate(task_record_id)
+        docs = m.generate(task_record_id)
+        if not docs:
+            print("no statistics object to be saved.")
+            continue
+        m.objects.insert(docs)
 
 
 @timing()

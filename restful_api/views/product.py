@@ -22,7 +22,6 @@ class ProductLicenseHandler(BaseReq):
                 "YYYY-M-DD HH:mm:ss",
                 "YYYY-MM-DD HH:mm:ss",
                 "YYYY-MM-D HH:mm:ss",
-                "YYYY-MM-DD HH:mm:ss",
                 "YYYY-M-D HH:mm:ss",
             ]).shift(days=1)
             available_days = (expire - now).days

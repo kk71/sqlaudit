@@ -29,8 +29,8 @@ class StatsDashboard(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int):
-        return
+    def generate(cls, task_record_id: int) -> list:
+        return []
 
 
 class StatsDashboardDrillDown(BaseStatisticsDoc):
@@ -47,15 +47,14 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int):
+    def generate(cls, task_record_id: int) -> list:
         from utils.score_utils import get_latest_task_record_id, get_result_object_by_type
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
+        from models.mongo import SQLText, ObjSeqInfo, ObjTabInfo, ObjIndColInfo
 
         with make_session() as session:
-            # cmdb_id: schema_name: type: set()
-            # 这里的set存放的是对象的唯一标识
-            # 唯一标识: 对象是get_key()，SQL是sql_id
-            set_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
+            # the type: cmdb_id: schema_name: num
+            num_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
             qe = QueryEntity([
                 CMDB.cmdb_id,
                 CMDB.connect_name,
@@ -63,34 +62,48 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
             ])
             rst = session.query(*qe).join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id)
             cmdb_ids = [i["cmdb_id"] for i in qe.to_dict(rst)]
+            cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in qe.to_dict(rst)}
             latest_task_record_id_dict = get_latest_task_record_id(session, cmdb_ids)
             for cmdb_id, connect_name, schema_name in set(rst):  # 必须去重
                 latest_task_record_id = latest_task_record_id_dict[cmdb_id]
                 for t in ALL_DASHBOARD_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     if t == DASHBOARD_STATS_NUM_SQL:
-                        result_q, rule_names = get_result_object_by_type(
-                            latest_task_record_id, rule_type=ALL_RULE_TYPES_FOR_SQL_RULE)
-                        for result in result_q:
-                            for rn in rule_names:
-                                result_rule_dict = getattr(result, rn, None)
-                                if not result_rule_dict:
-                                    continue
-                                set_dict[cmdb_id][schema_name][t].update([
-                                    i["sql_id"] for i in result_rule_dict["sqls"]
-                                ])
+                        num_dict[t][cmdb_id][schema_name] += len(
+                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                            filter(cmdb_id=cmdb_id, schema=schema_name).distinct()
+                        )
 
-                    else:
-                        result_q, rule_names = get_result_object_by_type(
-                            latest_task_record_id, rule_type=RULE_TYPE_OBJ, obj_info_type=t)
-                        for result in result_q:
-                            for rn in rule_names:
-                                result_rule_dict = getattr(result, rn, None)
-                                if not result_rule_dict:
-                                    continue
-                                set_dict[cmdb_id][schema_name][t].update([
-                                    
-                                ])
+                    elif t == DASHBOARD_STATS_NUM_TAB:
+                        num_dict[t][cmdb_id][schema_name] += ObjTabInfo.\
+                            filter_by_exec_hist_id(task_record_id).filter(
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name).count()
+
+                    elif t == DASHBOARD_STATS_NUM_INDEX:
+                        num_dict[t][cmdb_id][schema_name] += ObjIndColInfo.\
+                            filter_by_exec_hist_id(task_record_id).filter(
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name).count()
+
+                    elif t == DASHBOARD_STATS_NUM_SEQUENCE:
+                        num_dict[t][cmdb_id][schema_name] += ObjSeqInfo.objects(
+                            task_record_id=task_record_id,
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name).count()
+            ret = []
+            for t in num_dict:
+                for cmdb_id in num_dict[t]:
+                    for schema_name in num_dict[t][cmdb_id]:
+                        ret.append(cls(
+                            drill_down_type=t,
+                            cmdb_id=cmdb_id,
+                            connect_name=cmdb_id_cmdb_info_dict[cmdb_id],
+                            schema_name=schema_name,
+                            num=num_dict[t][cmdb_id][schema_name]
+                        ))
+            return ret
+
 
 
 
@@ -101,6 +114,10 @@ class StatsCMDBOverview(BaseStatisticsDoc):
         "collection": "stats_cmdb_overview"
     }
 
+    @classmethod
+    def generate(cls, task_record_id: int) -> list:
+        return []
+
 
 class StatsCMDBOverviewTabSpace(BaseStatisticsDoc):
     """纳管数据库概览页表空间数据"""
@@ -108,3 +125,7 @@ class StatsCMDBOverviewTabSpace(BaseStatisticsDoc):
     meta = {
         "collection": "stats_cmdb_overview_tab_space"
     }
+
+    @classmethod
+    def generate(cls, task_record_id: int) -> list:
+        return []

@@ -212,6 +212,6 @@ class BaseStatisticsDoc(BaseDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int):
+    def generate(cls, task_record_id: int) -> list:
         """产生统计数据"""
         raise NotImplementedError
