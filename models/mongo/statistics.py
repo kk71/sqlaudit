@@ -40,7 +40,7 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
     drill_down_type = StringField(choices=ALL_DASHBOARD_STATS_NUM_TYPE)
     connect_name = StringField()
     schema_name = StringField()
-    num = LongField()
+    num = LongField(help_text="采集到的总数")
 
     meta = {
         "collection": "stats_dashboard_drill_down"
@@ -98,7 +98,7 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                             task_record_id=task_record_id,
                             drill_down_type=t,
                             cmdb_id=cmdb_id,
-                            connect_name=cmdb_id_cmdb_info_dict[cmdb_id],
+                            connect_name=cmdb_id_cmdb_info_dict[cmdb_id]["connect_name"],
                             schema_name=schema_name,
                             num=num_dict[t][cmdb_id][schema_name]
                         ))

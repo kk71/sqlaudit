@@ -142,7 +142,7 @@ def get_latest_task_record_id(session, cmdb_id: Union[list, int]) -> dict:
         join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
         filter(TaskManage.cmdb_id.in_(cmdb_id),
                TaskManage.task_exec_scripts == DB_TASK_CAPTURE,
-               TaskExecHistory.status == True).subquery()
+               TaskExecHistory.status == True).subquery()  # 必须取成功的执行记录
     cmdb_id_exec_hist_id_list_q = session. \
         query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
     return dict(list(cmdb_id_exec_hist_id_list_q))

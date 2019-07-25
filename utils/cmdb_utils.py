@@ -6,6 +6,7 @@ from models.oracle import *
 from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
+from utils import score_utils
 
 import plain_db.oracleob
 
@@ -236,8 +237,12 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
         top_10_sql_by_average.reverse()
 
         # physical size of current CMDB
-        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-        phy_size = object_utils.get_cmdb_phy_size(session=session, cmdb_id=cmdb_id)
+        latest_task_record_id = score_utils.get_latest_task_record_id(session, cmdb_id)[cmdb_id]
+        phy_size = 0
+        stats_phy_size_object = StatsCMDBPhySize.objects(
+            task_record_id=latest_task_record_id, cmdb_id=cmdb_id).first()
+        if stats_phy_size_object:
+            phy_size = stats_phy_size_object.used
 
         return {
             # 以下是按照给定的时间区间搜索的结果
