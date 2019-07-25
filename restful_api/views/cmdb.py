@@ -155,7 +155,7 @@ class CMDBHandler(AuthReq):
                 database_name=new_cmdb.connect_name,
                 username=i
             ) for i in all_schemas])
-            clear_cache()
+            clear_cache.delay()
             self.resp_created(new_cmdb.to_dict())
 
     def patch(self):
@@ -226,7 +226,7 @@ class CMDBHandler(AuthReq):
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
             session.query(TaskManage).filter_by(**params).delete()
-        clear_cache()
+        clear_cache.delay()
         self.resp_created(msg="已删除。")
 
     def options(self):
