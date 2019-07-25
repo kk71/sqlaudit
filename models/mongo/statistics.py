@@ -124,23 +124,21 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
         from models.mongo import ObjTabSpace
         ret = []
         with make_session() as session:
-            qe = QueryEntity(CMDB.cmdb_id, CMDB.connect_name)
-            for cmdb_info in session.query(*qe):
-                cmdb_dict = qe.to_dict(cmdb_info)
-                cmdb_id = cmdb_dict["cmdb_id"]
-                doc = cls(
-                    task_record_id=task_record_id,
-                    cmdb_id=cmdb_id,
-                    total=0,
-                    free=0,
-                    used=0,
-                    usage_ratio=0
-                )
-                for ts in ObjTabSpace.\
-                        objects(task_record_id=task_record_id, cmdb_id=cmdb_id).all():
-                    doc.total += ts.total
-                    doc.free += ts.free
-                    doc.used += ts.used
-                doc.usage_ratio = doc.used / doc.total
-                ret.append(doc)
+            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+            doc = cls(
+                task_record_id=task_record_id,
+                cmdb_id=cmdb_id,
+                connect_name=cmdb.connect_name,
+                total=0,
+                free=0,
+                used=0,
+                usage_ratio=0
+            )
+            for ts in ObjTabSpace.\
+                    objects(task_record_id=task_record_id, cmdb_id=cmdb_id).all():
+                doc.total += ts.total
+                doc.free += ts.free
+                doc.used += ts.used
+            doc.usage_ratio = doc.used / doc.total
+            ret.append(doc)
         return ret
