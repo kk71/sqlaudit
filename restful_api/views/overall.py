@@ -10,6 +10,9 @@ from models.mongo import *
 from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils, object_utils
+from utils.cmdb_utils import get_current_cmdb, get_current_schema
+from utils import const
+
 from models.oracle.optimize import *
 from restful_api.views.offline import OfflineTicketCommonHandler
 
@@ -21,7 +24,7 @@ class DashboardHandler(PrivilegeReq):
         """仪表盘"""
         with make_session() as session:
             # 计算值
-            sql_num, table_num, index_num, task_exec_hist_id_list = object_utils.\
+            sql_num, table_num, index_num, task_exec_hist_id_list = object_utils. \
                 dashboard_3_sum(session=session, login_user=self.current_user)
 
             # 维度的数据库
@@ -58,9 +61,9 @@ class DashboardHandler(PrivilegeReq):
             }
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             capture_tasks_status = {i[0]: "no" for i in session.query(TaskManage.task_id).
-                    filter(TaskManage.cmdb_id.in_(cmdb_ids),
-                           TaskManage.task_exec_scripts == DB_TASK_CAPTURE)}
-            for hist in session.query(TaskExecHistory.task_id, TaskExecHistory.status).\
+                filter(TaskManage.cmdb_id.in_(cmdb_ids),
+                       TaskManage.task_exec_scripts == DB_TASK_CAPTURE)}
+            for hist in session.query(TaskExecHistory.task_id, TaskExecHistory.status). \
                     filter(TaskExecHistory.id.in_(task_exec_hist_id_list)):
                 task_id, status = hist
                 capture_tasks_status[task_id] = status
@@ -126,10 +129,10 @@ class MetadataListHandler(AuthReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            last_success_task_record_id = session.query(TaskExecHistory.id).\
-                join(CMDB, TaskExecHistory.connect_name == CMDB.connect_name).\
-                filter(CMDB.cmdb_id == params["cmdb_id"], TaskExecHistory.status == True).\
-                order_by(TaskExecHistory.id.desc()).\
+            last_success_task_record_id = session.query(TaskExecHistory.id). \
+                join(CMDB, TaskExecHistory.connect_name == CMDB.connect_name). \
+                filter(CMDB.cmdb_id == params["cmdb_id"], TaskExecHistory.status == True). \
+                order_by(TaskExecHistory.id.desc()). \
                 first()
             if last_success_task_record_id:
                 last_success_task_record_id = last_success_task_record_id[0]
@@ -137,9 +140,9 @@ class MetadataListHandler(AuthReq):
                 print("no task exec hist was found.")
                 return self.resp([])
 
-        obj_table_info_q = ObjTabInfo.\
-            filter_by_exec_hist_id(last_success_task_record_id).\
-            filter(**params).\
+        obj_table_info_q = ObjTabInfo. \
+            filter_by_exec_hist_id(last_success_task_record_id). \
+            filter(**params). \
             order_by("-etl_date")
         if keyword:
             obj_table_info_q = self.query_keyword(obj_table_info_q, keyword, "schema_name",
@@ -152,17 +155,25 @@ class MetadataListHandler(AuthReq):
         items, p = self.paginate(obj_table_info_q, **p)
         self.resp([i.to_dict() for i in items], **p)
 
-from utils.cmdb_utils import get_current_cmdb,get_current_schema
-from utils import const
+
 class StatsNumDrillDownHandler(AuthReq):
 
     def get(self):
         """仪表盘四个数据的下钻信息"""
-        params=self.get_query_args(Schema({
-            "dashboard_stats_num_type":And(scm_str,scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE))
+        params = self.get_query_args(Schema({
+            "dashboard_stats_num_type": And(scm_str, scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE))
         }))
+        dashboard_stats_num_type = params.pop("dashboard_stats_num_type")
+        schema_name = []
         with make_session() as session:
-            login_user=self.current_user
-            get_current_cmdb(session,login_user)
-            get_current_schema(session,login_user)
-        self.resp()
+            login_user = self.current_user
+            cmdb_ids = get_current_cmdb(session, login_user)
+            for cmdb_id in cmdb_ids:
+                schema_name = get_current_schema(session, login_user, cmdb_id)
+        if schema_name and cmdb_ids:  # 防止当前用户没有纳官库
+            DashboardDrillDown = StatsDashboardDrillDown.objects(drill_down_type=dashboard_stats_num_type,
+                                                                 cmdb_id__in=cmdb_ids, schema_name__in=schema_name)
+
+            self.resp([x.to_dict() for x in DashboardDrillDown])
+            return
+        self.resp([])
