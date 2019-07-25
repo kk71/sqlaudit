@@ -194,6 +194,7 @@ def get_risk_sql_list(session,
                       sql_id_only: bool = False,
                       sqltext_stats: bool = True,
                       severity: Union[tuple, list, None] = None,
+                      task_record_id: int = None,
                       **kwargs
                       ) -> Union[dict, set]:
     """
@@ -209,6 +210,7 @@ def get_risk_sql_list(session,
     :param sql_id_only: 仅仅返回sql_id的set
     :param sqltext_stats: 返回是否需要包含sqltext的统计信息（首末出现时间）
     :param severity: 严重程度过滤
+    :param task_record_id: 仅展示task_record_id指定的results, 如果指定了，则忽略开始结束时间
     :param kwargs: 多余的参数，会被收集到这里，并且会提示
     :return:
     """
@@ -222,7 +224,10 @@ def get_risk_sql_list(session,
         print(f"got extra useless kwargs: {kwargs}")
 
     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-    result_q = Results.objects(cmdb_id=cmdb_id)
+    if task_record_id:
+        result_q = Results.filter_by_exec_hist_id(task_record_id).filter(cmdb_id=cmdb_id)
+    else:
+        result_q = Results.objects(cmdb_id=cmdb_id)
     if schema_name:
         result_q = result_q.filter(schema_name=schema_name)
     if rule_type == "ALL":
@@ -239,9 +244,9 @@ def get_risk_sql_list(session,
                                          in_(risk_sql_rule_id))
     if severity:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
-    if date_start:
+    if date_start and not task_record_id:
         result_q = result_q.filter(create_date__gte=date_start)
-    if date_end:
+    if date_end and not task_record_id:
         result_q = result_q.filter(create_date__lte=date_end)
     risky_rules = Rule.filter_enabled(
         rule_name__in=[i[0] for i in risk_rule_q.with_entities(RiskSQLRule.rule_name)],
