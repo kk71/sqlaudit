@@ -38,7 +38,6 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
     """仪表盘四个数据的下钻"""
 
     drill_down_type = StringField(choices=ALL_DASHBOARD_STATS_NUM_TYPE)
-    connect_name = StringField()
     schema_name = StringField()
     num = LongField(help_text="采集到的总数")
 
@@ -108,7 +107,6 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
 class StatsCMDBPhySize(BaseStatisticsDoc):
     """概览页库容量"""
 
-    connect_name = StringField()
     total = LongField(help_text="bytes")
     free = LongField(help_text="bytes")
     used = LongField(help_text="bytes")
@@ -141,4 +139,53 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
                 doc.used += ts.used
             doc.usage_ratio = doc.used / doc.total
             ret.append(doc)
+        return ret
+
+
+class StatsSQLObject(BaseStatisticsDoc):
+    """统计出sql和对象的个数"""
+
+    schema_name = StringField()
+
+    active_sql_num = LongField()
+    risk_sql_num = LongField(help_text="问题SQL个数")
+    sql_problem_num = LongField(help_text="SQL问题数")
+
+    active_object_num = LongField()
+    object_problem_num = LongField(help_text="对象问题数")
+
+
+
+    meta = {
+        "collection": "stats_sql_object"
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
+        from models.mongo import (
+            Results,
+            SQLText,
+            ObjTabInfo,
+            ObjSeqInfo,
+            ObjViewInfo,
+            ObjIndColInfo
+        )
+        from models.oracle import make_session, CMDB, DataPrivilege
+        from utils import sql_utils, object_utils
+        ret = []
+        with make_session() as session:
+            schemas_set = {i[0] for i in session.query(DataPrivilege.schema_name).
+                                                    filter_by(cmdb_id=cmdb_id)}
+            for schema_name in schemas_set:
+                m = cls(schema_name=schema_name)
+                m.active_sql_num = len(SQLText.filter_by_exec_hist_id(task_record_id).distinct("sql_id"))
+                m.risk_sql_num = len(sql_utils.get_risk_sql_list(
+                    cmdb_id=cmdb_id,
+                    date_range=(None, None),
+                    schema_name=schema_name,
+                    sql_id_only=True,
+                    sqltext_stats=False,
+                    task_record_id=task_record_id
+                ))
+                ret.append(m)
         return ret

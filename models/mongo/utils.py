@@ -201,6 +201,7 @@ class BaseStatisticsDoc(BaseDoc):
     _id = ObjectIdField()
     task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
     cmdb_id = IntField(null=True, help_text="如果为None，则表示该统计信息不涉及某个库")
+    connect_name = StringField(null=True)
     etl_date = DateTimeField(default=datetime.now)
 
     meta = {
