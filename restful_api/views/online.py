@@ -545,3 +545,10 @@ class OverviewScoreByHandler(AuthReq):
                 "data": d,
                 "score_type": score_type
             })
+
+
+class PhySizeHandler(AuthReq):
+
+    def get(self):
+        """表空间容量下钻的折线图信息"""
+        self.resp()

@@ -48,6 +48,7 @@ urls += [
 urls += [
     # 仪表盘
     (r"/api/dashboard", overall.DashboardHandler),
+    (r"/api/dashboard/stats_num_drill_down", overall.StatsNumDrillDownHandler),
     (r"/api/dashboard/notice", overall.NoticeHandler),
     (r"/api/metadata/list", overall.MetadataListHandler),
 ]
@@ -73,6 +74,7 @@ urls += [
 urls += [
     (r"/api/online/overview", online.OverviewHandler),
     (r"/api/online/overview/score_by", online.OverviewScoreByHandler),
+    (r"/api/online/overview/phy_size", online.PhySizeHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
     (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
     (r"/api/online/object/table", online.TableInfoHandler),

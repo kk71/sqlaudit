@@ -120,7 +120,7 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
-        from models.oracle import make_session, CMDB, QueryEntity
+        from models.oracle import make_session, CMDB
         from models.mongo import ObjTabSpace
         ret = []
         with make_session() as session:
