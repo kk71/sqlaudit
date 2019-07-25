@@ -4,16 +4,16 @@ from os import path
 
 import xlsxwriter
 from schema import Optional, Schema, And
+from mongoengine import Q
 
 import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from utils import score_utils, const
-from restful_api.views.base import AuthReq
+from .base import AuthReq
 from models.mongo import *
 from models.oracle import *
 import html_report.export
-from mongoengine import Q
 
 
 class OnlineReportTaskListHandler(AuthReq):
@@ -27,37 +27,37 @@ class OnlineReportTaskListHandler(AuthReq):
             "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date_end,
-            Optional("sql_table_index_sequence",default=None):And(scm_str,scm_one_of_choices(const.SQL_TABLE_INDEX_SEQUENCE)),
+            Optional("sql_table_index_sequence", default=None): And(scm_str,
+                                                                    scm_one_of_choices(const.SQL_TABLE_INDEX_SEQUENCE)),
             **self.gen_p(),
         }))
         p = self.pop_p(params)
-        sql_table_index_sequence=params.pop("sql_table_index_sequence")
+        sql_table_index_sequence = params.pop("sql_table_index_sequence")
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         job_q = Job.objects(score__nin=[None, 0], **params).order_by("-create_time")
-        task_uuid=[]
+        task_uuid = []
         if sql_table_index_sequence:
-            if sql_table_index_sequence==const.TYPE_SQL:
-                task_uuid=Results.objects(rule_type__ne=const.RULE_TYPE_OBJ).values_list("task_uuid")
+            if sql_table_index_sequence == const.TYPE_SQL:
+                task_uuid = Results.objects(rule_type__ne=const.RULE_TYPE_OBJ).values_list("task_uuid")
             else:
                 rules = Rule.objects(rule_type=const.RULE_TYPE_OBJ)
                 # rules=Rule.objects(rule_type=const.RULE_TYPE_SQLPLAN)# 调试代码
-                if sql_table_index_sequence==const.TYPE_TABLE:
-                    rule_names=rules.filter(Q(obj_info_type=const.OBJ_INFO_TYPR_PART_TABLE) |
-                                           Q(obj_info_type=const.OBJ_INFO_TYPR_TABLE)).values_list("rule_name")
-                elif sql_table_index_sequence==const.TYPE_INDEX:
-                    rule_names=rules.filter(obj_info_type=const.OBJ_INFO_TYPR_INDEX).values_list("rule_name")
-                elif sql_table_index_sequence==const.TYPE_SEQUENCE:
-                    rule_names=rules.filter(obj_info_type=const.OBJ_INFO_TYPR_SEQUENCE).values_list("rule_name")
-                Qa=None
+                if sql_table_index_sequence == const.TYPE_TABLE:
+                    rule_names = rules.filter(Q(obj_info_type=const.OBJ_INFO_TYPR_PART_TABLE) |
+                                              Q(obj_info_type=const.OBJ_INFO_TYPR_TABLE)).values_list("rule_name")
+                elif sql_table_index_sequence == const.TYPE_INDEX:
+                    rule_names = rules.filter(obj_info_type=const.OBJ_INFO_TYPR_INDEX).values_list("rule_name")
+                elif sql_table_index_sequence == const.TYPE_SEQUENCE:
+                    rule_names = rules.filter(obj_info_type=const.OBJ_INFO_TYPR_SEQUENCE).values_list("rule_name")
+                Qa = None
                 for rule_name in rule_names:
                     if not Qa:
-                        Qa = Q(**{f"{rule_name}__nin": [ None,{}]})
+                        Qa = Q(**{f"{rule_name}__nin": [None, {}]})
                     else:
-                        Qa=Qa | Q(**{f"{rule_name}__nin": [ None,{}]})
+                        Qa = Qa | Q(**{f"{rule_name}__nin": [None, {}]})
                 if Qa:
-                    task_uuid=Results.objects(rule_type=const.RULE_TYPE_OBJ).filter(Qa).values_list("task_uuid")
-                    # task_uuid=Results.objects().filter(Qa).values_list("task_uuid")# 调试代码
+                    task_uuid = Results.objects(rule_type=const.RULE_TYPE_OBJ).filter(Qa).values_list("task_uuid")
                 else:
                     pass
         if schema_name:
@@ -67,7 +67,7 @@ class OnlineReportTaskListHandler(AuthReq):
         if date_end:
             job_q = job_q.filter(create_time__lte=date_end)
         if task_uuid:
-            job_q=job_q.filter(id__in=task_uuid)
+            job_q = job_q.filter(id__in=task_uuid)
 
         jobs_to_ret, p = self.paginate(job_q, **p)
         ret = []
@@ -276,7 +276,7 @@ class ExportReportXLSXHandler(AuthReq):
 
             for rule_data in rule_data_lists:
                 rule_name = rule_data[0]
-                rule_detail_data = OnlineReportRuleDetailHandler.\
+                rule_detail_data = OnlineReportRuleDetailHandler. \
                     get_report_rule_detail(session, job_id, rule_name)
                 rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model,
                                          db_type=const.DB_ORACLE).first()
