@@ -161,6 +161,10 @@ class BaseCapturingDoc(BaseDoc):
                 "task_record_id": task_record_id,
             })
 
+    def get_key(self):
+        """获取对象的唯一标识"""
+        raise NotImplementedError
+
 
 class SchemaCapture(BaseCapturingDoc):
     """schema capturing"""
@@ -196,6 +200,7 @@ class BaseStatisticsDoc(BaseDoc):
 
     _id = ObjectIdField()
     task_record_id = IntField(help_text="在T_TASK_EXEC_HISTORY的id")
+    cmdb_id = IntField(null=True, help_text="如果为None，则表示该统计信息不涉及某个库")
     etl_date = DateTimeField(default=datetime.now)
 
     meta = {
@@ -208,6 +213,6 @@ class BaseStatisticsDoc(BaseDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int):
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
         """产生统计数据"""
         raise NotImplementedError

@@ -182,17 +182,21 @@ class ObjSeqInfo(SchemaCapture):
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)
 
+    def get_key(self):
+        return self.sequence_owner, self.sequence_name
+
 
 class ObjTabSpace(CMDBCapture):
     """表空间信息"""
     tablespace_name = StringField()
-    total = LongField()
-    free = LongField()
-    used = LongField()
+    total = LongField(help_text="bytes")
+    free = LongField(help_text="bytes")
+    used = LongField(help_text="bytes")
     usage_ratio = FloatField()
 
     meta = {
-        "collection": "obj_tab_space"
+        "collection": "obj_tab_space",
+        "indexes": ["tablespace_name"]
     }
 
     @classmethod
@@ -212,3 +216,5 @@ FROM   (SELECT tablespace_name,
         GROUP  BY tablespace_name) b
 WHERE  a.tablespace_name = b.tablespace_name"""
 
+    def get_key(self):
+        return self.tablespace_name

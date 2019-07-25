@@ -151,3 +151,10 @@ class MetadataListHandler(AuthReq):
                                                   "iot_name")
         items, p = self.paginate(obj_table_info_q, **p)
         self.resp([i.to_dict() for i in items], **p)
+
+
+class StatsNumDrillDownHandler(AuthReq):
+
+    def get(self):
+        """仪表盘四个数据的下钻信息"""
+        self.resp()
