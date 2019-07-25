@@ -152,9 +152,17 @@ class MetadataListHandler(AuthReq):
         items, p = self.paginate(obj_table_info_q, **p)
         self.resp([i.to_dict() for i in items], **p)
 
-
+from utils.cmdb_utils import get_current_cmdb,get_current_schema
+from utils import const
 class StatsNumDrillDownHandler(AuthReq):
 
     def get(self):
         """仪表盘四个数据的下钻信息"""
+        params=self.get_query_args(Schema({
+            "dashboard_stats_num_type":And(scm_str,scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE))
+        }))
+        with make_session() as session:
+            login_user=self.current_user
+            get_current_cmdb(session,login_user)
+            get_current_schema(session,login_user)
         self.resp()
