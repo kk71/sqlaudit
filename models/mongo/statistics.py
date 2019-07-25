@@ -71,7 +71,7 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                     if t == DASHBOARD_STATS_NUM_SQL:
                         num_dict[t][cmdb_id][schema_name] += len(
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
-                            filter(cmdb_id=cmdb_id, schema=schema_name).distinct()
+                            filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
 
                     elif t == DASHBOARD_STATS_NUM_TAB:
