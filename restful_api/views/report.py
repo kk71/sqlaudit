@@ -28,7 +28,8 @@ class OnlineReportTaskListHandler(AuthReq):
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date_end,
             Optional("sql_table_index_sequence", default=None): And(scm_str,
-                                                                    scm_one_of_choices(const.SQL_TABLE_INDEX_SEQUENCE)),
+                                                                    scm_one_of_choices(
+                                                                        const.ALL_DASHBOARD_STATS_NUM_TYPE)),
             **self.gen_p(),
         }))
         p = self.pop_p(params)
@@ -38,18 +39,18 @@ class OnlineReportTaskListHandler(AuthReq):
         job_q = Job.objects(score__nin=[None, 0], **params).order_by("-create_time")
         task_uuid = []
         if sql_table_index_sequence:
-            if sql_table_index_sequence == const.TYPE_SQL:
+            if sql_table_index_sequence == const.DASHBOARD_STATS_NUM_SQL:
                 task_uuid = Results.objects(rule_type__ne=const.RULE_TYPE_OBJ).values_list("task_uuid")
             else:
                 rules = Rule.objects(rule_type=const.RULE_TYPE_OBJ)
                 # rules=Rule.objects(rule_type=const.RULE_TYPE_SQLPLAN)# 调试代码
-                if sql_table_index_sequence == const.TYPE_TABLE:
-                    rule_names = rules.filter(Q(obj_info_type=const.OBJ_INFO_TYPR_PART_TABLE) |
-                                              Q(obj_info_type=const.OBJ_INFO_TYPR_TABLE)).values_list("rule_name")
-                elif sql_table_index_sequence == const.TYPE_INDEX:
-                    rule_names = rules.filter(obj_info_type=const.OBJ_INFO_TYPR_INDEX).values_list("rule_name")
-                elif sql_table_index_sequence == const.TYPE_SEQUENCE:
-                    rule_names = rules.filter(obj_info_type=const.OBJ_INFO_TYPR_SEQUENCE).values_list("rule_name")
+                if sql_table_index_sequence == const.DASHBOARD_STATS_NUM_TAB:
+                    rule_names = rules.filter(Q(obj_info_type=const.OBJ_RULE_TYPE_TABLE) |
+                                              Q(obj_info_type=const.OBJ_RULE_TYPE_PART_TABLE)).values_list("rule_name")
+                elif sql_table_index_sequence == const.DASHBOARD_STATS_NUM_INDEX:
+                    rule_names = rules.filter(obj_info_type=const.OBJ_RULE_TYPE_INDEX).values_list("rule_name")
+                elif sql_table_index_sequence == const.DASHBOARD_STATS_NUM_SEQUENCE:
+                    rule_names = rules.filter(obj_info_type=const.OBJ_RULE_TYPE_SEQ).values_list("rule_name")
                 Qa = None
                 for rule_name in rule_names:
                     if not Qa:
@@ -58,6 +59,7 @@ class OnlineReportTaskListHandler(AuthReq):
                         Qa = Qa | Q(**{f"{rule_name}__nin": [None, {}]})
                 if Qa:
                     task_uuid = Results.objects(rule_type=const.RULE_TYPE_OBJ).filter(Qa).values_list("task_uuid")
+                    # task_uuid=Results.objects().filter(Qa).values_list("task_uuid")#调试代码
                 else:
                     pass
         if schema_name:
