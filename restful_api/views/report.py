@@ -35,11 +35,13 @@ class OnlineReportTaskListHandler(AuthReq):
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         job_q = Job.objects(score__nin=[None, 0], **params).order_by("-create_time")
+        task_uuid=[]
         if sql_table_index_sequence:
             if sql_table_index_sequence==const.TYPE_SQL:
                 task_uuid=Results.objects(rule_type__ne=const.RULE_TYPE_OBJ).values_list("task_uuid")
             else:
                 rules = Rule.objects(rule_type=const.RULE_TYPE_OBJ)
+                # rules=Rule.objects(rule_type=const.RULE_TYPE_SQLPLAN)# 调试代码
                 if sql_table_index_sequence==const.TYPE_TABLE:
                     rule_names=rules.filter(Q(obj_info_type=const.OBJ_INFO_TYPR_PART_TABLE) |
                                            Q(obj_info_type=const.OBJ_INFO_TYPR_TABLE)).values_list("rule_name")
@@ -55,15 +57,18 @@ class OnlineReportTaskListHandler(AuthReq):
                         Qa=Qa | Q(**{f"{rule_name}__nin": [ None,{}]})
                 if Qa:
                     task_uuid=Results.objects(rule_type=const.RULE_TYPE_OBJ).filter(Qa).values_list("task_uuid")
+                    # task_uuid=Results.objects().filter(Qa).values_list("task_uuid")# 调试代码
                 else:
                     pass
-
         if schema_name:
             job_q = job_q.filter(desc__owner=schema_name)
         if date_start:
             job_q = job_q.filter(create_time__gte=date_start)
         if date_end:
             job_q = job_q.filter(create_time__lte=date_end)
+        if task_uuid:
+            job_q=job_q.filter(id__in=task_uuid)
+
         jobs_to_ret, p = self.paginate(job_q, **p)
         ret = []
         for j in jobs_to_ret:
