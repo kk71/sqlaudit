@@ -171,10 +171,10 @@ class StatsNumDrillDownHandler(AuthReq):
             cmdb_ids = get_current_cmdb(session, self.current_user)
             for cmdb_id in cmdb_ids:
                 schema_name = get_current_schema(session, self.current_user, cmdb_id)
-                # TODO rewrite the following code.
-                drill_down_q = StatsDashboardDrillDown.objects(
-                    **params,
-                    cmdb_id__in=cmdb_ids,
-                    schema_name__in=schema_name)
+            # TODO rewrite the following code.
+            drill_down_q = StatsDashboardDrillDown.objects(
+                **params,
+                cmdb_id__in=cmdb_ids,
+                schema_name__in=schema_name)
             # TODO do pagination
             self.resp([x.to_dict() for x in drill_down_q])
