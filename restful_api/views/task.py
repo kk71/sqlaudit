@@ -58,8 +58,6 @@ class TaskHandler(AuthReq):
                     elif last_result == False and t_dict["last_result"] in (False, None):
                         # 为了兼容未跑的情况
                         continue
-                    else:
-                        assert 0
                 ret.append(t_dict)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
