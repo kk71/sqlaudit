@@ -16,13 +16,23 @@ class TaskHandler(AuthReq):
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
+            Optional("connect_name", default=None): scm_unempty_str,
+            Optional("task_exec_scripts", default=None): scm_unempty_str,
+            # Optional("last_result",default=None):scm_bool,
         }))
         keyword = params.pop("keyword")
         p = self.pop_p(params)
+        connect_name = params.pop("connect_name")
+        task_exec_scripts = params.pop("task_exec_scripts")
+        # last_result=params.pop("last_result")
         del params
 
         with make_session() as session:
             task_q = session.query(TaskManage)
+            if connect_name:
+                task_q = task_q.filter(TaskManage.connect_name == connect_name)
+            if task_exec_scripts:
+                task_q = task_q.filter(TaskManage.task_exec_scripts == task_exec_scripts)
             if keyword:
                 task_q = self.query_keyword(task_q, keyword,
                                             TaskManage.connect_name,
@@ -38,9 +48,9 @@ class TaskHandler(AuthReq):
                 last_task_exec_history = session. \
                     query(TaskExecHistory). \
                     filter(
-                        TaskExecHistory.task_id == t.task_id,
-                        TaskExecHistory.task_end_date.isnot(None)
-                    ).order_by(TaskExecHistory.id.desc()).first()
+                    TaskExecHistory.task_id == t.task_id,
+                    TaskExecHistory.task_end_date.isnot(None)
+                ).order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 ret.append(t_dict)
