@@ -154,8 +154,6 @@ class StatsSQLObject(BaseStatisticsDoc):
     active_object_num = LongField()
     object_problem_num = LongField(help_text="对象问题数")
 
-
-
     meta = {
         "collection": "stats_sql_object"
     }

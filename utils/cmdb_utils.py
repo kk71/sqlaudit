@@ -238,11 +238,12 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
 
         # physical size of current CMDB
         latest_task_record_id = score_utils.get_latest_task_record_id(session, cmdb_id)[cmdb_id]
-        phy_size = 0
+        tablespace_sum= {}
         stats_phy_size_object = StatsCMDBPhySize.objects(
             task_record_id=latest_task_record_id, cmdb_id=cmdb_id).first()
         if stats_phy_size_object:
-            phy_size = stats_phy_size_object.used
+            tablespace_sum = stats_phy_size_object.to_dict(
+                iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
         return {
             # 以下是按照给定的时间区间搜索的结果
@@ -255,7 +256,7 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
             "risk_rates": rule_utils.get_risk_rate(
                 session=session, cmdb_id=cmdb_id, date_range=(date_start, date_end)),
             # 以下是取最近一次扫描的结果
-            "phy_size_mb": phy_size,
+            "tablespace_sum": tablespace_sum,
         }
 
 
