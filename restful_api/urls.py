@@ -74,6 +74,7 @@ urls += [
 urls += [
     (r"/api/online/overview", online.OverviewHandler),
     (r"/api/online/overview/score_by", online.OverviewScoreByHandler),
+    (r"/api/online/overview/tablespace", online.TablespaceListHandler),
     (r"/api/online/overview/tablespace_trend", online.TablespaceHistoryHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
     (r"/api/online/object/export", online.ObjectRiskReportExportHandler),

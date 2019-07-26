@@ -153,7 +153,8 @@ class BaseReq(RequestHandler):
         elif isinstance(query, S_Query):
             total = query.order_by(None).count()
         else:
-            total = paginate_count_using_cache(qs=query)
+            # total = paginate_count_using_cache(qs=query)
+            total = query.order_by(None).count()
         pages = total // per_page
         if total % per_page > 0:
             pages += 1

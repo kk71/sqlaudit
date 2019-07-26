@@ -549,6 +549,26 @@ class OverviewScoreByHandler(AuthReq):
             })
 
 
+class TablespaceListHandler(AuthReq):
+
+    def get(self):
+        """表空间列表，以及最后一次采集到的使用情况"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_gt0_int,
+            **self.gen_p()
+        }))
+        p = self.pop_p(params)
+        cmdb_id = params.pop("cmdb_id")
+        with make_session() as session:
+            latest_task_record_id = score_utils.get_latest_task_record_id(
+                session, cmdb_id=cmdb_id)[cmdb_id]
+            ots_q = ObjTabSpace.objects(
+                cmdb_id=cmdb_id, task_record_id=latest_task_record_id).\
+                order_by("-usage_ratio")
+            items, p = self.paginate(ots_q, **p)
+            self.resp([i.to_dict() for i in items], **p)
+
+
 class TablespaceHistoryHandler(AuthReq):
 
     def get(self):
