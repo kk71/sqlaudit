@@ -12,7 +12,7 @@ from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils, object_utils
 from utils.cmdb_utils import get_current_cmdb, get_current_schema
-from utils import const
+from utils import const, score_utils
 
 from models.oracle.optimize import *
 from restful_api.views.offline import OfflineTicketCommonHandler
@@ -168,13 +168,21 @@ class StatsNumDrillDownHandler(AuthReq):
         p = self.pop_p(params)
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
+            cmdb_id_task_record_id = score_utils.get_latest_task_record_id(
+                session, cmdb_id=cmdb_ids)
             Qs = None
             for cmdb_id in cmdb_ids:
                 schema_name = get_current_schema(session, self.current_user, cmdb_id)
                 if not Qs:
-                    Qs = Q(**{"cmdb_id": cmdb_id, "schema_name__in": schema_name})
+                    Qs = Q(**{
+                        "cmdb_id": cmdb_id,
+                        "schema_name__in": schema_name,
+                        "task_record_id": cmdb_id_task_record_id[cmdb_id]})
                 else:
-                    Qs = Qs | Q(**{"cmdb_id": cmdb_id, "schema_name__in": schema_name})
+                    Qs = Qs | Q(**{
+                        "cmdb_id": cmdb_id,
+                        "schema_name__in": schema_name,
+                        "task_record_id": cmdb_id_task_record_id[cmdb_id]})
             if not Qs:
                 return self.resp([])
             drill_down_q = StatsDashboardDrillDown.objects(**params).filter(Qs)
