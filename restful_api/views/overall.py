@@ -166,15 +166,25 @@ class StatsNumDrillDownHandler(AuthReq):
             **self.gen_p()
         }))
         p = self.pop_p(params)
-        qs = None
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
+            Qs=None
             for cmdb_id in cmdb_ids:
                 schema_name = get_current_schema(session, self.current_user, cmdb_id)
-            # TODO rewrite the following code.
+                if not Qs:
+                    Qs=Q(**{f"cmdb_id":cmdb_id,f"schema_name__in":schema_name})
+                else:
+                    Qs=Qs |  Q(**{f"cmdb_id":cmdb_id,f"schema_name__in":schema_name})
+            if not Qs:
+                return self.resp([])
             drill_down_q = StatsDashboardDrillDown.objects(
-                **params,
-                cmdb_id__in=cmdb_ids,
-                schema_name__in=schema_name)
-            # TODO do pagination
-            self.resp([x.to_dict() for x in drill_down_q])
+                        **params).filter(Qs)
+
+            drill_down, p = self.paginate(drill_down_q, **p)
+            self.resp([x.to_dict() for x in drill_down], **p)
+
+
+
+
+
+
