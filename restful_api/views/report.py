@@ -70,7 +70,8 @@ class OnlineReportTaskHandler(AuthReq):
                 "cmdb": cmdb.to_dict(),
                 "rules_violated": rules_violated,
                 "score_sum": score_sum,
-                "schema": job.desc["owner"]
+                "schema": job.desc["owner"],
+                **result.to_dict(iter_if=lambda k, v: k in ("create_date",))
             })
 
 

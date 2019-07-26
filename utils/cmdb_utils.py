@@ -243,6 +243,7 @@ def online_overview_using_cache(date_start, date_end, cmdb_id, schema_name):
             task_record_id=latest_task_record_id, cmdb_id=cmdb_id).first()
         if stats_phy_size_object:
             tablespace_sum = stats_phy_size_object.to_dict(
+                iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
                 iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
         return {
