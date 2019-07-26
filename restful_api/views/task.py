@@ -54,9 +54,11 @@ class TaskHandler(AuthReq):
                     t_dict["last_result"] = last_task_exec_history.status
                 if last_result is not None:
                     if last_result == True and t_dict["last_result"] == True:
-                        continue
+                        pass
                     elif last_result == False and t_dict["last_result"] in (False, None):
                         # 为了兼容未跑的情况
+                        pass
+                    else:
                         continue
                 ret.append(t_dict)
             items, p = self.paginate(ret, **p)
