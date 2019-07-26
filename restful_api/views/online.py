@@ -407,13 +407,16 @@ class SQLPlanHandler(AuthReq):
             "cmdb_id": scm_int,
         }))
         plans = MSQLPlan.objects(**params).order_by("-etl_date")
+        latest_plan = plans.first()  # 取出最后一次采集出来的record_id
+        record_id = latest_plan.record_id
+        plans = plans.filter(record_id=record_id)
         filtered_plans = []
-        indices_set = set()
         for p in plans:
-            if p.index not in indices_set:
-                filtered_plans.append(p.to_dict(iter_if=lambda k, v: k in (
+            filtered_plans.append(p.to_dict(iter_if=lambda k, v: k in (
+                    "index",
                     "depth",
                     "operation",
+                    "operation_display",
                     "object_owner",
                     "object_name",
                     "position",
@@ -422,8 +425,7 @@ class SQLPlanHandler(AuthReq):
                     "access_predicates",
                     "filter_predicates"
                 )))
-                indices_set.add(p.index)
-        filtered_plans = sorted(filtered_plans, key=lambda x: x["depth"])
+        filtered_plans = sorted(filtered_plans, key=lambda x: x["index"])
         self.resp(filtered_plans)
 
 
@@ -547,8 +549,18 @@ class OverviewScoreByHandler(AuthReq):
             })
 
 
-class PhySizeHandler(AuthReq):
+class TablespaceHistoryHandler(AuthReq):
 
     def get(self):
-        """表空间容量下钻的折线图信息"""
-        self.resp()
+        """某个表空间的使用率历史折线图"""
+        params = self.get_query_args(Schema({
+            "tablespace_name": scm_unempty_str,
+            "cmdb_id": scm_int,
+        }))
+        ts_q = ObjTabSpace.objects(**params).order_by("-etl_date").limit(30)
+        ret = self.list_of_dict_to_date_axis(
+            [i.to_dict(datetime_to_str=False) for i in ts_q],
+            "etl_date",
+            "usage_ratio"
+        )
+        self.resp(ret[:7])

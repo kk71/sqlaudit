@@ -131,6 +131,8 @@ class OnlineReportRuleDetailHandler(AuthReq):
             if records:
                 columns = list(records[0].keys())
 
+        # TODO 汉化
+
         return {
             "columns": columns,
             "records": records,

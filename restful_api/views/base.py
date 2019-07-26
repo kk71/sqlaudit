@@ -10,7 +10,6 @@ import json
 from typing import *
 
 import jwt
-import arrow
 from tornado.web import RequestHandler
 from schema import Schema, SchemaError, Or
 from schema import Optional as scm_Optional
@@ -23,6 +22,7 @@ import settings
 from utils.perf_utils import timing, r_cache
 from utils.schema_utils import scm_unempty_str, scm_gt0_int
 from utils.privilege_utils import *
+from utils.datetime_utils import *
 
 
 class SchemaErrorWithMessageResponsed(Exception):
@@ -201,6 +201,39 @@ class BaseReq(RequestHandler):
     def dict_to_verbose_dict_in_list(cls, d, key_name="key", value_name="value"):
         """将普通字典转成繁琐的list of dicts"""
         return [{key_name: k, value_name: v} for k, v in d.items()]
+
+    @classmethod
+    def list_of_dict_to_date_axis(cls,
+                                  iterable,
+                                  date_key_name,
+                                  value_key_name,
+                                  date_to_str=True) -> list:
+        """
+        [{}, ...]转换为折线图、柱状图所需要的格式(x轴为日期，y轴为某个值)
+        会对date去重，按照时间由晚及早去重
+        :param iterable:
+        :param date_key_name: 日期（或者日期时间，会自动转换）所在的键名
+        :param value_key_name: y轴的值所在的键名
+        :param date_to_str: 是否将date对象转换为str
+        :return:
+        """
+        date_set = set()
+        deduplicate_list = []
+        for pair in sorted(
+                [[i[date_key_name], i[value_key_name]] for i in iterable], reverse=True):
+            if isinstance(pair[0], date) and not isinstance(pair[0], datetime):
+                # 是一个日期对象，但不是日期时间对象
+                pass
+            else:
+                pair[0] = pair[0].date()
+            if pair[0] in date_set:
+                continue
+            date_set.add(pair[0])
+            if date_to_str:
+                pair[0] = d_to_str(pair[0])
+            deduplicate_list.append(pair)
+        deduplicate_list.reverse()
+        return deduplicate_list
 
 
 class AuthReq(BaseReq):
