@@ -2,6 +2,7 @@
 
 from schema import Schema, Optional, And
 from sqlalchemy import func
+from mongoengine import Q
 
 from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
@@ -161,19 +162,19 @@ class StatsNumDrillDownHandler(AuthReq):
     def get(self):
         """仪表盘四个数据的下钻信息"""
         params = self.get_query_args(Schema({
-            "dashboard_stats_num_type": And(scm_str, scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE))
+            "drill_down_type": scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE),
+            **self.gen_p()
         }))
-        dashboard_stats_num_type = params.pop("dashboard_stats_num_type")
-        schema_name = []
+        p = self.pop_p(params)
+        qs = None
         with make_session() as session:
-            login_user = self.current_user
-            cmdb_ids = get_current_cmdb(session, login_user)
+            cmdb_ids = get_current_cmdb(session, self.current_user)
             for cmdb_id in cmdb_ids:
-                schema_name = get_current_schema(session, login_user, cmdb_id)
-        if schema_name and cmdb_ids:  # 防止当前用户没有纳官库
-            DashboardDrillDown = StatsDashboardDrillDown.objects(drill_down_type=dashboard_stats_num_type,
-                                                                 cmdb_id__in=cmdb_ids, schema_name__in=schema_name)
-
-            self.resp([x.to_dict() for x in DashboardDrillDown])
-            return
-        self.resp([])
+                schema_name = get_current_schema(session, self.current_user, cmdb_id)
+                # TODO rewrite the following code.
+                drill_down_q = StatsDashboardDrillDown.objects(
+                    **params,
+                    cmdb_id__in=cmdb_ids,
+                    schema_name__in=schema_name)
+            # TODO do pagination
+            self.resp([x.to_dict() for x in drill_down_q])
