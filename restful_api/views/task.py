@@ -18,13 +18,13 @@ class TaskHandler(AuthReq):
             Optional("per_page", default=10): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
             Optional("task_exec_scripts", default=None): scm_unempty_str,
-            # Optional("last_result",default=None):scm_bool,
+            Optional("last_result", default=None): scm_bool,
         }))
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         connect_name = params.pop("connect_name")
         task_exec_scripts = params.pop("task_exec_scripts")
-        # last_result=params.pop("last_result")
+        last_result = params.pop("last_result")
         del params
 
         with make_session() as session:
@@ -40,9 +40,8 @@ class TaskHandler(AuthReq):
                                             TaskManage.business_name,
                                             TaskManage.server_name,
                                             TaskManage.ip_address)
-            items, p = self.paginate(task_q, **p)
             ret = []
-            for t in items:
+            for t in task_q:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = None
                 last_task_exec_history = session. \
@@ -53,8 +52,11 @@ class TaskHandler(AuthReq):
                 ).order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
+                if last_result is not None and t_dict["last_result"] != last_result:
+                    continue
                 ret.append(t_dict)
-            self.resp(ret, **p)
+            items, p = self.paginate(ret, **p)
+            self.resp(items, **p)
 
     def patch(self):
         """修改任务状态"""
