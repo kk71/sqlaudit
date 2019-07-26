@@ -52,7 +52,8 @@ class TaskHandler(AuthReq):
                 ).order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
-                if last_result is not None and t_dict["last_result"] != last_result:
+                if last_result is not None and \
+                        t_dict["last_result"] not in (last_result, None):  # 为了兼容未跑的情况
                     continue
                 ret.append(t_dict)
             items, p = self.paginate(ret, **p)
