@@ -166,6 +166,7 @@ class StatsNumDrillDownHandler(AuthReq):
                                    scm_subset_of_choices(const.ALL_STATS_NUM_TYPE)),
             **self.gen_p()
         }))
+        ddt_in = params.pop("drill_down_type")
         p = self.pop_p(params)
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
@@ -186,6 +187,6 @@ class StatsNumDrillDownHandler(AuthReq):
                         "task_record_id": cmdb_id_task_record_id[cmdb_id]})
             if not Qs:
                 return self.resp([])
-            drill_down_q = StatsNumDrillDown.objects(**params).filter(Qs)
+            drill_down_q = StatsNumDrillDown.objects(drill_down_type__in=ddt_in).filter(Qs)
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
