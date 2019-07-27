@@ -198,7 +198,7 @@ def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) ->
         rule_name = [rule_name]
     for result in result_q:
         if not rule_name:
-            rule_name_to_loop = dict(result).keys()
+            rule_name_to_loop = dir(result)
         else:
             rule_name_to_loop = rule_name
         for rn in rule_name_to_loop:
@@ -226,7 +226,7 @@ def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int
         rule_name = [rule_name]
     for result in result_q:
         if not rule_name:
-            rule_name_to_loop = dict(result).keys()
+            rule_name_to_loop = dir(result)
         else:
             rule_name_to_loop = rule_name
         for rn in rule_name_to_loop:

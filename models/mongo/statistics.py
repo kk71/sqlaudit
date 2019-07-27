@@ -82,7 +82,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_TEXT
                         )
@@ -94,7 +94,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                                 filter(cmdb_id=cmdb_id, schema=schema_name).
                                 distinct("plan_hash_value")
                         )
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_SQLPLAN
                         )
@@ -105,7 +105,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_SQLSTAT
                         )
@@ -116,7 +116,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                             filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=ALL_RULE_TYPES_FOR_SQL_RULE
                         )
@@ -127,7 +127,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_TABLE
@@ -139,7 +139,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_INDEX
@@ -151,7 +151,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_SEQ
