@@ -54,7 +54,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
         from utils.score_utils import get_latest_task_record_id, calc_distinct_sql_id, \
             calc_problem_num, get_result_queryset_by_type
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
-        from models.mongo import SQLText, SQLStat, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
+        from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo
         with make_session() as session:
             qe = QueryEntity(
@@ -62,19 +62,18 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                 CMDB.connect_name,
                 DataPrivilege.schema_name
             )
-            rst = session.query(*qe).join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id)
-            cmdb_id_cmdb_info_dict = {i["cmdb_id"]: i for i in [qe.to_dict(j) for j in rst]}
-            latest_task_record_id_dict = get_latest_task_record_id(
-                session, list(cmdb_id_cmdb_info_dict.keys()))
-            for cmdb_id, connect_name, schema_name in set(rst):  # 必须去重
-                latest_task_record_id = latest_task_record_id_dict[cmdb_id]
+            rst = session.query(*qe).\
+                join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id).\
+                filter(DataPrivilege.cmdb_id == cmdb_id)
+            latest_task_record_id = get_latest_task_record_id(session, cmdb_id)[cmdb_id]
+            for cmdb_id, connect_name, schema_name in set(rst):
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(
                         task_record_id=task_record_id,
                         drill_down_type=t,
                         cmdb_id=cmdb_id,
-                        connect_name=cmdb_id_cmdb_info_dict[cmdb_id]["connect_name"],
+                        connect_name=connect_name,
                         schema_name=schema_name,
                     )
                     if t == STATS_NUM_SQL_TEXT:
