@@ -25,7 +25,11 @@ def calc_statistics(*args, **kwargs):
     """
     for m in STATS_MODELS:
         print(f"* gonna make statistics data for {m.__doc__} ...")
-        docs = list(m.generate(*args, **kwargs))
+        an_iterator = m.generate(*args, **kwargs)
+        if an_iterator is None:
+            print("Returned None, should be an iterator. Skipped.")
+            continue
+        docs = list(an_iterator)
         if not docs:
             print("no statistics object to be saved.")
             continue

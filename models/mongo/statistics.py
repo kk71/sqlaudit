@@ -31,7 +31,7 @@ class StatsDashboard(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        yield None
+        return
 
 
 class StatsNumDrillDown(BaseStatisticsDoc):
