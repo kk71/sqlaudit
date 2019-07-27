@@ -162,7 +162,8 @@ class StatsNumDrillDownHandler(AuthReq):
     def get(self):
         """仪表盘四个数据的下钻信息"""
         params = self.get_query_args(Schema({
-            "drill_down_type": scm_one_of_choices(const.ALL_STATS_NUM_TYPE),
+            "drill_down_type": And(scm_dot_split_str,
+                                   scm_subset_of_choices(const.ALL_STATS_NUM_TYPE)),
             **self.gen_p()
         }))
         p = self.pop_p(params)
