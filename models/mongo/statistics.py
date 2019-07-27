@@ -127,36 +127,36 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_TABLE
                         )
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_INDEX:
                         new_doc.num = ObjIndColInfo.\
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_INDEX
                         )
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_SEQUENCE:
                         new_doc.num = ObjSeqInfo.objects(
                             task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by_type(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_SEQ
                         )
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     if new_doc.num:
                         # 有问题个数/总个数
