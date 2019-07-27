@@ -148,7 +148,7 @@ def get_latest_task_record_id(session, cmdb_id: Union[list, int]) -> dict:
     return dict(list(cmdb_id_exec_hist_id_list_q))
 
 
-def get_result_object_by_type(
+def get_result_queryset_by_type(
         task_record_id,
         rule_type: Union[str, list, tuple],
         obj_info_type=None):
@@ -183,3 +183,58 @@ def get_result_object_by_type(
         if Qs:
             result_q = result_q.filter(Qs)
     return result_q, rule_names_to_filter
+
+
+def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) -> int:
+    """
+    计算result的query set的sql_id去重
+    目前只计算非OBJ类型的
+    :param result_q:
+    :param rule_name: 指定规则名称，支持单个或者列表，默认不传则表示统计全部
+    :return:
+    """
+    sql_id_set = set()
+    if isinstance(rule_name, str):
+        rule_name = [rule_name]
+    for result in result_q:
+        if not rule_name:
+            rule_name_to_loop = dict(result).keys()
+        else:
+            rule_name_to_loop = rule_name
+        for rn in rule_name_to_loop:
+            result_rule_dict = getattr(result, rn, None)
+            if not result_rule_dict or not isinstance(result_rule_dict, dict):
+                continue
+            sqls = result_rule_dict.get("sqls", [])
+            if not sqls:
+                continue
+            for sql in sqls:
+                sql_id_set.add(sql["sql_id"])
+    return len(sql_id_set)
+
+
+def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
+    """
+    计算result的query set的问题发生次数
+    目前只计算OBJ类型的
+    :param result_q:
+    :param rule_name: 指定规则名称，支持单个或者列表，默认不传则表示统计全部
+    :return:
+    """
+    count = 0
+    if isinstance(rule_name, str):
+        rule_name = [rule_name]
+    for result in result_q:
+        if not rule_name:
+            rule_name_to_loop = dict(result).keys()
+        else:
+            rule_name_to_loop = rule_name
+        for rn in rule_name_to_loop:
+            result_rule_dict = getattr(result, rn, None)
+            if not result_rule_dict or not isinstance(result_rule_dict, dict):
+                continue
+            records = result_rule_dict.get("records", [])
+            if not records:
+                continue
+            count += len(records)
+    return count

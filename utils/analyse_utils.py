@@ -12,7 +12,7 @@ from models.mongo import *
 # 注意：如果统计数据有先后依赖，需要在这里体现。
 STATS_MODELS = (
     StatsDashboard,
-    StatsDashboardDrillDown,
+    StatsNumDrillDown,
     StatsCMDBPhySize,
 )
 
@@ -25,7 +25,7 @@ def calc_statistics(*args, **kwargs):
     """
     for m in STATS_MODELS:
         print(f"* gonna make statistics data for {m.__doc__} ...")
-        docs = m.generate(*args, **kwargs)
+        docs = list(m.generate(*args, **kwargs))
         if not docs:
             print("no statistics object to be saved.")
             continue

@@ -162,7 +162,7 @@ class StatsNumDrillDownHandler(AuthReq):
     def get(self):
         """仪表盘四个数据的下钻信息"""
         params = self.get_query_args(Schema({
-            "drill_down_type": scm_one_of_choices(const.ALL_DASHBOARD_STATS_NUM_TYPE),
+            "drill_down_type": scm_one_of_choices(const.ALL_STATS_NUM_TYPE),
             **self.gen_p()
         }))
         p = self.pop_p(params)
@@ -185,6 +185,6 @@ class StatsNumDrillDownHandler(AuthReq):
                         "task_record_id": cmdb_id_task_record_id[cmdb_id]})
             if not Qs:
                 return self.resp([])
-            drill_down_q = StatsDashboardDrillDown.objects(**params).filter(Qs)
+            drill_down_q = StatsNumDrillDown.objects(**params).filter(Qs)
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)

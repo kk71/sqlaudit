@@ -214,11 +214,10 @@ class BaseStatisticsDoc(BaseDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         """
         产生统计数据
         :param task_record_id: 调度当前统计的任务id
         :param cmdb_id: 如果cmdb_id为None，则表示是不针对任何一个库的统计
-        :return: [doc-object, ...]
         """
         raise NotImplementedError

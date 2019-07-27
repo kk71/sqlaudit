@@ -30,30 +30,33 @@ class StatsDashboard(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
-        return []
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        yield None
 
 
-class StatsDashboardDrillDown(BaseStatisticsDoc):
-    """仪表盘四个数据的下钻"""
+class StatsNumDrillDown(BaseStatisticsDoc):
+    """results各个维度(rule_type以及obj_info_type)下钻的统计数据"""
 
-    drill_down_type = StringField(choices=ALL_DASHBOARD_STATS_NUM_TYPE)
+    drill_down_type = StringField(choices=ALL_STATS_NUM_TYPE)
     schema_name = StringField()
-    num = LongField(help_text="采集到的总数")
+    num = LongField(default=0, help_text="采集到的总数")
+    num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
+    num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
+    problem_num = LongField(default=0, help_text="问题个数")
+    problem_num_rate = FloatField(help_text="问题个数rate(风险率)")
 
     meta = {
-        "collection": "stats_dashboard_drill_down"
+        "collection": "stats_num_drill_down"
     }
 
     @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
-        from utils.score_utils import get_latest_task_record_id
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.score_utils import get_latest_task_record_id, calc_distinct_sql_id, \
+            calc_problem_num, get_result_queryset_by_type
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
-        from models.mongo import SQLText, ObjSeqInfo, ObjTabInfo, ObjIndColInfo
-        ret = []
+        from models.mongo import SQLText, SQLStat, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
+            ObjIndColInfo
         with make_session() as session:
-            # the type: cmdb_id: schema_name: num
-            num_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
             qe = QueryEntity(
                 CMDB.cmdb_id,
                 CMDB.connect_name,
@@ -65,43 +68,102 @@ class StatsDashboardDrillDown(BaseStatisticsDoc):
                 session, list(cmdb_id_cmdb_info_dict.keys()))
             for cmdb_id, connect_name, schema_name in set(rst):  # 必须去重
                 latest_task_record_id = latest_task_record_id_dict[cmdb_id]
-                for t in ALL_DASHBOARD_STATS_NUM_TYPE:
+                for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
-                    if t == DASHBOARD_STATS_NUM_SQL:
-                        num_dict[t][cmdb_id][schema_name] += len(
+                    new_doc = cls(
+                        task_record_id=task_record_id,
+                        drill_down_type=t,
+                        cmdb_id=cmdb_id,
+                        connect_name=cmdb_id_cmdb_info_dict[cmdb_id]["connect_name"],
+                        schema_name=schema_name,
+                    )
+                    if t == STATS_NUM_SQL_TEXT:
+                        new_doc.num = len(
+                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                        )
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_TEXT
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+
+                    elif t == STATS_NUM_SQL_PLAN:
+                        new_doc.num = len(
+                            MSQLPlan.filter_by_exec_hist_id(latest_task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).
+                                distinct("plan_hash_value")
+                        )
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_SQLPLAN
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+
+                    elif t == STATS_NUM_SQL_STATS:
+                        new_doc.num = len(
+                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                        )
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_SQLSTAT
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+
+                    elif t == STATS_NUM_SQL:
+                        new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                             filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=ALL_RULE_TYPES_FOR_SQL_RULE
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
-                    elif t == DASHBOARD_STATS_NUM_TAB:
-                        num_dict[t][cmdb_id][schema_name] += ObjTabInfo.\
+                    elif t == STATS_NUM_TAB:
+                        new_doc.num = ObjTabInfo.\
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_OBJ,
+                            obj_info_type=OBJ_RULE_TYPE_TABLE
+                        )
+                        new_doc.problem_num = calc_problem_num(result_q)
 
-                    elif t == DASHBOARD_STATS_NUM_INDEX:
-                        num_dict[t][cmdb_id][schema_name] += ObjIndColInfo.\
+                    elif t == STATS_NUM_INDEX:
+                        new_doc.num = ObjIndColInfo.\
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
+                        result_q = get_result_queryset_by_type(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_OBJ,
+                            obj_info_type=OBJ_RULE_TYPE_INDEX
+                        )
+                        new_doc.problem_num = calc_problem_num(result_q)
 
-                    elif t == DASHBOARD_STATS_NUM_SEQUENCE:
-                        num_dict[t][cmdb_id][schema_name] += ObjSeqInfo.objects(
+                    elif t == STATS_NUM_SEQUENCE:
+                        new_doc.num = ObjSeqInfo.objects(
                             task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-            for t in num_dict:
-                for cmdb_id in num_dict[t]:
-                    for schema_name in num_dict[t][cmdb_id]:
-                        ret.append(cls(
+                        result_q = get_result_queryset_by_type(
                             task_record_id=task_record_id,
-                            drill_down_type=t,
-                            cmdb_id=cmdb_id,
-                            connect_name=cmdb_id_cmdb_info_dict[cmdb_id]["connect_name"],
-                            schema_name=schema_name,
-                            num=num_dict[t][cmdb_id][schema_name]
-                        ))
-        return ret
+                            rule_type=RULE_TYPE_OBJ,
+                            obj_info_type=OBJ_RULE_TYPE_SEQ
+                        )
+                        new_doc.problem_num = calc_problem_num(result_q)
+
+                    if new_doc.num:
+                        # 有问题个数/总个数
+                        new_doc.num_with_risk_rate = new_doc.num_with_risk / new_doc.num
+                        # 风险率
+                        new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
+                    yield new_doc
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):
@@ -117,10 +179,9 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from models.oracle import make_session, CMDB
         from models.mongo import ObjTabSpace
-        ret = []
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
             doc = cls(
@@ -138,8 +199,7 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
                 doc.free += ts.free
                 doc.used += ts.used
             doc.usage_ratio = doc.used / doc.total
-            ret.append(doc)
-        return ret
+            yield doc
 
 
 class StatsSQLObject(BaseStatisticsDoc):
@@ -159,7 +219,7 @@ class StatsSQLObject(BaseStatisticsDoc):
     }
 
     @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]) -> list:
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from models.mongo import (
             Results,
             SQLText,
@@ -169,14 +229,14 @@ class StatsSQLObject(BaseStatisticsDoc):
             ObjIndColInfo
         )
         from models.oracle import make_session, CMDB, DataPrivilege
-        from utils import sql_utils, object_utils
-        ret = []
+        from utils import sql_utils
         with make_session() as session:
             schemas_set = {i[0] for i in session.query(DataPrivilege.schema_name).
                                                     filter_by(cmdb_id=cmdb_id)}
             for schema_name in schemas_set:
                 m = cls(schema_name=schema_name)
-                m.active_sql_num = len(SQLText.filter_by_exec_hist_id(task_record_id).distinct("sql_id"))
+                m.active_sql_num = len(SQLText.filter_by_exec_hist_id(task_record_id).
+                                       distinct("sql_id"))
                 m.risk_sql_num = len(sql_utils.get_risk_sql_list(
                     cmdb_id=cmdb_id,
                     date_range=(None, None),
@@ -185,5 +245,4 @@ class StatsSQLObject(BaseStatisticsDoc):
                     sqltext_stats=False,
                     task_record_id=task_record_id
                 ))
-                ret.append(m)
-        return ret
+                yield m
