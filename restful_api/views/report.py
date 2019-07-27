@@ -113,21 +113,21 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 else:
                     count = "空"
                 records.append({
-                    "sql_id": sql_dict["sql_id"],
-                    "sql_text": sql_dict["sql_text"],
-                    "plan_hash_value": sql_dict["plan_hash_value"],
-                    "pos": "v",
-                    "object_name": obj_name,
-                    "cost": cost,
-                    "count": count
+                    "SQL ID": sql_dict["sql_id"],
+                    "SQL文本": sql_dict["sql_text"],
+                    "执行计划哈希值": sql_dict["plan_hash_value"],
+                    # "pos": "v",
+                    "对象名": obj_name,
+                    "Cost": cost,
+                    "计数": count
                 })
             if records:
                 columns = list(records[0].keys())
 
         elif rule.rule_type == const.RULE_TYPE_TEXT:
             records = [{
-                "sql_id": i["sql_id"],
-                "sql_text": i["sql_text"]
+                "SQL ID": i["sql_id"],
+                "SQL文本": i["sql_text"]
             } for i in rule_dict_in_rst["sqls"]]
             if records:
                 columns = list(records[0].keys())
