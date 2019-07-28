@@ -91,7 +91,7 @@ def import_rules(filename):
 
 
 @click.command()
-@click.option("--task_id", help="")
+@click.option("--task-id", help="")
 @click.option("--schema", help="", default=None)
 @click.option("--q", help="use celery or not", default=0)
 def makedata(task_id, schema, q):
@@ -124,7 +124,7 @@ def schedule():
 
 
 @click.command()
-@click.option("--use-q", help="use queue to run")
+@click.option("--q", help="use queue to run")
 @click.option("--no-prefetch", help="do not prefetch")
 def clear_cache(use_q=True, no_prefetch=False):
     """clear all cache"""
@@ -143,7 +143,7 @@ def clear_cache(use_q=True, no_prefetch=False):
 
 
 @click.command()
-@click.option("--job_id")
+@click.option("--job-id")
 def export_task(job_id):
     """export html report"""
     if not job_id:
