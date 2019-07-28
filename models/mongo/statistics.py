@@ -79,6 +79,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
     drill_down_type = StringField(choices=ALL_STATS_NUM_TYPE)
     schema_name = StringField()
+    job_id = StringField(null=True, help_text="对应的报告job_id")
     num = LongField(default=0, help_text="采集到的总数")
     num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
     num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
@@ -116,6 +117,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         connect_name=connect_name,
                         schema_name=schema_name,
                     )
+                    result_q = None
                     if t == STATS_NUM_SQL_TEXT:
                         new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
@@ -202,6 +204,9 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         new_doc.num_with_risk_rate = new_doc.num_with_risk / new_doc.num
                         # 风险率
                         new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
+                    if result_q:
+                        r = result_q.first()
+                        new_doc.job_id = r.task_uuid
                     yield new_doc
 
 
