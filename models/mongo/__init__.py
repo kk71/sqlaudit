@@ -15,7 +15,7 @@ __all__ = [
     "ObjViewInfo",
     "ObjSeqInfo",
     "ObjTabSpace",
-    "StatsDashboard",
+    "StatsLoginUser",
     "StatsNumDrillDown",
     "StatsCMDBPhySize",
 ]

@@ -583,4 +583,5 @@ class TablespaceHistoryHandler(AuthReq):
             "etl_date",
             "usage_ratio"
         )
-        self.resp(ret[:7])
+        ret = self.dict_to_verbose_dict_in_list(dict(ret[:7]))
+        self.resp(ret)

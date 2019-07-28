@@ -10,20 +10,31 @@ from typing import Union
 from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, \
-    DynamicField, FloatField, LongField
+    DynamicField, FloatField, LongField, ListField
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
 
 
-class StatsDashboard(BaseStatisticsDoc):
-    """仪表盘统计数据"""
+class StatsLoginUser(BaseStatisticsDoc):
+    """登录用户层面的统计数据"""
 
-    login_user = StringField()
+    login_user = StringField(help_text="仅对某个用户有效")
     sql_num = LongField()
     tab_num = IntField()
     index_num = LongField()
     seq_num = IntField()
+    cmdb = ListField(default=lambda: [
+            # {
+            #     "cmdb_id": "",
+            #     "connect_name": "",
+            #     "num": "采集到的总数",
+            #     "problem_num": {
+            #         "SQL": 0,
+            #         "OBJ": 0
+            #     }
+            # }
+        ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
 
     meta = {
         "collection": "stats_dashboard"
@@ -201,47 +212,3 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
             yield doc
 
 
-class StatsSQLObject(BaseStatisticsDoc):
-    """统计出sql和对象的个数"""
-
-    schema_name = StringField()
-
-    active_sql_num = LongField()
-    risk_sql_num = LongField(help_text="问题SQL个数")
-    sql_problem_num = LongField(help_text="SQL问题数")
-
-    active_object_num = LongField()
-    object_problem_num = LongField(help_text="对象问题数")
-
-    meta = {
-        "collection": "stats_sql_object"
-    }
-
-    @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from models.mongo import (
-            Results,
-            SQLText,
-            ObjTabInfo,
-            ObjSeqInfo,
-            ObjViewInfo,
-            ObjIndColInfo
-        )
-        from models.oracle import make_session, CMDB, DataPrivilege
-        from utils import sql_utils
-        with make_session() as session:
-            schemas_set = {i[0] for i in session.query(DataPrivilege.schema_name).
-                                                    filter_by(cmdb_id=cmdb_id)}
-            for schema_name in schemas_set:
-                m = cls(schema_name=schema_name)
-                m.active_sql_num = len(SQLText.filter_by_exec_hist_id(task_record_id).
-                                       distinct("sql_id"))
-                m.risk_sql_num = len(sql_utils.get_risk_sql_list(
-                    cmdb_id=cmdb_id,
-                    date_range=(None, None),
-                    schema_name=schema_name,
-                    sql_id_only=True,
-                    sqltext_stats=False,
-                    task_record_id=task_record_id
-                ))
-                yield m
