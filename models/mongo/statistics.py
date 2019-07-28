@@ -37,7 +37,7 @@ class StatsLoginUser(BaseStatisticsDoc):
         ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
 
     meta = {
-        "collection": "stats_dashboard"
+        "collection": "stats_login_user"
     }
 
     @classmethod
