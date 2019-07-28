@@ -13,6 +13,7 @@ from utils.cmdb_utils import get_cmdb_available_schemas
 from .base import *
 from utils import cmdb_utils
 from models.oracle import *
+from models.mongo import *
 from task.clear_cache import clear_cache
 
 
@@ -82,6 +83,11 @@ class CMDBHandler(AuthReq):
                         "data_health": data_health
                     })
                 ret, p = self.paginate(ret, **p)
+            login_stats = StatsLoginUser.objects(login_user=self.current_user).\
+                order_by("-etl_date").first()
+            cmdb_stats = {c["cmdb_id"]: c for c in login_stats.cmdb}
+            for i in ret:
+                i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
             self.resp(ret, **p)
 
     def post(self):
