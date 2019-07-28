@@ -7,7 +7,6 @@
 """
 
 from typing import Union
-from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, \
     DynamicField, FloatField, LongField, ListField
@@ -17,7 +16,7 @@ from .utils import BaseStatisticsDoc
 
 
 class StatsLoginUser(BaseStatisticsDoc):
-    """登录用户层面的统计数据"""
+    """最后分析：登录用户层面的统计数据，该数据可能根据用户绑定的库以及schema的改变而需要更新。"""
 
     login_user = StringField(help_text="仅对某个用户有效")
     sql_num = LongField()
@@ -28,7 +27,8 @@ class StatsLoginUser(BaseStatisticsDoc):
             # {
             #     "cmdb_id": "",
             #     "connect_name": "",
-            #     "num": "采集到的总数",
+            #     "schema_captured_num": 采集的schema个数,
+            #     "finally_schema_captured_num": 采集成功的schema个数
             #     "problem_num": {
             #         "SQL": 0,
             #         "OBJ": 0
@@ -42,7 +42,36 @@ class StatsLoginUser(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        return
+        from models.oracle import make_session, CMDB, User, DataPrivilege
+        from utils import const
+        from utils.score_utils import calc_problem_num, get_result_queryset_by_type
+        with make_session() as session:
+            for login_user, in session.query(User.login_user):
+                doc = cls(task_record_id=task_record_id, login_user=login_user)
+                for the_cmdb_id, the_connect_name in \
+                        session.query(CMDB.cmdb_id, CMDB.connect_name):
+                    sql_result_q, _ = get_result_queryset_by_type(
+                        task_record_id=task_record_id,
+                        rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE
+                    )
+                    obj_result_q, _ = get_result_queryset_by_type(
+                        task_record_id=task_record_id,
+                        rule_type=const.RULE_TYPE_OBJ
+                    )
+                    schema_captured_num = session.query(DataPrivilege.schema_name).\
+                        filter(DataPrivilege.cmdb_id == the_cmdb_id).\
+                        count()
+                    doc.cmdb.append({
+                        "cmdb_id": the_cmdb_id,
+                        "connect_name": the_connect_name,
+                        "schema_captured_num": schema_captured_num,
+                        "finally_schema_captured_num": schema_captured_num,
+                        "problem_num": {
+                            const.STATS_NUM_SQL: calc_problem_num(sql_result_q),
+                            const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
+                        }
+                    })
+                yield doc
 
 
 class StatsNumDrillDown(BaseStatisticsDoc):

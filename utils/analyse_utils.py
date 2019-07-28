@@ -11,9 +11,9 @@ from models.mongo import *
 # 统计数据model
 # 注意：如果统计数据有先后依赖，需要在这里体现。
 STATS_MODELS = (
-    StatsLoginUser,
     StatsNumDrillDown,
     StatsCMDBPhySize,
+    StatsLoginUser,
 )
 
 

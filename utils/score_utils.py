@@ -216,7 +216,6 @@ def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) ->
 def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
     """
     计算result的query set的问题发生次数
-    目前只计算OBJ类型的
     :param result_q:
     :param rule_name: 指定规则名称，支持单个或者列表，默认不传则表示统计全部
     :return:
@@ -233,8 +232,12 @@ def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int
             result_rule_dict = getattr(result, rn, None)
             if not result_rule_dict or not isinstance(result_rule_dict, dict):
                 continue
+            # 首先尝试获取OBJ类型
             records = result_rule_dict.get("records", [])
             if not records:
-                continue
+                # OBJ类型获取失败，则试试SQL类型
+                records = result_rule_dict.get("sqls", [])
+                if not records:
+                    continue
             count += len(records)
     return count
