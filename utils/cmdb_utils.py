@@ -80,8 +80,6 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> l
     :param collect_month: 仅搜索当前起前n个月的数据，没有搜索到的，当作无分数对待
     :return: [{"connect_name": str, "health_score": int, "collect_date": datetime}, ...]
     """
-    # TODO make it cached!
-
     if user_login:
         all_connect_names: set = set(get_current_cmdb(session, user_login, id_name="connect_name"))
     else:

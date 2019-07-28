@@ -71,16 +71,16 @@ class CMDBHandler(AuthReq):
                         })
                         break
             else:
-                db_data_health, p = self.paginate(all_db_data_health, **p)
-                for data_health in db_data_health:
-                    cmdb_obj_of_this_dh = q.\
-                        filter(CMDB.connect_name == data_health["connect_name"]). \
-                        first()
-                    if not cmdb_obj_of_this_dh:
-                        continue
+                items, p = self.paginate(q, **p)
+                for cmdb in items:
+                    current_dh = {}
+                    for dh in all_db_data_health:
+                        if dh["connect_name"] == cmdb.connect_name:
+                            current_dh = dh
+                            break
                     ret.append({
-                        **cmdb_obj_of_this_dh.to_dict(),
-                        "data_health": data_health
+                        **cmdb.to_dict(),
+                        "data_health": current_dh
                     })
             self.resp(ret, **p)
 
