@@ -53,7 +53,7 @@ class OnlineReportTaskHandler(AuthReq):
         """在线查看某个报告"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
-            "obj_type_info": scm_str
+            Optional("obj_type_info", default=None): scm_str
         }))
         job_id = params.pop("job_id")
         obj_type_info = params.pop("obj_type_info")
