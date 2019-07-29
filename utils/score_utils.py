@@ -148,21 +148,26 @@ def get_latest_task_record_id(session, cmdb_id: Union[list, int]) -> dict:
     return dict(list(cmdb_id_exec_hist_id_list_q))
 
 
-def get_result_queryset_by_type(
+def get_result_queryset_by(
         task_record_id,
         rule_type: Union[str, list, tuple],
-        obj_info_type=None):
+        obj_info_type=None,
+        schema_name: Union[str, list, tuple] = None,
+):
     """
     复杂查询results
     :param task_record_id:
     :param rule_type:
     :param obj_info_type: 仅适用于当rule_type为OBJ的时候
+    :param schema_name: 过滤schema_name
     :return: (results_queryset, rule_names_to_filter)
     """
     if rule_type != RULE_TYPE_OBJ and obj_info_type:
         assert 0
     if isinstance(rule_type, str):
         rule_type = [rule_type]
+    if isinstance(schema_name, str):
+        schema_name = [schema_name]
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
@@ -182,6 +187,8 @@ def get_result_queryset_by_type(
                      Q(**{f"{rn}__records__nin": [None, []]})
         if Qs:
             result_q = result_q.filter(Qs)
+    if schema_name:
+        result_q = result_q.filter(schema_name__in=schema_name)
     return result_q, rule_names_to_filter
 
 

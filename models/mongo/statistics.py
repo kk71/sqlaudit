@@ -44,17 +44,17 @@ class StatsLoginUser(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from models.oracle import make_session, CMDB, User, DataPrivilege
         from utils import const
-        from utils.score_utils import calc_problem_num, get_result_queryset_by_type
+        from utils.score_utils import calc_problem_num, get_result_queryset_by
         with make_session() as session:
             for login_user, in session.query(User.login_user):
                 doc = cls(task_record_id=task_record_id, login_user=login_user)
                 for the_cmdb_id, the_connect_name in \
                         session.query(CMDB.cmdb_id, CMDB.connect_name):
-                    sql_result_q, _ = get_result_queryset_by_type(
+                    sql_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE
                     )
-                    obj_result_q, _ = get_result_queryset_by_type(
+                    obj_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
                         rule_type=const.RULE_TYPE_OBJ
                     )
@@ -93,7 +93,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import get_latest_task_record_id, calc_distinct_sql_id, \
-            calc_problem_num, get_result_queryset_by_type
+            calc_problem_num, get_result_queryset_by
         from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo
@@ -123,9 +123,10 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_TEXT
+                            rule_type=RULE_TYPE_TEXT,
+                            schema_name=schema_name
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
@@ -135,9 +136,10 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                                 filter(cmdb_id=cmdb_id, schema=schema_name).
                                 distinct("plan_hash_value")
                         )
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_SQLPLAN
+                            rule_type=RULE_TYPE_SQLPLAN,
+                            schema_name=schema_name
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
@@ -146,9 +148,10 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_SQLSTAT
+                            rule_type=RULE_TYPE_SQLSTAT,
+                            schema_name=schema_name
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
@@ -157,9 +160,10 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             SQLText.filter_by_exec_hist_id(latest_task_record_id).
                             filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by_type(
+                        result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=ALL_RULE_TYPES_FOR_SQL_RULE
+                            rule_type=ALL_RULE_TYPES_FOR_SQL_RULE,
+                            schema_name=schema_name
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
@@ -168,10 +172,11 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, rule_names = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
-                            obj_info_type=OBJ_RULE_TYPE_TABLE
+                            obj_info_type=OBJ_RULE_TYPE_TABLE,
+                            schema_name=schema_name
                         )
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
@@ -180,10 +185,11 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, rule_names = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
-                            obj_info_type=OBJ_RULE_TYPE_INDEX
+                            obj_info_type=OBJ_RULE_TYPE_INDEX,
+                            schema_name=schema_name
                         )
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
@@ -192,10 +198,11 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
-                        result_q, rule_names = get_result_queryset_by_type(
+                        result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
-                            obj_info_type=OBJ_RULE_TYPE_SEQ
+                            obj_info_type=OBJ_RULE_TYPE_SEQ,
+                            schema_name=schema_name
                         )
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
