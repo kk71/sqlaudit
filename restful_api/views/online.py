@@ -587,11 +587,14 @@ class TablespaceHistoryHandler(AuthReq):
         self.resp(ret)
 
 
-class TablespaceSizeHistoryHandler(AuthReq):
+class TablespaceSumHistoryHandler(AuthReq):
 
     def get(self):
-        """表空间大小历史折线图"""
-        spz_q = StatsCMDBPhySize.objects().order_by("-etl_date").limit(30)
+        """总表空间大小历史折线图"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+        }))
+        spz_q = StatsCMDBPhySize.objects(**params).order_by("-etl_date").limit(30)
         ret = self.list_of_dict_to_date_axis(
             [i.to_dict(datetime_to_str=False) for i in spz_q],
             "etl_date",
