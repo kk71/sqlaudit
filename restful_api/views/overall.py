@@ -61,18 +61,17 @@ class DashboardHandler(PrivilegeReq):
                 "no": "从未执行"
             }
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
-            capture_tasks_status = {i[0]: "no" for i in session.query(TaskManage.task_id).
-                filter(TaskManage.cmdb_id.in_(cmdb_ids),
-                       TaskManage.task_exec_scripts == DB_TASK_CAPTURE)}
-            for hist in session.query(TaskExecHistory.task_id, TaskExecHistory.status). \
-                    filter(TaskExecHistory.id.in_(task_exec_hist_id_list)):
-                task_id, status = hist
-                capture_tasks_status[task_id] = status
-
+            latest_task_record_ids = list(score_utils.get_latest_task_record_id(
+                session, cmdb_ids, status=None).values())
+            task_id_task_record_status_dict = dict(session.
+                query(TaskExecHistory.task_id, TaskExecHistory.status).
+                filter(TaskExecHistory.id.in_(latest_task_record_ids)))
             task_status = {i: 0 for i in task_status_desc.values()}
-            for task_id, status in capture_tasks_status.items():
+            for task_id, status in task_id_task_record_status_dict.items():
                 if task_id:
                     task_status[task_status_desc[status]] += 1
+            task_status["no"] = len(cmdb_ids) - len(task_id_task_record_status_dict)
+
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({

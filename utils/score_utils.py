@@ -11,6 +11,7 @@ from utils.perf_utils import timing
 from models.mongo import *
 from models.oracle import *
 from utils import rule_utils
+from utils.datetime_utils import *
 
 
 def calc_deduction(scores):
@@ -137,21 +138,35 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     return ret
 
 
-def get_latest_task_record_id(session, cmdb_id: Union[list, int]) -> dict:
+def get_latest_task_record_id(
+        session,
+        cmdb_id: Union[list, int],
+        status: Union[bool, None] = True,
+        task_start_date_gt: Union[datetime, callable, None] =
+                                lambda: arrow.now().shift(days=-30).datetime
+        ) -> dict:
     """
     获取每个库最后一次采集分析的task_record_id
     :param session:
     :param cmdb_id:
+    :param status: 是否指定结束状态？True表示只过滤成功的，False表示失败，None表示不过滤
+    :param task_start_date_gt: 搜索的task_record必须晚于某个时间点(datetime)
     :return: {cmdb_id: task_record_id, ...}
     """
     if not isinstance(cmdb_id, (tuple, list)):
         cmdb_id = [cmdb_id]
+    if callable(task_start_date_gt):
+        task_start_date_gt: Union[datetime, None] = task_start_date_gt()
     sub_q = session. \
         query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
         join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
         filter(TaskManage.cmdb_id.in_(cmdb_id),
-               TaskManage.task_exec_scripts == DB_TASK_CAPTURE,
-               TaskExecHistory.status == True).subquery()  # 必须取成功的执行记录
+               TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
+    if status is not None:
+        sub_q = sub_q.filter(TaskExecHistory.status == status)
+    if task_start_date_gt is not None:
+        sub_q = sub_q.filter(TaskExecHistory.task_start_date > task_start_date_gt)
+    sub_q = sub_q.subquery()
     cmdb_id_exec_hist_id_list_q = session. \
         query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
     return dict(list(cmdb_id_exec_hist_id_list_q))
