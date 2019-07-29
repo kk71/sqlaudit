@@ -214,29 +214,29 @@ class CMDBPermissionHandler(AuthReq):
         with make_session() as session:
             qe = QueryEntity(CMDB.connect_name,
                              CMDB.cmdb_id,
-                             DataPrivilege.schema_name,
-                             DataPrivilege.create_date,
-                             DataPrivilege.comments,
-                             User.user_name,
-                             User.login_user)
+                             RoleDataPrivilege.schema_name,
+                             RoleDataPrivilege.create_date,
+                             RoleDataPrivilege.comments,
+                             Role.role_name,
+                             Role.role_id)
             perm_datas = session.query(*qe). \
-                join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id). \
-                join(User, User.login_user == DataPrivilege.login_user)
+                join(CMDB, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id). \
+                join(Role, Role.role_id == RoleDataPrivilege.role_id)
             if keyword:
                 perm_datas = self.query_keyword(perm_datas, keyword,
-                                                User.user_name,
+                                                Role.role_name,
                                                 CMDB.connect_name,
-                                                DataPrivilege.schema_name)
+                                                RoleDataPrivilege.schema_name)
             items, p = self.paginate(perm_datas, **p)
             self.resp([qe.to_dict(i) for i in perm_datas], **p)
 
     def patch(self):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            "login_user": scm_unempty_str,
+            "role_name":scm_unempty_str,
             "schema_names": [scm_unempty_str]
         }))
-        login_user = params.pop("login_user")
+        role_name=params.pop("role_name")
         cmdb_id = params.pop("cmdb_id")
         schema_names: list = params.pop("schema_names")
         del params
@@ -250,14 +250,14 @@ class CMDBPermissionHandler(AuthReq):
             if unavailable_schemas:
                 print(available_schema)
                 return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
-            session.query(DataPrivilege). \
+            session.query(RoleDataPrivilege). \
                 filter(
-                DataPrivilege.login_user == login_user,
-                DataPrivilege.cmdb_id == cmdb_id). \
+                RoleDataPrivilege.role_name==role_name,
+                RoleDataPrivilege.cmdb_id == cmdb_id). \
                 delete(synchronize_session='fetch')
-            session.add_all([DataPrivilege(
+            session.add_all([RoleDataPrivilege(
                 cmdb_id=cmdb_id,
-                login_user=login_user,
+                role_name=role_name,
                 schema_name=i
             ) for i in schema_names])
         return self.resp_created(msg="分配权限成功")
@@ -265,9 +265,9 @@ class CMDBPermissionHandler(AuthReq):
     def delete(self):
         params = self.get_json_args(Schema({
             'cmdb_id': scm_int,
-            'login_user': scm_unempty_str,
+            'role_id': scm_int,
             'schema_name': scm_unempty_str
         }))
         with make_session() as session:
-            session.query(DataPrivilege).filter_by(**params).delete()
+            session.query(RoleDataPrivilege).filter_by(**params).delete()
         self.resp_created(msg="删除成功")
