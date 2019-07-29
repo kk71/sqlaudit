@@ -42,9 +42,10 @@ class StatsLoginUser(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from models.oracle import make_session, CMDB, User, DataPrivilege
+        from models.oracle import make_session, CMDB, User
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by
+        from utils.cmdb_utils import get_current_schema
         with make_session() as session:
             for login_user, in session.query(User.login_user):
                 doc = cls(task_record_id=task_record_id, login_user=login_user)
@@ -58,9 +59,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         task_record_id=task_record_id,
                         rule_type=const.RULE_TYPE_OBJ
                     )
-                    schema_captured_num = session.query(DataPrivilege.schema_name).\
-                        filter(DataPrivilege.cmdb_id == the_cmdb_id).\
-                        count()
+                    schema_captured_num = len(get_current_schema(
+                        session, login_user, the_cmdb_id))
                     doc.cmdb.append({
                         "cmdb_id": the_cmdb_id,
                         "connect_name": the_connect_name,
@@ -94,20 +94,18 @@ class StatsNumDrillDown(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import get_latest_task_record_id, calc_distinct_sql_id, \
             calc_problem_num, get_result_queryset_by
-        from models.oracle import make_session, DataPrivilege, CMDB, QueryEntity
+        from models.oracle import make_session
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo
+        from utils.cmdb_utils import get_current_schema
         with make_session() as session:
-            qe = QueryEntity(
-                CMDB.cmdb_id,
-                CMDB.connect_name,
-                DataPrivilege.schema_name
-            )
-            rst = session.query(*qe).\
-                join(CMDB, DataPrivilege.cmdb_id == CMDB.cmdb_id).\
-                filter(DataPrivilege.cmdb_id == cmdb_id)
             latest_task_record_id = get_latest_task_record_id(session, cmdb_id)[cmdb_id]
-            for cmdb_id, connect_name, schema_name in set(rst):
+            verbose_schema_info = get_current_schema(
+                session,
+                cmdb_id=cmdb_id,
+                verbose=True
+            )
+            for cmdb_id, connect_name, role_id, schema_name in verbose_schema_info:
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(

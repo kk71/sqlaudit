@@ -1,43 +1,71 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from typing import Union
+
 import cx_Oracle
 
 from models.oracle import *
 from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
-from utils import score_utils
+from utils import score_utils, privilege_utils
 
 import plain_db.oracleob
 
 
-def get_current_cmdb(session, user_login, id_name="cmdb_id") -> list:
+def get_current_cmdb(session, user_login, id_name="cmdb_id") -> [str]:
     """
     获取某个用户可见的cmdb
     :param session:
     :param user_login:
     :param id_name: 返回的唯一键值，默认是cmdb_id，亦可选择connect_name
-    :return: list of cmdb_id
+    :return: [cmdb_id或者connect_name, ...]
     """
+    role_ids: list = list(privilege_utils.get_role_of_user(login_user=user_login).
+                        get(user_login, set([])))
     if id_name == "cmdb_id":
-        return [i[0] for i in session.query(DataPrivilege.cmdb_id.distinct()).
-                filter(DataPrivilege.login_user == user_login)]
+        return [i[0] for i in session.query(RoleDataPrivilege.cmdb_id.distinct()).
+                filter(RoleDataPrivilege.role_id.in_(role_ids))]
     elif id_name == "connect_name":
         return [i[0] for i in session.query(CMDB.connect_name.distinct()).
-                filter(CMDB.cmdb_id == DataPrivilege.cmdb_id)]
+                join(RoleDataPrivilege, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id).
+                filter(RoleDataPrivilege.role_id.in_(role_ids))]
 
 
-def get_current_schema(session, user_login, cmdb_id) -> list:
+def get_current_schema(
+        session,
+        user_login: Union[str, list, tuple, None] = None,
+        cmdb_id=None,
+        verbose=False) -> [str]:
     """
     获取某个用户可见的schema
     :param session:
-    :param user_login:
-    :param cmdb_id:
-    :return: list of schema
+    :param user_login: 注意，如果传过来是多个login_user,并且返回不是verbose==True，并且还没传cmdb_id，
+                        那么意味着多个库有重复的schema会被合并
+    :param cmdb_id: 为None则表示拿全部绑定的schema
+    :param verbose:
+    :return: verbose==False:[schema_name, ...]
+             verbose==True:[(cmdb_id, connect_name, role_id, schema_name), ...]
     """
-    q = session.query(DataPrivilege.schema_name).filter(
-        DataPrivilege.login_user == user_login, DataPrivilege.cmdb_id == cmdb_id)
-    return [i[0] for i in q]
+    if verbose:
+        q = session.query(
+            RoleDataPrivilege.cmdb_id,
+            CMDB.connect_name,
+            RoleDataPrivilege.role_id,
+            RoleDataPrivilege.schema_name
+        ).join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
+    else:
+        q = session.query(RoleDataPrivilege.schema_name.distinct())
+    if user_login:
+        role_ids: list = list(privilege_utils.get_role_of_user(login_user=user_login).
+                          get(user_login, set([])))
+        q = q.filter(RoleDataPrivilege.role_id.in_(role_ids))
+    if cmdb_id:
+        q = q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
+    if verbose:
+        return list(set(q))
+    else:
+        return [i[0] for i in q]
 
 
 @timing()

@@ -3,7 +3,6 @@
 import cx_Oracle
 from schema import Schema, Optional, And
 
-import settings
 from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from models.oracle import *

@@ -1,4 +1,3 @@
-
 import time
 from schema import Schema, And
 from sqlalchemy import func
@@ -8,6 +7,7 @@ from .base import PrivilegeReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
+from utils import cmdb_utils
 
 import past.utils.check
 
@@ -26,8 +26,7 @@ class OverviewHandler(PrivilegeReq):
         date_start = arrow.now().shift(**{f"{duration}s": -1}).datetime
 
         with make_session() as session:
-            cmdb_ids: list = [i[0] for i in session.query(DataPrivilege.cmdb_id).
-                                filter(DataPrivilege.login_user == self.current_user)]
+            cmdb_ids: list = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not cmdb_ids:
                 return self.resp_forbidden(msg="未拥有任何纳管数据库的权限。")
 
