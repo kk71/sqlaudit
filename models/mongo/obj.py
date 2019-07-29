@@ -94,7 +94,7 @@ class ObjPartTabParent(BaseDocRecordID):
     last_ddl_date = DateTimeField(db_field="LAST_DDL_TIME")
     part_role = StringField(db_field="PART_ROLE")
     num_rows = IntField(db_field="NUM_ROW")
-    phy_size_mb = FloatField(db_field="PHY_SIZE(MB)", null=True)    # 少量数据有此字段
+    phy_size_mb = FloatField(db_field="PHY_SIZE(MB)", null=True)  # 少量数据有此字段
 
     meta = {
         "collection": "obj_part_tab_parent"
@@ -201,20 +201,20 @@ class ObjTabSpace(CMDBCapture):
 
     @classmethod
     def command_to_execute(cls, obj_owner=None) -> str:
-        return f"""SELECT a.tablespace_name as tablespace_name,
+        return """SELECT a.tablespace_name as tablespace_name,
        total,
        free,
-       ( total - free ) as used,
-       Round(( total - free ) / total, 4) as usage_ratio
-FROM   (SELECT tablespace_name,
-               Sum(bytes) free
-        FROM   DBA_FREE_SPACE
-        GROUP  BY tablespace_name) a,
-       (SELECT tablespace_name,
-               Sum(bytes) total
-        FROM   DBA_DATA_FILES
-        GROUP  BY tablespace_name) b
-WHERE  a.tablespace_name = b.tablespace_name"""
+       (total - free) as used,
+       Round((total - free) / total, 4) as usage_ratio
+  FROM (SELECT tablespace_name, Sum(bytes) free
+          FROM DBA_FREE_SPACE
+         GROUP BY tablespace_name) a,
+       (SELECT tablespace_name, Sum(bytes) total
+          FROM DBA_DATA_FILES
+         GROUP BY tablespace_name) b
+ WHERE a.tablespace_name = b.tablespace_name
+   and a.tablespace_name not in
+       ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP');"""
 
     def get_key(self):
         return self.tablespace_name
