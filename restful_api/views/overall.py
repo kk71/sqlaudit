@@ -187,7 +187,8 @@ class StatsNumDrillDownHandler(AuthReq):
                         "task_record_id": cmdb_id_task_record_id[cmdb_id]})
             if not Qs:
                 return self.resp([])
-            drill_down_q = StatsNumDrillDown.objects(drill_down_type__in=ddt_in).\
+            drill_down_q = StatsNumDrillDown.\
+                objects(drill_down_type__in=ddt_in, job_id__ne=None).\
                 filter(Qs).\
                 order_by("-etl_date")
             items, p = self.paginate(drill_down_q, **p)

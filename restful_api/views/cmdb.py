@@ -88,6 +88,7 @@ class CMDBHandler(AuthReq):
             cmdb_stats = {c["cmdb_id"]: c for c in login_stats.cmdb}
             for i in ret:
                 i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
+                i["stats"]["etl_date"] = dt_to_str(login_stats.etl_date)
             self.resp(ret, **p)
 
     def post(self):
