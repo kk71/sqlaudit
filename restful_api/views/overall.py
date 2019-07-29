@@ -70,7 +70,7 @@ class DashboardHandler(PrivilegeReq):
             for task_id, status in task_id_task_record_status_dict.items():
                 if task_id:
                     task_status[task_status_desc[status]] += 1
-            task_status["no"] = len(cmdb_ids) - len(task_id_task_record_status_dict)
+            task_status["从未执行"] = len(cmdb_ids) - len(task_id_task_record_status_dict)
 
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
