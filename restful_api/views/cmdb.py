@@ -426,7 +426,6 @@ class RankingConfigHandler(AuthReq):
                 join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name)
             if keyword:
                 rankings = self.query_keyword(rankings, keyword,
-                                              CMDB.cmdb_id,
                                               CMDB.connect_name,
                                               DataHealthUserConfig.username)
             items, p = self.paginate(rankings, **p)
