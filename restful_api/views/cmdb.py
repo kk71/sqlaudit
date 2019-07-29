@@ -428,9 +428,6 @@ class RankingConfigHandler(AuthReq):
                 rankings = self.query_keyword(rankings, keyword,
                                               CMDB.cmdb_id,
                                               CMDB.connect_name,
-                                              CMDB.user_name,
-                                              CMDB.create_owner,
-                                              DataHealthUserConfig.database_name,
                                               DataHealthUserConfig.username)
             items, p = self.paginate(rankings, **p)
             self.resp(sorted([qe.to_dict(i) for i in items], key=lambda k: k["database_name"]), **p)
