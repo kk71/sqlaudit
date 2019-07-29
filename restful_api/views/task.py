@@ -61,6 +61,7 @@ class TaskHandler(AuthReq):
                     else:
                         continue
                 ret.append(t_dict)
+            ret = sorted(ret, key=lambda k: 0 if k["last_result"] is None else k["last_result"], reverse=True)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
 
