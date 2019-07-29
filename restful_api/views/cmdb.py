@@ -415,8 +415,8 @@ class RankingConfigHandler(AuthReq):
 
         with make_session() as session:
             qe = QueryEntity(
-                CMDB.cmdb_id,
                 DataHealthUserConfig.database_name,
+                CMDB.cmdb_id,
                 DataHealthUserConfig.username,
                 DataHealthUserConfig.needcalc,
                 DataHealthUserConfig.weight
@@ -433,7 +433,7 @@ class RankingConfigHandler(AuthReq):
                                               DataHealthUserConfig.database_name,
                                               DataHealthUserConfig.username)
             items, p = self.paginate(rankings, **p)
-            self.resp([qe.to_dict(i) for i in items], **p)
+            self.resp(sorted([qe.to_dict(i) for i in items], key=lambda k: k["database_name"]), **p)
 
     def patch(self):
         """局部修改评分的数据库，schema"""

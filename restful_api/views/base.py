@@ -186,7 +186,7 @@ class BaseReq(RequestHandler):
             l = f"%{l}%"
             to_or = []
             for s in args:
-                to_or.append(s.like(l))
+                to_or.append(s.ilike(l))
             return q.filter(or_(*to_or))
 
         elif isinstance(q, M_Query):
