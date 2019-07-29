@@ -53,8 +53,10 @@ class OnlineReportTaskHandler(AuthReq):
         """在线查看某个报告"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
+            "obj_type_info": scm_str
         }))
         job_id = params.pop("job_id")
+        obj_type_info = params.pop("obj_type_info")
         del params  # shouldn't use params anymore
 
         with make_session() as session:
@@ -64,7 +66,8 @@ class OnlineReportTaskHandler(AuthReq):
             if not cmdb:
                 self.resp_not_found(msg="纳管数据库不存在")
                 return
-            rules_violated, score_sum = score_utils.calc_result(result, cmdb.db_model)
+            rules_violated, score_sum = score_utils.calc_result(
+                result, cmdb.db_model, obj_type_info)
             self.resp({
                 "job_id": job_id,
                 "cmdb": cmdb.to_dict(),
