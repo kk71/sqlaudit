@@ -9,9 +9,10 @@ import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from utils import score_utils, const
-from restful_api.views.base import AuthReq
+from .base import AuthReq
 from models.mongo import *
 from models.oracle import *
+from utils import cmdb_utils
 import html_report.export
 
 
@@ -31,7 +32,12 @@ class OnlineReportTaskListHandler(AuthReq):
         p = self.pop_p(params)
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
-        job_q = Job.objects(score__nin=[None, 0], **params).order_by("-create_time")
+        with make_session() as session:
+            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+        job_q = Job.objects(
+            score__nin=[None, 0],
+            cmdb_id__in=cmdb_ids,
+            **params).order_by("-create_time")
         if schema_name:
             job_q = job_q.filter(desc__owner=schema_name)
         if date_start:
