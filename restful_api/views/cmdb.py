@@ -287,7 +287,8 @@ class SchemaHandler(AuthReq):
                 DATA_PRIVILEGE,   # 以login_user区分当前库的数据权限（绑定、未绑定）
                 HEALTH_USER_CONFIG  # 以login_user区分当前库的评分权限（绑定、未绑定）
             )),  # 指定分开返回的类型
-            Optional("login_user", default=None): scm_str
+            Optional("login_user", default=None): scm_str,
+            Optional("role_id", default=None): scm_gt0_int,
         }))
         cmdb_id = params.pop("cmdb_id")
         connect_name = params.pop("connect_name")
@@ -295,6 +296,7 @@ class SchemaHandler(AuthReq):
             return self.resp_bad_req(msg="neither cmdb_id nor connect_name is present.")
         current = params.pop("current")
         login_user = params.pop("login_user")
+        role_id = params.pop("role_id")
         divide_by = params.pop("divide_by")
         del params
         with make_session() as session:
@@ -313,6 +315,21 @@ class SchemaHandler(AuthReq):
                 bound = cmdb_utils.get_current_schema(session,
                                                       login_user,
                                                       cmdb_id)
+                cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+                try:
+                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                except cx_Oracle.DatabaseError as err:
+                    return self.resp_bad_req(msg="无法连接到数据库")
+                self.resp({
+                    "bound": bound,
+                    "else": [i for i in all_schemas if i not in bound]
+                })
+
+            elif role_id and divide_by == DATA_PRIVILEGE:
+                # 返回给出的角色所绑定的schema，以及未绑定的
+                bound = list({schema_name for schema_name, in session.
+                            query(RoleDataPrivilege.schema_name).
+                            filter(RoleDataPrivilege.role_id == role_id)})
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
                     all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
