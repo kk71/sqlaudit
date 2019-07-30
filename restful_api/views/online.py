@@ -27,7 +27,7 @@ class ObjectRiskListHandler(AuthReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
-            Optional("severity",default=None):scm_dot_split_str,
+            Optional("severity", default=None): scm_dot_split_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
 
@@ -145,7 +145,7 @@ class SQLRiskListHandler(AuthReq):
             Optional("enable_white_list", default=True):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
-            Optional("severity",default=None):scm_dot_split_str,
+            Optional("severity", default=None): scm_dot_split_str,
         }
 
     def get(self):
@@ -298,8 +298,8 @@ class SQLRiskDetailHandler(AuthReq):
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
             sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id=cmdb_id)
-            latest_sql_text_object = SQLText.objects(sql_id=sql_id).\
-                order_by("-etl_date").\
+            latest_sql_text_object = SQLText.objects(sql_id=sql_id). \
+                order_by("-etl_date"). \
                 first()
             if not latest_sql_text_object:
                 self.resp_not_found(msg="不存在该SQL")
@@ -413,18 +413,18 @@ class SQLPlanHandler(AuthReq):
         filtered_plans = []
         for p in plans:
             filtered_plans.append(p.to_dict(iter_if=lambda k, v: k in (
-                    "index",
-                    "depth",
-                    "operation",
-                    "operation_display",
-                    "object_owner",
-                    "object_name",
-                    "position",
-                    "cost",
-                    "time",
-                    "access_predicates",
-                    "filter_predicates"
-                )))
+                "index",
+                "depth",
+                "operation",
+                "operation_display",
+                "object_owner",
+                "object_name",
+                "position",
+                "cost",
+                "time",
+                "access_predicates",
+                "filter_predicates"
+            )))
         filtered_plans = sorted(filtered_plans, key=lambda x: x["index"])
         self.resp(filtered_plans)
 
@@ -437,7 +437,7 @@ class TableInfoHandler(AuthReq):
             "schema_name": scm_unempty_str,
             "table_name": scm_unempty_str
         }))
-        latest_tab_info = ObjTabInfo.objects(table_name=params["table_name"]).\
+        latest_tab_info = ObjTabInfo.objects(table_name=params["table_name"]). \
             order_by("-etl_date").first()
         if not latest_tab_info:
             self.resp({}, msg="无数据。")
@@ -563,7 +563,7 @@ class TablespaceListHandler(AuthReq):
             latest_task_record_id = score_utils.get_latest_task_record_id(
                 session, cmdb_id=cmdb_id)[cmdb_id]
             ots_q = ObjTabSpace.objects(
-                cmdb_id=cmdb_id, task_record_id=latest_task_record_id).\
+                cmdb_id=cmdb_id, task_record_id=latest_task_record_id). \
                 order_by("-usage_ratio")
             items, p = self.paginate(ots_q, **p)
             self.resp([i.to_dict() for i in items], **p)
@@ -580,6 +580,23 @@ class TablespaceHistoryHandler(AuthReq):
         ts_q = ObjTabSpace.objects(**params).order_by("-etl_date").limit(30)
         ret = self.list_of_dict_to_date_axis(
             [i.to_dict(datetime_to_str=False) for i in ts_q],
+            "etl_date",
+            "usage_ratio"
+        )
+        ret = self.dict_to_verbose_dict_in_list(dict(ret[:7]))
+        self.resp(ret)
+
+
+class TablespaceSumHistoryHandler(AuthReq):
+
+    def get(self):
+        """总表空间大小历史折线图"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+        }))
+        spz_q = StatsCMDBPhySize.objects(**params).order_by("-etl_date").limit(30)
+        ret = self.list_of_dict_to_date_axis(
+            [i.to_dict(datetime_to_str=False) for i in spz_q],
             "etl_date",
             "usage_ratio"
         )

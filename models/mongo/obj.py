@@ -214,7 +214,7 @@ class ObjTabSpace(CMDBCapture):
          GROUP BY tablespace_name) b
  WHERE a.tablespace_name = b.tablespace_name
    and a.tablespace_name not in
-       ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP');"""
+       ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP')"""
 
     def get_key(self):
         return self.tablespace_name
