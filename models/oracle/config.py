@@ -61,7 +61,7 @@ class RoleDataPrivilege(BaseModel):
     cmdb_id = Column("CMDB_ID", Integer)
     schema_name = Column("SCHEMA_NAME", String)
     comments = Column("COMMENTS", String)
-    create_date = Column("CREATE_DATE", DATE)
+    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
 
 
 class OverviewRate(BaseModel):
