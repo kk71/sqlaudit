@@ -32,20 +32,6 @@ def get_top_cmdb_ids(login_user=None, select=["*"]) -> list:
     return top_cmdb_ids
 
 
-def get_authed_cmdbs(login_user):
-
-    sql = "SELECT cmdb_id, schema_name FROM T_DATA_PRIVILEGE"
-    sql_params = []
-
-    if login_user != "admin":
-        sql += " WHERE login_user = :1"
-        sql_params.append(login_user)
-    else:
-        sql = "SELECT cmdb_id FROM T_CMDB"
-    privileges = OracleHelper.select(sql, sql_params, one=False)
-    return privileges
-
-
 def get_rules(rule_type="all"):
     sql = "select RULE_NAME, RULE_TYPE FROM T_RISK_SQL_RULE"
     rules = OracleHelper.select(sql=sql, one=False)

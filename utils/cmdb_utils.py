@@ -36,7 +36,9 @@ def get_current_schema(
         session,
         user_login: Union[str, list, tuple, None] = None,
         cmdb_id=None,
-        verbose=False) -> [str]:
+        verbose=False,
+        verbose_dict=False,
+) -> [str]:
     """
     获取某个用户可见的schema
     :param session:
@@ -44,16 +46,19 @@ def get_current_schema(
                         那么意味着多个库有重复的schema会被合并
     :param cmdb_id: 为None则表示拿全部绑定的schema
     :param verbose:
+    :param verbose_dict:
     :return: verbose==False:[schema_name, ...]
              verbose==True:[(cmdb_id, connect_name, role_id, schema_name), ...]
+             verbose_dict==True:[{cmdb_id: "", connect_name: "", role_id: "", schema_name: ""), ...]
     """
-    if verbose:
-        q = session.query(
-            RoleDataPrivilege.cmdb_id,
-            CMDB.connect_name,
-            RoleDataPrivilege.role_id,
-            RoleDataPrivilege.schema_name
-        ).join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
+    qe = QueryEntity(
+        RoleDataPrivilege.cmdb_id,
+        CMDB.connect_name,
+        RoleDataPrivilege.role_id,
+        RoleDataPrivilege.schema_name
+    )
+    if verbose or verbose_dict:
+        q = session.query(*qe).join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
     else:
         q = session.query(RoleDataPrivilege.schema_name.distinct())
     if user_login:
@@ -64,6 +69,8 @@ def get_current_schema(
         q = q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
     if verbose:
         return list(set(q))
+    elif verbose_dict:
+        return [qe.to_dict(i) for i in q]
     else:
         return [i[0] for i in q]
 

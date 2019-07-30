@@ -17,6 +17,7 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
+from models.oracle import make_session
 from past.rule_analysis.db.mongo_operat import MongoHelper
 
 from .base import celery
@@ -93,8 +94,10 @@ def create_excel(username, send_list_id):
 
     if username != "admin":
 
-        query = """SELECT cmdb_id, schema_name FROM T_DATA_PRIVILEGE WHERE login_user = :1"""
-        res = OracleHelper.select_dict(query, [username], one=False)
+        # query = """SELECT cmdb_id, schema_name FROM T_DATA_PRIVILEGE WHERE login_user = :1"""
+        # res = OracleHelper.select_dict(query, [username], one=False)
+        with make_session() as session:
+            res = utils.cmdb_utils.get_current_schema(session, username, verbose_dict=True)
 
         data = {}
         for value in res:
