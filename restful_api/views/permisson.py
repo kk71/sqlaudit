@@ -232,11 +232,11 @@ class CMDBPermissionHandler(AuthReq):
 
     def patch(self):
         params = self.get_json_args(Schema({
-            "cmdb_id": scm_int,
-            "role_name":scm_unempty_str,
+            "cmdb_id": scm_gt0_int,
+            "role_id": scm_gt0_int,
             "schema_names": [scm_unempty_str]
         }))
-        role_name=params.pop("role_name")
+        role_id = params.pop("role_id")
         cmdb_id = params.pop("cmdb_id")
         schema_names: list = params.pop("schema_names")
         del params
@@ -252,12 +252,12 @@ class CMDBPermissionHandler(AuthReq):
                 return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
             session.query(RoleDataPrivilege). \
                 filter(
-                RoleDataPrivilege.role_name==role_name,
+                RoleDataPrivilege.role_id == role_id,
                 RoleDataPrivilege.cmdb_id == cmdb_id). \
                 delete(synchronize_session='fetch')
             session.add_all([RoleDataPrivilege(
                 cmdb_id=cmdb_id,
-                role_name=role_name,
+                role_id=role_id,
                 schema_name=i
             ) for i in schema_names])
         return self.resp_created(msg="分配权限成功")
