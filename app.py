@@ -126,10 +126,10 @@ def schedule():
 @click.command()
 @click.option("--q", help="use queue to run")
 @click.option("--no-prefetch", help="do not prefetch")
-def clear_cache(use_q=True, no_prefetch=False):
+def clear_cache(q=True, no_prefetch=False):
     """clear all cache"""
     from task.clear_cache import clear_cache
-    if use_q:
+    if q:
         to_run = clear_cache.delay
     else:
         to_run = clear_cache
