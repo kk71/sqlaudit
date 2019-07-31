@@ -489,12 +489,15 @@ class OverviewHandler(SQLRiskListHandler):
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
         del params  # shouldn't use params anymore
-        self.resp(cmdb_utils.online_overview_using_cache(
-            date_start=date_start,
-            date_end=date_end,
-            cmdb_id=cmdb_id,
-            schema_name=schema_name
-        ))
+        try:
+            self.resp(cmdb_utils.online_overview_using_cache(
+                date_start=date_start,
+                date_end=date_end,
+                cmdb_id=cmdb_id,
+                schema_name=schema_name
+            ))
+        except:
+            return self.resp_bad_req(msg="当前库未采集，请采集后重试。")
 
 
 class OverviewScoreByHandler(AuthReq):
@@ -560,8 +563,11 @@ class TablespaceListHandler(AuthReq):
         p = self.pop_p(params)
         cmdb_id = params.pop("cmdb_id")
         with make_session() as session:
-            latest_task_record_id = score_utils.get_latest_task_record_id(
-                session, cmdb_id=cmdb_id)[cmdb_id]
+            try:
+                latest_task_record_id = score_utils.get_latest_task_record_id(
+                    session, cmdb_id=cmdb_id)[cmdb_id]
+            except:
+                return self.resp_bad_req(msg="当前库没有采到表空间信息")
             ots_q = ObjTabSpace.objects(
                 cmdb_id=cmdb_id, task_record_id=latest_task_record_id). \
                 order_by("-usage_ratio")
