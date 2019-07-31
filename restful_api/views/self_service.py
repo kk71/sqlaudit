@@ -28,7 +28,7 @@ class OverviewHandler(PrivilegeReq):
         with make_session() as session:
             cmdb_ids: list = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not cmdb_ids:
-                return self.resp_forbidden(msg="未拥有任何纳管数据库的权限。")
+                return self.resp_forbidden(msg="当前登录用户的角色未拥有任何纳管数据库。")
 
             # 成功次数、失败次数, 上线次数(3+4)
             qe = QueryEntity(
