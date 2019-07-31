@@ -169,8 +169,8 @@ class StatsNumDrillDownHandler(AuthReq):
             **self.gen_p()
         }))
         ddt_in = params.pop("drill_down_type")
-        cmdb_id = params.pop("cmdb_id")
-        schema_name = params.pop("schema_name")
+        the_cmdb_id = params.pop("cmdb_id")
+        the_schema_name = params.pop("schema_name")
         p = self.pop_p(params)
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
@@ -198,9 +198,9 @@ class StatsNumDrillDownHandler(AuthReq):
                 objects(drill_down_type__in=ddt_in, job_id__ne=None). \
                 filter(Qs). \
                 order_by("-etl_date")
-            if cmdb_id:
-                drill_down_q = drill_down_q.filter(cmdb_id=cmdb_id)
-            if schema_name:
-                drill_down_q = drill_down_q.filter(schema_name=schema_name)
+            if the_cmdb_id:
+                drill_down_q = drill_down_q.filter(cmdb_id=the_cmdb_id)
+            if the_schema_name:
+                drill_down_q = drill_down_q.filter(schema_name=the_schema_name)
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
