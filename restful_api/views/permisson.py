@@ -9,6 +9,7 @@ from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils
 from task.clear_cache import clear_cache
+from sqlalchemy.exc import IntegrityError
 
 
 class RoleHandler(AuthReq):
@@ -150,10 +151,13 @@ class RoleUserHandler(AuthReq):
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
-            ur = UserRole(**params)
-            session.add(ur)
-            session.commit()
-            session.refresh(ur)
+            try:
+                ur = UserRole(**params)
+                session.add(ur)
+                session.commit()
+                session.refresh(ur)
+            except IntegrityError as e:
+                return self.resp_bad_req(msg="角色已经绑定")
             self.resp_created(ur.to_dict())
 
     def delete(self):
