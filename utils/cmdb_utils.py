@@ -120,7 +120,8 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> l
     else:
         all_connect_names: set = {i[0] for i in session.query(CMDB.connect_name)}
     dh_objects = session.query(DataHealth).filter(
-        DataHealth.collect_date >= arrow.now().shift(months=-collect_month).datetime
+        DataHealth.collect_date >= arrow.now().shift(months=-collect_month).datetime,
+        DataHealth.database_name.in_(all_connect_names)
     ).order_by(DataHealth.collect_date.desc()).all()
     ret = []
     for dh in dh_objects:
