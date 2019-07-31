@@ -53,11 +53,13 @@ class StatsLoginUser(BaseStatisticsDoc):
                         session.query(CMDB.cmdb_id, CMDB.connect_name):
                     sql_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
-                        rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE
+                        rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
+                        cmdb_id=the_cmdb_id
                     )
                     obj_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
-                        rule_type=const.RULE_TYPE_OBJ
+                        rule_type=const.RULE_TYPE_OBJ,
+                        cmdb_id=the_cmdb_id
                     )
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))

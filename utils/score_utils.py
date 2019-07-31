@@ -177,6 +177,7 @@ def get_result_queryset_by(
         rule_type: Union[str, list, tuple],
         obj_info_type=None,
         schema_name: Union[str, list, tuple] = None,
+        cmdb_id: Union[int, list, tuple] = None
 ):
     """
     复杂查询results
@@ -184,6 +185,7 @@ def get_result_queryset_by(
     :param rule_type:
     :param obj_info_type: 仅适用于当rule_type为OBJ的时候
     :param schema_name: 过滤schema_name
+    :param cmdb_id:
     :return: (results_queryset, rule_names_to_filter)
     """
     if rule_type != RULE_TYPE_OBJ and obj_info_type:
@@ -192,6 +194,8 @@ def get_result_queryset_by(
         rule_type = [rule_type]
     if isinstance(schema_name, str):
         schema_name = [schema_name]
+    if isinstance(cmdb_id, int):
+        cmdb_id = [cmdb_id]
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
@@ -213,6 +217,8 @@ def get_result_queryset_by(
             result_q = result_q.filter(Qs)
     if schema_name:
         result_q = result_q.filter(schema_name__in=schema_name)
+    if cmdb_id:
+        result_q = result_q.filter(cmdb_id__in=cmdb_id)
     return result_q, rule_names_to_filter
 
 
