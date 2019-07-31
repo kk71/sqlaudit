@@ -29,8 +29,10 @@ class DashboardHandler(PrivilegeReq):
                 dashboard_3_sum(session=session, login_user=self.current_user)
 
             # 维度的数据库
+            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)). \
-                filter(Param.param_id == CMDB.domain_env,
+                join(CMDB, Param.param_id == CMDB.domain_env). \
+                filter(CMDB.cmdb_id.in_(cmdb_ids),
                        Param.param_type == PARAM_TYPE_ENV). \
                 group_by(Param.param_value)
             # 智能优化执行次数
@@ -60,7 +62,6 @@ class DashboardHandler(PrivilegeReq):
                 False: "失败",
                 "no": "从未执行"
             }
-            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             latest_task_record_ids = list(score_utils.get_latest_task_record_id(
                 session, cmdb_ids, status=None).values())
             task_id_task_record_status_dict = dict(session.
