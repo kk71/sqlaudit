@@ -8,6 +8,7 @@ from utils.schema_utils import *
 from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils
+from task.clear_cache import clear_cache
 
 
 class RoleHandler(AuthReq):
@@ -260,6 +261,8 @@ class CMDBPermissionHandler(AuthReq):
                 role_id=role_id,
                 schema_name=i
             ) for i in schema_names])
+
+        clear_cache.delay()
         return self.resp_created(msg="分配权限成功")
 
     def delete(self):
@@ -270,4 +273,6 @@ class CMDBPermissionHandler(AuthReq):
         }))
         with make_session() as session:
             session.query(RoleDataPrivilege).filter_by(**params).delete()
+
+        clear_cache.delay()
         self.resp_created(msg="删除成功")
