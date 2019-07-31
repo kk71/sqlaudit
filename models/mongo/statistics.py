@@ -102,13 +102,12 @@ class StatsNumDrillDown(BaseStatisticsDoc):
             ObjIndColInfo, Job
         from utils.cmdb_utils import get_current_schema
         with make_session() as session:
-            latest_task_record_id = get_latest_task_record_id(session, cmdb_id)[cmdb_id]
             verbose_schema_info = get_current_schema(
                 session,
                 cmdb_id=cmdb_id,
                 verbose=True
             )
-            for cmdb_id, connect_name, role_id, schema_name in verbose_schema_info:
+            for _, connect_name, role_id, schema_name in verbose_schema_info:
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(
@@ -121,7 +120,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                     result_q = None
                     if t == STATS_NUM_SQL_TEXT:
                         new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                            SQLText.filter_by_exec_hist_id(task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
                         result_q, _ = get_result_queryset_by(
@@ -134,7 +133,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_SQL_PLAN:
                         new_doc.num = len(
-                            MSQLPlan.filter_by_exec_hist_id(latest_task_record_id).
+                            MSQLPlan.filter_by_exec_hist_id(task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).
                                 distinct("plan_hash_value")
                         )
@@ -148,7 +147,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_SQL_STATS:
                         new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                            SQLText.filter_by_exec_hist_id(task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
                         result_q, _ = get_result_queryset_by(
@@ -161,7 +160,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_SQL:
                         new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(latest_task_record_id).
+                            SQLText.filter_by_exec_hist_id(task_record_id).
                             filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
                         result_q, _ = get_result_queryset_by(
@@ -174,7 +173,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_TAB:
                         new_doc.num = ObjTabInfo.\
-                            filter_by_exec_hist_id(latest_task_record_id).filter(
+                            filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
@@ -188,7 +187,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_INDEX:
                         new_doc.num = ObjIndColInfo.\
-                            filter_by_exec_hist_id(latest_task_record_id).filter(
+                            filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
@@ -202,7 +201,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_SEQUENCE:
                         new_doc.num = ObjSeqInfo.objects(
-                            task_record_id=latest_task_record_id,
+                            task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
@@ -216,22 +215,22 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_OBJ:
                         new_doc.num = ObjSeqInfo.objects(
-                            task_record_id=latest_task_record_id,
+                            task_record_id=task_record_id,
                             cmdb_id=cmdb_id,
                             schema_name=schema_name
                         ).count()
-                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(latest_task_record_id).\
+                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(task_record_id).\
                             filter(
                                 cmdb_id=cmdb_id,
                                 schema_name=schema_name
                             ).count()
-                        new_doc.num += ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_id). \
+                        new_doc.num += ObjIndColInfo.filter_by_exec_hist_id(task_record_id). \
                             filter(
                                 cmdb_id=cmdb_id,
                                 schema_name=schema_name
                             ).count()
                         result_q, rule_names = get_result_queryset_by(
-                            task_record_id=latest_task_record_id,
+                            task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
