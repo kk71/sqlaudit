@@ -65,8 +65,8 @@ class DashboardHandler(PrivilegeReq):
             latest_task_record_ids = list(score_utils.get_latest_task_record_id(
                 session, cmdb_ids, status=None).values())
             task_id_task_record_status_dict = dict(session.
-                query(TaskExecHistory.task_id, TaskExecHistory.status).
-                filter(TaskExecHistory.id.in_(latest_task_record_ids)))
+                                                   query(TaskExecHistory.task_id, TaskExecHistory.status).
+                                                   filter(TaskExecHistory.id.in_(latest_task_record_ids)))
             task_status = {i: 0 for i in task_status_desc.values()}
             for task_id, status in task_id_task_record_status_dict.items():
                 if task_id:
@@ -164,9 +164,13 @@ class StatsNumDrillDownHandler(AuthReq):
         params = self.get_query_args(Schema({
             "drill_down_type": And(scm_dot_split_str,
                                    scm_subset_of_choices(const.ALL_STATS_NUM_TYPE)),
+            Optional("cmdb_id"): scm_int,
+            Optional("schema_name"): scm_unempty_str,
             **self.gen_p()
         }))
         ddt_in = params.pop("drill_down_type")
+        cmdb_id = params.pop("cmdb_id")
+        schema_name = params.pop("schema_name")
         p = self.pop_p(params)
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
@@ -174,22 +178,29 @@ class StatsNumDrillDownHandler(AuthReq):
                 session, cmdb_id=cmdb_ids)
             Qs = None
             for cmdb_id in cmdb_ids:
-                schema_name = get_current_schema(session, self.current_user, cmdb_id)
-                if not Qs:
-                    Qs = Q(**{
-                        "cmdb_id": cmdb_id,
-                        "schema_name__in": schema_name,
-                        "task_record_id": cmdb_id_task_record_id[cmdb_id]})
-                else:
-                    Qs = Qs | Q(**{
-                        "cmdb_id": cmdb_id,
-                        "schema_name__in": schema_name,
-                        "task_record_id": cmdb_id_task_record_id[cmdb_id]})
+                try:
+                    schema_name = get_current_schema(session, self.current_user, cmdb_id)
+                    if not Qs:
+                        Qs = Q(**{
+                            "cmdb_id": cmdb_id,
+                            "schema_name__in": schema_name,
+                            "task_record_id": cmdb_id_task_record_id[cmdb_id]})
+                    else:
+                        Qs = Qs | Q(**{
+                            "cmdb_id": cmdb_id,
+                            "schema_name__in": schema_name,
+                            "task_record_id": cmdb_id_task_record_id[cmdb_id]})
+                except:
+                    continue
             if not Qs:
                 return self.resp([])
-            drill_down_q = StatsNumDrillDown.\
-                objects(drill_down_type__in=ddt_in, job_id__ne=None).\
-                filter(Qs).\
+            drill_down_q = StatsNumDrillDown. \
+                objects(drill_down_type__in=ddt_in, job_id__ne=None). \
+                filter(Qs). \
                 order_by("-etl_date")
+            if cmdb_id:
+                drill_down_q = drill_down_q.filter(cmdb_id=cmdb_id)
+            if schema_name:
+                drill_down_q = drill_down_q.filter(schema_name=schema_name)
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
