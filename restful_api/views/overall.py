@@ -164,8 +164,8 @@ class StatsNumDrillDownHandler(AuthReq):
         params = self.get_query_args(Schema({
             "drill_down_type": And(scm_dot_split_str,
                                    scm_subset_of_choices(const.ALL_STATS_NUM_TYPE)),
-            Optional("cmdb_id"): scm_int,
-            Optional("schema_name"): scm_unempty_str,
+            Optional("cmdb_id", default=None): scm_int,
+            Optional("schema_name", default=None): scm_unempty_str,
             **self.gen_p()
         }))
         ddt_in = params.pop("drill_down_type")
