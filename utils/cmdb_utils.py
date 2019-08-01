@@ -65,6 +65,8 @@ def get_current_schema(
         for a_qe in qe:
             if a_qe.class_ in (CMDB, Role):
                 models_to_join.add(a_qe.class_)
+            elif a_qe.class_ == RoleDataPrivilege:
+                pass
             else:
                 assert 0
         for m in models_to_join:
