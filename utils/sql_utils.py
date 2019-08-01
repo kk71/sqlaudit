@@ -344,13 +344,11 @@ def get_risk_sql_list(session,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                 }
                 if sqltext_stats:
-                    try:
-                        r.update({
-                            "first_appearance": dt_to_str(sql_text_stats[sql_id]['first_appearance']),
-                            "last_appearance": dt_to_str(sql_text_stats[sql_id]['last_appearance']),
-                        })
-                    except:
-                        continue
+                    sql_text_stats_sql_id = sql_text_stats.get(sql_id, {})
+                    r.update({
+                        "first_appearance": dt_to_str(sql_text_stats_sql_id.get('first_appearance', None)),
+                        "last_appearance": dt_to_str(sql_text_stats_sql_id.get('last_appearance', None)),
+                    })
                 rst.append(r)
                 rst_sql_id_set.add(sql_id)
     if sql_id_only:
