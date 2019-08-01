@@ -194,10 +194,12 @@ class StatsNumDrillDownHandler(AuthReq):
                     continue
             if not Qs:
                 return self.resp([])
-            drill_down_q = StatsNumDrillDown. \
-                objects(drill_down_type__in=ddt_in, job_id__ne=None). \
-                filter(Qs). \
-                order_by("-etl_date")
+            drill_down_q = StatsNumDrillDown.objects(
+                drill_down_type__in=ddt_in,
+                job_id__ne=None,
+                num__ne=0,
+                score__nin=[None, 0, 100]
+            ).filter(Qs).order_by("-etl_date")
             if the_cmdb_id:
                 drill_down_q = drill_down_q.filter(cmdb_id=the_cmdb_id)
             if the_schema_name:
