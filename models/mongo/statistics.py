@@ -132,6 +132,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q)
 
                     elif t == STATS_NUM_SQL_PLAN:
                         new_doc.num = len(
@@ -146,6 +147,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q)
 
                     elif t == STATS_NUM_SQL_STATS:
                         new_doc.num = len(
@@ -159,6 +161,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q)
 
                     elif t == STATS_NUM_SQL:
                         new_doc.num = len(
@@ -172,6 +175,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(result_q)
 
                     elif t == STATS_NUM_TAB:
                         new_doc.num = ObjTabInfo. \

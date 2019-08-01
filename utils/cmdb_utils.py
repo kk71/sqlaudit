@@ -87,7 +87,7 @@ def get_current_schema(
     elif verbose_dict:
         return [qe.to_dict(i) for i in set(q)]
     else:
-        return list({i[0] for i in q})
+        return [i[0] for i in q]
 
 
 @timing()

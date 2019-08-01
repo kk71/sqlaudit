@@ -24,16 +24,16 @@ def calc_weighted_deduction(scores, max_score_sum):
     return round(float(scores) * 100 / (max_score_sum or 1), 2)
 
 
-def calc_result(result, db_model, obj_type_info: Union[str, list, tuple] = None) -> tuple:
+def calc_result(result, db_model, obj_info_type: Union[str, list, tuple] = None) -> tuple:
     """
     计算单个result的分数
     :param result: mongodb result object
     :param db_model:
-    :param obj_type_info: 只展示某些obj_info_type的类型
+    :param obj_info_type: 只展示某些obj_info_type的类型
     :return:
     """
-    if isinstance(obj_type_info, str):
-        obj_type_info = [obj_type_info]
+    if isinstance(obj_info_type, str):
+        obj_info_type = [obj_info_type]
 
     score_sum_of_all_rule_scores_in_result = 0
     max_score_sum = rule_utils.calc_sum_of_rule_max_score(
@@ -52,8 +52,8 @@ def calc_result(result, db_model, obj_type_info: Union[str, list, tuple] = None)
         db_model=db_model,
         db_type=DB_ORACLE
     )
-    if result.rule_type == RULE_TYPE_OBJ and obj_type_info:
-        rule_q = rule_q.filter(obj_type_info__in=obj_type_info)
+    if obj_info_type:
+        rule_q = rule_q.filter(obj_info_type__in=obj_info_type)
 
     for rule_object in rule_q:
         rule_result = getattr(result, rule_object.rule_name, None)

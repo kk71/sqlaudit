@@ -189,7 +189,7 @@ class PRIVILEGE:
     PRIVILEGE_OFFLINE_TICKET_ADMIN = (18, TYPE_BE, "查看全部线下工单", "")
     PRIVILEGE_ROLE_MANAGE = (19, TYPE_FE, "角色管理", "")
     PRIVILEGE_ROLE_USER_MANAGE = (20, TYPE_FE, "用户角色管理", "")
-    PRIVILEGE_ROLE_DATA_PRIVILEGE = (21, TYPE_FE, "", "是否允许使用")
+    PRIVILEGE_ROLE_DATA_PRIVILEGE = (21, TYPE_FE, "数据权限配置", "是否允许使用")
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
