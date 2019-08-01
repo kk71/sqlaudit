@@ -36,10 +36,14 @@ def get_current_schema(
         session,
         user_login: Union[str, list, tuple, None] = None,
         cmdb_id=None,
-        verbose=False,
-        verbose_dict=False,
-        without_role_id=False
-) -> [str]:
+        verbose: bool = False,
+        verbose_dict: bool = False,
+        query_entity: Union[tuple, list] = (
+            RoleDataPrivilege.cmdb_id,
+            CMDB.connect_name,
+            RoleDataPrivilege.role_id,
+            RoleDataPrivilege.schema_name),
+) -> list:
     """
     获取某个用户可见的schema
     :param session:
@@ -48,26 +52,26 @@ def get_current_schema(
     :param cmdb_id: 为None则表示拿全部绑定的schema
     :param verbose:
     :param verbose_dict:
-    :param without_role_id: 返回结果是否不带role_id
+    :param query_entity: 需要查询的字段
     :return: verbose==False:[schema_name, ...]
-             verbose==True:[(cmdb_id, connect_name, role_id, schema_name), ...]
-             verbose_dict==True:[{cmdb_id: "", connect_name: "", role_id: "", schema_name: ""), ...]
+             verbose==True: [(*query_entity), ...]
+             verbose_dict==True: [{*query_entity: values}, ...]
+             所有返回结果都是list，并且去重。
     """
-    if without_role_id:
-        qe = QueryEntity(
-            RoleDataPrivilege.cmdb_id,
-            CMDB.connect_name,
-            RoleDataPrivilege.schema_name
-        )
-    else:
-        qe = QueryEntity(
-            RoleDataPrivilege.cmdb_id,
-            CMDB.connect_name,
-            RoleDataPrivilege.role_id,
-            RoleDataPrivilege.schema_name
-        )
+    qe = QueryEntity(*query_entity)
     if verbose or verbose_dict:
-        q = session.query(*qe).join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
+        q = session.query(*qe)
+        models_to_join = set()
+        for a_qe in qe:
+            if a_qe.class_ in (CMDB, Role):
+                models_to_join.add(a_qe.class_)
+            else:
+                assert 0
+        for m in models_to_join:
+            if m == CMDB:
+                q = q.join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
+            if m == Role:
+                q = q.join(Role, Role.role_id == RoleDataPrivilege.role_id)
     else:
         q = session.query(RoleDataPrivilege.schema_name.distinct())
     if user_login:
@@ -79,9 +83,9 @@ def get_current_schema(
     if verbose:
         return list(set(q))
     elif verbose_dict:
-        return [qe.to_dict(i) for i in q]
+        return [qe.to_dict(i) for i in set(q)]
     else:
-        return [i[0] for i in q]
+        return list({i[0] for i in q})
 
 
 @timing()

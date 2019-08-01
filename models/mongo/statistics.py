@@ -97,7 +97,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
             get_result_queryset_by
-        from models.oracle import make_session
+        from models.oracle import make_session, CMDB, RoleDataPrivilege
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo, Job
         from utils.cmdb_utils import get_current_schema
@@ -106,9 +106,9 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                 session,
                 cmdb_id=cmdb_id,
                 verbose=True,
-                without_role_id=True
+                query_entity=(CMDB.connect_name, RoleDataPrivilege.schema_name)
             )
-            for _, connect_name, schema_name in set(verbose_schema_info):
+            for connect_name, schema_name in set(verbose_schema_info):
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(
