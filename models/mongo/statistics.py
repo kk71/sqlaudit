@@ -24,17 +24,17 @@ class StatsLoginUser(BaseStatisticsDoc):
     index_num = LongField()
     seq_num = IntField()
     cmdb = ListField(default=lambda: [
-            # {
-            #     "cmdb_id": "",
-            #     "connect_name": "",
-            #     "schema_captured_num": 采集的schema个数,
-            #     "finally_schema_captured_num": 采集成功的schema个数
-            #     "problem_num": {
-            #         "SQL": 0,
-            #         "OBJ": 0
-            #     }
-            # }
-        ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
+        # {
+        #     "cmdb_id": "",
+        #     "connect_name": "",
+        #     "schema_captured_num": 采集的schema个数,
+        #     "finally_schema_captured_num": 采集成功的schema个数
+        #     "problem_num": {
+        #         "SQL": 0,
+        #         "OBJ": 0
+        #     }
+        # }
+    ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
 
     meta = {
         "collection": "stats_login_user"
@@ -95,8 +95,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from utils.score_utils import get_latest_task_record_id, calc_distinct_sql_id, \
-            calc_problem_num, get_result_queryset_by
+        from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
+            get_result_queryset_by
         from models.oracle import make_session
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo, Job
@@ -105,9 +105,10 @@ class StatsNumDrillDown(BaseStatisticsDoc):
             verbose_schema_info = get_current_schema(
                 session,
                 cmdb_id=cmdb_id,
-                verbose=True
+                verbose=True,
+                without_role_id=True
             )
-            for _, connect_name, role_id, schema_name in verbose_schema_info:
+            for _, connect_name, schema_name in set(verbose_schema_info):
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(
@@ -121,7 +122,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                     if t == STATS_NUM_SQL_TEXT:
                         new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(task_record_id).
-                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                                filter(cmdb_id=cmdb_id, schema=schema_name).
+                                distinct("sql_id")
                         )
                         result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
@@ -161,7 +163,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                     elif t == STATS_NUM_SQL:
                         new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(task_record_id).
-                            filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
                         result_q, _ = get_result_queryset_by(
                             task_record_id=task_record_id,
@@ -172,7 +174,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
 
                     elif t == STATS_NUM_TAB:
-                        new_doc.num = ObjTabInfo.\
+                        new_doc.num = ObjTabInfo. \
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
@@ -186,7 +188,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_INDEX:
-                        new_doc.num = ObjIndColInfo.\
+                        new_doc.num = ObjIndColInfo. \
                             filter_by_exec_hist_id(task_record_id).filter(
                             cmdb_id=cmdb_id,
                             schema_name=schema_name).count()
@@ -219,16 +221,16 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             cmdb_id=cmdb_id,
                             schema_name=schema_name
                         ).count()
-                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(task_record_id).\
+                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(task_record_id). \
                             filter(
-                                cmdb_id=cmdb_id,
-                                schema_name=schema_name
-                            ).count()
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name
+                        ).count()
                         new_doc.num += ObjIndColInfo.filter_by_exec_hist_id(task_record_id). \
                             filter(
-                                cmdb_id=cmdb_id,
-                                schema_name=schema_name
-                            ).count()
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name
+                        ).count()
                         result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_OBJ,
@@ -277,12 +279,10 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
                 used=0,
                 usage_ratio=0
             )
-            for ts in ObjTabSpace.\
+            for ts in ObjTabSpace. \
                     objects(task_record_id=task_record_id, cmdb_id=cmdb_id).all():
                 doc.total += ts.total
                 doc.free += ts.free
                 doc.used += ts.used
             doc.usage_ratio = doc.used / doc.total
             yield doc
-
-

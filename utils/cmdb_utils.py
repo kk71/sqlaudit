@@ -38,6 +38,7 @@ def get_current_schema(
         cmdb_id=None,
         verbose=False,
         verbose_dict=False,
+        without_role_id=False
 ) -> [str]:
     """
     获取某个用户可见的schema
@@ -47,16 +48,24 @@ def get_current_schema(
     :param cmdb_id: 为None则表示拿全部绑定的schema
     :param verbose:
     :param verbose_dict:
+    :param without_role_id: 返回结果是否不带role_id
     :return: verbose==False:[schema_name, ...]
              verbose==True:[(cmdb_id, connect_name, role_id, schema_name), ...]
              verbose_dict==True:[{cmdb_id: "", connect_name: "", role_id: "", schema_name: ""), ...]
     """
-    qe = QueryEntity(
-        RoleDataPrivilege.cmdb_id,
-        CMDB.connect_name,
-        RoleDataPrivilege.role_id,
-        RoleDataPrivilege.schema_name
-    )
+    if without_role_id:
+        qe = QueryEntity(
+            RoleDataPrivilege.cmdb_id,
+            CMDB.connect_name,
+            RoleDataPrivilege.schema_name
+        )
+    else:
+        qe = QueryEntity(
+            RoleDataPrivilege.cmdb_id,
+            CMDB.connect_name,
+            RoleDataPrivilege.role_id,
+            RoleDataPrivilege.schema_name
+        )
     if verbose or verbose_dict:
         q = session.query(*qe).join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id)
     else:
