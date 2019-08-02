@@ -30,11 +30,9 @@ class DashboardHandler(PrivilegeReq):
 
             # 维度的数据库
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
-            envs = session.query(Param.param_value, func.count(CMDB.cmdb_id)). \
-                join(CMDB, Param.param_id == CMDB.domain_env). \
-                filter(CMDB.cmdb_id.in_(cmdb_ids),
-                       Param.param_type == PARAM_TYPE_ENV). \
-                group_by(Param.param_value)
+            envs = session.query(CMDB.group_name, func.count(CMDB.cmdb_id)). \
+                filter(CMDB.cmdb_id.in_(cmdb_ids)). \
+                group_by(CMDB.group_name)
             # 智能优化执行次数
             optimized_execution_times = 0
             optimized_execution_q = list(session.query(AituneResultDetails).with_entities(func.count()))
