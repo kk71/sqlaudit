@@ -332,9 +332,13 @@ class SchemaHandler(AuthReq):
 
             elif role_id and divide_by == DATA_PRIVILEGE:
                 # 返回给出的角色所绑定的schema，以及未绑定的
-                bound = list({schema_name for schema_name, in session.
-                            query(RoleDataPrivilege.schema_name).
-                            filter(RoleDataPrivilege.role_id == role_id)})
+                # bound_q = session.query(RoleDataPrivilege.schema_name).\
+                #     filter(RoleDataPrivilege.role_id == role_id)
+                # if cmdb_id:
+                #     bound_q = bound_q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
+                bound_schema_info = cmdb_utils.get_current_schema(
+                    session, cmdb_id=cmdb_id, verbose=True)
+                bound = list({schema_name for _, _, _, schema_name in bound_schema_info})
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
                     all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
