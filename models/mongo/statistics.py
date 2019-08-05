@@ -184,7 +184,6 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_TABLE,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
@@ -198,7 +197,6 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_INDEX,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
@@ -212,7 +210,6 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name).count()
                         result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_OBJ,
                             obj_info_type=OBJ_RULE_TYPE_SEQ,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id

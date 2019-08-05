@@ -183,13 +183,11 @@ def get_result_queryset_by(
     复杂查询results
     :param task_record_id:
     :param rule_type:
-    :param obj_info_type: 仅适用于当rule_type为OBJ的时候
+    :param obj_info_type:
     :param schema_name: 过滤schema_name
     :param cmdb_id:
     :return: (results_queryset, rule_names_to_filter)
     """
-    if rule_type != RULE_TYPE_OBJ and obj_info_type:
-        assert 0
     if isinstance(rule_type, str):
         rule_type = [rule_type]
     if isinstance(schema_name, str):
@@ -199,10 +197,11 @@ def get_result_queryset_by(
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
-        rule_names_to_filter = Rule.\
-            filter_enabled(rule_type=RULE_TYPE_OBJ, obj_info_type=obj_info_type).\
+        rule_names_to_filter = Rule.filter_enabled(obj_info_type=obj_info_type).\
             values_list("rule_name")
-    result_q = Results.filter_by_exec_hist_id(task_record_id).filter(rule_type__in=rule_type)
+    result_q = Results.filter_by_exec_hist_id(task_record_id)
+    if rule_type:
+        result_q = result_q.filter(rule_type__in=rule_type)
     if rule_names_to_filter and obj_info_type:
         Qs = None
         for rn in rule_names_to_filter:
