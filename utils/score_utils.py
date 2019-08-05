@@ -174,7 +174,7 @@ def get_latest_task_record_id(
 
 def get_result_queryset_by(
         task_record_id,
-        rule_type: Union[str, list, tuple],
+        rule_type: Union[str, list, tuple] = None,
         obj_info_type=None,
         schema_name: Union[str, list, tuple] = None,
         cmdb_id: Union[int, list, tuple] = None
