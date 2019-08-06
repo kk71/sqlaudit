@@ -256,9 +256,9 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 class StatsCMDBPhySize(BaseStatisticsDoc):
     """概览页库容量"""
 
-    total = LongField(help_text="bytes")
-    free = LongField(help_text="bytes")
-    used = LongField(help_text="bytes")
+    total = FloatField(help_text="bytes")
+    free = FloatField(help_text="bytes")
+    used = FloatField(help_text="bytes")
     usage_ratio = FloatField()
 
     meta = {

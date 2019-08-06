@@ -189,9 +189,9 @@ class ObjSeqInfo(SchemaCapture):
 class ObjTabSpace(CMDBCapture):
     """表空间信息"""
     tablespace_name = StringField()
-    total = LongField(help_text="bytes")
-    free = LongField(help_text="bytes")
-    used = LongField(help_text="bytes")
+    total = FloatField(help_text="bytes")
+    free = FloatField(help_text="bytes")
+    used = FloatField(help_text="bytes")
     usage_ratio = FloatField()
 
     meta = {
