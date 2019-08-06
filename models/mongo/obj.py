@@ -216,6 +216,7 @@ class ObjTabSpace(CMDBCapture):
    and a.tablespace_name not in
        ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP')"""
 
+    @classmethod
     def post_captured(cls, docs: list, cmdb_id: int, task_record_id: int, obj_owner=None):
         SchemaCapture.post_captured(docs, cmdb_id, task_record_id, obj_owner)
         for d in docs:
