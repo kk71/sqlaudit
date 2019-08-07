@@ -1,5 +1,6 @@
 import time
 import signal
+import traceback
 
 from models import init_models
 init_models()
@@ -224,8 +225,9 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         update_record(task_id, record_id, None)
 
     except Exception as e:
+        stack = traceback.format_exc()
         logger.error("Exception", exc_info=True)
-        update_record(task_id, record_id, False, err_msg=str(e))
+        update_record(task_id, record_id, False, err_msg=stack)
 
     task.clear_cache.clear_cache.delay(no_prefetch=False)
     logger.warning("finish task ..........")
