@@ -81,7 +81,8 @@ class UserHandler(AuthReq):
                         login_users.append(login_user)
                 user_q = user_q.filter(User.login_user.in_(login_users))
             items, p = self.paginate(user_q, **p)
-            self.resp([i.to_dict() for i in items], **p)
+            iter_by = lambda k, v: "***" if k == "password" and not self.is_admin() else v
+            self.resp([i.to_dict(iter_by=iter_by) for i in items], **p)
 
     def post(self):
         """新增用户"""
