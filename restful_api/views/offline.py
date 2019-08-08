@@ -71,6 +71,9 @@ class TicketHandler(OfflineTicketCommonHandler):
 
     def get(self):
         """线下审核工单列表"""
+        
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
+
         params = self.get_query_args(Schema({
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
