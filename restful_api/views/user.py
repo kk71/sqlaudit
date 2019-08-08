@@ -39,12 +39,12 @@ class AuthHandler(BaseReq):
                 user.last_login_time = datetime.now().date()
                 session.add(user)
                 token = jwt.encode(
-                        {
-                            "login_user": user.login_user,
-                            "timestamp": arrow.now().timestamp
-                        },
-                        key=settings.JWT_SECRET,
-                        algorithm=settings.JWT_ALGORITHM
+                    {
+                        "login_user": user.login_user,
+                        "timestamp": arrow.now().timestamp
+                    },
+                    key=settings.JWT_SECRET,
+                    algorithm=settings.JWT_ALGORITHM
                 )
                 content = user.to_dict()
                 content["token"] = token.decode("ascii")
@@ -70,9 +70,9 @@ class UserHandler(AuthReq):
                 login_users = [settings.ADMIN_LOGIN_USER]
                 login_user_privilege_id_dict = defaultdict(set)
                 qe = QueryEntity(User.login_user, RolePrivilege.privilege_id)
-                login_user_privilege_id = session.query(*qe).\
-                    join(UserRole, User.login_user == UserRole.login_user).\
-                    join(RolePrivilege, UserRole.role_id == RolePrivilege.role_id).\
+                login_user_privilege_id = session.query(*qe). \
+                    join(UserRole, User.login_user == UserRole.login_user). \
+                    join(RolePrivilege, UserRole.role_id == RolePrivilege.role_id). \
                     filter(RolePrivilege.privilege_id.in_(has_privilege))
                 for login_user, privilege_id in login_user_privilege_id:
                     login_user_privilege_id_dict[login_user].add(privilege_id)
@@ -118,7 +118,9 @@ class UserHandler(AuthReq):
         }))
         with make_session() as session:
             the_user = session.query(User).filter_by(login_user=params.pop("login_user")).first()
-            the_user.from_dict(params)
+            the_user.from_dict(params,
+                               iter_if=lambda k, v:
+                               False if k == "password" and v == "***" else True)
             self.resp_created(the_user.to_dict())
 
     def delete(self):
