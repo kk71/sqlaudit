@@ -22,7 +22,7 @@ class CMDBHandler(AuthReq):
     def get(self):
         """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
-            Optional("current", default=False): scm_bool,  # 只返回当前登录用户可见的cmdb
+            Optional("current", default=not self.is_admin()): scm_bool,  # 只返回当前登录用户可见的cmdb
 
             # 精确匹配
             Optional("cmdb_id"): scm_int,
@@ -287,7 +287,7 @@ class SchemaHandler(AuthReq):
         params = self.get_query_args(Schema({
             Optional("cmdb_id", default=None): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
-            Optional("current", default=False): scm_bool,
+            Optional("current", default=not self.is_admin()): scm_bool,
             Optional("divide_by", default=None): scm_one_of_choices((
                 DATA_PRIVILEGE,   # 以login_user区分当前库的数据权限（绑定、未绑定）
                 HEALTH_USER_CONFIG  # 以login_user区分当前库的评分权限（绑定、未绑定）

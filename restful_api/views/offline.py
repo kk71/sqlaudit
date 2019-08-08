@@ -71,7 +71,7 @@ class TicketHandler(OfflineTicketCommonHandler):
 
     def get(self):
         """线下审核工单列表"""
-        
+
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({

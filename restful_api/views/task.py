@@ -5,6 +5,7 @@ from schema import Schema, Optional, And
 from .base import AuthReq
 from models.oracle import *
 from utils.schema_utils import *
+from utils import cmdb_utils
 from past import mkdata
 
 
@@ -40,6 +41,9 @@ class TaskHandler(AuthReq):
                                             TaskManage.business_name,
                                             TaskManage.server_name,
                                             TaskManage.ip_address)
+            if not self.is_admin():
+                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+                task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
             for t in task_q:
                 t_dict = t.to_dict()
