@@ -65,6 +65,8 @@ class CMDBHandler(AuthReq):
                 p = {}
                 cmdb_dict = q.first().to_dict()
                 for data_health in all_db_data_health:
+                    if data_health["collect_date"]:
+                        data_health["collect_date"] = d_to_str(data_health["collect_date"])
                     if data_health["connect_name"] == cmdb_dict["connect_name"]:
                         ret.append({
                             **cmdb_dict,
