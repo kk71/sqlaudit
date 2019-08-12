@@ -32,6 +32,10 @@ class StatsLoginUser(BaseStatisticsDoc):
         #     "problem_num": {
         #         "SQL": 0,
         #         "OBJ": 0
+        #     },
+        #     "scores": {
+        #         "OBJ": 99,
+        #         "TEXT": 99
         #     }
         # }
     ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
@@ -44,23 +48,27 @@ class StatsLoginUser(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from models.oracle import make_session, CMDB, User
         from utils import const
-        from utils.score_utils import calc_problem_num, get_result_queryset_by
+        from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result
         from utils.cmdb_utils import get_current_schema
         with make_session() as session:
             for login_user, in session.query(User.login_user):
                 doc = cls(task_record_id=task_record_id, login_user=login_user)
-                for the_cmdb_id, the_connect_name in \
-                        session.query(CMDB.cmdb_id, CMDB.connect_name):
+                for the_cmdb_id, the_connect_name, the_db_model in \
+                        session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model):
                     sql_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                         cmdb_id=the_cmdb_id
                     )
+                    sql_result_score_sum = sum([calc_result(i, the_db_model)[1]
+                                                for i in sql_result_q])
                     obj_result_q, _ = get_result_queryset_by(
                         task_record_id=task_record_id,
                         rule_type=const.RULE_TYPE_OBJ,
                         cmdb_id=the_cmdb_id
                     )
+                    obj_result_score_sum = sum([calc_result(i, the_db_model)[1]
+                                                for i in sql_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
                     doc.cmdb.append({
@@ -71,6 +79,12 @@ class StatsLoginUser(BaseStatisticsDoc):
                         "problem_num": {
                             const.STATS_NUM_SQL: calc_problem_num(sql_result_q),
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
+                        },
+                        "scores": {
+                            const.STATS_NUM_SQL: sql_result_score_sum / sql_result_q.count()
+                            if sql_result_q.count() else 0,
+                            const.RULE_TYPE_OBJ: obj_result_score_sum / obj_result_q.count()
+                            if obj_result_q.count() else 0,
                         }
                     })
                 yield doc

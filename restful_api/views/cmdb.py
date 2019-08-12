@@ -308,7 +308,7 @@ class SchemaHandler(AuthReq):
             if connect_name and not cmdb_id:
                 cmdb = session.query(CMDB).filter_by(connect_name=connect_name).first()
                 cmdb_id = cmdb.cmdb_id
-                
+
             if login_user and divide_by == DATA_PRIVILEGE:
                 # 返回给出的用户所绑定的schema，以及未绑定的
                 bound = cmdb_utils.get_current_schema(session,
