@@ -48,27 +48,36 @@ class StatsLoginUser(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from models.oracle import make_session, CMDB, User
         from utils import const
-        from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result
+        from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
+            get_latest_task_record_id
         from utils.cmdb_utils import get_current_schema
         with make_session() as session:
             for login_user, in session.query(User.login_user):
                 doc = cls(task_record_id=task_record_id, login_user=login_user)
                 for the_cmdb_id, the_connect_name, the_db_model in \
                         session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model):
+                    if cmdb_id == the_cmdb_id:
+                        latest_task_record_id = task_record_id
+                    else:
+                        latest_task_record_id = get_latest_task_record_id(
+                            session, the_cmdb_id).get(the_cmdb_id, None)
+                    if not latest_task_record_id:
+                        print(f"current latest_task_record_id not exist. cmdb_id = {the_cmdb_id}")
+                        continue
                     sql_result_q, _ = get_result_queryset_by(
-                        task_record_id=task_record_id,
+                        task_record_id=latest_task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                         cmdb_id=the_cmdb_id
                     )
                     sql_result_score_sum = sum([calc_result(i, the_db_model)[1]
                                                 for i in sql_result_q])
                     obj_result_q, _ = get_result_queryset_by(
-                        task_record_id=task_record_id,
+                        task_record_id=latest_task_record_id,
                         rule_type=const.RULE_TYPE_OBJ,
                         cmdb_id=the_cmdb_id
                     )
                     obj_result_score_sum = sum([calc_result(i, the_db_model)[1]
-                                                for i in sql_result_q])
+                                                for i in obj_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
                     doc.cmdb.append({
