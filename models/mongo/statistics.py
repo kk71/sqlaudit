@@ -90,7 +90,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
                         "scores": {
-                            const.STATS_NUM_SQL: sql_result_score_sum / sql_result_q.count()
+                            const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(),1)
                             if sql_result_q.count() else 0,
                             const.RULE_TYPE_OBJ: obj_result_score_sum / obj_result_q.count()
                             if obj_result_q.count() else 0,

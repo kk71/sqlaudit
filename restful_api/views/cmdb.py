@@ -78,6 +78,8 @@ class CMDBHandler(AuthReq):
                         first()
                     if not cmdb_obj_of_this_dh:
                         continue
+                    if data_health["collect_date"]:
+                        data_health["collect_date"] = d_to_str(data_health["collect_date"])
                     ret.append({
                         **cmdb_obj_of_this_dh.to_dict(),
                         "data_health": data_health
