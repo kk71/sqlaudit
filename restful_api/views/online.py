@@ -10,7 +10,7 @@ from schema import Schema, Optional, And
 import settings
 from utils.const import *
 from utils.perf_utils import *
-from .base import AuthReq
+from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils import rule_utils, sql_utils, object_utils, score_utils, cmdb_utils
@@ -129,7 +129,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
         raise NotImplementedError
 
 
-class SQLRiskListHandler(AuthReq):
+class SQLRiskListHandler(PrivilegeReq):
 
     @classmethod
     def parsing_schema_dict(cls):
@@ -477,6 +477,9 @@ class OverviewHandler(SQLRiskListHandler):
 
     def get(self):
         """风险详情的sql plan详情"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
+
         """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,

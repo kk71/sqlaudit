@@ -1,6 +1,6 @@
 from schema import Schema, Optional
 
-from .base import AuthReq
+from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
 from utils.const import *
@@ -8,10 +8,13 @@ from utils.const import *
 from task.mail_report import *
 
 
-class SendListHandler(AuthReq):
+class SendListHandler(PrivilegeReq):
 
     def get(self):
         """报告发送管理页面"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_MAIL_SEND)
+
         params = self.get_query_args(Schema({
             Optional("keyword", default=None): scm_str,
             **self.gen_p()

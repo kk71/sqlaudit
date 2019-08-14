@@ -2,17 +2,20 @@
 
 from schema import Schema, Optional, And
 
-from .base import AuthReq
+from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
-from utils import cmdb_utils
+from utils import cmdb_utils, const
 from past import mkdata
 
 
-class TaskHandler(AuthReq):
+class TaskHandler(PrivilegeReq):
 
     def get(self):
         """获取任务列表"""
+
+        self.acquire(const.PRIVILEGE.PRIVILEGE_TASK)
+
         params = self.get_query_args(Schema({
             Optional("keyword", default=None): scm_str,
             Optional("page", default=1): scm_int,

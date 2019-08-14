@@ -11,9 +11,12 @@ from models.mongo import *
 from models.oracle import *
 
 
-class RuleRepoHandler(AuthReq):
+class RuleRepoHandler(PrivilegeReq):
     def get(self):
         """规则库列表"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_RULE)
+
         params = self.get_query_args(Schema({
             Optional("rule_type"): scm_one_of_choices(ALL_RULE_TYPE),
             Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
@@ -115,10 +118,13 @@ class RuleRepoHandler(AuthReq):
         self.resp_created(rule.to_dict())
 
 
-class RiskRuleHandler(AuthReq):
+class RiskRuleHandler(PrivilegeReq):
 
     def get(self):
         """风险规则列表"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_RISK_RULE)
+
         params = self.get_query_args(Schema({
             Optional("rule_type", default=None): And(
                 scm_dot_split_str, scm_subset_of_choices(ALL_RULE_TYPE)),

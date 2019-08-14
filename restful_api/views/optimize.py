@@ -1,15 +1,18 @@
 from schema import Schema, Optional
 
-from .base import AuthReq
+from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
 
 
-class OptimizeResultsHandler(AuthReq):
+class OptimizeResultsHandler(PrivilegeReq):
 
     def get(self):
         """智能优化结果"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_SQL_TUNE)
+
         params = self.get_query_args(Schema({
             Optional("keyword", default=None): scm_str,
             **self.gen_p()

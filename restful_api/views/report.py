@@ -9,17 +9,20 @@ import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from utils import score_utils, const
-from .base import AuthReq
+from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
 from utils import cmdb_utils
 import html_report.export
 
 
-class OnlineReportTaskListHandler(AuthReq):
+class OnlineReportTaskListHandler(PrivilegeReq):
 
     def get(self):
         """在线查看报告任务列表"""
+
+        self.acquire(const.PRIVILEGE.PRIVILEGE_SQL_HEALTH)
+
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,
             Optional("connect_name"): scm_unempty_str,

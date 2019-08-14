@@ -12,10 +12,13 @@ from task.clear_cache import clear_cache
 from sqlalchemy.exc import IntegrityError
 
 
-class RoleHandler(AuthReq):
+class RoleHandler(PrivilegeReq):
 
     def get(self):
         """角色列表"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_ROLE_MANAGE)
+
         params = self.get_query_args(Schema({
             Optional("keyword", default=None): scm_str,
             **self.gen_p()
@@ -114,10 +117,13 @@ class RoleHandler(AuthReq):
         self.resp_created(msg="删除成功")
 
 
-class RoleUserHandler(AuthReq):
+class RoleUserHandler(PrivilegeReq):
 
     def get(self):
         """获取用户角色信息"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_ROLE_USER_MANAGE)
+
         params = self.get_query_args(Schema({
             Optional("role_id", default=None): scm_int,
             Optional("login_user", default=None): scm_unempty_str,
@@ -206,10 +212,13 @@ class SystemPrivilegeHandler(PrivilegeReq):
         self.resp([i for i in items], **p)
 
 
-class CMDBPermissionHandler(AuthReq):
-    """数据库权限配置"""
+class CMDBPermissionHandler(PrivilegeReq):
 
     def get(self):
+        """数据库权限配置"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_ROLE_DATA_PRIVILEGE)
+
         params = self.get_query_args(Schema({
             **self.gen_p(),
             Optional("keyword", default=None): scm_str
