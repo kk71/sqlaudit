@@ -15,9 +15,10 @@ import past.utils.check
 class OverviewHandler(PrivilegeReq):
 
     def get(self):
+        """上线情况概览"""
+
         self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
 
-        """上线情况概览"""
         params = self.get_query_args(Schema({
             "duration": And(scm_unempty_str, scm_one_of_choices(("week", "month"))),
         }))

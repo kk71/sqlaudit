@@ -107,10 +107,13 @@ class NoticeHandler(AuthReq):
             self.resp_created(notice.to_dict())
 
 
-class MetadataListHandler(AuthReq):
+class MetadataListHandler(PrivilegeReq):
 
     def get(self):
         """元数据查询"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_METADATA)
+
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
