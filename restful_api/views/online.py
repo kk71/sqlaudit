@@ -119,9 +119,9 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
                 ws.write(row_num, 1, row["severity"], content_format)
                 ws.write(row_num, 2, row["rule_desc"], content_format)
                 ws.write(row_num, 3, row["risk_detail"], content_format)
-                ws.write(row_num, 4, row["optimized_advice"], content_format)
-                ws.write(row_num, 5, row["first_appearance"], content_format)
-                ws.write(row_num, 6, row["last_appearance"], content_format)
+                ws.write(row_num, 4, row["first_appearance"], content_format)
+                ws.write(row_num, 5, row["last_appearance"], content_format)
+                ws.write(row_num, 6, row["optimized_advice"], content_format)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
