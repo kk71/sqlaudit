@@ -75,3 +75,6 @@ class BaseModel(base):
             elif datetime_to_str and isinstance(d[k], date):
                 d[k] = arrow.get(d[k]).format(const.COMMON_DATE_FORMAT)
         return d
+
+    def __str__(self):
+        return self.to_dict()

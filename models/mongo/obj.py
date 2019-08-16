@@ -157,14 +157,14 @@ class ObjViewInfo(BaseDocRecordID):
 
 
 class ObjSeqInfo(SchemaCapture):
-    """采集索引"""
+    """序列"""
     min_value = StringField()
     max_value = StringField()
     increment_by = IntField()
     cache_size = IntField()
     sequence_name = StringField()
     sequence_owner = StringField()
-    last_number = IntField()
+    last_number = StringField()
 
     meta = {
         "collection": "obj_seq_info"
@@ -181,6 +181,7 @@ class ObjSeqInfo(SchemaCapture):
         for d in docs:
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)
+            d.last_number = str(d.last_number)
 
     def get_key(self):
         return self.sequence_owner, self.sequence_name

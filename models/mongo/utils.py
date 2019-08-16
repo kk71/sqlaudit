@@ -74,12 +74,8 @@ class BaseDoc(DynamicDocument):
                 d[k] = arrow.get(d[k]).format(const.COMMON_DATE_FORMAT)
         return d
 
-    @classmethod
-    def list_of_values_dict(cls, q, *args):
-        """返回dict形式的values"""
-        assert args
-        q.values_list()
-        return
+    def __str__(self):
+        return self.to_dict()
 
 
 class BaseDocRecordID(BaseDoc):
