@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import json
 from contextlib import contextmanager
 from typing import *
 from types import FunctionType
@@ -77,4 +78,4 @@ class BaseModel(base):
         return d
 
     def __str__(self):
-        return self.to_dict()
+        return json.dumps(self.to_dict())

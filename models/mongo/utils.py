@@ -9,6 +9,7 @@ __all__ = [
 ]
 
 import re
+import json
 from types import FunctionType
 from typing import *
 
@@ -75,7 +76,7 @@ class BaseDoc(DynamicDocument):
         return d
 
     def __str__(self):
-        return self.to_dict()
+        return json.dumps(self.to_dict())
 
 
 class BaseDocRecordID(BaseDoc):
