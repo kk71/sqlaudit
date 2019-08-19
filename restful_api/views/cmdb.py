@@ -36,9 +36,13 @@ class CMDBHandler(AuthReq):
             # 分页
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
+
+            # 排序
+            Optional("sort", default=None): And(scm_str, scm_one_of_choices((SOET_DESC, SOET_ASC)))
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
+        sort = params.pop("sort")
         p = self.pop_p(params)
 
         with make_session() as session:
@@ -58,6 +62,13 @@ class CMDBHandler(AuthReq):
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(
                     session, self.current_user)
+                if all_db_data_health:
+                    if sort == SOET_DESC:
+                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score'] if da['health_score'] is not None else 0,
+                                                    reverse=True)
+                    elif sort == SOET_ASC:
+                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score'] if da['health_score'] is not None else 0,
+                                                    reverse=False)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
             ret = []
@@ -75,7 +86,7 @@ class CMDBHandler(AuthReq):
                         break
             else:
                 for data_health in all_db_data_health:
-                    cmdb_obj_of_this_dh = q.\
+                    cmdb_obj_of_this_dh = q. \
                         filter(CMDB.connect_name == data_health["connect_name"]). \
                         first()
                     if not cmdb_obj_of_this_dh:
@@ -87,7 +98,7 @@ class CMDBHandler(AuthReq):
                         "data_health": data_health
                     })
                 ret, p = self.paginate(ret, **p)
-            login_stats = StatsLoginUser.objects(login_user=self.current_user).\
+            login_stats = StatsLoginUser.objects(login_user=self.current_user). \
                 order_by("-etl_date").first()
             if login_stats:
                 cmdb_stats = {c["cmdb_id"]: c for c in login_stats.cmdb}
@@ -293,7 +304,7 @@ class SchemaHandler(AuthReq):
             Optional("connect_name", default=None): scm_unempty_str,
             Optional("current", default=not self.is_admin()): scm_bool,
             Optional("divide_by", default=None): scm_one_of_choices((
-                DATA_PRIVILEGE,   # 以login_user区分当前库的数据权限（绑定、未绑定）
+                DATA_PRIVILEGE,  # 以login_user区分当前库的数据权限（绑定、未绑定）
                 HEALTH_USER_CONFIG  # 以login_user区分当前库的评分权限（绑定、未绑定）
             )),  # 指定分开返回的类型
             Optional("login_user", default=None): scm_str,
@@ -350,11 +361,11 @@ class SchemaHandler(AuthReq):
             elif divide_by == HEALTH_USER_CONFIG:
                 # 返回给出的库需要加入数据评分的schema，以及不需要的
                 if connect_name:
-                    bound = session.query(DataHealthUserConfig.username).\
+                    bound = session.query(DataHealthUserConfig.username). \
                         filter(DataHealthUserConfig.database_name == connect_name)
                 elif cmdb_id:
-                    bound = session.query(DataHealthUserConfig.username).\
-                        join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name).\
+                    bound = session.query(DataHealthUserConfig.username). \
+                        join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name). \
                         filter(CMDB.cmdb_id == cmdb_id)
                 else:
                     assert 0
@@ -404,7 +415,7 @@ class CMDBHealthTrendHandler(AuthReq):
                 cmdb_connect_name_list = [i["connect_name"] for i in worst_10]
             else:
                 cmdb_connect_name_list = [i[0] for i in session.query(CMDB.connect_name).
-                                                    filter(CMDB.cmdb_id.in_(cmdb_id_list))]
+                    filter(CMDB.cmdb_id.in_(cmdb_id_list))]
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cn in cmdb_connect_name_list:
@@ -416,8 +427,8 @@ class CMDBHealthTrendHandler(AuthReq):
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score
                     fields.add(dh.database_name)
             base_lines = [i[0] for i in session.query(CMDB.baseline).
-                                filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
-                                order_by(CMDB.baseline)]
+                filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
+                order_by(CMDB.baseline)]
             if not base_lines or base_lines[0] == 0:
                 base_line = 80
             else:
@@ -453,8 +464,8 @@ class RankingConfigHandler(AuthReq):
                 DataHealthUserConfig.needcalc,
                 DataHealthUserConfig.weight
             )
-            rankings = session.\
-                query(*qe).\
+            rankings = session. \
+                query(*qe). \
                 join(CMDB, DataHealthUserConfig.database_name == CMDB.connect_name)
             if keyword:
                 rankings = self.query_keyword(rankings, keyword,
@@ -484,8 +495,8 @@ class RankingConfigHandler(AuthReq):
             if schema_delta:
                 print(schemas)
                 return self.resp_bad_req(msg=f"给出的schema中包含该库不存在的schema：{schema_delta}")
-            session.query(DataHealthUserConfig).\
-                filter(DataHealthUserConfig.database_name == cmdb.connect_name).\
+            session.query(DataHealthUserConfig). \
+                filter(DataHealthUserConfig.database_name == cmdb.connect_name). \
                 delete(synchronize_session='fetch')
             session.add_all([DataHealthUserConfig(
                 database_name=cmdb.connect_name,
