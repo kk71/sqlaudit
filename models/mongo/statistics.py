@@ -92,7 +92,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         "scores": {
                             const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(),1)
                             if sql_result_q.count() else 0,
-                            const.RULE_TYPE_OBJ: obj_result_score_sum / obj_result_q.count()
+                            const.RULE_TYPE_OBJ: round(obj_result_score_sum / obj_result_q.count(),1)
                             if obj_result_q.count() else 0,
                         }
                     })
