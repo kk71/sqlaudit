@@ -242,7 +242,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                         session=session,
                         cmdb_id=cmdb_id,
                         # schema_name=schema_name,
-                        date_range=(date_start, date_end),
+                        date_range=(date_start.date(), date_end.date()),
                         sqltext_stats=False
                     )
                     sql_by_sum = [
@@ -270,7 +270,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     m.risk_rate = get_risk_rate(
                         session=session,
                         cmdb_id=cmdb_id,
-                        date_range=(date_start, date_end)
+                        date_range=(date_start.date(), date_end.date())
                     )
 
 
