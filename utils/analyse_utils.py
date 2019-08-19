@@ -13,7 +13,8 @@ from models.mongo import *
 STATS_MODELS = (
     StatsNumDrillDown,
     StatsCMDBPhySize,
-    StatsLoginUser,
+    StatsCMDBLoginUser,
+    StatsLoginUser
 )
 
 

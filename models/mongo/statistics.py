@@ -9,7 +9,7 @@
 from typing import Union
 
 from mongoengine import IntField, StringField, DateTimeField, \
-    DynamicField, FloatField, LongField, ListField
+    DynamicField, FloatField, LongField, ListField, DictField
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
@@ -41,7 +41,8 @@ class StatsLoginUser(BaseStatisticsDoc):
     ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
 
     meta = {
-        "collection": "stats_login_user"
+        "collection": "stats_login_user",
+        "indexes": ["login_user"]
     }
 
     @classmethod
@@ -61,7 +62,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                 # 计算当前用户绑定的全部库的统计数据
                 cmdb_ids = get_current_cmdb(session, login_user)
                 latest_task_record_ids = list(
-                        get_latest_task_record_id(session, cmdb_ids).values())
+                    get_latest_task_record_id(session, cmdb_ids).values())
                 if latest_task_record_ids:
                     doc.sql_num = len(SQLText.filter_by_exec_hist_id(
                         latest_task_record_ids).distinct("sql_id"))
@@ -108,13 +109,169 @@ class StatsLoginUser(BaseStatisticsDoc):
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
                         "scores": {
-                            const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(),1)
+                            const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(), 1)
                             if sql_result_q.count() else 0,
-                            const.RULE_TYPE_OBJ: round(obj_result_score_sum / obj_result_q.count(),1)
+                            const.RULE_TYPE_OBJ: round(obj_result_score_sum / obj_result_q.count(), 1)
                             if obj_result_q.count() else 0,
                         }
                     })
                 yield doc
+
+
+class StatsCMDBLoginUser(BaseStatisticsDoc):
+    """登录用户所绑定的库的统计信息"""
+
+    DATE_PERIOD = (7, 30)  # 数据日期范围
+
+    login_user = StringField(help_text="用户")
+    date_period = IntField(help_text="时间区间", choices=DATE_PERIOD)
+    sql_num = DictField(default=lambda: {"active": 0, "at_risk": 0})
+    risk_rule_rank = DictField(default=lambda:
+        {
+            "rule_name": None,
+            "num": 0,
+            "risk_name": None,
+            "severity": None,
+        })
+    sql_execution_cost_rank = DictField(default=lambda: {"by_sum": [], "by_average": []})
+    risk_rate = DictField(default=dict)
+
+    meta = {
+        "collection": "stats_cmdb_login_user",
+        "indexes": ["login_user"]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from copy import deepcopy
+        import arrow
+        from models.oracle import make_session, User
+        from models.mongo import SQLText, Results
+        from utils.cmdb_utils import get_current_schema
+        from utils.sql_utils import get_risk_sql_list
+        from utils.datetime_utils import dt_to_str
+        from utils.rule_utils import get_risk_rules_dict, get_risk_rate
+
+        arrow_now = arrow.now()
+
+        with make_session() as session:
+            for login_user, in session.query(User.login_user):
+                schemas = get_current_schema(session, login_user, cmdb_id)
+                for dp in cls.DATE_PERIOD:
+                    m = cls(
+                        task_record_id=task_record_id,
+                        cmdb_id=cmdb_id,
+                        login_user=login_user,
+                        date_period=dp
+                    )
+                    date_start = arrow_now.shift(days=-dp)
+                    date_end = arrow_now
+                    dt_now = deepcopy(arrow_now)
+                    dt_end = dt_now.shift(days=-dp)
+                    sql_num_active = []
+                    sql_num_at_risk = []
+                    m.sql_num["active"] = sql_num_active
+                    m.sql_num["at_risk"] = sql_num_at_risk
+
+                    # SQL count
+                    while dt_now < dt_end:
+                        sql_text_q = SQLText.objects(
+                            cmdb_id=cmdb_id,
+                            etl_date__gte=dt_now.datetime,
+                            etl_date__lt=dt_now.shift(days=+1).datetime,
+                            schema__in=schemas
+                        )
+                        active_sql_num = len(sql_text_q.distinct("sql_id"))
+                        at_risk_sql_num = len(get_risk_sql_list(
+                            session=session,
+                            cmdb_id=cmdb_id,
+                            # schema_name=schema_name,
+                            sql_id_only=True,
+                            date_range=(dt_now.date(), dt_now.shift(days=+1).date())
+                        ))
+                        sql_num_active.append({
+                            "date": dt_to_str(dt_now),
+                            "value": active_sql_num
+                        })
+                        sql_num_at_risk.append({
+                            "date": dt_to_str(dt_now),
+                            "value": at_risk_sql_num
+                        })
+                        dt_now = dt_now.shift(days=+1)
+
+                    # risk_rule_rank
+
+                    # 只需要拿到rule_name即可，不需要知道其他两个key,
+                    # 因为当前仅对某一个库做分析，数据库类型和db_model都是确定的
+                    risk_rule_name_sql_num_dict = {
+                        # rule_name: {...}
+                        r3key[2]: {
+                            "violation_num": 0,
+                            "schema_set": set(),
+                            **robj.to_dict(iter_if=lambda k, v: k in ("risk_name", "severity"))
+                        }
+                        for r3key, robj in get_risk_rules_dict(session).items()}
+                    results_q = Results.objects(
+                        cmdb_id=cmdb_id,
+                        create_date__gte=date_start,
+                        create_date__lte=date_end,
+                        schema_name__in=schemas
+                    )
+                    for result in results_q:
+                        for rule_name in risk_rule_name_sql_num_dict.keys():
+                            result_rule_dict = getattr(result, rule_name, None)
+                            if not result_rule_dict:
+                                continue
+                            if result_rule_dict.get("records", []) or result_rule_dict.get("sqls", []):
+                                risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
+                                risk_rule_name_sql_num_dict[rule_name]["schema_set"]. \
+                                    add(result.schema_name)
+                    m.risk_rule_rank = [
+                        {
+                            "rule_name": rule_name,
+                            "num": k["violation_num"],
+                            "risk_name": k["risk_name"],
+                            "severity": k["severity"],
+                        } for rule_name, k in risk_rule_name_sql_num_dict.items()
+                    ]
+
+                    m.risk_rule_rank = sorted(m.risk_rule_rank, key=lambda x: x["num"], reverse=True)
+
+                    # top 10 execution cost by sum and by average
+                    sqls = get_risk_sql_list(
+                        session=session,
+                        cmdb_id=cmdb_id,
+                        # schema_name=schema_name,
+                        date_range=(date_start, date_end),
+                        sqltext_stats=False
+                    )
+                    sql_by_sum = [
+                        {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_sum"]}
+                        for sql in sqls
+                    ]
+                    top_10_sql_by_sum = sorted(
+                        sql_by_sum,
+                        key=lambda x: x["time"],
+                        reverse=True
+                    )[:10]
+                    top_10_sql_by_sum.reverse()
+                    sql_by_average = [
+                        {"sql_id": sql["sql_id"], "time": sql["execution_time_cost_on_average"]}
+                        for sql in sqls
+                    ]
+                    top_10_sql_by_average = sorted(
+                        sql_by_average,
+                        key=lambda x: x["time"],
+                        reverse=True
+                    )[:10]
+                    top_10_sql_by_average.reverse()
+                    m.sql_execution_cost_rank["by_sum"] = top_10_sql_by_sum
+                    m.sql_execution_cost_rank["by_average"] = top_10_sql_by_average
+                    m.risk_rate = get_risk_rate(
+                        session=session,
+                        cmdb_id=cmdb_id,
+                        date_range=(date_start, date_end)
+                    )
 
 
 class StatsNumDrillDown(BaseStatisticsDoc):

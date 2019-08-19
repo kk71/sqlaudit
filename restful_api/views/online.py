@@ -483,24 +483,41 @@ class OverviewHandler(SQLRiskListHandler):
         """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name", default=None): scm_unempty_str,
-            "date_start": scm_date,
-            "date_end": scm_date_end,
+            Optional("period", default=StatsCMDBLoginUser.DATE_PERIOD[0]):
+                scm_one_of_choices(StatsCMDBLoginUser.DATE_PERIOD)
         }))
         cmdb_id = params.pop("cmdb_id")
-        schema_name = params.pop("schema_name")
-        date_start = params.pop("date_start")
-        date_end = params.pop("date_end")
+        period = params.pop("period")
         del params  # shouldn't use params anymore
-        try:
-            self.resp(cmdb_utils.online_overview_using_cache(
-                date_start=date_start,
-                date_end=date_end,
-                cmdb_id=cmdb_id,
-                schema_name=schema_name
-            ))
-        except:
+
+        with make_session() as session:
+            # physical size of current CMDB
+            latest_task_record_id = score_utils.get_latest_task_record_id(session, cmdb_id)[cmdb_id]
+
+        tablespace_sum = {}
+        stats_phy_size_object = StatsCMDBPhySize.objects(
+            task_record_id=latest_task_record_id, cmdb_id=cmdb_id).first()
+        if stats_phy_size_object:
+            tablespace_sum = stats_phy_size_object.to_dict(
+                iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
+                iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
+
+        stats_cmdb_obj = StatsCMDBLoginUser.objects(
+            login_user=self.current_user,
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id,
+            period=period
+        ).first()
+        if not stats_cmdb_obj:
             return self.resp_bad_req(msg="当前库未采集，请采集后重试。")
+
+        self.resp({
+            # 以下是按照给定的时间区间搜索的结果
+            **stats_cmdb_obj.to_dict(),
+
+            # 以下是取最近一次扫描的结果
+            "tablespace_sum": tablespace_sum,
+        })
 
 
 class OverviewScoreByHandler(AuthReq):

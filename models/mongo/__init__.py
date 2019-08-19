@@ -16,6 +16,7 @@ __all__ = [
     "ObjSeqInfo",
     "ObjTabSpace",
     "StatsLoginUser",
+    "StatsCMDBLoginUser",
     "StatsNumDrillDown",
     "StatsCMDBPhySize",
 ]
