@@ -158,7 +158,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
             for login_user, in session.query(User.login_user):
                 schemas = get_current_schema(session, login_user, cmdb_id)
                 for dp in cls.DATE_PERIOD:
-                    m = cls(
+                    doc = cls(
                         task_record_id=task_record_id,
                         cmdb_id=cmdb_id,
                         login_user=login_user,
@@ -170,8 +170,8 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     dt_end = dt_now.shift(days=-dp)
                     sql_num_active = []
                     sql_num_at_risk = []
-                    m.sql_num["active"] = sql_num_active
-                    m.sql_num["at_risk"] = sql_num_at_risk
+                    doc.sql_num["active"] = sql_num_active
+                    doc.sql_num["at_risk"] = sql_num_at_risk
 
                     # SQL count
                     while dt_now < dt_end:
@@ -226,7 +226,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                                 risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
                                 risk_rule_name_sql_num_dict[rule_name]["schema_set"]. \
                                     add(result.schema_name)
-                    m.risk_rule_rank = [
+                    doc.risk_rule_rank = [
                         {
                             "rule_name": rule_name,
                             "num": k["violation_num"],
@@ -235,14 +235,14 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                         } for rule_name, k in risk_rule_name_sql_num_dict.items()
                     ]
 
-                    m.risk_rule_rank = sorted(m.risk_rule_rank, key=lambda x: x["num"], reverse=True)
+                    doc.risk_rule_rank = sorted(doc.risk_rule_rank, key=lambda x: x["num"], reverse=True)
 
                     # top 10 execution cost by sum and by average
                     sqls = get_risk_sql_list(
                         session=session,
                         cmdb_id=cmdb_id,
                         # schema_name=schema_name,
-                        date_range=(date_start, date_end),
+                        date_range=(date_start.date(), date_end.date()),
                         sqltext_stats=False
                     )
                     sql_by_sum = [
@@ -265,13 +265,14 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                         reverse=True
                     )[:10]
                     top_10_sql_by_average.reverse()
-                    m.sql_execution_cost_rank["by_sum"] = top_10_sql_by_sum
-                    m.sql_execution_cost_rank["by_average"] = top_10_sql_by_average
-                    m.risk_rate = get_risk_rate(
+                    doc.sql_execution_cost_rank["by_sum"] = top_10_sql_by_sum
+                    doc.sql_execution_cost_rank["by_average"] = top_10_sql_by_average
+                    doc.risk_rate = get_risk_rate(
                         session=session,
                         cmdb_id=cmdb_id,
-                        date_range=(date_start, date_end)
+                        date_range=(date_start.date(), date_end.date())
                     )
+                    yield doc
 
 
 class StatsNumDrillDown(BaseStatisticsDoc):
