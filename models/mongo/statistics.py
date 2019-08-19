@@ -19,10 +19,10 @@ class StatsLoginUser(BaseStatisticsDoc):
     """最后分析：登录用户层面的统计数据，该数据可能根据用户绑定的库以及schema的改变而需要更新。"""
 
     login_user = StringField(help_text="仅对某个用户有效")
-    sql_num = LongField()
-    tab_num = IntField()
-    index_num = LongField()
-    seq_num = IntField()
+    sql_num = LongField(default=0)
+    table_num = IntField(default=0)
+    index_num = LongField(default=0)
+    sequence_num = IntField(default=0)
     cmdb = ListField(default=lambda: [
         # {
         #     "cmdb_id": "",
@@ -50,10 +50,28 @@ class StatsLoginUser(BaseStatisticsDoc):
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
             get_latest_task_record_id
-        from utils.cmdb_utils import get_current_schema
+        from utils.cmdb_utils import get_current_schema, get_current_cmdb
+        from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo
+        from models.mongo import SQLText
+
         with make_session() as session:
             for login_user, in session.query(User.login_user):
                 doc = cls(task_record_id=task_record_id, login_user=login_user)
+
+                # 计算当前用户绑定的全部库的统计数据
+                cmdb_ids = get_current_cmdb(session, login_user)
+                latest_task_record_ids = list(
+                        get_latest_task_record_id(session, cmdb_ids).values())
+                if latest_task_record_ids:
+                    doc.sql_num = len(SQLText.filter_by_exec_hist_id(
+                        latest_task_record_ids).distinct("sql_id"))
+                    doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    doc.sequence_num = ObjSeqInfo.objects(
+                        cmdb_id__in=cmdb_ids,
+                        task_record_id__in=latest_task_record_ids).count()
+
+                # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
                         session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model):
                     if cmdb_id == the_cmdb_id:

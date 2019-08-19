@@ -24,9 +24,13 @@ class DashboardHandler(PrivilegeReq):
     def get(self):
         """仪表盘"""
         with make_session() as session:
-            # 计算值
-            sql_num, table_num, index_num, task_exec_hist_id_list = object_utils. \
-                dashboard_3_sum(session=session, login_user=self.current_user)
+            # 顶部四个统计数字
+            stats_login_user = StatsLoginUser.objects(login_user=self.current_user).\
+                order_by("-etl_date").first()
+            stats_num_dict = {"index_num": 0, "table_num": 0, "sequence_num": 0, "sql_num": 0}
+            if stats_login_user:
+                stats_num_dict = stats_login_user.to_dict(
+                    iter_if=lambda k, v: k in stats_num_dict.keys())
 
             # 维度的数据库
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
@@ -35,7 +39,8 @@ class DashboardHandler(PrivilegeReq):
                 group_by(CMDB.group_name)
             # 智能优化执行次数
             optimized_execution_times = 0
-            optimized_execution_q = list(session.query(AituneResultDetails).with_entities(func.count()))
+            optimized_execution_q = list(
+                session.query(AituneResultDetails).with_entities(func.count()))
             if optimized_execution_q:
                 optimized_execution_times = optimized_execution_q[0][0]
 
@@ -74,11 +79,7 @@ class DashboardHandler(PrivilegeReq):
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
-                "sql_num": sql_num,
-                "table_num": table_num,
-                "index_num": index_num,
-                "sequence_num": ObjSeqInfo.objects(
-                    cmdb_id__in=cmdb_ids, task_record_id__in=task_exec_hist_id_list).count(),
+                **stats_num_dict,
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": len(cmdb_ids),
                 "ai_tune_num": optimized_execution_times,

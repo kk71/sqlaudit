@@ -247,36 +247,36 @@ get_risk_object_list.prefetch = __prefetch
 del __prefetch
 
 
-@timing(cache=r_cache)
-def dashboard_3_sum(session, login_user):
-    """
-    仪表盘的三个数字 以及可用的exec hist id列表
-    :param session:
-    :param login_user:
-    :return:
-    """
-    from utils import score_utils
-    cmdb_ids = cmdb_utils.get_current_cmdb(session, login_user)
-    latest_task_record_ids = list(
-        score_utils.get_latest_task_record_id(session, cmdb_ids).values())
-
-    sql_num = 0
-    table_num = 0
-    index_num = 0
-    if latest_task_record_ids:
-        sql_num = len(SQLText.filter_by_exec_hist_id(
-            latest_task_record_ids).distinct("sql_id"))
-        table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
-        index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
-    return sql_num, table_num, index_num, latest_task_record_ids
-
-
-def __prefetch():
-    with make_session() as session:
-        users = session.query(User.login_user).all()
-        for user in users:
-            dashboard_3_sum(session=session, login_user=user[0])
-
-
-dashboard_3_sum.prefetch = __prefetch
-del __prefetch
+# @timing(cache=r_cache)
+# def dashboard_3_sum(session, login_user):
+#     """
+#     仪表盘的三个数字 以及可用的exec hist id列表
+#     :param session:
+#     :param login_user:
+#     :return:
+#     """
+#     from utils import score_utils
+#     cmdb_ids = cmdb_utils.get_current_cmdb(session, login_user)
+#     latest_task_record_ids = list(
+#         score_utils.get_latest_task_record_id(session, cmdb_ids).values())
+#
+#     sql_num = 0
+#     table_num = 0
+#     index_num = 0
+#     if latest_task_record_ids:
+#         sql_num = len(SQLText.filter_by_exec_hist_id(
+#             latest_task_record_ids).distinct("sql_id"))
+#         table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+#         index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+#     return sql_num, table_num, index_num, latest_task_record_ids
+#
+#
+# def __prefetch():
+#     with make_session() as session:
+#         users = session.query(User.login_user).all()
+#         for user in users:
+#             dashboard_3_sum(session=session, login_user=user[0])
+#
+#
+# dashboard_3_sum.prefetch = __prefetch
+# del __prefetch
