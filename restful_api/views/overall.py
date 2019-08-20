@@ -27,7 +27,12 @@ class DashboardHandler(PrivilegeReq):
             # 顶部四个统计数字
             stats_login_user = StatsLoginUser.objects(login_user=self.current_user).\
                 order_by("-etl_date").first()
-            stats_num_dict = {"index_num": 0, "table_num": 0, "sequence_num": 0, "sql_num": 0}
+            stats_num_dict = {
+                "index_num": 0, "index_problem_num": 0, "index_problem_rate": 0.0,
+                "table_num": 0, "table_problem_num": 0, "table_problem_rate": 0.0,
+                "sequence_num": 0, "sequence_problem_num": 0, "sequence_problem_rate": 0.0,
+                "sql_num": 0, "sql_problem_num": 0, "sql_problem_rate": 0.0
+            }
             if stats_login_user:
                 stats_num_dict = stats_login_user.to_dict(
                     iter_if=lambda k, v: k in stats_num_dict.keys())

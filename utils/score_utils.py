@@ -143,7 +143,8 @@ def get_latest_task_record_id(
         cmdb_id: Union[list, int],
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
-                                lambda: arrow.now().shift(days=-30).datetime
+                                lambda: arrow.now().shift(days=-30).datetime,
+        task_record_id_to_replace: dict = None
         ) -> dict:
     """
     获取每个库最后一次采集分析的task_record_id
@@ -151,6 +152,7 @@ def get_latest_task_record_id(
     :param cmdb_id:
     :param status: 是否指定结束状态？True表示只过滤成功的，False表示失败，None表示不过滤
     :param task_start_date_gt: 搜索的task_record必须晚于某个时间点(datetime)
+    :param task_record_id_to_replace: 提供一个替换的{cmdb_id: record_id}
     :return: {cmdb_id: task_record_id, ...}
     """
     if not isinstance(cmdb_id, (tuple, list)):
@@ -169,7 +171,10 @@ def get_latest_task_record_id(
     sub_q = sub_q.subquery()
     cmdb_id_exec_hist_id_list_q = session. \
         query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
-    return dict(list(cmdb_id_exec_hist_id_list_q))
+    ret = dict(list(cmdb_id_exec_hist_id_list_q))
+    if task_record_id_to_replace:
+        ret.update(task_record_id_to_replace)
+    return ret
 
 
 def get_result_queryset_by(

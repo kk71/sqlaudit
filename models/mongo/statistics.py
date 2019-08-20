@@ -19,10 +19,23 @@ class StatsLoginUser(BaseStatisticsDoc):
     """最后分析：登录用户层面的统计数据，该数据可能根据用户绑定的库以及schema的改变而需要更新。"""
 
     login_user = StringField(help_text="仅对某个用户有效")
+
     sql_num = LongField(default=0)
+    sql_problem_num = LongField(default=0)
+    sql_problem_rate = FloatField(default=0.0)
+
     table_num = IntField(default=0)
+    table_problem_num = IntField(default=0)
+    table_problem_rate = FloatField(default=0.0)
+
     index_num = LongField(default=0)
+    index_problem_num = LongField(default=0)
+    index_problem_rate = FloatField(default=0.0)
+
     sequence_num = IntField(default=0)
+    sequence_problem_num = IntField(default=0)
+    sequence_problem_rate = IntField(default=0.0)
+
     cmdb = ListField(default=lambda: [
         # {
         #     "cmdb_id": "",
@@ -62,15 +75,51 @@ class StatsLoginUser(BaseStatisticsDoc):
                 # 计算当前用户绑定的全部库的统计数据
                 cmdb_ids = get_current_cmdb(session, login_user)
                 latest_task_record_ids = list(
-                    get_latest_task_record_id(session, cmdb_ids).values())
+                    get_latest_task_record_id(
+                        session,
+                        cmdb_ids,
+                        task_record_id_to_replace={cmdb_id: task_record_id}
+                    ).values()
+                )
                 if latest_task_record_ids:
+                    # SQL
                     doc.sql_num = len(SQLText.filter_by_exec_hist_id(
                         latest_task_record_ids).distinct("sql_id"))
+                    sql_r_q, _ = get_result_queryset_by(
+                        latest_task_record_ids,
+                        rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
+                    )
+                    doc.sql_problem_num = calc_problem_num(sql_r_q)
+                    doc.sql_problem_rate = round(doc.sql_problem_num / doc.sql_num, 4)
+
+                    # TABLE
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    table_r_q, _ = get_result_queryset_by(
+                        latest_task_record_ids,
+                        obj_info_type=const.OBJ_RULE_TYPE_TABLE
+                    )
+                    doc.table_problem_num = calc_problem_num(table_r_q)
+                    doc.table_problem_rate = round(doc.table_problem_num / doc.table_num, 4)
+
+                    # INDEX
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    index_r_q, _ = get_result_queryset_by(
+                        latest_task_record_ids,
+                        obj_info_type=const.OBJ_RULE_TYPE_INDEX
+                    )
+                    doc.index_problem_num = calc_problem_num(index_r_q)
+                    doc.table_problem_rate = round(doc.index_problem_num / doc.index_num, 4)
+
+                    # SEQUENCE
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
                         task_record_id__in=latest_task_record_ids).count()
+                    sequence_r_q, _ = get_result_queryset_by(
+                        latest_task_record_ids,
+                        obj_info_type=const.OBJ_RULE_TYPE_SEQ
+                    )
+                    doc.sequence_problem_num = calc_problem_num(sequence_r_q)
+                    doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
@@ -125,7 +174,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
 
     login_user = StringField(help_text="用户")
     date_period = IntField(help_text="时间区间", choices=DATE_PERIOD)
-    sql_num = DictField(default=lambda: {"active": 0, "at_risk": 0})
+    sql_num = DictField(default=lambda: {"active": [], "at_risk": []})
     risk_rule_rank = DictField(default=lambda:
         {
             "rule_name": None,
@@ -166,13 +215,12 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     )
                     date_start = arrow_now.shift(days=-dp)
                     date_end = arrow_now
-                    dt_now = deepcopy(arrow_now)
-                    dt_end = dt_now.shift(days=-dp)
+                    dt_now = deepcopy(date_start)
                     sql_num_active = doc.sql_num["active"] = []
                     sql_num_at_risk = doc.sql_num["at_risk"] = []
 
                     # SQL count
-                    while dt_now < dt_end:
+                    while dt_now < date_end:
                         sql_text_q = SQLText.objects(
                             cmdb_id=cmdb_id,
                             etl_date__gte=dt_now.datetime,

@@ -184,7 +184,7 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
 
 @timing(cache=r_cache)
 def get_risk_sql_list(session,
-                      cmdb_id: str,
+                      cmdb_id: int,
                       date_range: (date, date),
                       schema_name: str = None,
                       rule_type: str = "ALL",
