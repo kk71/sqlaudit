@@ -20,11 +20,11 @@ def save_scores(job, score):
           """
     now = datetime.now()
     today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
-    plain_db.oracleob.OracleHelper.insert(sql, [job['desc']['instance_name'], job['desc']['owner'], job['desc']['rule_type'].lower(), score, now, today])
+    plain_db.oracleob.OracleHelper.insert(sql, [job['desc']['instance_name'], job['desc']['owner'],
+                                                job['desc']['rule_type'].lower(), score, now, today])
 
 
 def calculate(task_exec_hist_id):
-
     cmdbs = plain_db.oracleob.OracleHelper.select("SELECT cmdb_id, connect_name, service_name FROM T_CMDB", one=False)
     cmdb_id2name = {x[0]: x[1] for x in cmdbs}
 
@@ -42,12 +42,13 @@ def calculate(task_exec_hist_id):
     for job in past.rule_analysis.db.mongo_operat.MongoHelper.find("job", sql):
 
         if job['desc']['owner'] not in weights[job['connect_name']]:
-            print(f" *** schema({job['desc']['owner']}) not in {weights[job['connect_name']]}")
+            # print(f" *** schema({job['desc']['owner']}) not in {weights[job['connect_name']]}")
             continue
 
         date = d_to_str(job['create_time'].date())
         select = {'_id': 0, 'task_uuid': 0, 'username': 0, 'ip_address': 0, 'sid': 0, 'create_time': 0}
-        result = past.rule_analysis.db.mongo_operat.MongoHelper.find_one("results", {'task_uuid': str(job['_id'])}, select)
+        result = past.rule_analysis.db.mongo_operat.MongoHelper.find_one("results", {'task_uuid': str(job['_id'])},
+                                                                         select)
 
         if not result:
             continue
@@ -59,18 +60,16 @@ def calculate(task_exec_hist_id):
         connect_name = cmdb_id2name[result['cmdb_id']]
         instance_name = connect_name
 
-        search_temp = {
-            "DB_IP": job["desc"]["db_ip"],
-            "OWNER": job["desc"]["owner"]
-        }
-        search_temp['INSTANCE_NAME'] = job["desc"].get("instance_name", "空")
+        search_temp = {"DB_IP": job["desc"]["db_ip"], "OWNER": job["desc"]["owner"],
+                       'INSTANCE_NAME': job["desc"].get("instance_name", "空")}
         rules, score = past.utils.utils.calculate_rules(result, search_temp)
 
         if score < 100:
             scores[instance_name][date].append(score)
 
-        print(f" *** going to update {job['_id']}")
-        past.rule_analysis.db.mongo_operat.MongoHelper.update_one('job', {'_id': job['_id']}, {"$set": {'score': score}})
+        # print(f" *** going to update {job['_id']}")
+        past.rule_analysis.db.mongo_operat.MongoHelper.update_one('job', {'_id': job['_id']},
+                                                                  {"$set": {'score': score}})
         save_scores(job, score)
 
     # ====================================================================================
@@ -89,7 +88,6 @@ def calculate(task_exec_hist_id):
             else:
                 sql = "UPDATE T_DATA_HEALTH set health_score=:1 WHERE database_name = :2 AND collect_date = to_date(:3, 'yyyy-mm-dd')"
                 plain_db.oracleob.OracleHelper.update(sql, [score, dbname, day])
-
 
 # if __name__ == "__main__":
 #     calculate()
