@@ -30,7 +30,6 @@ class TaskHandler(PrivilegeReq):
         p = self.pop_p(params)
         connect_name = params.pop("connect_name")
         task_exec_scripts = params.pop("task_exec_scripts")
-        last_result = params.pop("last_result")
         execution_status = params.pop("execution_status")
         del params
 
@@ -69,9 +68,16 @@ class TaskHandler(PrivilegeReq):
                 elif execution_status == const.TASK_PENDING:
                     if t.task_id not in pending_task_ids:
                         continue
-                elif execution_status in (const.TASK_RUNNING, const.TASK_DONE, const.TASK_FAILED):
-                    if last_result != t_dict["last_result"]:
+                elif execution_status == const.TASK_RUNNING:
+                    if t_dict["last_result"] is not None:
                         continue
+                elif execution_status == const.TASK_DONE:
+                    if t_dict["last_result"] != True:
+                        continue
+                elif execution_status == const.TASK_FAILED:
+                    if t_dict["last_result"] != False:
+                        continue
+
                 if t_dict["last_result"] is None:
                     t_dict["execution_status"] = const.TASK_RUNNING
                 elif t_dict["last_result"] is True:
