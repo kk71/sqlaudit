@@ -484,7 +484,7 @@ class OverviewHandler(SQLRiskListHandler):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("period", default=StatsCMDBLoginUser.DATE_PERIOD[0]):
-                scm_one_of_choices(StatsCMDBLoginUser.DATE_PERIOD)
+                And(scm_int, scm_one_of_choices(StatsCMDBLoginUser.DATE_PERIOD))
         }))
         cmdb_id = params.pop("cmdb_id")
         period = params.pop("period")
@@ -506,7 +506,7 @@ class OverviewHandler(SQLRiskListHandler):
             login_user=self.current_user,
             cmdb_id=cmdb_id,
             task_record_id=latest_task_record_id,
-            period=period
+            date_period=period
         ).first()
         if not stats_cmdb_obj:
             return self.resp_bad_req(msg="当前库未采集，请采集后重试。")
