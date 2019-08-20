@@ -63,7 +63,7 @@ class TaskHandler(PrivilegeReq):
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 if execution_status == const.TASK_NEVER_RAN:
-                    if t_dict["last_result"] is not None:
+                    if t_dict["last_result"] is not const.TASK_NEVER_RAN:
                         continue
                 elif execution_status == const.TASK_PENDING:
                     if t.task_id not in pending_task_ids:
