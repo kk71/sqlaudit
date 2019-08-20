@@ -29,8 +29,9 @@ imports = (
 )
 
 # add task method below
+task_capture_task_run = "task.capture.task_run"
 ALL_TASK = (
-    "task.capture.task_run",
+    task_capture_task_run,
     "task.offline_ticket.offline_ticket",
     "task.clear_cache.clear_cache",
     # "task.export.export",

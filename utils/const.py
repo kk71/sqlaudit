@@ -18,6 +18,22 @@ DB_TASK_CAPTURE = "采集及分析"
 DB_TASK_TUNE = "SQL智能优化"
 ALL_DB_TASKS = (DB_TASK_CAPTURE, DB_TASK_TUNE)
 
+# 任务执行状态
+
+TASK_NEVER_RAN = 0      # 从未执行
+TASK_PENDING = 1        # 等待执行
+TASK_RUNNING = 2        # 正在执行
+TASK_DONE = 3           # 成功
+TASK_FAILED = 4         # 失败
+ALL_TASK_EXECUTION_STATUS = (
+    TASK_NEVER_RAN,
+    TASK_PENDING,
+    TASK_RUNNING,
+    TASK_DONE,
+    TASK_FAILED
+)
+
+
 # 业务类型
 
 MODEL_OLTP = "OLTP"

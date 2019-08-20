@@ -5,7 +5,7 @@ from schema import Schema, Optional, And
 from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
-from utils import cmdb_utils, const
+from utils import cmdb_utils, const, task_utils
 from past import mkdata
 
 
@@ -23,12 +23,15 @@ class TaskHandler(PrivilegeReq):
             Optional("connect_name", default=None): scm_unempty_str,
             Optional("task_exec_scripts", default=None): scm_unempty_str,
             Optional("last_result", default=None): scm_bool,
+            Optional("execution_status", default=None): And(
+                scm_int, scm_one_of_choices(const.ALL_TASK_EXECUTION_STATUS)),
         }))
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         connect_name = params.pop("connect_name")
         task_exec_scripts = params.pop("task_exec_scripts")
         last_result = params.pop("last_result")
+        execution_status = params.pop("execution_status")
         del params
 
         with make_session() as session:
@@ -48,9 +51,13 @@ class TaskHandler(PrivilegeReq):
                 current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
+            pending_task_ids: set = task_utils.get_pending_task()
             for t in task_q:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = None
+                t_dict["is_pending"] = False
+                if t.task_id in pending_task_ids:
+                    t_dict["is_pending"] = True
                 last_task_exec_history = session. \
                     query(TaskExecHistory). \
                     filter(
@@ -67,8 +74,19 @@ class TaskHandler(PrivilegeReq):
                         pass
                     else:
                         continue
+                if execution_status == const.TASK_NEVER_RAN:
+                    if t_dict["last_result"] is not None:
+                        continue
+                elif execution_status == const.TASK_PENDING:
+                    if t.task_id not in pending_task_ids:
+                        continue
+                elif execution_status in (const.TASK_RUNNING, const.TASK_DONE, const.TASK_FAILED):
+                    if last_result != t_dict["last_result"]:
+                        continue
                 ret.append(t_dict)
-            ret = sorted(ret, key=lambda k: 0 if k["last_result"] is None else k["last_result"], reverse=True)
+            ret = sorted(ret,
+                         key=lambda k: 0 if k["last_result"] is None
+                         else k["last_result"], reverse=True)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
 
