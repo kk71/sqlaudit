@@ -22,7 +22,7 @@ class TaskHandler(PrivilegeReq):
             Optional("per_page", default=10): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
             Optional("task_exec_scripts", default=None): scm_unempty_str,
-            Optional("last_result", default=None): scm_bool,
+            # Optional("last_result", default=None): scm_bool,
             Optional("execution_status", default=None): And(
                 scm_int, scm_one_of_choices(const.ALL_TASK_EXECUTION_STATUS)),
         }))
@@ -54,10 +54,7 @@ class TaskHandler(PrivilegeReq):
             pending_task_ids: set = task_utils.get_pending_task()
             for t in task_q:
                 t_dict = t.to_dict()
-                t_dict["last_result"] = None
-                t_dict["is_pending"] = False
-                if t.task_id in pending_task_ids:
-                    t_dict["is_pending"] = True
+                t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
                 last_task_exec_history = session. \
                     query(TaskExecHistory). \
                     filter(
@@ -66,14 +63,6 @@ class TaskHandler(PrivilegeReq):
                 ).order_by(TaskExecHistory.id.desc()).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
-                if last_result is not None:
-                    if last_result == True and t_dict["last_result"] == True:
-                        pass
-                    elif last_result == False and t_dict["last_result"] in (False, None):
-                        # 为了兼容未跑的情况
-                        pass
-                    else:
-                        continue
                 if execution_status == const.TASK_NEVER_RAN:
                     if t_dict["last_result"] is not None:
                         continue
@@ -83,6 +72,15 @@ class TaskHandler(PrivilegeReq):
                 elif execution_status in (const.TASK_RUNNING, const.TASK_DONE, const.TASK_FAILED):
                     if last_result != t_dict["last_result"]:
                         continue
+                if t_dict["last_result"] is None:
+                    t_dict["execution_status"] = const.TASK_RUNNING
+                elif t_dict["last_result"] is True:
+                    t_dict["execution_status"] = const.TASK_DONE
+                elif t_dict["last_result"] is False:
+                    t_dict["execution_status"] = const.TASK_FAILED
+                elif t.task_id in pending_task_ids:
+                    t_dict["execution_status"] = const.TASK_PENDING
+
                 ret.append(t_dict)
             ret = sorted(ret,
                          key=lambda k: 0 if k["last_result"] is None
