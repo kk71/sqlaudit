@@ -168,10 +168,8 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     date_end = arrow_now
                     dt_now = deepcopy(arrow_now)
                     dt_end = dt_now.shift(days=-dp)
-                    sql_num_active = []
-                    sql_num_at_risk = []
-                    doc.sql_num["active"] = sql_num_active
-                    doc.sql_num["at_risk"] = sql_num_at_risk
+                    sql_num_active = doc.sql_num["active"] = []
+                    sql_num_at_risk = doc.sql_num["at_risk"] = []
 
                     # SQL count
                     while dt_now < dt_end:
