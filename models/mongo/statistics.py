@@ -90,7 +90,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                     )
                     doc.sql_problem_num = calc_problem_num(sql_r_q)
-                    doc.sql_problem_rate = round(doc.sql_problem_num / doc.sql_num, 4)
+                    if doc.sql_num:
+                        doc.sql_problem_rate = round(doc.sql_problem_num / doc.sql_num, 4)
 
                     # TABLE
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
@@ -99,7 +100,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         obj_info_type=const.OBJ_RULE_TYPE_TABLE
                     )
                     doc.table_problem_num = calc_problem_num(table_r_q)
-                    doc.table_problem_rate = round(doc.table_problem_num / doc.table_num, 4)
+                    if doc.table_num:
+                        doc.table_problem_rate = round(doc.table_problem_num / doc.table_num, 4)
 
                     # INDEX
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
@@ -108,7 +110,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         obj_info_type=const.OBJ_RULE_TYPE_INDEX
                     )
                     doc.index_problem_num = calc_problem_num(index_r_q)
-                    doc.table_problem_rate = round(doc.index_problem_num / doc.index_num, 4)
+                    if doc.index_num:
+                        doc.table_problem_rate = round(doc.index_problem_num / doc.index_num, 4)
 
                     # SEQUENCE
                     doc.sequence_num = ObjSeqInfo.objects(
@@ -119,7 +122,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ
                     )
                     doc.sequence_problem_num = calc_problem_num(sequence_r_q)
-                    doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
+                    if doc.sequence_num:
+                        doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \

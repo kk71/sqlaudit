@@ -38,7 +38,7 @@ class CMDBHandler(AuthReq):
             Optional("per_page", default=10): scm_int,
 
             # 排序
-            Optional("sort", default=None): And(scm_str, scm_one_of_choices((SOET_DESC, SOET_ASC)))
+            Optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS))
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
@@ -63,11 +63,13 @@ class CMDBHandler(AuthReq):
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(
                     session, self.current_user)
                 if all_db_data_health:
-                    if sort == SOET_DESC:
-                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score'] if da['health_score'] is not None else 0,
+                    if sort == SORT_DESC:
+                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score']
+                        if da['health_score'] is not None else 0,
                                                     reverse=True)
-                    elif sort == SOET_ASC:
-                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score'] if da['health_score'] is not None else 0,
+                    elif sort == SORT_ASC:
+                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score']
+                        if da['health_score'] is not None else 0,
                                                     reverse=False)
             else:
                 all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
