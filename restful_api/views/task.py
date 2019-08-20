@@ -72,10 +72,10 @@ class TaskHandler(PrivilegeReq):
                     if t_dict["last_result"] is not None:
                         continue
                 elif execution_status == const.TASK_DONE:
-                    if t_dict["last_result"] != True:
+                    if t_dict["last_result"] is True:
                         continue
                 elif execution_status == const.TASK_FAILED:
-                    if t_dict["last_result"] != False:
+                    if t_dict["last_result"] is not False:
                         continue
 
                 if t_dict["last_result"] is None:
