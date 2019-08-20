@@ -7,8 +7,10 @@ __all__ = [
 from celery.task.control import inspect
 
 import celery_conf
+from utils.perf_utils import timing
 
 
+@timing()
 def get_pending_task():
     """获取pending的任务task_id"""
     insp = inspect()
