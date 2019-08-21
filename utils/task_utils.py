@@ -4,8 +4,6 @@ __all__ = [
     "get_pending_task"
 ]
 
-import json
-
 from celery.task.control import inspect
 
 import celery_conf
@@ -29,7 +27,7 @@ def get_pending_task():
     ret = set()
     for t in insp.reserved()[q_name]:
         try:
-            ret.add(json.loads(t["args"])[5])
-        except json.JSONDecodeError:
+            ret.add(eval(t["args"])[5])
+        except:
             pass
     return ret

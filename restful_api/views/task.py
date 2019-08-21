@@ -51,7 +51,6 @@ class TaskHandler(PrivilegeReq):
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
             pending_task_ids: set = task_utils.get_pending_task()
-            print(f"pending tasks: {pending_task_ids}")
             for t in task_q:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
