@@ -26,5 +26,6 @@ def get_pending_task():
         assert 0
     ret = set()
     for t in insp.reserved()[q_name]:
+        print(t["args"])
         ret.add(t["args"][5])
     return ret
