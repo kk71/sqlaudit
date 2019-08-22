@@ -32,10 +32,13 @@ class OfflineTicketCommonHandler(PrivilegeReq):
             pass
 
         elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
-            # 能看:自己提交的工单+指派给自己的工单
+            # 能看:自己提交的工单+指派给自己所在角色的工单+自己处理了的工单
             q = q.filter(
-                or_(WorkList.submit_owner == self.current_user,
-                    WorkList.audit_owner == self.current_user)
+                or_(
+                    WorkList.submit_owner == self.current_user,
+                    WorkList.audit_role_id.in_(self.current_roles()),
+                    WorkList.audit_owner == self.current_user
+                )
             )
 
         else:
@@ -50,12 +53,13 @@ class OfflineTicketCommonHandler(PrivilegeReq):
             pass
 
         elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
-            # 能看:自己提交的子工单+指派给自己的子工单
+            # 能看:自己提交的子工单+指派给自己所在角色的子工单+自己处理过了的工单
             sq = session.query(WorkList.work_list_id). \
                 filter(or_(
                     WorkList.submit_owner == self.current_user,
-                    WorkList.audit_owner == self.current_user,
-                ))
+                    WorkList.audit_role_id.in_(self.current_roles()),
+                    WorkList.audit_owner == self.current_user
+            ))
             q = q.filter(SubWorkList.work_list_id.in_(sq))
 
         else:
@@ -100,6 +104,7 @@ class TicketHandler(OfflineTicketCommonHandler):
                                        WorkList.database_name,
                                        WorkList.submit_owner,
                                        WorkList.audit_owner,
+                                       WorkList.audit_role_id,
                                        WorkList.audit_comments
                                        )
             q = self.privilege_filter_ticket(q)
@@ -129,7 +134,7 @@ class TicketHandler(OfflineTicketCommonHandler):
             "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
-            "audit_owner": scm_unempty_str,
+            "audit_role_id": scm_gt0_int,
             "task_name": scm_unempty_str,
             "session_id": scm_unempty_str
         }))
@@ -159,6 +164,7 @@ class TicketHandler(OfflineTicketCommonHandler):
             "work_list_status": And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
+        params["audit_owner"] = self.current_user
         work_list_id = params.pop("work_list_id")
         with make_session() as session:
             session.query(WorkList). \

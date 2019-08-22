@@ -23,6 +23,7 @@ class WorkList(BaseModel):
     submit_owner = Column("SUBMIT_OWNER", String, comment="发起人")
     audit_date = Column("AUDIT_DATE", DATE)
     work_list_status = Column("WORK_LIST_STATUS", Integer, default=0)
+    audit_role_id = Column("AUDIT_ROLE_ID", Integer)
     audit_owner = Column("AUDIT_OWNER", String, comment="审批人")
     audit_comments = Column("AUDIT_COMMENTS", String)
     online_date = Column("ONLINE_DATE", DATE)

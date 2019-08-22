@@ -82,7 +82,7 @@ def offline_ticket(work_list_id, sqls):
                 check_time=datetime.now(),
                 check_status=check_status,
                 elapsed_seconds=elapsed_second,
-                check_owner=ticket.audit_owner,
+                # check_owner=ticket.audit_owner,
                 comments=comments
             )
             session.add(sub_ticket)

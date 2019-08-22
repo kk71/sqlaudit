@@ -3,7 +3,8 @@
 __all__ = [
     "get_privilege_towards_user",
     "PRIVILEGE",
-    "PrivilegeRequired"
+    "PrivilegeRequired",
+    "get_role_of_user"
 ]
 
 from collections import defaultdict
@@ -17,7 +18,7 @@ PRIVILEGE_DICT_TO_EXPIRE = 0
 PRIVILEGE_DICT_TO_EXPIRE_MAX = 99
 
 
-def get_role_of_user(login_user: Union[str, list, tuple]):
+def get_role_of_user(login_user: Union[str, list, tuple]) -> defaultdict:
     """
     获取某个用户，或者某一批用户所绑定的角色id
     :param login_user:

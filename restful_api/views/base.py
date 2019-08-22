@@ -308,3 +308,7 @@ class PrivilegeReq(AuthReq):
                 PRIVILEGE.privilege_to_dict(i)["name"] for i in unavailable_privileges])
             self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
             raise PrivilegeRequired
+
+    def current_roles(self) -> list:
+        """returns role_ids to current user"""
+        return list(get_role_of_user(self.current_user).get(self.current_user, set([])))
