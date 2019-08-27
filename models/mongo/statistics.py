@@ -174,7 +174,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                                     collect_date=None
                                 )
                     doc.schema_rank = list(dict(sorted(
-                        list(all_current_cmdb_schema_dict),
+                        all_current_cmdb_schema_dict.items(),
                         key=lambda x: x[1].health_score
                     )[:10]).values())  # 只取分数最低的x个
 
