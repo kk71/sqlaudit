@@ -168,7 +168,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                                                         ).items():
                             all_current_cmdb_schema_dict[(the_cmdb.cmdb_id, the_schema)] = \
                                 StatsLoginUser_SchemaRank(
-                                    cmdb_id=the_cmdb.cmdb_id,
+                                    schema_name=the_schema,
                                     connect_name=the_cmdb.connect_name,
                                     health_score=the_score,
                                     collect_date=None
