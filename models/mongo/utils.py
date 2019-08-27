@@ -16,6 +16,7 @@ from typing import *
 from bson import ObjectId
 from mongoengine import DynamicDocument, EmbeddedDocument, ObjectIdField,\
     IntField, StringField, DateTimeField
+from mongoengine.base.datastructures import EmbeddedDocumentList
 
 from utils.datetime_utils import *
 from utils import const
@@ -52,6 +53,8 @@ class BaseDoc(DynamicDocument):
         d = {}
         if isinstance(recurse, dict):
             items = recurse.items()
+        elif isinstance(recurse, EmbeddedDocument):
+            items = {f: getattr(recurse, f, None) for f in recurse._fields}.items()
         else:
             items = {f: getattr(self, f, None) for f in self._fields}.items()
         for k, v in items:
@@ -65,6 +68,8 @@ class BaseDoc(DynamicDocument):
                 v = str(v)
             if isinstance(v, dict):
                 v = self.to_dict(iter_if, iter_by, recurse=v)
+            if isinstance(v, EmbeddedDocumentList):
+                    v = [self.to_dict(iter_if, iter_by, recurse=a_v) for a_v in v]
             if isinstance(v, EmbeddedDocument):
                 v = self.to_dict(iter_if, iter_by, recurse={
                     f: getattr(v, f, None) for f in v._fields})
