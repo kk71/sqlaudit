@@ -159,7 +159,7 @@ class StatsLoginUser(BaseStatisticsDoc):
 
                     # schema分数排名
                     all_current_cmdb_schema_dict = dict()
-                    for the_cmdb in session.query().filter(CMDB.cmdb_id.in_(cmdb_ids)):
+                    for the_cmdb in session.query(CMDB).filter(CMDB.cmdb_id.in_(cmdb_ids)):
                         for the_schema, the_score in calc_score_by(
                                                         session,
                                                         the_cmdb,
