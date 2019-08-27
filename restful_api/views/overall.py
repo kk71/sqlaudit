@@ -27,15 +27,10 @@ class DashboardHandler(PrivilegeReq):
             # 顶部四个统计数字
             stats_login_user = StatsLoginUser.objects(login_user=self.current_user).\
                 order_by("-etl_date").first()
-            stats_num_dict = {
-                "index_num": 0, "index_problem_num": 0, "index_problem_rate": 0.0,
-                "table_num": 0, "table_problem_num": 0, "table_problem_rate": 0.0,
-                "sequence_num": 0, "sequence_problem_num": 0, "sequence_problem_rate": 0.0,
-                "sql_num": 0, "sql_problem_num": 0, "sql_problem_rate": 0.0
-            }
             if stats_login_user:
-                stats_num_dict = stats_login_user.to_dict(
-                    iter_if=lambda k, v: k in stats_num_dict.keys())
+                stats_num_dict = stats_login_user.to_dict()
+            else:
+                stats_num_dict = StatsLoginUser().to_dict()
 
             # 维度的数据库
             cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
@@ -90,7 +85,7 @@ class DashboardHandler(PrivilegeReq):
                 "ai_tune_num": optimized_execution_times,
                 "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
-                "notice": notice.contents if notice else ""
+                "notice": notice.contents if notice else "",
             })
 
 

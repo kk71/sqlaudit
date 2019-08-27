@@ -9,10 +9,43 @@
 from typing import Union
 
 from mongoengine import IntField, StringField, DateTimeField, \
-    DynamicField, FloatField, LongField, ListField, DictField
+    DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField,\
+    EmbeddedDocument
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
+
+
+class StatsLoginUser_SchemaRank(EmbeddedDocument):
+    """
+    纳管库的schema分数排名
+    """
+    schema_name = StringField()
+    connect_name = StringField()
+    health_score = FloatField()
+    collect_date = DateTimeField()
+
+
+class StatsLoginUser_TablespaceRank(EmbeddedDocument):
+    """
+    纳管库的表空间使用率排名
+    """
+    tablespace_name = StringField()
+    usage_ratio = FloatField()
+    cmdb_id = IntField()
+    connect_name = StringField()
+
+
+class StatsLoginUser_CMDB(EmbeddedDocument):
+    """
+    当前登录用户各个纳管数据库的统计信息
+    """
+    cmdb_id = IntField()
+    connect_name = StringField()
+    schema_captured_num = FloatField()
+    finally_schema_captured_num = FloatField()
+    problem_num = DictField(default=lambda: {"SQL": 0, "OBJ": 0})
+    scores = DictField(default=lambda: {"OBJ": 0, "TEXT": 0})
 
 
 class StatsLoginUser(BaseStatisticsDoc):
@@ -36,22 +69,9 @@ class StatsLoginUser(BaseStatisticsDoc):
     sequence_problem_num = IntField(default=0)
     sequence_problem_rate = IntField(default=0.0)
 
-    cmdb = ListField(default=lambda: [
-        # {
-        #     "cmdb_id": "",
-        #     "connect_name": "",
-        #     "schema_captured_num": 采集的schema个数,
-        #     "finally_schema_captured_num": 采集成功的schema个数
-        #     "problem_num": {
-        #         "SQL": 0,
-        #         "OBJ": 0
-        #     },
-        #     "scores": {
-        #         "OBJ": 99,
-        #         "TEXT": 99
-        #     }
-        # }
-    ], help_text="分析时该用户的纳管库和纳管schema的统计数据")
+    schema_rank = EmbeddedDocumentField(StatsLoginUser_SchemaRank, default=[])
+    tablespace_rank = EmbeddedDocumentField(StatsLoginUser_TablespaceRank, default=[])
+    cmdb = EmbeddedDocumentField(StatsLoginUser_CMDB, default=[])
 
     meta = {
         "collection": "stats_login_user",
@@ -63,9 +83,9 @@ class StatsLoginUser(BaseStatisticsDoc):
         from models.oracle import make_session, CMDB, User
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
-            get_latest_task_record_id
+            get_latest_task_record_id, calc_score_by
         from utils.cmdb_utils import get_current_schema, get_current_cmdb
-        from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo
+        from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo, ObjTabSpace
         from models.mongo import SQLText
 
         with make_session() as session:
@@ -74,6 +94,8 @@ class StatsLoginUser(BaseStatisticsDoc):
 
                 # 计算当前用户绑定的全部库的统计数据
                 cmdb_ids = get_current_cmdb(session, login_user)
+                cmdb_id_connect_names_pair: dict = dict(session.query(
+                    CMDB.cmdb_id, CMDB.connect_name))
                 latest_task_record_ids = list(
                     get_latest_task_record_id(
                         session,
@@ -125,9 +147,41 @@ class StatsLoginUser(BaseStatisticsDoc):
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
 
+                    # schema排名
+                    tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids).\
+                        order_by("-usage_ratio")[:10]
+                    for ts in tab_space:
+                        doc.tablespace_rank.append(StatsLoginUser_TablespaceRank(
+                            **ts.to_dict(iter_if=lambda k, v: k in (
+                                "tablespace_name", "usage_ratio", "cmdb_id")),
+                            connect_name=cmdb_id_connect_names_pair.get(ts.cmdb_id, None)
+                        ))
+
+                    # schema分数排名
+                    all_current_cmdb_schema_dict = dict()
+                    for the_cmdb in session.query().filter(CMDB.cmdb_id.in_(cmdb_ids)):
+                        for the_schema, the_score in calc_score_by(
+                                                        session,
+                                                        the_cmdb,
+                                                        perspective=const.OVERVIEW_ITEM_SCHEMA,
+                                                        score_by=const.SCORE_BY_LOWEST
+                                                        ).items():
+                            all_current_cmdb_schema_dict[(the_cmdb.cmdb_id, the_schema)] = \
+                                StatsLoginUser_SchemaRank(
+                                    cmdb_id=the_cmdb.cmdb_id,
+                                    connect_name=the_cmdb.connect_name,
+                                    health_score=the_score,
+                                    collect_date=None
+                                )
+                    doc.schema_rank = list(dict(sorted(
+                        list(all_current_cmdb_schema_dict),
+                        key=lambda x: x[1].health_score
+                    )[:10]).values())  # 只取分数最低的x个
+
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
-                        session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model):
+                        session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model).\
+                                filter(CMDB.cmdb_id.in_(cmdb_ids)):
                     if cmdb_id == the_cmdb_id:
                         latest_task_record_id = task_record_id
                     else:
@@ -152,22 +206,22 @@ class StatsLoginUser(BaseStatisticsDoc):
                                                 for i in obj_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
-                    doc.cmdb.append({
-                        "cmdb_id": the_cmdb_id,
-                        "connect_name": the_connect_name,
-                        "schema_captured_num": schema_captured_num,
-                        "finally_schema_captured_num": schema_captured_num,
-                        "problem_num": {
+                    doc.cmdb.append(StatsLoginUser_CMDB(
+                        cmdb_id=the_cmdb_id,
+                        connect_name=the_connect_name,
+                        schema_captured_num=schema_captured_num,
+                        finally_schema_captured_num=schema_captured_num,
+                        problem_num={
                             const.STATS_NUM_SQL: calc_problem_num(sql_result_q),
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
-                        "scores": {
+                        scores={
                             const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(), 1)
                             if sql_result_q.count() else 0,
                             const.RULE_TYPE_OBJ: round(obj_result_score_sum / obj_result_q.count(), 1)
                             if obj_result_q.count() else 0,
                         }
-                    })
+                    ))
                 yield doc
 
 
