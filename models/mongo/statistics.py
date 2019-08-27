@@ -10,7 +10,7 @@ from typing import Union
 
 from mongoengine import IntField, StringField, DateTimeField, \
     DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField,\
-    EmbeddedDocument
+    EmbeddedDocument, EmbeddedDocumentListField
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
@@ -69,9 +69,9 @@ class StatsLoginUser(BaseStatisticsDoc):
     sequence_problem_num = IntField(default=0)
     sequence_problem_rate = IntField(default=0.0)
 
-    schema_rank = EmbeddedDocumentField(StatsLoginUser_SchemaRank, default=[])
-    tablespace_rank = EmbeddedDocumentField(StatsLoginUser_TablespaceRank, default=[])
-    cmdb = EmbeddedDocumentField(StatsLoginUser_CMDB, default=[])
+    schema_rank = EmbeddedDocumentListField(StatsLoginUser_SchemaRank, default=list)
+    tablespace_rank = EmbeddedDocumentListField(StatsLoginUser_TablespaceRank, default=list)
+    cmdb = EmbeddedDocumentListField(StatsLoginUser_CMDB, default=list)
 
     meta = {
         "collection": "stats_login_user",
