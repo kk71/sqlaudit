@@ -82,12 +82,12 @@ class TaskHandler(PrivilegeReq):
 
                 if t_dict["last_result"] is None:
                     t_dict["execution_status"] = const.TASK_RUNNING
+                elif t.task_id in pending_task_ids:
+                    t_dict["execution_status"] = const.TASK_PENDING
                 elif t_dict["last_result"] is True:
                     t_dict["execution_status"] = const.TASK_DONE
                 elif t_dict["last_result"] is False:
                     t_dict["execution_status"] = const.TASK_FAILED
-                elif t.task_id in pending_task_ids:
-                    t_dict["execution_status"] = const.TASK_PENDING
 
                 ret.append(t_dict)
             ret = sorted(ret,
