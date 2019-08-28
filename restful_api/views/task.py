@@ -5,7 +5,7 @@ from schema import Schema, Optional, And
 from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
-from utils import cmdb_utils, const, task_utils
+from utils import cmdb_utils, const, task_utils, score_utils
 from past import mkdata
 
 
@@ -51,17 +51,17 @@ class TaskHandler(PrivilegeReq):
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
             pending_task_ids: set = task_utils.get_pending_task()
+            cmdb_capture_task_latest_task_id = score_utils.get_latest_task_record_id(
+                session,
+                cmdb_id=current_cmdb_ids,
+                status=None  # None表示不过滤状态
+            )
             for t in task_q:
                 t_dict = t.to_dict()
                 t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
-                last_task_exec_history = session. \
-                    query(TaskExecHistory). \
-                    filter(
-                        TaskExecHistory.task_id == t.task_id,
-                        TaskExecHistory.task_end_date.isnot(None)
-                    ). \
-                    order_by(TaskExecHistory.id.desc()). \
-                    first()
+                last_task_exec_history = session.query(TaskExecHistory).filter(
+                    TaskExecHistory.id == cmdb_capture_task_latest_task_id.get(t.cmdb_id, None)
+                )
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 if execution_status == const.TASK_NEVER_RAN:
