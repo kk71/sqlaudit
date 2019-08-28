@@ -476,11 +476,9 @@ class TableInfoHandler(AuthReq):
 class OverviewHandler(SQLRiskListHandler):
 
     def get(self):
-        """风险详情的sql plan详情"""
-
+        """数据库健康度概览"""
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
 
-        """数据库健康度概览"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("period", default=StatsCMDBLoginUser.DATE_PERIOD[0]):

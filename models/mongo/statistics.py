@@ -281,8 +281,8 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     while dt_now < date_end:
                         sql_text_q = SQLText.objects(
                             cmdb_id=cmdb_id,
-                            etl_date__gte=dt_now.datetime,
-                            etl_date__lt=dt_now.shift(days=+1).datetime,
+                            etl_date__gte=dt_now.date(),
+                            etl_date__lt=dt_now.shift(days=+1).date(),
                             schema__in=schemas
                         )
                         active_sql_num = len(sql_text_q.distinct("sql_id"))
