@@ -46,8 +46,8 @@ class TaskHandler(PrivilegeReq):
                                             TaskManage.business_name,
                                             TaskManage.server_name,
                                             TaskManage.ip_address)
+            current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not self.is_admin():
-                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
             pending_task_ids: set = task_utils.get_pending_task()
