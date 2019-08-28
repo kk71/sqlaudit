@@ -103,14 +103,15 @@ class CMDBHandler(AuthReq):
             login_stats = StatsLoginUser.objects(login_user=self.current_user). \
                 order_by("-etl_date").first()
             if login_stats:
-                cmdb_stats = {c["cmdb_id"]: c for c in login_stats.cmdb}
-                the_etl_date = login_stats.etl_date
+                login_stats = login_stats.to_dict()
+                cmdb_stats = {c["cmdb_id"]: c for c in login_stats["cmdb"]}
+                the_etl_date = login_stats["etl_date"]
             else:
                 cmdb_stats = {}
                 the_etl_date = None
             for i in ret:
                 i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
-                i["stats"]["etl_date"] = dt_to_str(the_etl_date)
+                i["stats"]["etl_date"] = the_etl_date
             self.resp(ret, **p)
 
     def post(self):
