@@ -61,7 +61,7 @@ class TaskHandler(PrivilegeReq):
                 t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
                 last_task_exec_history = session.query(TaskExecHistory).filter(
                     TaskExecHistory.id == cmdb_capture_task_latest_task_id.get(t.cmdb_id, None)
-                )
+                ).first()
                 if last_task_exec_history:
                     t_dict["last_result"] = last_task_exec_history.status
                 if execution_status == const.TASK_NEVER_RAN:
