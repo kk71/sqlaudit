@@ -19,6 +19,7 @@ from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
 from models.oracle import make_session
 from past.rule_analysis.db.mongo_operat import MongoHelper
+from past.utils.send_mail import send_work_list_status
 
 from .base import celery
 
@@ -41,6 +42,34 @@ def insert_send_mail_history(login_user, send_mail_id, result, file_path):
 
     sql_params = [send_mail_id, login_user, file_path, result, get_time()]
     OracleHelper.insert(sql, params=sql_params)
+
+def timing_send_work_list_status(work_list):
+    """
+    发送线下审核工单状态
+    :param work_list:
+    :return:
+    """
+    sql="SELECT * FROM MAIL_SERVER"
+    server_data = OracleHelper.select_dict(sql, one=True)
+
+    params = [work_list.submit_owner]
+    user_sql = "SELECT EMAIL FROM T_USER WHERE LOGIN_USER=:1"
+    user_data = OracleHelper.select(user_sql, params=params, one=True)
+    user_email = user_data[0]
+
+    work_list_status = work_list.work_list_status
+    audit_date = work_list.audit_date
+    audit_comments = work_list.audit_comments
+    audit_owner = work_list.audit_owner
+    work_list_id = work_list.work_list_id
+    task_name = work_list.task_name
+    comment=None
+    if work_list_status == 1:
+        comment=f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核通过"
+    elif work_list_status == 2:
+        comment=f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核不通过,理由为{audit_comments}"
+
+    send_work_list_status(server_data, user_email,comment)
 
 
 @celery.task

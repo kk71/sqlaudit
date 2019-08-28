@@ -18,6 +18,7 @@ from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
 from task.offline_ticket import offline_ticket
+from task.mail_report import timing_send_work_list_status
 
 import plain_db.oracleob
 import past.utils.utils
@@ -167,9 +168,10 @@ class TicketHandler(OfflineTicketCommonHandler):
         params["audit_owner"] = self.current_user
         work_list_id = params.pop("work_list_id")
         with make_session() as session:
-            session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id). \
-                update(params)
+            session.query(WorkList).filter(WorkList.work_list_id == work_list_id).update(params)
+            work_list=session.query(WorkList).filter(WorkList.work_list_id==work_list_id).first()
+            timing_send_work_list_status.delay(work_list)
+            # timing_send_work_list_status(work_list)
         return self.resp_created(msg="更新成功")
 
 

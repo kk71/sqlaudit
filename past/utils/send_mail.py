@@ -4,6 +4,30 @@ import traceback
 
 import yagmail
 
+def send_work_list_status(server_data,user_email,comment):
+    mail_host = server_data['ip_address']
+    mail_port = server_data['port']
+    mail_user = server_data['username']
+    mail_pass = server_data['password']
+    use_ssl = True if server_data['usessl'] else False
+    smtp_skip_login = True if not mail_pass else False
+    result = True
+    errors = ''
+    try:
+        smtp_kwargs = dict(user=mail_user, password=mail_pass, host=mail_host, port=mail_port,
+                           smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
+        print(smtp_kwargs)
+        yag = yagmail.SMTP(**smtp_kwargs)
+        send_kwargs = dict(to=user_email,subject='线下工单审核状态', contents=comment)
+        print(send_kwargs)
+        yag.send(**send_kwargs)
+    except Exception as error:
+        print(traceback.format_exc())
+        result = False
+        errors = error.__str__()
+        errors = str(errors)
+    print(result, errors)
+    return result, errors
 
 def send_mail(title, contents, receivers, server_data, path=None, filename=None):
     print(f"Mail parameters: title: {title}, contents: {contents}, receivers: {receivers}, path: {path}, filename: {filename}, server_data: {server_data}")
