@@ -13,7 +13,7 @@ from utils.perf_utils import *
 from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils import rule_utils, sql_utils, object_utils, score_utils, cmdb_utils
+from utils import rule_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
 
@@ -272,8 +272,8 @@ class SQLRiskDetailHandler(AuthReq):
             "cmdb_id": scm_int,
             "sql_id": scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
-            Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date_end,
+            Optional("date_start", default=arrow.now().shift(months=-1).date()): scm_date,
+            Optional("date_end", default=arrow.now().shift(days=1).date()): scm_date_end,
         }))
         cmdb_id = params.pop("cmdb_id")
         sql_id = params.pop("sql_id")
@@ -328,10 +328,19 @@ class SQLRiskDetailHandler(AuthReq):
                     'buffer_gets_average': defaultdict(list),
                 } for plan_hash_value in hash_values
             }
+
+            # 全部plan数据以及stats数据(后续需要出平均值)
+            sql_stats = {
+                "executions_delta": [],
+                "io_cost": [],
+                "elapsed_time_delta": [],
+            }
+
             for plan_hash_value in hash_values:
                 # plans
                 sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id,
                                                    plan_hash_value=plan_hash_value).first()
+                sql_stats["io_cost"].append(sql_plan_object.io_cost)
                 plans.append({
                     "plan_hash_value": plan_hash_value,
                     "cost": sql_plan_object.cost,
@@ -345,6 +354,8 @@ class SQLRiskDetailHandler(AuthReq):
                     sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
                 if date_end:
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
+                sql_stats["elapsed_time_delta"] += list(sql_stat_objects.values_list("elapsed_time_delta"))
+                sql_stats["executions_delta"] += list(sql_stat_objects.values_list("executions_delta"))
                 for sql_stat_obj in sql_stat_objects:
                     gp = graphs[plan_hash_value]
                     etl_date_str = dt_to_str(sql_stat_obj.etl_date)
@@ -385,8 +396,11 @@ class SQLRiskDetailHandler(AuthReq):
                         "value": round(get_delta_average(sql_stat_obj.buffer_gets_delta), 2)
                     })
 
+            sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0 for k, v in sql_stats.items()}
+
             self.resp({
                 'sql_id': sql_id,
+                "stats": sql_stats,
                 'schema': schemas[0] if schemas else None,
                 'first_appearance': dt_to_str(sql_text_stats[sql_id]["first_appearance"]),
                 'last_appearance': dt_to_str(sql_text_stats[sql_id]["last_appearance"]),
