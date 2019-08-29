@@ -21,7 +21,7 @@ class OnlineReportTaskListHandler(PrivilegeReq):
     def get(self):
         """在线查看报告任务列表"""
 
-        self.acquire(const.PRIVILEGE.PRIVILEGE_SQL_HEALTH)
+        self.acquire(const.PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
 
         params = self.get_query_args(Schema({
             Optional("cmdb_id"): scm_int,

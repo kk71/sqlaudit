@@ -190,7 +190,7 @@ class PRIVILEGE:
     # 新增权限的时候，请保持id不断增大，不要复用旧id，哪怕已经删掉的权限的id也不要用)
     # 删除权限请全代码搜索删除
     # PRIVILEGE_DASHBOARD = (1, TYPE_FE, "仪表盘", "是否允许使用")
-    PRIVILEGE_SQL_HEALTH = (2, TYPE_FE, "SQL健康度", "")
+    # PRIVILEGE_SQL_HEALTH = (2, TYPE_FE, "SQL健康度", "")
     PRIVILEGE_ONLINE = (3, TYPE_FE, "线上审核", "")
     PRIVILEGE_OFFLINE = (4, TYPE_FE, "线下审核", "")
     PRIVILEGE_SELF_SERVICE_ONLINE = (5, TYPE_BOTH, "自助上线", "")
@@ -210,10 +210,10 @@ class PRIVILEGE:
     PRIVILEGE_ROLE_MANAGE = (19, TYPE_FE, "角色管理", "")
     PRIVILEGE_ROLE_USER_MANAGE = (20, TYPE_FE, "用户角色管理", "")
     PRIVILEGE_ROLE_DATA_PRIVILEGE = (21, TYPE_FE, "数据权限配置", "是否允许使用")
+    PRIVILEGE_HEALTH_CENTER = (22, TYPE_FE, "健康中心", "")
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
-        PRIVILEGE_SQL_HEALTH,
         PRIVILEGE_ONLINE,
         PRIVILEGE_OFFLINE,
         PRIVILEGE_SELF_SERVICE_ONLINE,
@@ -231,7 +231,8 @@ class PRIVILEGE:
         PRIVILEGE_OFFLINE_TICKET_ADMIN,
         PRIVILEGE_ROLE_MANAGE,
         PRIVILEGE_ROLE_USER_MANAGE,
-        PRIVILEGE_ROLE_DATA_PRIVILEGE
+        PRIVILEGE_ROLE_DATA_PRIVILEGE,
+        PRIVILEGE_HEALTH_CENTER,
     )
 
     @classmethod
