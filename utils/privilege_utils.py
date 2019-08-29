@@ -48,5 +48,5 @@ def get_privilege_towards_user(login_user):
             privilege_ids = [i[0] for i in session.query(RolePrivilege.privilege_id).
                 join(UserRole, RolePrivilege.role_id == UserRole.role_id).
                 filter(UserRole.login_user == login_user)]
-        PRIVILEGE_DICT[login_user] = [PRIVILEGE.get_privilege_by_id(i) for i in privilege_ids]
+        PRIVILEGE_DICT[login_user] = [PRIVILEGE.get_privilege_by_id(i) for i in privilege_ids if PRIVILEGE.get_privilege_by_id(i)]
         return PRIVILEGE_DICT[login_user]

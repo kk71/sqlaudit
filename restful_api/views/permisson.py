@@ -39,7 +39,8 @@ class RoleHandler(PrivilegeReq):
                 r.update({
                     "privileges": [PRIVILEGE.privilege_to_dict(
                         PRIVILEGE.get_privilege_by_id(j.privilege_id)
-                    ) for j in session.query(RolePrivilege).filter_by(role_id=r["role_id"])]
+                    ) for j in session.query(RolePrivilege).filter_by(role_id=r["role_id"])
+                        if PRIVILEGE.get_privilege_by_id(j.privilege_id)]
                 })
                 ret.append(r)
             self.resp(ret, **p)
@@ -52,7 +53,7 @@ class RoleHandler(PrivilegeReq):
             "privileges": [scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
         }))
         privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
-                      for i in params.pop("privileges")]
+                      for i in params.pop("privileges") if PRIVILEGE.get_privilege_by_id(i)]
         with make_session() as session:
             if session.query(Role).filter_by(role_name=params["role_name"]).count():
                 self.resp_forbidden(msg="已经存在该角色")
@@ -85,7 +86,7 @@ class RoleHandler(PrivilegeReq):
         privileges = params.pop("privileges")
         if privileges:
             privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
-                          for i in privileges]
+                          for i in privileges if PRIVILEGE.get_privilege_by_id(i)]
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
             if not role:
