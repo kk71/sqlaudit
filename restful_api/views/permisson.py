@@ -201,7 +201,7 @@ class SystemPrivilegeHandler(PrivilegeReq):
                         join(UserRole, RolePrivilege.role_id == UserRole.role_id).
                         filter(UserRole.login_user == self.current_user)]
             privilege_dicts = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
-                               for i in privilege_ids]
+                               for i in privilege_ids if PRIVILEGE.get_privilege_by_id(i)]
             privilege_dicts = [i["name"] for i in privilege_dicts if i["type"] in privilege_type]
 
         else:
