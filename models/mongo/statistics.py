@@ -273,7 +273,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     )
                     date_start: date = arrow_now.shift(days=-dp).date()
                     date_end: date = arrow_now.shift(days=1).date()
-                    dt_now = deepcopy(arrow_now)
+                    dt_now = deepcopy(arrow_now).shift(days=-dp)
                     sql_num_active = doc.sql_num["active"] = []
                     sql_num_at_risk = doc.sql_num["at_risk"] = []
 
