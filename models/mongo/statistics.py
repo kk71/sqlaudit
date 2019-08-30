@@ -278,7 +278,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     sql_num_at_risk = doc.sql_num["at_risk"] = []
 
                     # SQL count
-                    while dt_now < date_end:
+                    while dt_now.date() <= date_end:
                         sql_text_q = SQLText.objects(
                             cmdb_id=cmdb_id,
                             etl_date__gte=dt_now.date(),
