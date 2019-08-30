@@ -256,7 +256,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
         from models.mongo import SQLText, Results
         from utils.cmdb_utils import get_current_schema
         from utils.sql_utils import get_risk_sql_list
-        from utils.datetime_utils import dt_to_str
+        from utils.datetime_utils import dt_to_str, date
         from utils.rule_utils import get_risk_rules_dict, get_risk_rate
 
         arrow_now = arrow.now()
@@ -271,9 +271,9 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                         login_user=login_user,
                         date_period=dp
                     )
-                    date_start = arrow_now.shift(days=-dp)
-                    date_end = arrow_now
-                    dt_now = deepcopy(date_start)
+                    date_start: date = arrow_now.shift(days=-dp).date()
+                    date_end: date = arrow_now.shift(days=1).date()
+                    dt_now = deepcopy(arrow_now)
                     sql_num_active = doc.sql_num["active"] = []
                     sql_num_at_risk = doc.sql_num["at_risk"] = []
 
