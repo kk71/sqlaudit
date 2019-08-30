@@ -274,8 +274,6 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     date_start: date = arrow_now.shift(days=-dp).date()
                     date_end: date = arrow_now.shift(days=1).date()
                     dt_now = deepcopy(arrow_now).shift(days=-dp)
-                    sql_num_active = doc.sql_num["active"] = []
-                    sql_num_at_risk = doc.sql_num["at_risk"] = []
 
                     # SQL count
                     while dt_now.date() <= date_end:
@@ -293,11 +291,11 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                             sql_id_only=True,
                             date_range=(dt_now.date(), dt_now.shift(days=+1).date())
                         ))
-                        sql_num_active.append({
+                        doc.sql_num["active"].append({
                             "date": dt_to_str(dt_now),
                             "value": active_sql_num
                         })
-                        sql_num_at_risk.append({
+                        doc.sql_num["at_risk"].append({
                             "date": dt_to_str(dt_now),
                             "value": at_risk_sql_num
                         })
