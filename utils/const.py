@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from typing import Union
+
 # 时间格式
 
 COMMON_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
@@ -240,7 +242,12 @@ class PRIVILEGE:
         return dict(zip(cls.NAMES, x))
 
     @classmethod
-    def get_privilege_by_id(cls, privilege_id) -> tuple:
+    def get_privilege_by_id(cls, privilege_id) -> Union[tuple, None]:
+        """
+        根据权限id获取权限tuple
+        :param privilege_id:
+        :return: 注意当权限不存在的时候会返回None，所以务必对返回的东西作判断
+        """
         for i in cls.ALL_PRIVILEGE:
             if i[0] == privilege_id:
                 return i
@@ -274,3 +281,6 @@ class PrivilegeRequired(Exception):
 class CannotUsePositionArgs(Exception):
     """函数参数必须带key"""
     pass
+
+
+del Union

@@ -508,6 +508,26 @@ class SubTicketHandler(OfflineTicketCommonHandler):
             items, p = self.paginate(q, **p)
             self.resp([i.to_dict() for i in items], **p)
 
+    def patch(self):
+        """修改子工单"""
+        params = self.get_json_args(Schema({
+            "id": scm_int,
+
+            Optional("sql_text"): scm_unempty_str,
+            Optional("comments"): scm_str,
+        }))
+        swl_id = params.pop("id")
+
+        with make_session() as session:
+            swl = session.query(SubWorkList).filter_by(id=swl_id).first()
+            if not swl:
+                return self.resp_bad_req(msg=f"找不到编号为{swl_id}的临时sql session")
+            swl.from_dict(params)
+            session.add(swl)
+            session.commit()
+            session.refresh(swl)
+            self.resp_created(swl.to_dict())
+
 
 class ExportSubTicketHandler(SubTicketHandler):
 
