@@ -143,7 +143,7 @@ def get_latest_task_record_id(
         cmdb_id: Union[list, int],
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
-                                lambda: arrow.now().shift(days=-30).datetime,
+                                lambda: arrow.now().shift(days=-7).datetime,
         task_record_id_to_replace: dict = None
         ) -> dict:
     """
