@@ -276,7 +276,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     dt_now = deepcopy(arrow_now).shift(days=-dp)
 
                     # SQL count
-                    while dt_now.date() <= date_end:
+                    while dt_now.date() < date_end:
                         sql_text_q = SQLText.objects(
                             cmdb_id=cmdb_id,
                             etl_date__gte=dt_now.date(),
