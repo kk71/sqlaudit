@@ -8,7 +8,8 @@ def execute_rule(**kwargs):
         if sql[k] == "(":
             left_bracket.append(k)
         if sql[k] == ")":
-            start = left_bracket.pop() + 1
+            # start = left_bracket.pop() + 1
+            start=sum(left_bracket[-1:-2:-1])+1
             stop = k - 1
             sql_content.append(sql[start:stop])
     for value in sql_content:
