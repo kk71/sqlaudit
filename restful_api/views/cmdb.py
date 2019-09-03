@@ -489,6 +489,8 @@ class RankingConfigHandler(AuthReq):
 
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+            if not cmdb:
+                return self.resp_bad_req(msg="cmdb不存在")
             try:
                 schemas = get_cmdb_available_schemas(cmdb)
             except cx_Oracle.DatabaseError as err:
