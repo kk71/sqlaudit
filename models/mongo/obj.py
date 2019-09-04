@@ -213,9 +213,9 @@ class ObjTabSpace(CMDBCapture):
        (SELECT tablespace_name, Sum(bytes) total
           FROM DBA_DATA_FILES
          GROUP BY tablespace_name) b
- WHERE a.tablespace_name = b.tablespace_name
-   and a.tablespace_name not in
-       ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP')"""
+ WHERE a.tablespace_name = b.tablespace_name"""
+        # and a.tablespace_name not in
+        #     ('SYSTEM', 'SYSAUX', 'UNDOTBS1', 'UNDOTBS2', 'TEMP')"""
 
     @classmethod
     def post_captured(cls, docs: list, cmdb_id: int, task_record_id: int, obj_owner=None):
