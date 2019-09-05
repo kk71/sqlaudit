@@ -126,8 +126,28 @@ class SqlAudit(object):
             return None, None
 
         elif rule_complexity == "complex":
-            import mongo_rule_cmd
-
+            from . import mongo_rule_cmd
+            cmd_attach = self.review_result.rule_info[key]["rule_cmd_attach"]
+            info_type = self.review_result.rule_info[key]["obj_info_type"]
+            cmd_func_of_the_rule = getattr(mongo_rule_cmd, key)
+            kwargs_to_pass = {
+                "username": self.username,
+                "sql": self.rule_type.lower(),
+                "etl_date_key": "record_id",
+                "etl_date": self.record_id,
+            }
+            records = cmd_func_of_the_rule(self.mongo_client, **kwargs_to_pass)
+            if records is None:
+                records = []
+            else:
+                records = list(records)
+            # 后面的代码就是抄上面的simple的代码。
+            objs, plans, texts, stats, score = self.ora.execute(
+                self.rule_type, records, cmd_attach, info_type, weight, max_score)
+            result = self.review_result.oracle_result(objs, texts, plans, stats)
+            if result:
+                return result, score
+            return None, None
 
 
     def m_rule_parse(self, key, rule_complexity, rule_cmd,
