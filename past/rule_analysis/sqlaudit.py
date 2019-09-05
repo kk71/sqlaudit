@@ -135,6 +135,7 @@ class SqlAudit(object):
                 "sql": self.rule_type.lower(),
                 "etl_date_key": "record_id",
                 "etl_date": self.record_id,
+                **{parm["parm_name"]: str(parm["parm_value"]) for parm in input_parms}
             }
             records = cmd_func_of_the_rule(self.mongo_client, **kwargs_to_pass)
             if records is None:
@@ -148,7 +149,6 @@ class SqlAudit(object):
             if result:
                 return result, score
             return None, None
-
 
     def m_rule_parse(self, key, rule_complexity, rule_cmd,
                      weight, max_score, input_parms, hostname, user, passwd):

@@ -34,10 +34,11 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
     db.@tmp@.drop();
     db.@tmp1@.aggregate([{$group:{_id:{PARENT_ID:"$PARENT_ID",SQL_ID:"$SQL_ID",PLAN_HASH_VALUE:"$PLAN_HASH_VALUE"},MAXID: {$max:"$ID"}}}]).forEach(function(z){db.sqlplan.find({SQL_ID:z._id.SQL_ID,PLAN_HASH_VALUE:z._id.PLAN_HASH_VALUE,$and:[{ID:z.MAXID},{ID:{$ne:2}}],"USERNAME":"@username@","@etl_date_key@":"@etl_date@",OPERATION:"TABLE ACCESS",OPTIONS:"FULL"}).forEach(function(y){if(db.obj_tab_info.findOne({"OWNER":y.OBJECT_OWNER,"ETL_DATE":y.ETL_DATE,"TABLE_NAME":y.OBJECT_NAME,$or: [{"NUM_ROWS":{$gt:@table_row_num@}},{"PHY_SIZE(MB)":{$gt:@table_phy_size@}}]}))db.@tmp@.save({"SQL_ID":y.SQL_ID,"PLAN_HASH_VALUE":y.PLAN_HASH_VALUE,"OBJECT_NAME":y.OBJECT_NAME,"ID":y.ID,"COST":y.COST,"COUNT":""})});})
     '''
+    sql_collection = mongo_client.get_collection(sql)
     sqlplan_collection = mongo_client.get_collection("sqlplan")
     obj_tab_info_collection = mongo_client.get_collection("obj_tab_info")
 
-    found_items = sql.find({
+    found_items = sql_collection.find({
         "$or": [
             {"OPERATION": re.compile("NESTED LOOP")},
             {"OPERATION": re.compile("FILTER")}
