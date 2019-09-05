@@ -125,6 +125,11 @@ class SqlAudit(object):
                 return result, score
             return None, None
 
+        elif rule_complexity == "complex":
+            import mongo_rule_cmd
+
+
+
     def m_rule_parse(self, key, rule_complexity, rule_cmd,
                      weight, max_score, input_parms, hostname, user, passwd):
         """
