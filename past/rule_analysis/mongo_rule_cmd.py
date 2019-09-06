@@ -4,6 +4,8 @@ import re
 import random
 from contextlib import contextmanager
 
+from utils.perf_utils import timing
+
 
 def get_random_collection_name(prefix):
     """产生一个随机的collection名称，用于aggregation"""
@@ -27,6 +29,7 @@ def make_temp_collection(mongo_client, collection_prefix):
         raise e
 
 
+@timing()
 def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
     '''
     db.@sql@.find({$or: [{"OPERATION":/NESTED LOOP/},{"OPERATION":/FILTER/}],"USERNAME":"@username@","@etl_date_key@":"@etl_date@"}).forEach(function(x){db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,PARENT_ID:x.ID,USERNAME:x.USERNAME,ETL_DATE:x.ETL_DATE});});

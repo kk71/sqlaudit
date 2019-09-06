@@ -137,11 +137,13 @@ class SqlAudit(object):
                 "etl_date": self.record_id,
                 **{parm["parm_name"]: str(parm["parm_value"]) for parm in input_parms}
             }
+            print(f"using complex rule function {cmd_func_of_the_rule} ...")
             records = cmd_func_of_the_rule(self.mongo_client, **kwargs_to_pass)
             if records is None:
                 records = []
             else:
                 records = list(records)
+            print(f"got {len(records)} result(s)")
             # 后面的代码就是抄上面的simple的代码。
             objs, plans, texts, stats, score = self.ora.execute(
                 self.rule_type, records, cmd_attach, info_type, weight, max_score)
