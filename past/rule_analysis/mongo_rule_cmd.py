@@ -449,13 +449,12 @@ def SQL_PARALLEL_FETCH(mongo_client, sql, username, etl_date_key, etl_date, **kw
 
     for x in found_items:
         yield {
-            "SQL_ID": x["SQL_ID",
+            "SQL_ID": x["SQL_ID"],
                       "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"],
                       "OBJECT_NAME":x["OBJECT_NAME"],
                       "ID":x["ID"],
                       "COST":x["COST"],
-                      "COUNT":""]
-        }
+                      "COUNT":""}
 
 def SQL_BUFFER_GETS(mongo_client, sql, username, etl_date_key, etl_date, buffer_gets, **kwargs):
     """db.@sql@.find({\"PER_BUFFER_GETS\":{$gte:@buffer_gets@},\"USERNAME\":\"@username@\",
