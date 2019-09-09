@@ -654,7 +654,7 @@ class SubTicketSQLPlanHandler(AuthReq):
             hash_plan_value = sql_plan_row.plan_id
 
             sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value,
-                                         sql_id=params["statement_id"]).values_list("index", "operation",
+                                         sql_id=params["statement_id"]).values_list("index", "operation_display",
                                                                                     "object_name", "cardinality",
                                                                                     "bytes", "cpu_cost", "time")
             sql_plan_head = OrderedDict({
