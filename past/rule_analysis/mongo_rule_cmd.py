@@ -29,18 +29,102 @@ def make_temp_collection(mongo_client, collection_prefix):
         raise e
 
 
+def SQL_TAB_REL_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+        """db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,
+        \"OBJECT_TYPE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",
+        \"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } )
+        .forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+        \"ID\":x.ID,\"COUNT\":x.count})});
+        db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).
+        forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,
+        \"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})"""
+        pass
+
+def SQL_TO_CHANGE_TYPE(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({FILTER_PREDICATES:/SYS_OP/,USERNAME:\"@username@\",ETL_DATE:\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,OBJECT_NAME:x.OBJECT_NAME,
+    ID:x.ID,COST:x.COST,COUNT:\"\"})})"""
+    pass
+
+def SQL_VIEW_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """"db.@sql@.find({\"OBJECT_TYPE\":\"VIEW\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\",\"OBJECT_OWNER\":{$ne:null},\"OBJECT_NAME\":/^index$_join$/}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":x.OBJECT_NAME,\"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"})})"""
+    # sql_collection=mongo_client.get_collection(sql)
+    #
+    # fount_items=sql_collection.find({"OBJECT_TYPE":"VIEW",
+    #                                  "USERNAME":username,
+    #                                  etl_date_key:etl_date,
+    #                                  "OBJECT_OWNER":{"$ne":None},
+    #                                  "OBJECT_NAME",re.compile()})
+
+def SQL_LOOP_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1},
+     cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",
+     $or: [{\"OPERATION\":/NESTED LOOP/},{\"OPERATION\":/FILTER/}]},
+     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).
+     forEach(function(x)
+     {db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"COUNT\":x.count})});
+     db.@tmp1@.find({\"COUNT\":{$gte:\"@loop_num@\"}}).
+     forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,
+     \"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})
+    """
+    pass
+
+
+def TABLE_FULL_SCAN():
+    """db.planitem.find({\"schemas\":\"@schema_name@\",\"access_type\" :
+    \"ALL\",\"rows\" : {\"$gt\":1},\"citem_type\":{\"$ne\":\"materialized_from_subquery\"}}).
+    forEach(function(x){db.sqlinfo.find({checksum:x.checksum}).
+    forEach(function(y)
+    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,
+    \"query_time_avg\" :y.query_time_avg,\"rows_sent_avg\" :y.rows_sent_avg,
+    \"index_ratio\" :y.index_ratio,\"rows\":x.rows})})})"""
+    pass
+
+def MULTI_TAB_JOIN():
+    """db.planitem.find({\"schemas\":\"@schema_name@\",\"citem_type\" : \"nested_loop\",
+    \"citem.3\":{\"$exists\":1}}).
+    forEach(function(x)
+    {db.sqlinfo.find({checksum:x.checksum}).
+    forEach(function(y)
+    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,\"query_time_avg\" :y.query_time_avg,
+    \"rows_sent_avg\" :y.rows_sent_avg,\"index_ratio\" :y.index_ratio})})})"""
+    pass
+
+
 @timing()
 def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
     '''
-    db.@sql@.find({$or: [{"OPERATION":/NESTED LOOP/},{"OPERATION":/FILTER/}],"USERNAME":"@username@","@etl_date_key@":"@etl_date@"}).forEach(function(x){db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,PARENT_ID:x.ID,USERNAME:x.USERNAME,ETL_DATE:x.ETL_DATE});});
-    db.@tmp@.find().forEach(  function(x){  db.sqlplan.find({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,PARENT_ID:x.PARENT_ID,USERNAME:x.USERNAME,ETL_DATE:x.ETL_DATE}).forEach(function(y){db.@tmp1@.save({SQL_ID:y.SQL_ID,PLAN_HASH_VALUE:y.PLAN_HASH_VALUE,OBJECT_NAME:y.OBJECT_NAME,ID:y.ID,PARENT_ID:y.PARENT_ID,OPERATION:y.OPERATION,OPTIONS:y.OPTIONS,USERNAME:y.USERNAME,ETL_DATE:y.ETL_DATE})});});
+    db.@sql@.find({$or: [{"OPERATION":/NESTED LOOP/},{"OPERATION":/FILTER/}],"USERNAME":"@username@",
+    "@etl_date_key@":"@etl_date@"}).
+    forEach(function(x){db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,PARENT_ID:x.ID,
+    USERNAME:x.USERNAME,ETL_DATE:x.ETL_DATE});});
+    db.@tmp@.find().
+    forEach(  function(x){  db.sqlplan.find({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,
+    PARENT_ID:x.PARENT_ID,USERNAME:x.USERNAME,ETL_DATE:x.ETL_DATE}).
+    forEach(function(y){db.@tmp1@.save({SQL_ID:y.SQL_ID,PLAN_HASH_VALUE:y.PLAN_HASH_VALUE,
+    OBJECT_NAME:y.OBJECT_NAME,ID:y.ID,PARENT_ID:y.PARENT_ID,OPERATION:y.OPERATION,OPTIONS:y.OPTIONS,
+    USERNAME:y.USERNAME,ETL_DATE:y.ETL_DATE})});});
     db.@tmp@.drop();
-    db.@tmp1@.aggregate([{$group:{_id:{PARENT_ID:"$PARENT_ID",SQL_ID:"$SQL_ID",PLAN_HASH_VALUE:"$PLAN_HASH_VALUE"},MAXID: {$max:"$ID"}}}]).forEach(function(z){db.sqlplan.find({SQL_ID:z._id.SQL_ID,PLAN_HASH_VALUE:z._id.PLAN_HASH_VALUE,$and:[{ID:z.MAXID},{ID:{$ne:2}}],"USERNAME":"@username@","@etl_date_key@":"@etl_date@",OPERATION:"TABLE ACCESS",OPTIONS:"FULL"}).forEach(function(y){if(db.obj_tab_info.findOne({"OWNER":y.OBJECT_OWNER,"ETL_DATE":y.ETL_DATE,"TABLE_NAME":y.OBJECT_NAME,$or: [{"NUM_ROWS":{$gt:@table_row_num@}},{"PHY_SIZE(MB)":{$gt:@table_phy_size@}}]}))db.@tmp@.save({"SQL_ID":y.SQL_ID,"PLAN_HASH_VALUE":y.PLAN_HASH_VALUE,"OBJECT_NAME":y.OBJECT_NAME,"ID":y.ID,"COST":y.COST,"COUNT":""})});})
+    db.@tmp1@.aggregate([{$group:
+    {_id:{PARENT_ID:"$PARENT_ID",SQL_ID:"$SQL_ID",PLAN_HASH_VALUE:"$PLAN_HASH_VALUE"},
+    MAXID: {$max:"$ID"}}}]).
+    forEach(function(z){db.sqlplan.find({SQL_ID:z._id.SQL_ID,PLAN_HASH_VALUE:z._id.PLAN_HASH_VALUE,
+    $and:[{ID:z.MAXID},{ID:{$ne:2}}],"USERNAME":"@username@","@etl_date_key@":"@etl_date@",
+    OPERATION:"TABLE ACCESS",OPTIONS:"FULL"}).
+    forEach(function(y){if(db.obj_tab_info.findOne({"OWNER":y.OBJECT_OWNER,"ETL_DATE":y.ETL_DATE,
+    "TABLE_NAME":y.OBJECT_NAME,$or: [{"NUM_ROWS":{$gt:@table_row_num@}},
+    {"PHY_SIZE(MB)":{$gt:@table_phy_size@}}]}))
+    db.@tmp@.save({"SQL_ID":y.SQL_ID,"PLAN_HASH_VALUE":y.PLAN_HASH_VALUE,"OBJECT_NAME":y.OBJECT_NAME,
+    "ID":y.ID,"COST":y.COST,"COUNT":""})});})
     '''
     sql_collection = mongo_client.get_collection(sql)
     sqlplan_collection = mongo_client.get_collection("sqlplan")
     obj_tab_info_collection = mongo_client.get_collection("obj_tab_info")
-
     found_items = sql_collection.find({
         "$or": [
             {"OPERATION": re.compile("NESTED LOOP")},
@@ -49,7 +133,6 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
         "USERNAME": username,
         etl_date_key: etl_date
     })
-
     with make_temp_collection(mongo_client, "LOOP_IN_TAB_FULL_SCAN") as tmp1:
         for x in found_items:
             condition_to_find_in_sqlplan = {
@@ -72,7 +155,6 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
                     "USERNAME": y["USERNAME"],
                     "ETL_DATE": y["ETL_DATE"]
                 })
-
         aggregation_result = tmp1.aggregate([
             {"$group": {
                 "_id": {
@@ -114,3 +196,387 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
                         "COST": y["COST"],
                         "COUNT": ""
                     }
+
+
+def SQL_PARTITION_RANGE_ALL(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """"db.@sql@.find({\"OPERATION\":\"PARTITION RANGE\",\"OPTIONS\":\"ALL\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x){db.@sql@.find({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+    \"ID\":{$eq:x.ID+1}}).
+    forEach(function(y)
+    {db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"OBJECT_NAME\":y.OBJECT_NAME,
+    \"ID\":y.ID,\"COST\":x.COST,\"COUNT\":\"\"})});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "OPERATION": "PARTITION RANGE",
+        "OPTIONS": "ALL",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        condition_find_sql = {
+            "SQL_ID": x["SQL_ID"],
+            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+            "ID": {"$eq": x["ID"] + 1}
+        }
+        condition_find_sql = sql_collection.find(condition_find_sql)
+
+        for y in condition_find_sql:
+            yield {"SQL_ID": y["SQL_ID"],
+                   "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
+                   "OBJECT_NAME": y["OBJECT_NAME"],
+                   "ID": y["ID"],
+                   "COST": x["COST"],
+                   "COUNT": ""}
+
+def SQL_INDEX_FAST_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date,ind_phy_size, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"INDEX\",\"OPTIONS\":\"FAST FULL SCAN\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+
+    forEach(function(x)
+    {if(db.obj_ind_info.findOne({\"INDEX_NAME\":x.OBJECT_NAME,\"PHY_SIZE(MB)\":{$gt:@ind_phy_size@}}))
+    db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"OBJECT_NAME\":x.OBJECT_NAME,
+    \"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+    sql_collection = mongo_client.get_collection(sql)
+    obj_ind_info_collection = mongo_client.get_collection("obj_ind_info")
+
+    found_items = sql_collection.find(
+        {"OPERATION": "INDEX",
+         "OPTIONS": "FAST FULL SCAN",
+         "USERNAME": username,
+         etl_date_key: etl_date})
+
+    for x in found_items:
+        first_obj_ind_info = obj_ind_info_collection.find_one({
+            "INDEX_NAME": x["OBJECT_NAME"],
+            "PHY_SIZE(MB)": {"$gt": ind_phy_size}})
+        if first_obj_ind_info:
+            yield {
+                "SQL_ID": x["SQL_ID"],
+                "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                "OBJECT_NAME": x["OBJECT_NAME"],
+                "ID": x["ID"],
+                "COST": x["COST"],
+                "COUNT": ""
+            }
+
+def SQL_PARTITION_RANGE_ITERATOR(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"PARTITION RANGE\",\"OPTIONS\":\"ITERATOR\",
+    \"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@sql@.find({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":{$eq:x.ID+1},
+    \"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(y)
+    {db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":y.OBJECT_NAME,\"ID\":y.ID,\"COST\":x.COST,\"COUNT\":\"\"})});})"""
+    sql_collection=mongo_client.get_collection(sql)
+
+    found_items=sql_collection.find({
+        "OPERATION":"PARTITION RANGE",
+        "OPTIONS":"ITERATOR",
+        "USERNAME":username,
+        etl_date_key:etl_date
+    })
+
+    for x in found_items:
+        condition_find_sql={
+            "SQL_ID":x["SQL_ID"],
+            "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"],
+            "ID":{"eq":x["ID"]+1},
+            "USERNAME":username,
+            etl_date_key:etl_date
+        }
+        condition_find_sql=sql_collection.find(condition_find_sql)
+        for y in condition_find_sql:
+            yield {"SQL_ID":y["SQL_ID"],
+                   "PLAN_HASH_VALUE":y["PLAN_HASH_VALUE"],
+                   "OBJECT_NAME":y["OBJECT_NAME"],
+                   "ID":y["ID"],
+                   "COST":x["COST"],
+                   "COUNT":""}
+
+
+def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, table_row_num, table_phy_size, **kwargs):
+    """db. @ sql @.find({\"OPERATION\":\"TABLE ACCESS\",\"OPTIONS\":\"FULL\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x){if(db.obj_tab_info.findOne({\"TABLE_NAME\":x.OBJECT_NAME,
+    $or: [{\"NUM_ROWS\":{$gt:@table_row_num@}},{\"PHY_SIZE(MB)\":{$gt:@table_phy_size@}}]}))
+    db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":x.OBJECT_NAME,\"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+    sql_collection = mongo_client.get_collection(sql)
+    obj_tab_info_collection = mongo_client.get_collection("obj_tab_info")
+    found_items = sql_collection.find({
+        "OPERATION": "TABLE ACCESS",
+        "OPTIONS": "FULL",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        first_obj_tab_info = obj_tab_info_collection.find_one({
+            "TABLE_NAME": x["OBJECT_NAME"],
+            "$or":
+                [{"NUM_ROWS": {"$gt": table_row_num}},
+                 {"PHY_SIZE(MB)": {"$gt": table_phy_size}}]})
+        if first_obj_tab_info:
+            yield {"SQL_ID": x["SQL_ID"],
+                   "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                   "OBJECT_NAME": x["OBJECT_NAME"],
+                   "ID": x["ID"],
+                   "COST": x["COST"],
+                   "COUNT": ""}
+
+def SQL_MERGE_JOIN_CARTESIAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"MERGE JOIN\",\"OPTIONS\":\"CARTESIAN\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"OBJECT_NAME\":x.OBJECT_NAME,
+    \"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "OPERATION": "MERGE JOIN",
+        "OPTIONS": "CARTESIAN",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        yield {"SQL_ID": x["SQL_ID"],
+               "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+               "OBJECT_NAME": x["OBJECT_NAME"],
+               "ID": x["ID"],
+               "COST": x["COST"],
+               "COUNT": ""}
+
+def SQL_INDEX_SKIP_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"INDEX\",\"OPTIONS\":\"SKIP SCAN\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":x.OBJECT_NAME,\"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "OPERATION": "INDEX",
+        "OPTIONS": "SKIP SCAN",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        yield {"SQL_ID": x["SQL_ID"],
+               "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+               "OBJECT_NAME": x["OBJECT_NAME"],
+               "ID": x["ID"],
+               "COST": x["COST"],
+               "COUNT": ""}
+
+def SQL_INDEX_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, ind_phy_size, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"INDEX\",\"OPTIONS\":\"FULL SCAN\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {if(db.obj_ind_info.findOne({\"INDEX_NAME\":x.OBJECT_NAME,\"PHY_SIZE(MB)\":{$gt:@ind_phy_size@}}))
+    db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"OBJECT_NAME\":x.OBJECT_NAME,
+    \"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+
+    sql_collection = mongo_client.get_collection(sql)
+    obj_ind_info_collection = mongo_client.get_collection("obj_ind_info")
+
+    found_items = sql_collection.find({
+        "OPERATION": "INDEX",
+        "OPTIONS": "FULL SCAN",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+    for x in found_items:
+        first_obj_ind_info = obj_ind_info_collection.find_one(
+            {"INDEX_NAME": x["OBJECT_NAME"],
+             "PHY_SIZE(MB)": {"$gt": ind_phy_size}})
+        if first_obj_ind_info:
+            yield {"SQL_ID": x["SQL_ID"],
+                   "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                   "OBJECT_NAME": x["OBJECT_NAME"],
+                   "ID": x["ID"],
+                   "COST": x["COST"],
+                   "COUNT": ""}
+
+
+def SQL_PARTITION_RANGE_INLIST_OR(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"PARTITION RANGE\",
+    $or: [{\"OPTIONS\":\"INLIST\"},{\"OPTIONS\":\"OR\"}],
+    \"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@sql@.find({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":{$eq:x.ID+1}}).
+    forEach(function(y)
+    {db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":y.OBJECT_NAME,\"ID\":y.ID,\"COST\":x.COST,\"COUNT\":\"\"})});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "OPERATION": "PARTITION RANGE",
+        "$or": [{"OPTIONS": "INLIST"}, {"OPTIONS": "OR"}],
+        "USERNAME": username,
+        etl_date_key: etl_date})
+    for x in found_items:
+        condition_find_sql = sql_collection.find(
+            {"SQL_ID": x["SQL_ID"],
+             "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+             "ID": {"$eq": x["ID"] + 1}})
+        for y in condition_find_sql:
+            yield {"SQL_ID": y["SQL_ID"],
+                   "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
+                   "OBJECT_NAME": y["OBJECT_NAME"],
+                   "ID": y["ID"],
+                   "COST": x["COST"],
+                   "COUNT": ""}
+
+def SQL_PARALLEL_FETCH(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({\"OPERATION\":\"PX COORDINATOR\",\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
+    \"OBJECT_NAME\":x.OBJECT_NAME,\"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "OPERATION": "PX COORDINATOR",
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        yield {
+            "SQL_ID": x["SQL_ID",
+                      "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"],
+                      "OBJECT_NAME":x["OBJECT_NAME"],
+                      "ID":x["ID"],
+                      "COST":x["COST"],
+                      "COUNT":""]
+        }
+
+def SQL_BUFFER_GETS(mongo_client, sql, username, etl_date_key, etl_date, buffer_gets, **kwargs):
+    """db.@sql@.find({\"PER_BUFFER_GETS\":{$gte:@buffer_gets@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({"PER_BUFFER_GETS": {"$gte": buffer_gets},
+                                       "USERNAME": username,
+                                       etl_date_key: etl_date})
+    for x in found_items:
+        yield {
+            "SQL_ID": x["SQL_ID"],
+            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"]
+        }
+
+def SQL_SUB_CURSOR_COUNT(mongo_client, sql, username, etl_date_key, etl_date, cursor_num, **kwargs):
+    """db.@sql@.find({\"VERSION_COUNT\":{$gte:@cursor_num@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({"VERSION_COUNT": {"$gte": cursor_num},
+                                       "USERNAME": username,
+                                       etl_date_key: etl_date})
+    for x in found_items:
+        yield {"SQL_ID": x["SQL_ID"],
+               "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"]
+               }
+
+def SQL_CPU_TIME(mongo_client, sql, username, etl_date_key, etl_date,cpu_time, **kwargs):
+    """db.@sql@.find({\"PER_CPU_TIME\":{$gte:@cpu_time@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection=mongo_client.get_collection(sql)
+    found_items=sql_collection.find({
+        "PER_CPU_TIME":{"$gte":cpu_time},
+        "USERNAME":username,
+        etl_date_key:etl_date
+    })
+    for x in found_items:
+        yield {
+            "SQL_ID":x["SQL_ID"],
+            "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"]
+        }
+
+def SQL_EXECUTIONS(mongo_client, sql, username, etl_date_key, etl_date, sql_count_num,**kwargs):
+    """db. @ sql @.find({\"EXECUTIONS\":{$gte:@sql_count_num@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection=mongo_client.get_collection(sql)
+    found_items=sql_collection.find({
+        "EXECUTIONS":{"$gte":sql_count_num},
+        "USERNMAE":username,
+        etl_date_key:etl_date
+    })
+    for x in found_items:
+        yield {"SQL_ID":x["SQL_ID"],
+               "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"]}
+
+def SQL_ELAPSED_TIME(mongo_client, sql, username, etl_date_key, etl_date,elapsed_time, **kwargs):
+    """db.@sql@.find({\"PER_ELAPSED_TIME\":{$gte:@elapsed_time@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection=mongo_client.get_collection(sql)
+    found_items=sql_collection.find({"PER_ELAPSED_TIME":{"$gte":elapsed_time},
+                                     "USERNAME":username,
+                                     etl_date_key:etl_date})
+    for x in found_items:
+        yield {"SQL_ID":x["SQL_ID"],
+               "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"]}
+
+def SQL_DISK_READS(mongo_client, sql, username, etl_date_key, etl_date, disk_reads, **kwargs):
+    """db.@sql@.find({\"PER_DISK_READS\":{$gte:@disk_reads@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({"PER_DISK_READS": {"$gte": disk_reads},
+                                       "USERNAME": username,
+                                       etl_date_key: etl_date})
+    for x in found_items:
+        yield {"SQL_ID": x["SQL_ID"],
+               "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"]}
+
+def SQL_DIRECT_WRITES(mongo_client, sql, username, etl_date_key, etl_date,direct_writes, **kwargs):
+    """db.@sql@.find({\"PER_DIRECT_WRITES\":{$gte:@direct_writes@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x){db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
+    sql_collection=mongo_client.get_collection(sql)
+    found_items=sql_collection.find({
+        "PER_DIRECT_WRITES":{"$gte":direct_writes},
+        "USERNMAE":username,
+        etl_date_key:etl_date
+    })
+    for x in found_items:
+        yield {"SQL_ID":x["SQL_ID"],
+               "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"]}
+
+def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind_count, **kwargs):
+    """db.@sql@.find({\"SUM\":{$gt:@sql_no_bind_count@},\"USERNAME\":\"@username@\",
+    \"@etl_date_key@\":\"@etl_date@\"}).
+    forEach(function(x){db.@tmp@.save({\"USERNAME\":x.USERNAME,\"SQL_ID\":x.SQL_ID,\"SUM\":x.SUM,
+    \"SQL_TEXT_DETAIL\":x.SQL_TEXT_DETAIL,\"SQL_TEXT\":x.SQL_TEXT});})"""
+    sql_collection = mongo_client.get_collection(sql)
+
+    found_items = sql_collection.find({
+        "SUM": {"$gt": sql_no_bind_count},
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+
+    for x in found_items:
+        yield {"USERNMAE": x["USERNMAE"],
+               "SQL_ID": x["SQL_ID"],
+               "SUM": x["SUM"],
+               "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
+               "SQL_TEXT": x["SQL_TEXT"]}
