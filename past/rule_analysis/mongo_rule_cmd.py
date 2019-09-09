@@ -169,7 +169,7 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
             collection_sqlplan_find_result = sqlplan_collection.find({
                 "SQL_ID": z["_id"]["SQL_ID"],
                 "PLAN_HASH_VALUE": z["_id"]["PLAN_HASH_VALUE"],
-                "$and":[
+                "$and": [
                     {"ID": z["MAXID"]},
                     {"ID": {"$ne": 2}}
                 ],
@@ -182,7 +182,7 @@ def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, *
                     "OWNER": y["OBJECT_OWNER"],
                     "ETL_DATE": y["ETL_DATE"],
                     "TABLE_NAME": y["OBJECT_NAME"],
-                    "$or":[
+                    "$or": [
                         {"NUM_ROWS": {"$gt": kwargs["table_row_num"]}},
                         {"PHY_SIZE(MB)": {"$gt": kwargs["table_phy_size"]}}
                     ]
