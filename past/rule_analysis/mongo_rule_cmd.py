@@ -29,7 +29,7 @@ def make_temp_collection(mongo_client, collection_prefix):
         raise e
 
 
-def SQL_TAB_REL_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+def SQL_TAB_REL_NUM(mongo_client, sql, username, etl_date_key, etl_date, key,cond,reduce,**kwargs):
         """db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,
         \"OBJECT_TYPE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",
         \"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } )
@@ -38,14 +38,18 @@ def SQL_TAB_REL_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwarg
         db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).
         forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,
         \"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})"""
-        pass
+        # sql_collection=mongo_client.get_collection(sql)
+        #
+        # found_items=sql_collection.group({"key":{"USERNAME":1,
+        #                                        "ETL_DATE":1,
+        #                                        "SQL_ID":1,
+        #                                        "PLAN_HASH_VALUE":1,
+        #                                        "OBJECT_TYPE":1},
+        #                                   "cond":{"USERNAME":username,
+        #                                         etl_date_key:etl_date,
+        #                                         "OBJECT_TYPE":"TABLE"},
+        #                                   "reduce":{}})
 
-def SQL_TO_CHANGE_TYPE(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
-    """db.@sql@.find({FILTER_PREDICATES:/SYS_OP/,USERNAME:\"@username@\",ETL_DATE:\"@etl_date@\"}).
-    forEach(function(x)
-    {db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,OBJECT_NAME:x.OBJECT_NAME,
-    ID:x.ID,COST:x.COST,COUNT:\"\"})})"""
-    pass
 
 def SQL_VIEW_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
     """"db.@sql@.find({\"OBJECT_TYPE\":\"VIEW\",\"USERNAME\":\"@username@\",
@@ -59,7 +63,14 @@ def SQL_VIEW_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs)
     #                                  "USERNAME":username,
     #                                  etl_date_key:etl_date,
     #                                  "OBJECT_OWNER":{"$ne":None},
-    #                                  "OBJECT_NAME",re.compile()})
+    #                                  "OBJECT_NAME":re.compile('^index$_join$')})  #TODO
+    # for x in fount_items:
+    #     yield {"SQL_ID":x["SQL_ID"],
+    #            "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"],
+    #            "OBJECT_NAME":x["OBJECT_NAME"],
+    #            "ID":x["ID"],
+    #            "COST":x["COST"],
+    #            "COUNT":""}
 
 def SQL_LOOP_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
     """db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1},
@@ -73,28 +84,6 @@ def SQL_LOOP_NUM(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
      \"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})
     """
     pass
-
-
-def TABLE_FULL_SCAN():
-    """db.planitem.find({\"schemas\":\"@schema_name@\",\"access_type\" :
-    \"ALL\",\"rows\" : {\"$gt\":1},\"citem_type\":{\"$ne\":\"materialized_from_subquery\"}}).
-    forEach(function(x){db.sqlinfo.find({checksum:x.checksum}).
-    forEach(function(y)
-    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,
-    \"query_time_avg\" :y.query_time_avg,\"rows_sent_avg\" :y.rows_sent_avg,
-    \"index_ratio\" :y.index_ratio,\"rows\":x.rows})})})"""
-    pass
-
-def MULTI_TAB_JOIN():
-    """db.planitem.find({\"schemas\":\"@schema_name@\",\"citem_type\" : \"nested_loop\",
-    \"citem.3\":{\"$exists\":1}}).
-    forEach(function(x)
-    {db.sqlinfo.find({checksum:x.checksum}).
-    forEach(function(y)
-    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,\"query_time_avg\" :y.query_time_avg,
-    \"rows_sent_avg\" :y.rows_sent_avg,\"index_ratio\" :y.index_ratio})})})"""
-    pass
-
 
 @timing()
 def LOOP_IN_TAB_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
@@ -579,3 +568,69 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
                "SUM": x["SUM"],
                "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
                "SQL_TEXT": x["SQL_TEXT"]}
+
+def SQL_TO_CHANGE_TYPE(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+    """db.@sql@.find({FILTER_PREDICATES:/SYS_OP/,USERNAME:\"@username@\",ETL_DATE:\"@etl_date@\"}).
+    forEach(function(x)
+    {db.@tmp@.save({SQL_ID:x.SQL_ID,PLAN_HASH_VALUE:x.PLAN_HASH_VALUE,OBJECT_NAME:x.OBJECT_NAME,
+    ID:x.ID,COST:x.COST,COUNT:\"\"})})"""
+    sql_collection=mongo_client.get_collection(sql)
+
+    found_items=sql_collection.find({"FILTER_PREDICATES":re.compile("SYS_OP"),
+                                     "USERNAME":username,
+                                     "ETL_DATE":etl_date})
+    for x in found_items:
+        yield {"SQL_ID":x["SQL_ID"],
+               "PLAN_HASH_VALUE":x["PLAN_HASH_VALUE"],
+               "OBJECT_NAME":x["OBJECT_NAME"],
+               "ID":x["ID"],
+               "COST":x["COST"],
+               "COUNT":""}
+
+
+def MULTI_TAB_JOIN(mongo_client, sql, username, etl_date_key, etl_date,planitem,schema_name,sqlinfo, **kwargs):
+    """db.planitem.find({\"schemas\":\"@schema_name@\",\"citem_type\" : \"nested_loop\",
+    \"citem.3\":{\"$exists\":1}}).
+    forEach(function(x)
+    {db.sqlinfo.find({checksum:x.checksum}).
+    forEach(function(y)
+    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,\"query_time_avg\" :y.query_time_avg,
+    \"rows_sent_avg\" :y.rows_sent_avg,\"index_ratio\" :y.index_ratio})})})"""
+    planitem_collection=mongo_client.get_collection(planitem)
+    sqlinfo=mongo_client.get_collection(sqlinfo)
+
+    found_items=planitem_collection.find({"schemas":schema_name,
+                                          "citem_type":"nested_loop",
+                                          "citem.3":{"$exists":1}})
+    for x in found_items:
+        sqlinfo_items=sqlinfo.find({"checksum":x["checksum"]})
+        for y in sqlinfo_items:
+            yield {"checksum":y["checksum"],
+                   "ts_cnt":y["ts_cnt"],
+                   "query_time_avg":y["query_time_avg"],
+                   "rows_sent_avg":y["rows_sent_avg"],
+                   "index_ratio":y["index_ratio"]}
+
+def TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date,planitem,sqlinfo,scheam_name, **kwargs):
+    """db.planitem.find({\"schemas\":\"@schema_name@\",\"access_type\" :
+    \"ALL\",\"rows\" : {\"$gt\":1},\"citem_type\":{\"$ne\":\"materialized_from_subquery\"}}).
+    forEach(function(x){db.sqlinfo.find({checksum:x.checksum}).
+    forEach(function(y)
+    {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,
+    \"query_time_avg\" :y.query_time_avg,\"rows_sent_avg\" :y.rows_sent_avg,
+    \"index_ratio\" :y.index_ratio,\"rows\":x.rows})})})"""
+    planitem_collection=mongo_client.get_collection(planitem)
+    sqlinfo_collection=mongo_client.get_collection(sqlinfo)
+
+    found_items=planitem_collection.find({"schemas":scheam_name,
+                              "access_type":"ALL",
+                              "rows":{"$gt":1},
+                              "citem_type":{"$ne":"materialized_from_subquery"}})
+    for x in found_items:
+        sqlinfo_items=sqlinfo_collection.find({"checksum":x["checksum"]})
+        for y in  sqlinfo_items:
+            yield {"checksum":y["checksum"],"ts_cnt":y["ts_cnt"],
+                   "query_time_avg":y["query_time_avg"],
+                   "rows_sent_avg":y["rows_sent_avg"],
+                   "index_ratio":y["index_ratio"],
+                   "rows":x["rows"]}
