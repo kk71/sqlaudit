@@ -596,20 +596,21 @@ def MULTI_TAB_JOIN(mongo_client, sql, username, etl_date_key, etl_date,planitem,
     forEach(function(y)
     {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,\"query_time_avg\" :y.query_time_avg,
     \"rows_sent_avg\" :y.rows_sent_avg,\"index_ratio\" :y.index_ratio})})})"""
-    planitem_collection=mongo_client.get_collection(planitem)
-    sqlinfo=mongo_client.get_collection(sqlinfo)
-
-    found_items=planitem_collection.find({"schemas":schema_name,
-                                          "citem_type":"nested_loop",
-                                          "citem.3":{"$exists":1}})
-    for x in found_items:
-        sqlinfo_items=sqlinfo.find({"checksum":x["checksum"]})
-        for y in sqlinfo_items:
-            yield {"checksum":y["checksum"],
-                   "ts_cnt":y["ts_cnt"],
-                   "query_time_avg":y["query_time_avg"],
-                   "rows_sent_avg":y["rows_sent_avg"],
-                   "index_ratio":y["index_ratio"]}
+    # planitem_collection=mongo_client.get_collection(planitem)
+    # sqlinfo=mongo_client.get_collection(sqlinfo)
+    #
+    # found_items=planitem_collection.find({"schemas":schema_name,
+    #                                       "citem_type":"nested_loop",
+    #                                       "citem.3":{"$exists":1}})
+    # for x in found_items:
+    #     sqlinfo_items=sqlinfo.find({"checksum":x["checksum"]})
+    #     for y in sqlinfo_items:
+    #         yield {"checksum":y["checksum"],
+    #                "ts_cnt":y["ts_cnt"],
+    #                "query_time_avg":y["query_time_avg"],
+    #                "rows_sent_avg":y["rows_sent_avg"],
+    #                "index_ratio":y["index_ratio"]}
+    pass
 
 def TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date,planitem,sqlinfo,scheam_name, **kwargs):
     """db.planitem.find({\"schemas\":\"@schema_name@\",\"access_type\" :
@@ -619,18 +620,19 @@ def TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date,planitem
     {db.@tmp@.save({\"checksum\" :y.checksum,\"ts_cnt\" :y.ts_cnt,
     \"query_time_avg\" :y.query_time_avg,\"rows_sent_avg\" :y.rows_sent_avg,
     \"index_ratio\" :y.index_ratio,\"rows\":x.rows})})})"""
-    planitem_collection=mongo_client.get_collection(planitem)
-    sqlinfo_collection=mongo_client.get_collection(sqlinfo)
-
-    found_items=planitem_collection.find({"schemas":scheam_name,
-                              "access_type":"ALL",
-                              "rows":{"$gt":1},
-                              "citem_type":{"$ne":"materialized_from_subquery"}})
-    for x in found_items:
-        sqlinfo_items=sqlinfo_collection.find({"checksum":x["checksum"]})
-        for y in  sqlinfo_items:
-            yield {"checksum":y["checksum"],"ts_cnt":y["ts_cnt"],
-                   "query_time_avg":y["query_time_avg"],
-                   "rows_sent_avg":y["rows_sent_avg"],
-                   "index_ratio":y["index_ratio"],
-                   "rows":x["rows"]}
+    # planitem_collection=mongo_client.get_collection(planitem)
+    # sqlinfo_collection=mongo_client.get_collection(sqlinfo)
+    #
+    # found_items=planitem_collection.find({"schemas":scheam_name,
+    #                           "access_type":"ALL",
+    #                           "rows":{"$gt":1},
+    #                           "citem_type":{"$ne":"materialized_from_subquery"}})
+    # for x in found_items:
+    #     sqlinfo_items=sqlinfo_collection.find({"checksum":x["checksum"]})
+    #     for y in  sqlinfo_items:
+    #         yield {"checksum":y["checksum"],"ts_cnt":y["ts_cnt"],
+    #                "query_time_avg":y["query_time_avg"],
+    #                "rows_sent_avg":y["rows_sent_avg"],
+    #                "index_ratio":y["index_ratio"],
+    #                "rows":x["rows"]}
+    pass
