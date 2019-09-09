@@ -276,7 +276,7 @@ class Check:
                     "DEPTH": sqlplan['depth'],  # depth
                     "PARENT_ID": sqlplan['parent_id'],  # parent_id
                     "OPERATION": sqlplan['operation'],  # operation
-                    "OPERATION_DISPLAY": "",  # ??????
+                    "OPERATION_DISPLAY": sqlplan["operation_display"],
                     "OPTIONS": sqlplan['options'],  # options
                     "OBJECT_NODE": sqlplan['object_node'],  # object_node
                     "OBJECT_OWNER": sqlplan['object_owner'],  # object_owner
