@@ -91,6 +91,19 @@ def import_rules(filename):
 
 
 @click.command()
+def update_risk_rules():
+    """update risk rules with rules"""
+    from models.oracle import make_session, RiskSQLRule
+    from utils import rule_utils
+    with make_session() as session:
+        n = session.query(RiskSQLRule).delete()
+    print(f"deleted {n} risk rules.")
+    with make_session() as session:
+        r = rule_utils.set_all_rules_as_risk_rule(session)
+    print(f"Done({r})")
+
+
+@click.command()
 @click.option("--task-id", help="")
 @click.option("--schema", help="", default=None)
 @click.option("--q", help="use celery or not", default=0)
@@ -179,6 +192,7 @@ if __name__ == "__main__":
     cli.add_command(shell)
     cli.add_command(export_rules)
     cli.add_command(import_rules)
+    cli.add_command(update_risk_rules)
     cli.add_command(makedata)
     cli.add_command(createenv)
     cli.add_command(schedule)
