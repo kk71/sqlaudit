@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import cx_Oracle
-from schema import Schema, Optional, And
+from schema import Schema, Optional, And, Or
 
 from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
@@ -247,35 +247,50 @@ class CMDBPermissionHandler(PrivilegeReq):
 
     def patch(self):
         params = self.get_json_args(Schema({
-            "cmdb_id": scm_gt0_int,
             "role_id": scm_gt0_int,
-            "schema_names": [scm_unempty_str]
+            "cmdbs": [
+                {
+                    "cmdb_id": scm_gt0_int,
+                    "schemas": [scm_unempty_str]
+                }
+            ]
         }))
         role_id = params.pop("role_id")
-        cmdb_id = params.pop("cmdb_id")
-        schema_names: list = params.pop("schema_names")
+        cmdb_id_schemas: list = params.pop("cmdbs")
         del params
         with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            try:
-                available_schema: set = set(cmdb_utils.get_cmdb_available_schemas(cmdb))
-            except cx_Oracle.DatabaseError as e:
-                return self.resp(msg=f"获取可用的schema失败：{str(e)}")
-            unavailable_schemas: set = set(schema_names) - available_schema
-            if unavailable_schemas:
-                print(available_schema)
-                return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
-            session.query(RoleDataPrivilege). \
-                filter(
-                RoleDataPrivilege.role_id == role_id,
-                RoleDataPrivilege.cmdb_id == cmdb_id). \
-                delete(synchronize_session='fetch')
-            session.add_all([RoleDataPrivilege(
-                cmdb_id=cmdb_id,
-                role_id=role_id,
-                schema_name=i
-            ) for i in schema_names])
-
+            used_cmdb_id: set = set()
+            for a_cmdb_id_schemas in cmdb_id_schemas:
+                cmdb_id = a_cmdb_id_schemas["cmdb_id"]
+                schema_names = a_cmdb_id_schemas["schemas"]
+                if cmdb_id in used_cmdb_id:
+                    print(f"{cmdb_id} is duplicated and the first schemas list is"
+                          f" used for binding, the remained are ignored.")
+                    session.rollback()
+                    return self.resp_bad_req(msg="cmdb_id={cmdb_id}存在重复项")
+                cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+                try:
+                    available_schema: set = set(cmdb_utils.get_cmdb_available_schemas(cmdb))
+                except cx_Oracle.DatabaseError as e:
+                    session.rollback()
+                    return self.resp(msg=f"获取可用的schema失败(cmdb_id: {cmdb_id})：{str(e)}")
+                unavailable_schemas: set = set(schema_names) - available_schema
+                if unavailable_schemas:
+                    print(available_schema)
+                    session.rollback()
+                    return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
+                old_rdps = session.query(RoleDataPrivilege). \
+                    filter(
+                    RoleDataPrivilege.role_id == role_id,
+                    RoleDataPrivilege.cmdb_id == cmdb_id)
+                for old_rdp in old_rdps:
+                    session.delete(old_rdp)
+                session.add_all([RoleDataPrivilege(
+                    cmdb_id=cmdb_id,
+                    role_id=role_id,
+                    schema_name=i
+                ) for i in schema_names])
+                used_cmdb_id.add(cmdb_id)
         clear_cache.delay()
         return self.resp_created(msg="分配权限成功")
 
@@ -283,8 +298,10 @@ class CMDBPermissionHandler(PrivilegeReq):
         params = self.get_json_args(Schema({
             'cmdb_id': scm_int,
             'role_id': scm_int,
-            'schema_name': scm_unempty_str
+            Optional('schema_name', default=None): scm_unempty_str
         }))
+        if not params["schema_name"]:
+            params.pop("schema_name")
         with make_session() as session:
             session.query(RoleDataPrivilege).filter_by(**params).delete()
 
