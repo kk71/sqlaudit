@@ -10,9 +10,10 @@ from utils.perf_utils import timing
 from models.mongo import *
 from models.oracle import *
 from utils.const import *
-from utils import cmdb_utils, object_utils
+from utils import cmdb_utils
 from utils.cmdb_utils import get_current_cmdb, get_current_schema
 from utils import const, score_utils
+from utils.conc_utils import async_thr
 
 from models.oracle.optimize import *
 from restful_api.views.offline import OfflineTicketCommonHandler
@@ -21,7 +22,7 @@ from restful_api.views.offline import OfflineTicketCommonHandler
 class DashboardHandler(PrivilegeReq):
 
     @timing()
-    def get(self):
+    async def get(self):
         """仪表盘"""
         with make_session() as session:
             # 顶部四个统计数字
@@ -33,7 +34,7 @@ class DashboardHandler(PrivilegeReq):
                 stats_num_dict = StatsLoginUser().to_dict()
 
             # 维度的数据库
-            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+            cmdb_ids = await async_thr(cmdb_utils.get_current_cmdb, session, self.current_user)
             envs = session.query(CMDB.group_name, func.count(CMDB.cmdb_id)). \
                 filter(CMDB.cmdb_id.in_(cmdb_ids)). \
                 group_by(CMDB.group_name)
@@ -65,8 +66,9 @@ class DashboardHandler(PrivilegeReq):
                 False: "失败",
                 "no": "从未执行"
             }
-            latest_task_record_ids = list(score_utils.get_latest_task_record_id(
-                session, cmdb_ids, status=None).values())
+            latest_task_record = await async_thr(
+                score_utils.get_latest_task_record_id, session, cmdb_ids, status=None)
+            latest_task_record_ids: list = list(latest_task_record.values())
             task_id_task_record_status_dict = dict(session.
                                                    query(TaskExecHistory.task_id, TaskExecHistory.status).
                                                    filter(TaskExecHistory.id.in_(latest_task_record_ids)))
@@ -161,7 +163,7 @@ class MetadataListHandler(PrivilegeReq):
 
 class StatsNumDrillDownHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """仪表盘四个数据的下钻信息"""
         params = self.get_query_args(Schema({
             "drill_down_type": And(scm_dot_split_str,
@@ -176,12 +178,13 @@ class StatsNumDrillDownHandler(AuthReq):
         p = self.pop_p(params)
         with make_session() as session:
             cmdb_ids = get_current_cmdb(session, self.current_user)
-            cmdb_id_task_record_id = score_utils.get_latest_task_record_id(
-                session, cmdb_id=cmdb_ids)
+            cmdb_id_task_record_id = await async_thr(
+                score_utils.get_latest_task_record_id, session, cmdb_id=cmdb_ids)
             Qs = None
             for cmdb_id in cmdb_ids:
                 try:
-                    schema_name = get_current_schema(session, self.current_user, cmdb_id)
+                    schema_name = await async_thr(
+                        get_current_schema, session, self.current_user, cmdb_id)
                     if not Qs:
                         Qs = Q(**{
                             "cmdb_id": cmdb_id,

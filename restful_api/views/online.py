@@ -8,6 +8,7 @@ import xlsxwriter
 from schema import Schema, Optional, And
 
 import settings
+from utils.conc_utils import async_thr
 from utils.const import *
 from utils.perf_utils import *
 from .base import AuthReq, PrivilegeReq
@@ -489,7 +490,7 @@ class TableInfoHandler(AuthReq):
 
 class OverviewHandler(SQLRiskListHandler):
 
-    def get(self):
+    async def get(self):
         """数据库健康度概览"""
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
 
@@ -504,7 +505,9 @@ class OverviewHandler(SQLRiskListHandler):
 
         with make_session() as session:
             # physical size of current CMDB
-            latest_task_record_id = score_utils.get_latest_task_record_id(session, cmdb_id)[cmdb_id]
+            latest_task_record = await async_thr(
+                score_utils.get_latest_task_record_id, session, cmdb_id)
+            latest_task_record_id = latest_task_record[cmdb_id]
 
         tablespace_sum = {}
         stats_phy_size_object = StatsCMDBPhySize.objects(
