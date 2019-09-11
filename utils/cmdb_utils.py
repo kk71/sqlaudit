@@ -25,6 +25,7 @@ def get_current_cmdb(session, user_login, id_name="cmdb_id") -> [str]:
                         get(user_login, set([])))
     if id_name == "cmdb_id":
         return [i[0] for i in session.query(RoleDataPrivilege.cmdb_id.distinct()).
+                join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id).
                 filter(RoleDataPrivilege.role_id.in_(role_ids))]
     elif id_name == "connect_name":
         return [i[0] for i in session.query(CMDB.connect_name.distinct()).
