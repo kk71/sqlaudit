@@ -91,11 +91,20 @@ ORACLE_USERNAME = env_get("ORACLE_USERNAME", "isqlaudit")
 ORACLE_PASSWORD = env_get("ORACLE_PASSWORD", "v1g2m60id2499yz")
 ORACLE_PORT = env_get("ORACLE_PORT", "1521")
 ORACLE_SID = env_get("ORACLE_SID", "sqlaudit")
+ORACLE_SERVICE_NAME = env_get("ORACLE_SERVICE_NAME", "sqlaudit")
+
 
 # the following is for plain sql connector for oracle
+
 ORACLE_MIN_CONN = 1
 ORACLE_MAX_CONN = 5
 ORACLE_INCREMENT = 1
+
+
+# max threads and max sub processes to run concurrent
+
+CONC_MAX_THREAD = env_get("CONC_MAX_THREAD", 8, int)
+CONC_MAX_PROCESS = env_get("CONC_MAX_PROCESS", 8, int)
 
 
 # print out all referred environment variables with default value and the final value

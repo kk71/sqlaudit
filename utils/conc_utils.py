@@ -10,9 +10,11 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from tornado.concurrent import chain_future
 
+import settings
 
-thread_executor = ThreadPoolExecutor(4)
-process_executor = ProcessPoolExecutor(4)
+
+thread_executor = ThreadPoolExecutor(settings.CONC_MAX_THREAD)
+process_executor = ProcessPoolExecutor(settings.CONC_MAX_PROCESS)
 
 
 def conc(func, executor, *args, **kwargs) -> Future:
