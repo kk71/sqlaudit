@@ -6,12 +6,13 @@ from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
 from utils import cmdb_utils, const, task_utils, score_utils
+from utils.conc_utils import async_thr
 from past import mkdata
 
 
 class TaskHandler(PrivilegeReq):
 
-    def get(self):
+    async def get(self):
         """获取任务列表"""
 
         self.acquire(const.PRIVILEGE.PRIVILEGE_TASK)
@@ -49,8 +50,9 @@ class TaskHandler(PrivilegeReq):
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
-            pending_task_ids: set = task_utils.get_pending_task()
-            cmdb_capture_task_latest_task_id = score_utils.get_latest_task_record_id(
+            pending_task_ids: set = await async_thr(task_utils.get_pending_task)
+            cmdb_capture_task_latest_task_id = await async_thr(
+                score_utils.get_latest_task_record_id,
                 session,
                 cmdb_id=current_cmdb_ids,
                 status=None  # None表示不过滤状态

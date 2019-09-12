@@ -35,7 +35,7 @@ class ObjectRiskListHandler(AuthReq):
             Optional(object): object
         }
 
-    def get(self):
+    async def get(self):
         """风险列表"""
         params = self.get_query_args(Schema({
             **self.parsing_schema_dict(),
@@ -46,14 +46,15 @@ class ObjectRiskListHandler(AuthReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            rst = object_utils.get_risk_object_list(session=session, **params)
+            rst = await async_thr(
+                object_utils.get_risk_object_list, session=session, **params)
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
 
 
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
-    def post(self):
+    async def post(self):
         """导出风险对象报告"""
         params = self.get_json_args(Schema({
             "export_type": scm_one_of_choices(["all_filtered", "selected"]),
@@ -66,7 +67,8 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
         with make_session() as session:
             if export_type == "all_filtered":
                 params = self.get_json_args(Schema(self.parsing_schema_dict()))
-                object_list = object_utils.get_risk_object_list(session=session, **params)
+                object_list = await async_thr(
+                    object_utils.get_risk_object_list, session=session, **params)
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
@@ -149,7 +151,7 @@ class SQLRiskListHandler(PrivilegeReq):
             Optional("severity", default=None): scm_dot_split_str,
         }
 
-    def get(self):
+    async def get(self):
         """风险SQL列表"""
         params = self.get_query_args(Schema({
             **self.parsing_schema_dict(),
@@ -162,8 +164,12 @@ class SQLRiskListHandler(PrivilegeReq):
 
         with make_session() as session:
             try:
-                rst = sql_utils.get_risk_sql_list(
-                    session=session, **params, date_range=date_range)
+                rst = await async_thr(
+                    sql_utils.get_risk_sql_list,
+                    session=session,
+                    **params,
+                    date_range=date_range
+                )
             except NoRiskRuleSetException:
                 self.resp(msg="未设置风险规则。")
                 return
@@ -173,7 +179,7 @@ class SQLRiskListHandler(PrivilegeReq):
 
 class SQLRiskReportExportHandler(SQLRiskListHandler):
 
-    def post(self):
+    async def post(self):
         """导出风险SQL的报告"""
         params = self.get_json_args(Schema({
             "export_type": scm_one_of_choices(["all_filtered", "selected"]),
@@ -190,8 +196,12 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
                     Optional(object): object
                 }))
                 date_range = params.pop("date_start"), params.pop("date_end")
-                sql_list = sql_utils.get_risk_sql_list(
-                    session=session, **params, date_range=date_range)
+                sql_list = await async_thr(
+                    sql_utils.get_risk_sql_list,
+                    session=session,
+                    **params,
+                    date_range=date_range
+                )
 
             elif export_type == "selected":
                 params = self.get_json_args(Schema({
@@ -267,7 +277,7 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
 class SQLRiskDetailHandler(AuthReq):
 
     @timing()
-    def get(self):
+    async def get(self):
         """风险详情（include sql text, sql plan and statistics）"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
@@ -291,14 +301,16 @@ class SQLRiskDetailHandler(AuthReq):
                 risk_rules = risk_rules.filter(
                     RiskSQLRule.risk_sql_rule_id.in_(risk_rule_id_list))
             else:
-                rule_names = rule_utils.get_all_risk_towards_a_sql(
+                rule_names = await async_thr(
+                    rule_utils.get_all_risk_towards_a_sql,
                     session=session,
                     sql_id=sql_id,
                     date_range=(date_start, date_end)
                 )
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
-            sql_text_stats = sql_utils.get_sql_id_stats(cmdb_id=cmdb_id)
+            sql_text_stats = await async_thr(
+                sql_utils.get_sql_id_stats, cmdb_id=cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id). \
                 order_by("-etl_date"). \
                 first()
@@ -310,7 +322,8 @@ class SQLRiskDetailHandler(AuthReq):
 
             hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                               distinct("plan_hash_value"))
-            sql_plan_stats = sql_utils.get_sql_plan_stats(cmdb_id=cmdb_id)
+            sql_plan_stats = await async_thr(
+                sql_utils.get_sql_plan_stats, cmdb_id=cmdb_id)
             plans = [
                 # {check codes blow for structure details}
             ]
@@ -537,7 +550,7 @@ class OverviewHandler(SQLRiskListHandler):
 
 class OverviewScoreByHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """显示整个库评分(按照schema或者rule_type)的(柱状图或者雷达图)"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
@@ -571,7 +584,8 @@ class OverviewScoreByHandler(AuthReq):
             elif score_type and overview_rate:
                 overview_rate.type = score_type
                 session.add(overview_rate)
-            ret = score_utils.calc_score_by(session, cmdb, perspective, score_type)
+            ret = await async_thr(
+                score_utils.calc_score_by, session, cmdb, perspective, score_type)
             if perspective == OVERVIEW_ITEM_SCHEMA:
                 d = sorted(
                     self.dict_to_verbose_dict_in_list(ret, "schema", "num"),
@@ -589,7 +603,7 @@ class OverviewScoreByHandler(AuthReq):
 
 class TablespaceListHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """表空间列表，以及最后一次采集到的使用情况"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_gt0_int,
@@ -599,8 +613,12 @@ class TablespaceListHandler(AuthReq):
         cmdb_id = params.pop("cmdb_id")
         with make_session() as session:
             try:
-                latest_task_record_id = score_utils.get_latest_task_record_id(
-                    session, cmdb_id=cmdb_id)[cmdb_id]
+                latest_task_record_ids = await async_thr(
+                    score_utils.get_latest_task_record_id,
+                    session,
+                    cmdb_id=cmdb_id
+                )
+                latest_task_record_id = latest_task_record_ids[cmdb_id]
             except:
                 return self.resp_bad_req(msg="当前库没有采到表空间信息")
             ots_q = ObjTabSpace.objects(

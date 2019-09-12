@@ -19,6 +19,7 @@ from models.mongo import *
 from models.oracle import *
 from task.offline_ticket import offline_ticket
 from task.mail_report import timing_send_work_list_status
+from utils.conc_utils import async_thr
 
 import plain_db.oracleob
 import past.utils.utils
@@ -187,7 +188,7 @@ class ExportTicketHandler(AuthReq):
         return data
 
     # TODO 时间关系，本接口几乎是从旧代码迁移过来的。
-    def get(self):
+    async def get(self):
         """导出工单以及其下全部子工单"""
 
         params = self.get_query_args(Schema({
@@ -295,7 +296,8 @@ class ExportTicketHandler(AuthReq):
                 'all_work_data': all_work_data
             }
         )
-        past.utils.utils.create_worklist_xlsx(filename, parame_dict)
+        await async_thr(
+            past.utils.utils.create_worklist_xlsx, filename, parame_dict)
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 

@@ -15,11 +15,12 @@ from utils import cmdb_utils
 from models.oracle import *
 from models.mongo import *
 from task.clear_cache import clear_cache
+from utils.conc_utils import async_thr
 
 
 class CMDBHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
             Optional("current", default=not self.is_admin()): scm_bool,  # 只返回当前登录用户可见的cmdb
@@ -58,10 +59,11 @@ class CMDBHandler(AuthReq):
                                        CMDB.ip_address
                                        )
             if current:
-                current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+                current_cmdb_ids: list = await async_thr(
+                    cmdb_utils.get_current_cmdb, session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(
-                    session, self.current_user)
+                all_db_data_health = await async_thr(
+                    cmdb_utils.get_latest_health_score_cmdb, session, self.current_user)
                 if all_db_data_health:
                     if sort == SORT_DESC:
                         all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score']
@@ -72,7 +74,8 @@ class CMDBHandler(AuthReq):
                         if da['health_score'] is not None else 0,
                                                     reverse=False)
             else:
-                all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
+                all_db_data_health = await async_thr(
+                    cmdb_utils.get_latest_health_score_cmdb, session)
             ret = []
             if "cmdb_id" in params.keys():
                 p = {}
@@ -296,7 +299,7 @@ class CMDBAggregationHandler(PrivilegeReq):
 
 class SchemaHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """获取schema列表"""
 
         DATA_PRIVILEGE = "data_privilege"
@@ -329,12 +332,12 @@ class SchemaHandler(AuthReq):
 
             if login_user and divide_by == DATA_PRIVILEGE:
                 # 返回给出的用户所绑定的schema，以及未绑定的
-                bound = cmdb_utils.get_current_schema(session,
-                                                      login_user,
-                                                      cmdb_id)
+                bound = await async_thr(
+                    cmdb_utils.get_current_schema, session, login_user, cmdb_id)
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
-                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                    all_schemas = await async_thr(
+                        cmdb_utils.get_cmdb_available_schemas, cmdb)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 self.resp({
@@ -348,12 +351,13 @@ class SchemaHandler(AuthReq):
                 #     filter(RoleDataPrivilege.role_id == role_id)
                 # if cmdb_id:
                 #     bound_q = bound_q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
-                bound_schema_info = cmdb_utils.get_current_schema(
-                    session, cmdb_id=cmdb_id, verbose=True)
+                bound_schema_info = await async_thr(
+                    cmdb_utils.get_current_schema, session, cmdb_id=cmdb_id, verbose=True)
                 bound = list({schema_name for _, _, _, schema_name in bound_schema_info})
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
-                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                    all_schemas = await async_thr(
+                        cmdb_utils.get_cmdb_available_schemas, cmdb)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 self.resp({
@@ -375,7 +379,8 @@ class SchemaHandler(AuthReq):
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 bound = [i[0] for i in bound]
                 try:
-                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                    all_schemas = await async_thr(
+                        cmdb_utils.get_cmdb_available_schemas, cmdb)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 self.resp({
@@ -385,16 +390,16 @@ class SchemaHandler(AuthReq):
 
             elif current:
                 # 当前登录用户可用(数据权限配置)的schema
-                current_schemas = cmdb_utils.get_current_schema(session,
-                                                                self.current_user,
-                                                                cmdb_id)
+                current_schemas = await async_thr(
+                    cmdb_utils.get_current_schema, session, self.current_user, cmdb_id)
                 self.resp(current_schemas)
 
             else:
                 # 当前cmdb的全部的schema，不考虑数据权限
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
-                    all_schemas = cmdb_utils.get_cmdb_available_schemas(cmdb)
+                    all_schemas = await async_thr(
+                        cmdb_utils.get_cmdb_available_schemas, cmdb)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 self.resp(all_schemas)

@@ -13,12 +13,13 @@ from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
 from utils import cmdb_utils
+from utils.conc_utils import async_thr
 import html_report.export
 
 
 class OnlineReportTaskListHandler(PrivilegeReq):
 
-    def get(self):
+    async def get(self):
         """在线查看报告任务列表"""
 
         self.acquire(const.PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
@@ -36,7 +37,8 @@ class OnlineReportTaskListHandler(PrivilegeReq):
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         with make_session() as session:
-            cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
+            cmdb_ids = await async_thr(
+                cmdb_utils.get_current_cmdb, session, self.current_user)
         job_q = Job.objects(
             score__nin=[None, 0],
             cmdb_id__in=cmdb_ids,
@@ -58,7 +60,7 @@ class OnlineReportTaskListHandler(PrivilegeReq):
 
 class OnlineReportTaskHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """在线查看某个报告"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
@@ -75,8 +77,8 @@ class OnlineReportTaskHandler(AuthReq):
             if not cmdb:
                 self.resp_not_found(msg="纳管数据库不存在")
                 return
-            rules_violated, score_sum = score_utils.calc_result(
-                result, cmdb.db_model, obj_type_info)
+            rules_violated, score_sum = await async_thr(
+                score_utils.calc_result, result, cmdb.db_model, obj_type_info)
             self.resp({
                 "job_id": job_id,
                 "cmdb": cmdb.to_dict(),
@@ -152,7 +154,7 @@ class OnlineReportRuleDetailHandler(AuthReq):
             "rule": rule
         }
 
-    def get(self):
+    async def get(self):
         """在线查看报告的规则细节(obj返回一个列表，其余类型返回sql文本相关的几个列表)"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
@@ -163,7 +165,8 @@ class OnlineReportRuleDetailHandler(AuthReq):
         del params
 
         with make_session() as session:
-            ret = self.get_report_rule_detail(session, job_id, rule_name)
+            ret = await async_thr(
+                self.get_report_rule_detail, session, job_id, rule_name)
             self.resp({
                 "columns": ret["columns"],
                 "records": ret["records"],
@@ -218,7 +221,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
 
 class ExportReportXLSXHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """导出报告为xlsx"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
@@ -241,7 +244,8 @@ class ExportReportXLSXHandler(AuthReq):
 
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
-            rules_violated, score_sum = score_utils.calc_result(result, cmdb.db_model)
+            rules_violated, score_sum = await async_thr(
+                score_utils.calc_result, result, cmdb.db_model)
             rules_violateds = []
             for x in rules_violated:
                 rules_violateds.append([x['rule']['rule_name'],
@@ -339,15 +343,17 @@ class ExportReportXLSXHandler(AuthReq):
 
 class ExportReportHTMLHandler(AuthReq):
 
-    def get(self):
+    async def get(self):
         """导出报告为html"""
         params = self.get_query_args(Schema({
             "job_id": scm_unempty_str,
         }))
         job_id = params.pop("job_id")
+        filename = await async_thr(
+            html_report.export.export_task, job_id)
         self.resp({
             "url": path.join(
                 settings.EXPORT_PREFIX,
-                html_report.export.export_task(job_id)
+                filename
             )
         })
