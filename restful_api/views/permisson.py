@@ -251,7 +251,7 @@ class CMDBPermissionHandler(PrivilegeReq):
             "cmdbs": [
                 {
                     "cmdb_id": scm_gt0_int,
-                    "schemas": [scm_unempty_str]
+                    Optional("schemas", default=[]): Or([scm_unempty_str], [])
                 }
             ]
         }))

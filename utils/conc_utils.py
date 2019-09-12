@@ -13,8 +13,15 @@ from tornado.concurrent import chain_future
 import settings
 
 
-thread_executor = ThreadPoolExecutor(settings.CONC_MAX_THREAD)
-process_executor = ProcessPoolExecutor(settings.CONC_MAX_PROCESS)
+def async_prc_initializer():
+    from models import init_models
+    init_models()
+
+
+thread_executor = ThreadPoolExecutor(
+    settings.CONC_MAX_THREAD, initializer=async_prc_initializer)
+process_executor = ProcessPoolExecutor(
+    settings.CONC_MAX_PROCESS)
 
 
 def conc(func, executor, *args, **kwargs) -> Future:
@@ -31,3 +38,4 @@ def async_thr(func, *args, **kwargs) -> Future:
 
 def async_prc(func, *args, **kwargs) -> Future:
     return conc(func, process_executor, *args, **kwargs)
+

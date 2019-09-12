@@ -8,7 +8,7 @@ import xlsxwriter
 from schema import Schema, Optional, And
 
 import settings
-from utils.conc_utils import async_thr
+from utils.conc_utils import *
 from utils.const import *
 from utils.perf_utils import *
 from .base import AuthReq, PrivilegeReq
