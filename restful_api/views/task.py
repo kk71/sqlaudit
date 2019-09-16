@@ -6,7 +6,7 @@ from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
 from utils import cmdb_utils, const, task_utils, score_utils
-from utils.conc_utils import async_thr
+from utils.conc_utils import *
 from past import mkdata
 
 
@@ -50,7 +50,8 @@ class TaskHandler(PrivilegeReq):
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = []
-            pending_task_ids: set = await async_thr(task_utils.get_pending_task)
+            pending_task_ids: set = await wait_for(
+                async_thr(task_utils.get_pending_task), timeout=9)
             cmdb_capture_task_latest_task_id = await async_thr(
                 score_utils.get_latest_task_record_id,
                 session,

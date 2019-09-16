@@ -2,10 +2,11 @@
 
 __all__ = [
     "async_thr",
-    "async_prc"
+    "async_prc",
+    "wait_for"
 ]
 
-from asyncio import Future
+from asyncio import Future, wait_for
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from tornado.concurrent import chain_future
