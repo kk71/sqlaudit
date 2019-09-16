@@ -3,11 +3,12 @@
 __all__ = [
     "async_thr",
     "async_prc",
-    "wait_for"
+    "wait_for",
+    "TimeoutError"
 ]
 
 from asyncio import Future, wait_for
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, TimeoutError
 
 from tornado.concurrent import chain_future
 
