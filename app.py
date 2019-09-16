@@ -91,6 +91,18 @@ def import_rules(filename):
 
 
 @click.command()
+def delete_rules():
+    """delete all rules and risk rules."""
+    from models.oracle import make_session, RiskSQLRule
+    from models.mongo import Rule
+    with make_session() as session:
+        n = session.query(RiskSQLRule).delete()
+    print(f"deleted {n} risk rules.")
+    n = Rule.objects().delete()
+    print(f"deleted {n} rules.")
+
+
+@click.command()
 def update_risk_rules():
     """update risk rules with rules"""
     from models.oracle import make_session, RiskSQLRule
@@ -200,4 +212,5 @@ if __name__ == "__main__":
     cli.add_command(export_task)
     cli.add_command(create_admin)
     cli.add_command(gen_license)
+    cli.add_command(delete_rules)
     cli()
