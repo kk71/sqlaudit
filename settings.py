@@ -104,7 +104,7 @@ ORACLE_INCREMENT = 1
 # max threads and max sub processes to run concurrent
 
 CONC_MAX_THREAD = env_get("CONC_MAX_THREAD", 4, int)
-CONC_MAX_PROCESS = env_get("CONC_MAX_PROCESS", 4, int)
+CONC_MAX_PROCESS = env_get("CONC_MAX_PROCESS", 2, int)
 
 
 # print out all referred environment variables with default value and the final value

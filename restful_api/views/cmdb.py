@@ -175,19 +175,8 @@ class CMDBHandler(AuthReq):
                     **task_dict
                 )
                 session.add(new_task)
-
             session.commit()
-
-            # 默认增加全部schema
-            # try:
-            #     all_schemas = cmdb_utils.get_cmdb_available_schemas(new_cmdb)
-            # except cx_Oracle.DatabaseError as err:
-            #     print(str(err))
-            #     return self.resp_bad_req(msg="无法连接到数据库,schema没有自动加入评分。")
-            # session.add_all([DataHealthUserConfig(
-            #     database_name=new_cmdb.connect_name,
-            #     username=i
-            # ) for i in all_schemas])
+            session.refresh(new_cmdb)
             clear_cache.delay()
             self.resp_created(new_cmdb.to_dict())
 
