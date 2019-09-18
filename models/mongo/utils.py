@@ -88,6 +88,9 @@ class BaseDocRecordID(BaseDoc):
 
     meta = {
         'abstract': True,
+        "indexes": [
+            "record_id"
+        ]
     }
 
     @classmethod
