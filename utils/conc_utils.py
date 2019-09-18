@@ -1,9 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
+    "AsyncTimeout",
     "async_thr",
     "async_prc",
-    "wait_for",
     "TimeoutError"
 ]
 
@@ -34,10 +34,21 @@ def conc(func, executor, *args, **kwargs) -> Future:
     return async_future
 
 
+class AsyncTimeout:
+
+    def __init__(self, timeout=5):
+        self.timeout = timeout
+
+    def async_thr(self, func, *args, **kwargs):
+        return wait_for(conc(func, thread_executor, *args, **kwargs), timeout=self.timeout)
+
+    def async_prc(self, func, *args, **kwargs):
+        return wait_for(conc(func, process_executor, *args, **kwargs), timeout=self.timeout)
+
+
 def async_thr(func, *args, **kwargs) -> Future:
-    return conc(func, thread_executor, *args, **kwargs)
+    return AsyncTimeout().async_thr(func, *args, **kwargs)
 
 
 def async_prc(func, *args, **kwargs) -> Future:
-    return conc(func, process_executor, *args, **kwargs)
-
+    return AsyncTimeout().async_prc(func, *args, **kwargs)
