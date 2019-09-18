@@ -19,7 +19,8 @@ __all__ = [
     "StatsCMDBLoginUser",
     "StatsNumDrillDown",
     "StatsCMDBPhySize",
-    "StatsCMDBSQLAppearance"
+    "StatsCMDBSQLPlan",
+    "StatsCMDBSQLText"
 ]
 
 from .job import *

@@ -309,8 +309,8 @@ class SQLRiskDetailHandler(AuthReq):
                 )
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
-            sql_text_stats = await AsyncTimeout(20).async_thr(
-                sql_utils.get_sql_id_stats, cmdb_id=cmdb_id)
+            sql_text_stats = await async_thr(
+                sql_utils.get_sql_id_stats, session, cmdb_id=cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id). \
                 order_by("-etl_date"). \
                 first()

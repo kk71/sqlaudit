@@ -14,7 +14,8 @@ STATS_MODELS = (
     StatsNumDrillDown,
     StatsCMDBPhySize,
     StatsCMDBLoginUser,
-    StatsCMDBSQLAppearance,
+    StatsCMDBSQLPlan,
+    StatsCMDBSQLText,
     StatsLoginUser
 )
 

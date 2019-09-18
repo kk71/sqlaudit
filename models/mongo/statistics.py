@@ -590,15 +590,15 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
             yield doc
 
 
-class StatsCMDBSQLAppearance(BaseStatisticsDoc):
-    """以库为单位统计sql的出现次数"""
+class StatsCMDBSQLPlan(BaseStatisticsDoc):
+    """以库为单位统计sql plan"""
     sql_id = StringField(null=False)
     plan_hash_value = IntField(null=False)
     first_appearance = DateTimeField()
     last_appearance = DateTimeField()
 
     meta = {
-        "collection": "stats_cmdb_sql_appearance",
+        "collection": "stats_cmdb_sql_plan",
         "indexes": [
             ("sql_id", "plan_hash_value")
         ]
@@ -612,7 +612,7 @@ class StatsCMDBSQLAppearance(BaseStatisticsDoc):
             {
                 "$match": {
                     'cmdb_id': cmdb_id,
-                    'etl_date': {"$gte": arrow.now().shift(months=-1).datetime}
+                    'ETL_DATE': {"$gte": arrow.now().shift(months=-3).datetime}
                 }
             },
             {
@@ -631,6 +631,51 @@ class StatsCMDBSQLAppearance(BaseStatisticsDoc):
             yield cls(
                 task_record_id=task_record_id,
                 cmdb_id=cmdb_id,
-                **one.pop("_id"),
+                **{k.lower(): v for k, v in one.pop("_id").items()},
                 **one
             )
+
+
+class StatsCMDBSQLText(BaseStatisticsDoc):
+    """以库为单位统计sql text"""
+    sql_id = StringField(null=False)
+    first_appearance = DateTimeField()
+    last_appearance = DateTimeField()
+    count = IntField(default=0)
+
+    meta = {
+        "collection": "stats_cmdb_sql_text",
+        "indexes": [
+            "sql_id"
+        ]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.datetime_utils import arrow
+        from models.mongo import SQLText
+        to_aggregate = [
+            {
+                "$match": {
+                    'cmdb_id': cmdb_id,
+                    'ETL_DATE': {"$gte": arrow.now().shift(months=-3).datetime}
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$SQL_ID",
+                    "first_appearance": {"$min": "$ETL_DATE"},
+                    "last_appearance": {"$max": "$ETL_DATE"},
+                    "count": {"$sum": 1}
+                }
+            }
+        ]
+        ret = SQLText.objects.aggregate(*to_aggregate)
+        for one in ret:
+            yield cls(
+                task_record_id=task_record_id,
+                cmdb_id=cmdb_id,
+                **{k.lower(): v for k, v in one.pop("_id").items()},
+                **one
+            )
+

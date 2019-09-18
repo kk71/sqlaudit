@@ -78,51 +78,19 @@ def parse_sql_file(sql_contents, sql_keyword):
     return new_sql_list
 
 
-@timing(cache=r_cache)
-def get_sql_id_stats(cmdb_id, etl_date_gte=None) -> dict:
+# @timing(cache=r_cache)
+def get_sql_id_stats(session, cmdb_id) -> dict:
     """
     计算sql文本的统计信息
-    :param cmdb_id:
-    :param etl_date_gte: etl时间晚于
-    :return: {sql_id: {}}
     """
-    # TODO use cache!
-    # TODO use bulk aggregation instead of aggregate one by one!
-
-    match_case = {
-        'cmdb_id': cmdb_id,
-        # 'etl_date': {"$gte": , "$lt": }
-    }
-    if etl_date_gte:
-        match_case["etl_date"] = {}
-        match_case["etl_date"]["$gte"] = etl_date_gte
-    to_aggregate = [
-        {
-            "$match": match_case
-        },
-        {
-            "$group": {
-                "_id": "$SQL_ID",
-                "first_appearance": {"$min": "$ETL_DATE"},
-                "last_appearance": {"$max": "$ETL_DATE"},
-                "count": {"$sum": 1}
-            }
-        }
-    ]
-    ret = SQLText.objects.aggregate(*to_aggregate)
-    return {i["_id"]: i for i in ret}
+    from utils.score_utils import get_latest_task_record_id
+    latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(session, cmdb_id)
+    task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
+    objs = StatsCMDBSQLText.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
+    return {obj.sql_id: obj.to_dict() for obj in objs}
 
 
-def __prefetch():
-    with make_session() as session:
-        for cmdb in session.query(CMDB).all():
-            get_sql_id_stats(cmdb_id=cmdb.cmdb_id)
-
-
-get_sql_id_stats.prefetch = __prefetch
-del __prefetch
-
-
+# @timing(cache=r_cache)
 def get_sql_plan_stats(session, cmdb_id) -> dict:
     """
     计算sql计划的统计信息
@@ -130,7 +98,7 @@ def get_sql_plan_stats(session, cmdb_id) -> dict:
     from utils.score_utils import get_latest_task_record_id
     latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(session, cmdb_id)
     task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
-    objs = StatsCMDBSQLAppearance.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
+    objs = StatsCMDBSQLPlan.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
     return {(obj.sql_id, obj.plan_hash_value): obj.to_dict() for obj in objs}
 
 
@@ -245,7 +213,7 @@ def get_risk_sql_list(session,
         # ====== 如果仅统计sql_id，以下信息不需要 ======
         sql_text_stats = {}
         if sqltext_stats:
-            sql_text_stats = get_sql_id_stats(cmdb_id=cmdb_id)
+            sql_text_stats = get_sql_id_stats(session, cmdb_id=cmdb_id)
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
         last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(record_id=list(result_q.distinct("record_id")))
 
