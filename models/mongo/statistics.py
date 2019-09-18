@@ -588,3 +588,49 @@ class StatsCMDBPhySize(BaseStatisticsDoc):
                 doc.used += ts.used
             doc.usage_ratio = doc.used / doc.total
             yield doc
+
+
+class StatsCMDBSQLAppearance(BaseStatisticsDoc):
+    """以库为单位统计sql的出现次数"""
+    sql_id = StringField(null=False)
+    plan_hash_value = IntField(null=False)
+    first_appearance = DateTimeField()
+    last_appearance = DateTimeField()
+
+    meta = {
+        "collection": "stats_cmdb_sql_appearance",
+        "indexes": [
+            ("sql_id", "plan_hash_value")
+        ]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.datetime_utils import arrow
+        from models.mongo import MSQLPlan
+        to_aggregate = [
+            {
+                "$match": {
+                    'cmdb_id': cmdb_id,
+                    'etl_date': {"$gte": arrow.now().shift(months=-1).datetime}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "sql_id": "$SQL_ID",
+                        "plan_hash_value": "$PLAN_HASH_VALUE"
+                    },
+                    "first_appearance": {"$min": "$ETL_DATE"},
+                    "last_appearance": {"$max": "$ETL_DATE"},
+                }
+            }
+        ]
+        ret = MSQLPlan.objects.aggregate(*to_aggregate)
+        for one in ret:
+            yield cls(
+                task_record_id=task_record_id,
+                cmdb_id=cmdb_id,
+                **one.pop("_id"),
+                **one
+            )

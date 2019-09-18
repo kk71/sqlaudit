@@ -123,46 +123,15 @@ get_sql_id_stats.prefetch = __prefetch
 del __prefetch
 
 
-@timing(cache=r_cache)
-def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
+def get_sql_plan_stats(session, cmdb_id) -> dict:
     """
     计算sql计划的统计信息
-    :param cmdb_id:
-    :param etl_date_gte: etl时间晚于
-    :return: {plan_hash_value: {}}
     """
-    # TODO use cache!
-    # TODO use bulk aggregation instead of aggregate one by one!
-    if not etl_date_gte:
-        etl_date_gte = arrow.now().shift(months=-1).datetime
-    match_case = {
-        'cmdb_id': cmdb_id,
-        'etl_date': {"$gte": etl_date_gte}
-    }
-    to_aggregate = [
-        {
-            "$match": match_case
-        },
-        {
-            "$group": {
-                "_id": "$PLAN_HASH_VALUE",
-                "first_appearance": {"$min": "$ETL_DATE"},
-                "last_appearance": {"$max": "$ETL_DATE"},
-            }
-        }
-    ]
-    ret = MSQLPlan.objects.aggregate(*to_aggregate)
-    return {i["_id"]: i for i in ret}
-
-
-def __prefetch():
-    with make_session() as session:
-        for cmdb in session.query(CMDB):
-            get_sql_plan_stats(cmdb_id=cmdb.cmdb_id)
-
-
-get_sql_plan_stats.prefetch = __prefetch
-del __prefetch
+    from utils.score_utils import get_latest_task_record_id
+    latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(session, cmdb_id)
+    task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
+    objs = StatsCMDBSQLAppearance.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
+    return {(obj.sql_id, obj.plan_hash_value): obj.to_dict() for obj in objs}
 
 
 @timing(cache=r_cache)

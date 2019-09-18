@@ -19,6 +19,7 @@ __all__ = [
     "StatsCMDBLoginUser",
     "StatsNumDrillDown",
     "StatsCMDBPhySize",
+    "StatsCMDBSQLAppearance"
 ]
 
 from .job import *

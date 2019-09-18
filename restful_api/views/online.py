@@ -322,8 +322,7 @@ class SQLRiskDetailHandler(AuthReq):
 
             hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                               distinct("plan_hash_value"))
-            sql_plan_stats = await AsyncTimeout(10).async_thr(
-                sql_utils.get_sql_plan_stats, cmdb_id=cmdb_id)
+            sql_plan_stats = sql_utils.get_sql_plan_stats(session, cmdb_id)
             plans = [
                 # {check codes blow for structure details}
             ]
@@ -355,11 +354,15 @@ class SQLRiskDetailHandler(AuthReq):
                 sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id,
                                                    plan_hash_value=plan_hash_value).first()
                 sql_stats["io_cost"].append(sql_plan_object.io_cost)
+                first_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}).\
+                    get("first_appearance", None)
+                last_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}).\
+                    get("last_appearance", None)
                 plans.append({
                     "plan_hash_value": plan_hash_value,
                     "cost": sql_plan_object.cost,
-                    "first_appearance": dt_to_str(sql_plan_stats[plan_hash_value]["first_appearance"]),
-                    "last_appearance": dt_to_str(sql_plan_stats[plan_hash_value]["last_appearance"]),
+                    "first_appearance": dt_to_str(first_appearance),
+                    "last_appearance": dt_to_str(last_appearance),
                 })
                 # stats
                 sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id,
