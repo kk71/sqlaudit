@@ -134,7 +134,7 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     # TODO use cache!
     # TODO use bulk aggregation instead of aggregate one by one!
     if not etl_date_gte:
-        etl_date_gte = arrow.now().shift(month=-1).date()
+        etl_date_gte = arrow.now().shift(months=-1).date()
     match_case = {
         'cmdb_id': cmdb_id,
         'etl_date': {"$gte": etl_date_gte}
