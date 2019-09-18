@@ -520,7 +520,9 @@ class OverviewHandler(SQLRiskListHandler):
             # physical size of current CMDB
             latest_task_record = await async_thr(
                 score_utils.get_latest_task_record_id, session, cmdb_id)
-            latest_task_record_id = latest_task_record[cmdb_id]
+            latest_task_record_id = latest_task_record.get(cmdb_id, None)
+            if not latest_task_record:
+                return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
         tablespace_sum = {}
         stats_phy_size_object = StatsCMDBPhySize.objects(
