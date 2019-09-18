@@ -13,7 +13,7 @@ from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
 from utils import cmdb_utils
-from utils.conc_utils import async_thr
+from utils.conc_utils import *
 import html_report.export
 
 
@@ -349,7 +349,7 @@ class ExportReportHTMLHandler(AuthReq):
             "job_id": scm_unempty_str,
         }))
         job_id = params.pop("job_id")
-        filename = await async_thr(
+        filename = await AsyncTimeout(10).async_thr(
             html_report.export.export_task, job_id)
         self.resp({
             "url": path.join(

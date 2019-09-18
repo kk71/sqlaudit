@@ -46,7 +46,7 @@ class ObjectRiskListHandler(AuthReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            rst = await async_thr(
+            rst = await AsyncTimeout(60).async_thr(
                 object_utils.get_risk_object_list, session=session, **params)
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
@@ -67,7 +67,7 @@ class ObjectRiskReportExportHandler(ObjectRiskListHandler):
         with make_session() as session:
             if export_type == "all_filtered":
                 params = self.get_json_args(Schema(self.parsing_schema_dict()))
-                object_list = await async_thr(
+                object_list = await AsyncTimeout(60).async_thr(
                     object_utils.get_risk_object_list, session=session, **params)
 
             elif export_type == "selected":
@@ -164,7 +164,7 @@ class SQLRiskListHandler(PrivilegeReq):
 
         with make_session() as session:
             try:
-                rst = await async_thr(
+                rst = await AsyncTimeout(60).async_thr(
                     sql_utils.get_risk_sql_list,
                     session=session,
                     **params,
@@ -196,7 +196,7 @@ class SQLRiskReportExportHandler(SQLRiskListHandler):
                     Optional(object): object
                 }))
                 date_range = params.pop("date_start"), params.pop("date_end")
-                sql_list = await async_thr(
+                sql_list = await AsyncTimeout(60).async_thr(
                     sql_utils.get_risk_sql_list,
                     session=session,
                     **params,
@@ -301,7 +301,7 @@ class SQLRiskDetailHandler(AuthReq):
                 risk_rules = risk_rules.filter(
                     RiskSQLRule.risk_sql_rule_id.in_(risk_rule_id_list))
             else:
-                rule_names = await async_thr(
+                rule_names = await AsyncTimeout(10).async_thr(
                     rule_utils.get_all_risk_towards_a_sql,
                     session=session,
                     sql_id=sql_id,
@@ -309,7 +309,7 @@ class SQLRiskDetailHandler(AuthReq):
                 )
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
-            sql_text_stats = await async_thr(
+            sql_text_stats = await AsyncTimeout(20).async_thr(
                 sql_utils.get_sql_id_stats, cmdb_id=cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id). \
                 order_by("-etl_date"). \
@@ -322,7 +322,7 @@ class SQLRiskDetailHandler(AuthReq):
 
             hash_values = set(MSQLPlan.objects(sql_id=sql_id, cmdb_id=cmdb_id).
                               distinct("plan_hash_value"))
-            sql_plan_stats = await async_thr(
+            sql_plan_stats = await AsyncTimeout(10).async_thr(
                 sql_utils.get_sql_plan_stats, cmdb_id=cmdb_id)
             plans = [
                 # {check codes blow for structure details}

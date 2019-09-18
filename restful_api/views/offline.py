@@ -19,7 +19,7 @@ from models.mongo import *
 from models.oracle import *
 from task.offline_ticket import offline_ticket
 from task.mail_report import timing_send_work_list_status
-from utils.conc_utils import async_thr
+from utils.conc_utils import *
 
 import plain_db.oracleob
 import past.utils.utils
@@ -296,7 +296,7 @@ class ExportTicketHandler(AuthReq):
                 'all_work_data': all_work_data
             }
         )
-        await async_thr(
+        await AsyncTimeout(10).async_thr(
             past.utils.utils.create_worklist_xlsx, filename, parame_dict)
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
