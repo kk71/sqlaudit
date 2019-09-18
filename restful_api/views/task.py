@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from schema import Schema, Optional, And
+from cx_Oracle import DatabaseError
 
 from .base import AuthReq, PrivilegeReq
 from models.oracle import *
@@ -141,5 +142,8 @@ class TaskManualExecute(AuthReq):
         params = self.get_json_args(Schema({
             "task_id": scm_int
         }))
-        mkdata.run(params.pop("task_id"), use_queue=True)
+        try:
+            mkdata.run(params.pop("task_id"), use_queue=True)
+        except DatabaseError as e:
+            return self.resp_bad_req(msg=str(e))
         self.resp_created({})
