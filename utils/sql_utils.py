@@ -11,6 +11,7 @@ from models.mongo import *
 from models.oracle import *
 from utils.datetime_utils import *
 from utils import rule_utils, const
+from utils.datetime_utils import *
 from past.utils.constant import SQLPLUS_SQL
 
 
@@ -132,13 +133,12 @@ def get_sql_plan_stats(cmdb_id, etl_date_gte=None) -> dict:
     """
     # TODO use cache!
     # TODO use bulk aggregation instead of aggregate one by one!
+    if not etl_date_gte:
+        etl_date_gte = arrow.now().shift(month=-1).date()
     match_case = {
         'cmdb_id': cmdb_id,
-        # 'etl_date': {"$gte": , "$lt": }
+        'etl_date': {"$gte": etl_date_gte}
     }
-    if etl_date_gte:
-        match_case["etl_date"] = {}
-        match_case["etl_date"]["$gte"] = etl_date_gte
     to_aggregate = [
         {
             "$match": match_case
