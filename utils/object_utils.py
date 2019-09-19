@@ -13,47 +13,6 @@ from utils import rule_utils, const, cmdb_utils
 
 
 @timing(cache=r_cache)
-def get_cmdb_phy_size(session, cmdb_id) -> int:
-    """
-    计算cmdb最近一次统计的物理体积（目前仅计算表的总体积）
-    :param session:
-    :param cmdb_id:
-    :return: int
-    """
-    cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-    latest_task_exec_hist_obj = session.query(TaskExecHistory). \
-        filter(TaskExecHistory.connect_name == cmdb.connect_name). \
-        order_by(TaskExecHistory.task_end_date.desc()).first()
-    if latest_task_exec_hist_obj:
-        ret = list(ObjTabInfo.objects.aggregate(
-            {
-                "$match": {
-                    "record_id": {"$regex": f"{latest_task_exec_hist_obj.id}"},
-                    "cmdb_id": cmdb.cmdb_id
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$cmdb_id",
-                    "sum": {"$sum": "$PHY_SIZE(MB)"}
-                }
-            }
-        ))
-        if ret:
-            return ret[0]["sum"]
-
-
-def __prefetch():
-    with make_session() as session:
-        for cmdb in session.query(CMDB):
-            get_cmdb_phy_size(session=session, cmdb_id=cmdb.cmdb_id)
-
-
-get_cmdb_phy_size.prefetch = __prefetch
-del __prefetch
-
-
-@timing(cache=r_cache)
 def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
     """
     统计某个库的obj的规则的首末次出现时间

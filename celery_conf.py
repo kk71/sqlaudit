@@ -17,7 +17,7 @@ task_serializer = 'json'
 accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 result_serializer = 'json'
 worker_concurrency = 1
-worker_max_tasks_per_child = 3
+worker_max_tasks_per_child = 1
 
 # when add new tasks in new a module, add it below.
 imports = (

@@ -116,7 +116,7 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
             assert 0
     keys = ["sql_id", "elapsed_time_delta", "executions_delta", "schema"]
     return {i[0]: dict(zip(keys[1:], i[1:])) for i in
-            SQLStat.objects(record_id__in=record_id).order_by("-etl_date").values_list(*keys)}
+            SQLStat.objects(record_id__in=record_id).order_by("etl_date").values_list(*keys)}
 
 
 @timing(cache=r_cache)
