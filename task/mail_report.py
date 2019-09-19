@@ -43,6 +43,7 @@ def insert_send_mail_history(login_user, send_mail_id, result, file_path):
     sql_params = [send_mail_id, login_user, file_path, result, get_time()]
     OracleHelper.insert(sql, params=sql_params)
 
+@celery.task
 def timing_send_work_list_status(work_list):
     """
     发送线下审核工单状态
