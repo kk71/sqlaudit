@@ -4,33 +4,27 @@ __all__ = [
     "get_pending_task"
 ]
 
-from celery.task.control import inspect
+import json
 
+from redis import StrictRedis
+
+import settings
 import celery_conf
-from utils.perf_utils import timing
 
 
-@timing()
-def get_pending_task():
+redis_celery_broker = StrictRedis(
+    host=settings.REDIS_BROKER_IP,
+    port=settings.REDIS_BROKER_PORT,
+    db=settings.REDIS_BROKER_DB
+)
+
+
+def get_pending_task() -> set:
     """获取pending的任务task_id"""
     ret = set()
-    try:
-        insp = inspect()
-        q_name = None
-        for exch_id, exchanges in insp.active_queues().items():
-            if not exchanges:
-                continue
-            the_exch = exchanges[0]
-            if the_exch["name"] == celery_conf.task_capture_task_run:
-                q_name = exch_id
-                break
-        if not q_name:
-            assert 0
-        for t in insp.reserved()[q_name]:
-            try:
-                ret.add(eval(t["args"])[5])
-            except:
-                pass
-    except:
-        pass
+    tasks = redis_celery_broker.lrange(celery_conf.task_capture_task_run, 0, -1)
+    for task in tasks:
+        task = json.loads(task)
+        args = eval(task["argsrepr"])
+        ret.add(args[5])
     return ret
