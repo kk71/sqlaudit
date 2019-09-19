@@ -10,7 +10,6 @@ platforms.C_FORCE_ROOT = True
 
 broker_url = settings.REDIS_BROKER
 result_backend = settings.REDIS_BACKEND
-worker_prefetch_multiplier = 1
 
 # enable_utc = False
 timezone = 'Asia/Shanghai'
@@ -19,6 +18,8 @@ accept_content = ['pickle', 'json', 'msgpack', 'yaml']
 result_serializer = 'json'
 worker_concurrency = 1
 worker_max_tasks_per_child = 1
+worker_prefetch_multiplier = 1
+task_acks_late = True
 
 # when add new tasks in new a module, add it below.
 imports = (
