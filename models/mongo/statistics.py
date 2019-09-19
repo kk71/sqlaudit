@@ -675,7 +675,7 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
             yield cls(
                 task_record_id=task_record_id,
                 cmdb_id=cmdb_id,
-                **{k.lower(): v for k, v in one.pop("_id").items()},
+                sql_id=one.pop("_id"),
                 **one
             )
 
