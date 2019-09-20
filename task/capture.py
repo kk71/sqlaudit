@@ -202,6 +202,11 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
     msg = f"{host}, {port}, {sid}, {username}, {password}, {task_id}, {connect_name}, {business_name}, {db_users}"
     logger.info(msg)
 
+    from models.oracle import make_session, TaskExecHistory
+    with make_session() as session:
+        # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
+        session.query(TaskExecHistory).filter(TaskExecHistory.status==None).delete()
+
     task_uuid = celery.current_task.request.id
     record_id = init_job(task_id, connect_name, business_name, task_uuid)
 
