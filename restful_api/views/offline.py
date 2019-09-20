@@ -58,15 +58,15 @@ class OfflineTicketCommonHandler(PrivilegeReq):
             # 能看:自己提交的子工单+指派给自己所在角色的子工单+自己处理过了的工单
             sq = session.query(WorkList.work_list_id). \
                 filter(or_(
-                    WorkList.submit_owner == self.current_user,
-                    WorkList.audit_role_id.in_(self.current_roles()),
-                    WorkList.audit_owner == self.current_user
+                WorkList.submit_owner == self.current_user,
+                WorkList.audit_role_id.in_(self.current_roles()),
+                WorkList.audit_owner == self.current_user
             ))
             q = q.filter(SubWorkList.work_list_id.in_(sq))
 
         else:
             # 只能看:自己提交的子工单
-            sq = session.query(WorkList.work_list_id).\
+            sq = session.query(WorkList.work_list_id). \
                 filter(WorkList.submit_owner == self.current_user)
             q = q.filter(SubWorkList.work_list_id.in_(sq))
 
@@ -113,12 +113,12 @@ class TicketHandler(OfflineTicketCommonHandler):
             items, p = self.paginate(q, **p)
             ret = []
             for ticket in items:
-                r = session.query(SubWorkList).\
-                    filter(SubWorkList.work_list_id == ticket.work_list_id).\
+                r = session.query(SubWorkList). \
+                    filter(SubWorkList.work_list_id == ticket.work_list_id). \
                     with_entities(
-                        SubWorkList.static_check_results,
-                        SubWorkList.dynamic_check_results
-                    ).all()
+                    SubWorkList.static_check_results,
+                    SubWorkList.dynamic_check_results
+                ).all()
                 static_rst, dynamic_rst = zip(*r) if r else ((), ())
                 ret_item = {
                     **ticket.to_dict(),
@@ -152,7 +152,7 @@ class TicketHandler(OfflineTicketCommonHandler):
             session.add(ticket)
             session.commit()
             session.refresh(ticket)
-            wlats = session.query(WorkListAnalyseTemp).\
+            wlats = session.query(WorkListAnalyseTemp). \
                 filter(WorkListAnalyseTemp.session_id == session_id).all()
             sqls = [i.to_dict(iter_if=lambda k, v: k in ("sql_text", "comments")) for i in wlats]
             offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
@@ -172,7 +172,7 @@ class TicketHandler(OfflineTicketCommonHandler):
         work_list_id = params.pop("work_list_id")
         with make_session() as session:
             session.query(WorkList).filter(WorkList.work_list_id == work_list_id).update(params)
-            work_list=session.query(WorkList).filter(WorkList.work_list_id==work_list_id).first()
+            work_list = session.query(WorkList).filter(WorkList.work_list_id == work_list_id).first()
             timing_send_work_list_status.delay(work_list.to_dict())
             # timing_send_work_list_status(work_list)
         return self.resp_created(msg="更新成功")
@@ -224,7 +224,8 @@ class ExportTicketHandler(AuthReq):
         works['online_date'] = str(works['online_date']) if works['online_date'] else ''
 
         # 主要信息
-        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称", "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间", "工单状态", "审核人", "审核意见", "上线时间"]
+        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称", "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
+                       "工单状态", "审核人", "审核意见", "上线时间"]
         worklist_data = list(works.values())
 
         filename = '_'.join(['工单信息', works["task_name"], d_to_str(arrow.now())]) + '.xlsx'
@@ -479,8 +480,8 @@ class SubTicketHandler(OfflineTicketCommonHandler):
                                    SubWorkList.dynamic_check_results,
                                    SubWorkList.comments)
         if schema_name:
-            work_list_id_in_tuple = session.query(WorkList).\
-                filter_by(schema_name=schema_name).\
+            work_list_id_in_tuple = session.query(WorkList). \
+                filter_by(schema_name=schema_name). \
                 with_entities(WorkList.work_list_id).all()
             work_list_id_list = [i[0] for i in work_list_id_in_tuple]
             q = q.filter(SubWorkList.work_list_id.in_(work_list_id_list))
@@ -559,7 +560,7 @@ class ExportSubTicketHandler(SubTicketHandler):
                     Optional(object): object
                 }))
                 statement_id_list = params.pop("statement_id_list")
-                q = session.query(SubWorkList).\
+                q = session.query(SubWorkList). \
                     filter(SubWorkList.statement_id.in_(statement_id_list))
             else:
                 assert 0
