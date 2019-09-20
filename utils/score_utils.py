@@ -3,7 +3,7 @@
 from collections import defaultdict
 from typing import Union
 
-from sqlalchemy import func
+from sqlalchemy import func, and_, or_
 from mongoengine import Q
 
 from utils.const import *
@@ -168,6 +168,13 @@ def get_latest_task_record_id(
         sub_q = sub_q.filter(TaskExecHistory.status == status)
     if task_start_date_gt is not None:
         sub_q = sub_q.filter(TaskExecHistory.task_start_date > task_start_date_gt)
+    sub_q = sub_q.filter(or_(
+        and_(
+            TaskExecHistory.status==None,
+            TaskExecHistory.task_start_date > arrow.now().shift(hours=-6)
+        ),
+        TaskExecHistory!=None
+    ))
     sub_q = sub_q.subquery()
     cmdb_id_exec_hist_id_list_q = session. \
         query(sub_q.c.cmdb_id, func.max(sub_q.c.id)).group_by(sub_q.c.cmdb_id)
