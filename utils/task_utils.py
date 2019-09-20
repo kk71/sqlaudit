@@ -25,6 +25,6 @@ def get_pending_task() -> set:
     tasks = redis_celery_broker.lrange(celery_conf.task_capture_task_run, 0, -1)
     for task in tasks:
         task = json.loads(task)
-        args = eval(task["argsrepr"])
+        args = eval(task["headers"]["argsrepr"])
         ret.add(args[5])
     return ret
