@@ -171,7 +171,7 @@ def get_latest_task_record_id(
     sub_q = sub_q.filter(
         ~and_(
             TaskExecHistory.status==None,
-            TaskExecHistory.task_start_date <= arrow.now().shift(hours=-6)
+            TaskExecHistory.task_start_date <= arrow.now().shift(hours=-6).datetime
         )
     )
     sub_q = sub_q.subquery()
