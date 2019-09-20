@@ -173,7 +173,7 @@ class TicketHandler(OfflineTicketCommonHandler):
         with make_session() as session:
             session.query(WorkList).filter(WorkList.work_list_id == work_list_id).update(params)
             work_list=session.query(WorkList).filter(WorkList.work_list_id==work_list_id).first()
-            timing_send_work_list_status.delay(work_list)
+            timing_send_work_list_status.delay(work_list.to_dict())
             # timing_send_work_list_status(work_list)
         return self.resp_created(msg="更新成功")
 
