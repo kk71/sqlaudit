@@ -27,6 +27,8 @@ class WorkList(BaseModel):
     audit_owner = Column("AUDIT_OWNER", String, comment="审批人")
     audit_comments = Column("AUDIT_COMMENTS", String)
     online_date = Column("ONLINE_DATE", DATE)
+    online_username = Column("ONLINE_USERNAME", String, comment="上线用户名")
+    online_password = Column("ONLINE_PASSWORD", String, comment="上线密码")
 
 
 class SubWorkList(BaseModel):
