@@ -139,8 +139,8 @@ class TicketHandler(OfflineTicketCommonHandler):
             "audit_role_id": scm_gt0_int,
             "task_name": scm_unempty_str,
             "session_id": scm_unempty_str,
-            "online_username": scm_str,
-            "online_password": scm_str
+            Optional("online_username", default=None): scm_str,
+            Optional("online_password", default=None): scm_str
         }))
         params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")

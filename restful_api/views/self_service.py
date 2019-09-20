@@ -118,10 +118,14 @@ class ExecuteHandler(PrivilegeReq):
                 online_date = datetime.now()
                 start = time.time()
                 cmdb_dict = cmdb.to_dict(iter_if=lambda k, v: k in (
-                    "ip_address", "port", "user_name", "password", "service_name"))
+                    "ip_address", "port", "service_name"))
                 cmdb_dict["host"] = cmdb_dict.pop("ip_address")
-                cmdb_dict["username"] = cmdb_dict.pop("user_name")
                 cmdb_dict["sid"] = cmdb_dict.pop("service_name")
+                # 注意，以下用户名密码需要使用用户自己在工单内指定的online_username, online_password
+                if not ticket.online_username or not ticket.online_password:
+                    return self.resp_bad_req(msg="当前工单未指定上线用的username或者password.")
+                cmdb_dict["username"] = ticket.online_username
+                cmdb_dict["password"] = ticket.online_password
                 err_msg = past.utils.check.Check.sql_online(
                     sub_ticket.sql_text, cmdb_dict, ticket.schema_name)
                 if not err_msg:

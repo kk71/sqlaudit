@@ -335,9 +335,9 @@ class Check:
     def sql_online(cls, sql, oracle_settings, schema_name):
         odb = OracleOB(**oracle_settings)
         try:
-            odb.execute(f"alter session set current_schema={schema_name}")
+            # odb.execute(f"alter session set current_schema={schema_name}")
             odb.execute(sql)
-            odb.execute(f"alter session set current_schema={oracle_settings['username']}")
+            # odb.execute(f"alter session set current_schema={oracle_settings['username']}")
             odb.conn.commit()
             return ""
         except Exception as e:
