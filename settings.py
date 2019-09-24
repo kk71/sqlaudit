@@ -26,7 +26,7 @@ def env_get(k, default, parser=None):
 # web server settings
 
 DEBUG = True
-WEB_IP = env_get("WEB_IP", "localhost")  # TODO : DO NOT USE LOCALHOST!!!
+WEB_IP = env_get("WEB_IP", "192.0.0.9")
 WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1")
