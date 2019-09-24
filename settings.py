@@ -45,12 +45,12 @@ CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change cli
 # celery broker & backend settings
 # for celery other settings, please refer to celery_conf.py
 
-REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", WEB_IP)
+REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", "192.0.0.3")
 REDIS_BROKER_PORT = env_get("REDIS_BROKER_PORT", 6379, int)
 REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2, int)
 REDIS_BROKER = f'redis://{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
 
-REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", WEB_IP)
+REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", "192.0.0.3")
 REDIS_BACKEND_PORT = env_get("REDIS_BACKEND_PORT", 6379, int)
 REDIS_BACKEND_DB = env_get("REDIS_BACKEND_DB", 3)
 REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
@@ -58,7 +58,7 @@ REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND
 
 # mongodb server settings
 
-MONGO_SERVER = env_get("MONGO_IP", WEB_IP)
+MONGO_SERVER = env_get("MONGO_IP", "192.0.0.2")
 MONGO_PORT = env_get("MONGO_PORT", 27017, int)
 MONGO_USER = env_get("MONGO_USER", "sqlreview")
 MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")

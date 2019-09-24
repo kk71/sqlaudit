@@ -36,8 +36,8 @@ def runserver():
         autoreload=True,
     )
     enable_pretty_logging()
-    app.listen(settings.WEB_PORT)
-    print(f"Listening on port {settings.WEB_PORT} ...")
+    app.listen(settings.WEB_PORT, settings.WEB_IP)
+    print(f"Listening on port {settings.WEB_IP}:{settings.WEB_PORT} ...")
     tornado.ioloop.IOLoop.instance().start()
 
 
