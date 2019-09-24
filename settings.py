@@ -85,7 +85,7 @@ LOG_DEFAULT_PATH = "/tmp/"
 
 # oracle connection settings
 
-ORM_ECHO = False
+ORM_ECHO = env_get("ORM_ECHO", False, int)
 ORACLE_IP = env_get("ORACLE_IP", WEB_IP)
 ORACLE_USERNAME = env_get("ORACLE_USERNAME", "isqlaudit")
 ORACLE_PASSWORD = env_get("ORACLE_PASSWORD", "v1g2m60id2499yz")
