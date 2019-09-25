@@ -149,7 +149,7 @@ def schedule():
 
 
 @click.command()
-@click.option("--q", help="use queue to run", default=False, type=click.BOOL)
+@click.option("--q", help="use queue to run", default=True, type=click.BOOL)
 @click.option("--no-prefetch", help="do not prefetch", default=False, type=click.BOOL)
 def clear_cache(q=True, no_prefetch=False):
     """clear all cache"""
@@ -158,12 +158,6 @@ def clear_cache(q=True, no_prefetch=False):
         to_run = clear_cache.delay
     else:
         to_run = clear_cache
-    if no_prefetch == "0":
-        no_prefetch = False
-    elif no_prefetch == "1":
-        no_prefetch = True
-    else:
-        assert 0
     to_run(no_prefetch=no_prefetch)
 
 
