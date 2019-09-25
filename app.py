@@ -66,7 +66,7 @@ a session object with both autocommit and autoflush on is created named ss.
 
 
 @click.command()
-@click.option("--filename", help="the json filename", default="./files/rule.json")
+@click.option("--filename", metavar="the json filename", default="./files/rule.json")
 def export_rules(filename):
     """export rules to a json file"""
     from utils import rule_utils
@@ -76,7 +76,7 @@ def export_rules(filename):
 
 
 @click.command()
-@click.option("--filename", help="the json filename", default="./files/rule.json")
+@click.option("--filename", metavar="the json filename", default="./files/rule.json")
 def import_rules(filename):
     """import rules from a json file, deduplicated"""
     from utils import rule_utils
@@ -116,9 +116,9 @@ def update_risk_rules():
 
 
 @click.command()
-@click.argument("--task-id", help="task id", type=click.INT)
-@click.argument("--schema", help="schema(s) to collect", default=None, type=click.STRING)
-@click.argument("--q", help="use celery or not", default=False, type=click.BOOL)
+@click.argument("--task-id", metavar="task id", type=click.INT)
+@click.argument("--schema", metavar="schema(s) to collect", default=None, type=click.STRING)
+@click.argument("--q", metavar="use celery or not", default=False, type=click.BOOL)
 def makedata(task_id, schema, q):
     """manually send a message to queue for running sql analysis"""
     import past.mkdata
@@ -130,7 +130,7 @@ def makedata(task_id, schema, q):
 
 
 @click.command()
-@click.argument("--filename", help="the filename", type=click.STRING)
+@click.argument("--filename", metavar="the filename", type=click.STRING)
 def createenv(filename):
     """create py.env file with default values"""
     print(f"going to create a new env file to {filename}...")
@@ -147,8 +147,8 @@ def schedule():
 
 
 @click.command()
-@click.argument("--q", help="use queue to run", default=False, type=click.BOOL)
-@click.argument("--no-prefetch", help="do not prefetch", default=False, type=click.BOOL)
+@click.argument("--q", metavar="use queue to run", default=False, type=click.BOOL)
+@click.argument("--no-prefetch", metavar="do not prefetch", default=False, type=click.BOOL)
 def clear_cache(q=True, no_prefetch=False):
     """clear all cache"""
     from task.clear_cache import clear_cache
@@ -166,7 +166,7 @@ def clear_cache(q=True, no_prefetch=False):
 
 
 @click.command()
-@click.argument("--job-id", help="job id to export", type=click.INT)
+@click.argument("--job-id", metavar="job id to export", type=click.INT)
 def export_task(job_id):
     """export html report"""
     if not job_id:
