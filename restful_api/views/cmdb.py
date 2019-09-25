@@ -251,14 +251,15 @@ class CMDBHandler(AuthReq):
         clear_cache.delay()
         self.resp_created(msg="已删除。")
 
-    def options(self):
+    async def options(self):
         """测试连接是否成功"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int
         }))
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(**params).first()
-            self.resp(cmdb_utils.test_cmdb_connectivity(cmdb))
+            resp = await async_thr(cmdb_utils.test_cmdb_connectivity, cmdb)
+            self.resp(resp)
 
 
 class CMDBAggregationHandler(PrivilegeReq):
