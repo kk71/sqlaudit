@@ -120,7 +120,7 @@ def update_risk_rules():
 @click.command()
 @click.argument("task_id", type=click.INT, required=True)
 @click.option("--schema", help="schema(s) to collect", default=None, type=click.STRING)
-@click.option("--q", help="use celery or not", default=False, type=click.BOOL)
+@click.option("--q", help="use celery or not", default=True, type=click.BOOL)
 def makedata(task_id, schema, q):
     """manually send a message to queue for running sql analysis"""
     import past.mkdata
@@ -133,7 +133,7 @@ def makedata(task_id, schema, q):
 
 @click.command()
 @click.argument("filename", required=True, type=click.STRING)
-def createenv(filename):
+def create_env(filename):
     """create py.env file with default values"""
     print(f"going to create a new env file to {filename}...")
     with open(filename, "w") as z:
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     cli.add_command(import_rules)
     cli.add_command(update_risk_rules)
     cli.add_command(makedata)
-    cli.add_command(createenv)
+    cli.add_command(create_env)
     cli.add_command(schedule)
     cli.add_command(clear_cache)
     cli.add_command(export_task)
