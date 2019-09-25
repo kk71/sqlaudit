@@ -116,23 +116,21 @@ def update_risk_rules():
 
 
 @click.command()
-@click.option("--task-id", help="")
-@click.option("--schema", help="", default=None)
-@click.option("--q", help="use celery or not", default=0)
+@click.argument("--task-id", help="task id", type=click.INT)
+@click.argument("--schema", help="schema(s) to collect", default=None, type=click.STRING)
+@click.argument("--q", help="use celery or not", default=False, type=click.BOOL)
 def makedata(task_id, schema, q):
     """manually send a message to queue for running sql analysis"""
     import past.mkdata
     if not task_id:
         print("task_id is required.")
         return
-    q = int(q)
-    q = True if q else False
     print(f"task_id={task_id} schema={schema} use_queue={q}")
     past.mkdata.run(task_id, schema, q)
 
 
 @click.command()
-@click.option("--filename", help="the filename")
+@click.argument("--filename", help="the filename", type=click.STRING)
 def createenv(filename):
     """create py.env file with default values"""
     print(f"going to create a new env file to {filename}...")
@@ -149,8 +147,8 @@ def schedule():
 
 
 @click.command()
-@click.option("--q", help="use queue to run")
-@click.option("--no-prefetch", help="do not prefetch")
+@click.argument("--q", help="use queue to run", default=False, type=click.BOOL)
+@click.argument("--no-prefetch", help="do not prefetch", default=False, type=click.BOOL)
 def clear_cache(q=True, no_prefetch=False):
     """clear all cache"""
     from task.clear_cache import clear_cache
@@ -168,7 +166,7 @@ def clear_cache(q=True, no_prefetch=False):
 
 
 @click.command()
-@click.option("--job-id")
+@click.argument("--job-id", help="job id to export", type=click.INT)
 def export_task(job_id):
     """export html report"""
     if not job_id:
