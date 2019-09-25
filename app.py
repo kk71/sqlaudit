@@ -132,7 +132,7 @@ def makedata(task_id, schema, q):
 
 
 @click.command()
-@click.argument("filename", requeired=True, type=click.STRING)
+@click.argument("filename", required=True, type=click.STRING)
 def createenv(filename):
     """create py.env file with default values"""
     print(f"going to create a new env file to {filename}...")
