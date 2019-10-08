@@ -9,6 +9,8 @@ from utils.schema_utils import *
 from utils import cmdb_utils, const, task_utils, score_utils
 from utils.conc_utils import *
 from past import mkdata
+from utils.task_utils import redis_celery_broker
+import celery_conf
 
 
 class TaskHandler(PrivilegeReq):
@@ -142,3 +144,13 @@ class TaskManualExecute(AuthReq):
         except DatabaseError as e:
             return self.resp_bad_req(msg=str(e))
         self.resp_created({})
+
+
+class ClearCollectionQueue(AuthReq):
+
+    def get(self):
+        """清理待采集队列"""
+        redis_celery_broker.ltrim(celery_conf.task_capture_task_run,1,0)
+        self.resp(content="已清理待采集队列")
+
+

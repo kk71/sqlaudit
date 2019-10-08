@@ -58,6 +58,7 @@ urls += [
     (r"/api/task/tasks", task.TaskHandler),
     (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
     (r"/api/task/manual_execute", task.TaskManualExecute),
+    (r"/api/clear_collection_queue",task.ClearCollectionQueue),
 ]
 
 # offline audit
