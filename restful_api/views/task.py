@@ -9,8 +9,6 @@ from utils.schema_utils import *
 from utils import cmdb_utils, const, task_utils, score_utils
 from utils.conc_utils import *
 from past import mkdata
-from utils.task_utils import redis_celery_broker
-import celery_conf
 
 
 class TaskHandler(PrivilegeReq):
@@ -146,11 +144,11 @@ class TaskManualExecute(AuthReq):
         self.resp_created({})
 
 
-class ClearCollectionQueue(AuthReq):
+class FlushCeleryQ(AuthReq):
 
-    def get(self):
+    def post(self):
         """清理待采集队列"""
-        redis_celery_broker.ltrim(celery_conf.task_capture_task_run,1,0)
-        self.resp(content="已清理待采集队列")
+        task_utils.flush_celery_q()
+        self.resp_created(content="已清理待采集队列")
 
 

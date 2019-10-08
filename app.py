@@ -192,13 +192,18 @@ def gen_license():
     from past.utils.product_license import gen_license
     gen_license()
 
+
 @click.command()
-def clear_collection_queue():
+@click.option("--q", type=click.STRING, help="specify a queue name")
+def flush_celery_q(q):
     """clear collection queue"""
-    from utils.task_utils import redis_celery_broker
-    import celery_conf
-    redis_celery_broker.ltrim(celery_conf.task_capture_task_run, 1, 0)
-    print('clear collection queue---finish')
+    from utils.task_utils import flush_celery_q
+    if q:
+        flush_celery_q(q)
+    else:
+        flush_celery_q()
+    print('done')
+
 
 if __name__ == "__main__":
     cli.add_command(runserver)
@@ -214,5 +219,5 @@ if __name__ == "__main__":
     cli.add_command(create_admin)
     cli.add_command(gen_license)
     cli.add_command(delete_rules)
-    cli.add_command(clear_collection_queue)
+    cli.add_command(flush_celery_q)
     cli()

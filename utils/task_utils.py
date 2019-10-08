@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 import json
+from typing import NoReturn
 
 from redis import StrictRedis
 
@@ -28,3 +29,12 @@ def get_pending_task() -> set:
         args = eval(task["headers"]["argsrepr"])
         ret.add(args[5])
     return ret
+
+
+def flush_celery_q(q_name=celery_conf.task_capture_task_run) -> NoReturn:
+    """
+    清空celery在redis的队列
+    :param q_name: 队列名，默认为采集任务队列
+    :return:
+    """
+    redis_celery_broker.ltrim(q_name, 1, 0)
