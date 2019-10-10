@@ -58,7 +58,7 @@ urls += [
     (r"/api/task/tasks", task.TaskHandler),
     (r"/api/task/execution_history", task.TaskExecutionHistoryHandler),
     (r"/api/task/manual_execute", task.TaskManualExecute),
-    (r"/api/flush_celery_q", task.FlushCeleryQ),
+    (r"/api/task/flush_q", task.FlushCeleryQ),
 ]
 
 # offline audit

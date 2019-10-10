@@ -148,6 +148,7 @@ class FlushCeleryQ(AuthReq):
 
     def post(self):
         """清理待采集队列"""
+        self.acquire_admin()
         task_utils.flush_celery_q()
         self.resp_created(content="已清理待采集队列")
 

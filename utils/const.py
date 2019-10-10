@@ -273,6 +273,11 @@ class NoRiskRuleSetException(Exception):
     pass
 
 
+class AdminRequired(Exception):
+    """仅限管理员操作"""
+    pass
+
+
 class PrivilegeRequired(Exception):
     """权限不足"""
     pass

@@ -22,6 +22,7 @@ import settings
 from utils.perf_utils import timing, r_cache
 from utils.schema_utils import scm_unempty_str, scm_gt0_int
 from utils.privilege_utils import *
+from utils.const import AdminRequired
 from utils.datetime_utils import *
 
 
@@ -279,6 +280,12 @@ class AuthReq(BaseReq):
 
     def is_admin(self):
         return settings.ADMIN_LOGIN_USER == self.current_user
+
+    def acquire_admin(self):
+        """如果不是admin就报错"""
+        if not self.is_admin():
+            self.resp_forbidden(msg="仅限管理员操作。")
+            raise AdminRequired
 
 
 class PrivilegeReq(AuthReq):
