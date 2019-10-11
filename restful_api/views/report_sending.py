@@ -135,8 +135,8 @@ class SendMailHandler(AuthReq):
             send_mail = [q.to_dict(x) for x in send_mail]
             for x in send_mail:
                 x.update({**params})
-            timing_send_mail.delay(send_mail)
-            # timing_send_mail(send_mail)
+            # timing_send_mail.delay(send_mail,session)
+            timing_send_mail(send_mail)
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 
@@ -180,8 +180,6 @@ class MailHistory(AuthReq):
                 if x['status'] == 1:
                     res = "成功"
 
-                download_path = '/downloads/' + 'O18 SQL审核报告_' + users_data[x["receiver"]] + '_' + \
-                                x["create_time"] + '.zip'
 
                 if mail_list:  # 搜索的兼容性
                     data.append({
@@ -190,7 +188,7 @@ class MailHistory(AuthReq):
                         'receiver': users_data[x["receiver"]],
                         'create_time': x['create_time'],
                         'status': res,
-                        "download_path": download_path,
+                        "download_path":x['file_path']
                     })
 
             data, p = self.paginate(data, **p)
