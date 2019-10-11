@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from collections import defaultdict
+
 from schema import Schema, Optional, And
 from sqlalchemy import func
 from mongoengine import Q
@@ -12,7 +14,7 @@ from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils
 from utils.cmdb_utils import get_current_cmdb, get_current_schema
-from utils import const, score_utils
+from utils import const, score_utils, task_utils
 from utils.conc_utils import async_thr
 
 from models.oracle.optimize import *
@@ -60,23 +62,16 @@ class DashboardHandler(PrivilegeReq):
             }
 
             # 线上审核的采集任务
-            task_status_desc = {
-                None: "正在执行",
-                True: "成功",
-                False: "失败",
-                "no": "从未执行"
-            }
-            latest_task_record = await async_thr(
-                score_utils.get_latest_task_record_id, session, cmdb_ids, status=None)
-            latest_task_record_ids: list = list(latest_task_record.values())
-            task_id_task_record_status_dict = dict(session.
-                                                   query(TaskExecHistory.task_id, TaskExecHistory.status).
-                                                   filter(TaskExecHistory.id.in_(latest_task_record_ids)))
-            task_status = {i: 0 for i in task_status_desc.values()}
-            for task_id, status in task_id_task_record_status_dict.items():
-                if task_id:
-                    task_status[task_status_desc[status]] += 1
-            task_status["从未执行"] = len(cmdb_ids) - len(task_id_task_record_status_dict)
+            task_q = session.query(TaskManage)
+            if not self.is_admin():
+                task_q = task_q.filter(TaskManage.cmdb_id.in_(cmdb_ids))
+            tasks = await task_utils.get_task(
+                session, task_q, execution_status=None, cmdb_ids=cmdb_ids)
+            task_status = {k: 0 for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()}
+            for t in tasks:
+                task_status[
+                    const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
+                        t["execution_status"]]] += 1
 
             # 公告板
             notice = session.query(Notice).filter(Notice.notice_id == 1).first()
@@ -87,6 +82,7 @@ class DashboardHandler(PrivilegeReq):
                 "ai_tune_num": optimized_execution_times,
                 "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
+                "all_capture_task_num": task_q.count(),
                 "notice": notice.contents if notice else "",
             })
 

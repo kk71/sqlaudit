@@ -33,7 +33,6 @@ class TaskHandler(PrivilegeReq):
         task_exec_scripts = params.pop("task_exec_scripts")
         execution_status = params.pop("execution_status")
         del params
-
         with make_session() as session:
             task_q = session.query(TaskManage)
             if connect_name:
@@ -50,51 +49,8 @@ class TaskHandler(PrivilegeReq):
             current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
-            ret = []
-            pending_task_ids: set = task_utils.get_pending_task()
-            cmdb_capture_task_latest_task_id = await async_thr(
-                score_utils.get_latest_task_record_id,
-                session,
-                cmdb_id=current_cmdb_ids,
-                status=None  # None表示不过滤状态
-            )
-            for t in task_q:
-                t_dict = t.to_dict()
-                t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
-                last_task_exec_history = session.query(TaskExecHistory).filter(
-                    TaskExecHistory.id == cmdb_capture_task_latest_task_id.get(t.cmdb_id, None)
-                ).first()
-                if last_task_exec_history:
-                    t_dict["last_result"] = last_task_exec_history.status
-                if execution_status == const.TASK_NEVER_RAN:
-                    if t_dict["last_result"] is not const.TASK_NEVER_RAN:
-                        continue
-                elif execution_status == const.TASK_PENDING:
-                    if t.task_id not in pending_task_ids:
-                        continue
-                elif execution_status == const.TASK_RUNNING:
-                    if t_dict["last_result"] is not None:
-                        continue
-                elif execution_status == const.TASK_DONE:
-                    if t_dict["last_result"] is True:
-                        continue
-                elif execution_status == const.TASK_FAILED:
-                    if t_dict["last_result"] is not False:
-                        continue
-
-                if t_dict["last_result"] is None:
-                    t_dict["execution_status"] = const.TASK_RUNNING
-                elif t.task_id in pending_task_ids:
-                    t_dict["execution_status"] = const.TASK_PENDING
-                elif t_dict["last_result"] is True:
-                    t_dict["execution_status"] = const.TASK_DONE
-                elif t_dict["last_result"] is False:
-                    t_dict["execution_status"] = const.TASK_FAILED
-
-                ret.append(t_dict)
-            ret = sorted(ret,
-                         key=lambda k: 0 if k["last_result"] is None
-                         else k["last_result"], reverse=True)
+            ret = await task_utils.get_task(
+                session, task_q, cmdb_ids=current_cmdb_ids, execution_status=execution_status)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
 
@@ -150,6 +106,6 @@ class FlushCeleryQ(AuthReq):
         """清理待采集队列"""
         self.acquire_admin()
         task_utils.flush_celery_q()
-        self.resp_created(content="已清理待采集队列")
+        self.resp_created(msg="已清理待采集队列")
 
 

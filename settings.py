@@ -42,15 +42,17 @@ ADMIN_LOGIN_USER = "admin"
 CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
 
 
+REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "192.0.0.3")
+
 # celery broker & backend settings
 # for celery other settings, please refer to celery_conf.py
 
-REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", "192.0.0.3")
+REDIS_BROKER_IP = env_get("REDIS_BROKER_IP", REDIS_IP_DEFAULT)
 REDIS_BROKER_PORT = env_get("REDIS_BROKER_PORT", 6379, int)
 REDIS_BROKER_DB = env_get("REDIS_BROKER_DB", 2, int)
 REDIS_BROKER = f'redis://{REDIS_BROKER_IP}:{REDIS_BROKER_PORT}/{REDIS_BROKER_DB}'
 
-REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", "192.0.0.3")
+REDIS_BACKEND_IP = env_get("REDIS_BACKEND_IP", REDIS_IP_DEFAULT)
 REDIS_BACKEND_PORT = env_get("REDIS_BACKEND_PORT", 6379, int)
 REDIS_BACKEND_DB = env_get("REDIS_BACKEND_DB", 3)
 REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND_DB}'
@@ -67,7 +69,7 @@ MONGO_DB = env_get("MONGO_DB", "sqlreview")
 
 # cache setting
 
-CACHE_REDIS_IP = env_get("CACHE_REDIS_IP", REDIS_BACKEND_IP)
+CACHE_REDIS_IP = env_get("CACHE_REDIS_IP", REDIS_IP_DEFAULT)
 CACHE_REDIS_PORT = env_get("CACHE_REDIS_PORT", REDIS_BACKEND_PORT, int)
 CACHE_REDIS_DB = env_get("CACHE_REDIS_DB", 1, int)
 CACHE_DEFAULT_EXPIRE_TIME = env_get("CACHE_DEFAULT_EXPIRE_TIME", 60*60*24, int)  # in sec

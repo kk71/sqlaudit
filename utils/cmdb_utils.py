@@ -8,7 +8,7 @@ from models.oracle import *
 from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
-from utils import score_utils, privilege_utils
+from utils import privilege_utils
 
 import plain_db.oracleob
 

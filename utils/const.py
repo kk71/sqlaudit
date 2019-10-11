@@ -22,11 +22,11 @@ ALL_DB_TASKS = (DB_TASK_CAPTURE, DB_TASK_TUNE)
 
 # 任务执行状态
 
-TASK_NEVER_RAN = 0      # 从未执行
-TASK_PENDING = 1        # 等待执行
-TASK_RUNNING = 2        # 正在执行
-TASK_DONE = 3           # 成功
-TASK_FAILED = 4         # 失败
+TASK_NEVER_RAN = 0
+TASK_PENDING = 1
+TASK_RUNNING = 2
+TASK_DONE = 3
+TASK_FAILED = 4
 ALL_TASK_EXECUTION_STATUS = (
     TASK_NEVER_RAN,
     TASK_PENDING,
@@ -34,6 +34,13 @@ ALL_TASK_EXECUTION_STATUS = (
     TASK_DONE,
     TASK_FAILED
 )
+ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING = {
+    TASK_NEVER_RAN: "从未执行",
+    TASK_PENDING: "等待中",
+    TASK_RUNNING: "正在执行",
+    TASK_DONE: "成功",
+    TASK_FAILED: "失败"
+}
 
 
 # 业务类型
