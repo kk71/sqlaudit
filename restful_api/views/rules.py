@@ -87,14 +87,14 @@ class RuleRepoHandler(PrivilegeReq):
             # Optional("db_type"): scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
             # Optional("db_model"): scm_one_of_choices(ALL_SUPPORTED_MODEL),
             # Optional("rule_name"): scm_unempty_str,
-            # Optional("input_parms"): [
-            #     {
-            #         "parm_desc": scm_str,
-            #         "parm_name": scm_str,
-            #         "parm_unit": scm_str,
-            #         "parm_value": Or(float, int, str)
-            #     }
-            # ],
+            Optional("input_parms"): [
+                {
+                    "parm_desc": scm_str,
+                    "parm_name": scm_str,
+                    "parm_unit": scm_str,
+                    "parm_value": Or(float, int, str)
+                }
+            ],
             Optional("max_score"): scm_int,
             # Optional("output_parms"): [
             #     {
@@ -113,6 +113,9 @@ class RuleRepoHandler(PrivilegeReq):
         }))
         rule_id = params.pop("_id")
         rule = Rule.objects(_id=rule_id).first()
+        if "input_parms" in params.keys():
+            if len(rule.input_parms) != len(params["input_parms"]):
+                return self.resp_bad_req(msg="输入参数个数与当前规则的参数个数不同。")
         rule.from_dict(params)
         rule.save()
         self.resp_created(rule.to_dict())
