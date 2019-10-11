@@ -85,11 +85,6 @@ class UserHandler(AuthReq):
             to_ret = [i.to_dict(iter_by=iter_by) for i in items]
             # TODO 这里给to_ret每个用户加上绑定的角色列表（包含角色id和角色名），
             #  以及纳管库的信息列表（connect_name, cmdb_id）
-            for x in to_ret:
-                keys=QueryEntity(Role.role_id,Role.role_name)
-                user_role=session.query(*keys).join(User,UserRole.login_user==x['login_user']).\
-                    join(Role,UserRole.role_id==Role.role_id)
-
             self.resp(to_ret, **p)
 
     def post(self):
