@@ -82,7 +82,10 @@ class UserHandler(AuthReq):
                 user_q = user_q.filter(User.login_user.in_(login_users))
             items, p = self.paginate(user_q, **p)
             iter_by = lambda k, v: "***" if k == "password" and not self.is_admin() else v
-            self.resp([i.to_dict(iter_by=iter_by) for i in items], **p)
+            to_ret = [i.to_dict(iter_by=iter_by) for i in items]
+            # TODO 这里给to_ret每个用户加上绑定的角色列表（包含角色id和角色名），
+            #  以及纳管库的信息列表（connect_name, cmdb_id）
+            self.resp(to_ret, **p)
 
     def post(self):
         """新增用户"""
@@ -132,27 +135,3 @@ class UserHandler(AuthReq):
             the_user = session.query(User).filter_by(**params).first()
             session.delete(the_user)
         self.resp_created(msg="已删除。")
-
-
-class UserStatsHandler(AuthReq):
-
-    def get(self):
-        """用户列表统计信息，查看用户和纳管库、角色的信息"""
-        params = self.get_query_args(Schema({
-            "login_user": scm_unempty_str
-        }))
-        with make_session() as session:
-            qe = QueryEntity(
-                Role.role_name,
-                Role.role_id,
-                RoleDataPrivilege.cmdb_id,
-                CMDB.connect_name
-            )
-            q = session.query(*qe).\
-                join(Role, RoleDataPrivilege.role_id == Role.role_id).\
-                join(CMDB, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id)
-            qds = [qe.to_dict(i) for i in q]
-        self.resp({
-            "roles": [],
-            "cmdb": []
-        })

@@ -115,6 +115,7 @@ class CMDBHandler(AuthReq):
             for i in ret:
                 i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
                 i["stats"]["etl_date"] = the_etl_date
+            # TODO 这里给ret加上纳管它的角色信息（角色名，角色id）以及纳管它的用户(login_user, user_name)
             self.resp(ret, **p)
 
     def post(self):
