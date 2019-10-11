@@ -82,6 +82,7 @@ class DashboardHandler(PrivilegeReq):
                 "ai_tune_num": optimized_execution_times,
                 "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
+                "all_capture_task_num": task_q.count(),
                 "notice": notice.contents if notice else "",
             })
 
