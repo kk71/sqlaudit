@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import re
 import os
 import gzip
 import time
@@ -100,6 +101,7 @@ def timing_send_mail(send_user_list):
             result = 1 if result else 0
             error = str(error) if error is not None else ''
             update_send_mail(result, error, send_detail['send_mail_id'])
+            path=re.search('/dow.*',path).group()
             insert_send_mail_history(login_user, send_detail['send_mail_id'], result, path)
 
 
