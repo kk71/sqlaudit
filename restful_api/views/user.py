@@ -85,6 +85,39 @@ class UserHandler(AuthReq):
             to_ret = [i.to_dict(iter_by=iter_by) for i in items]
             # TODO 这里给to_ret每个用户加上绑定的角色列表（包含角色id和角色名），
             #  以及纳管库的信息列表（connect_name, cmdb_id）
+            for x in to_ret:
+                keys = QueryEntity(
+                    UserRole.role_id,
+                    Role.role_name,
+                    User.login_user
+                )
+                user_role = session.query(*keys). \
+                    join(Role, UserRole.role_id == Role.role_id). \
+                    join(User, UserRole.login_user == User.login_user)
+
+                user_role=[list(x) for x in user_role]
+                user_role=[y for y in user_role if x['login_user'] in y]
+
+                x['role_id']=[a[0] for a in user_role]
+                x['role_name']=[b[1] for b in user_role]
+
+                qe = QueryEntity(CMDB.connect_name,
+                             CMDB.cmdb_id,
+                             RoleDataPrivilege.schema_name,
+                             RoleDataPrivilege.create_date,
+                             RoleDataPrivilege.comments,
+                             Role.role_name,
+                             Role.role_id)
+                role_cmdb = session.query(*qe). \
+                    join(CMDB, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id). \
+                    join(Role, Role.role_id == RoleDataPrivilege.role_id)
+
+                role_cmdb=[list(x) for x in role_cmdb]
+                role_cmdb=[b for b in role_cmdb for c in x['role_id'] if c in b]
+
+                x['connect_name']=list(set([c[0] for c in role_cmdb]))
+                x['cmdb_id']=list(set([d[1] for d in role_cmdb]))
+                
             self.resp(to_ret, **p)
 
     def post(self):

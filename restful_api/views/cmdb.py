@@ -115,7 +115,40 @@ class CMDBHandler(AuthReq):
             for i in ret:
                 i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
                 i["stats"]["etl_date"] = the_etl_date
-            # TODO 这里给ret加上纳管它的角色信息（角色名，角色id）以及纳管它的用户(login_user, user_name)
+            #TODO 这里给ret加上纳管它的角色信息（角色名，角色id）以及纳管它的用户(login_user, user_name)
+                qe = QueryEntity(CMDB.connect_name,
+                                 CMDB.cmdb_id,
+                                 RoleDataPrivilege.schema_name,
+                                 RoleDataPrivilege.create_date,
+                                 RoleDataPrivilege.comments,
+                                 Role.role_name,
+                                 Role.role_id)
+                cmdb_role = session.query(*qe). \
+                    join(CMDB, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id). \
+                    join(Role, Role.role_id == RoleDataPrivilege.role_id)
+
+                cmdb_role = [list(x) for x in cmdb_role]
+                cmdb_role=[x for x in cmdb_role  if i['cmdb_id']  in x]
+
+                i['role_id']=list(set([a[6] for a in cmdb_role ]))
+                i['role_name']=list(set([b[5] for b in cmdb_role]))
+
+                keys = QueryEntity(
+                    UserRole.role_id,
+                    Role.role_name,
+                    User.login_user,
+                    User.user_name
+                )
+                role_user = session.query(*keys). \
+                    join(Role, UserRole.role_id == Role.role_id). \
+                    join(User, UserRole.login_user == User.login_user)
+
+                role_user=[list(x) for x in role_user]
+                role_user=[y for y in role_user for d in i['role_id'] if d in y]
+
+                i['nanotubes_login_user']=list(set([c[2] for c in role_user]))
+                i['nanotubes_user_name']=list(set([d[3] for d in role_user]))
+
             self.resp(ret, **p)
 
     def post(self):
