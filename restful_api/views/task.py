@@ -23,7 +23,7 @@ class TaskHandler(PrivilegeReq):
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
             Optional("connect_name", default=None): scm_unempty_str,
-            Optional("task_exec_scripts", default=None): scm_unempty_str,
+            Optional("task_exec_scripts", default=const.DB_TASK_CAPTURE): scm_unempty_str,
             Optional("execution_status", default=None): And(
                 scm_int, scm_one_of_choices(const.ALL_TASK_EXECUTION_STATUS)),
         }))
