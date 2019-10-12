@@ -190,7 +190,7 @@ class MailHistory(AuthReq):
                         'status': res,
                         "download_path":x['file_path']
                     })
-
+            data = sorted(data, key=lambda time: time['create_time'], reverse=True)
             data, p = self.paginate(data, **p)
 
             self.resp(data, **p)
