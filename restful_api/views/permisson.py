@@ -221,11 +221,20 @@ class CMDBPermissionHandler(PrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_ROLE_DATA_PRIVILEGE)
 
         params = self.get_query_args(Schema({
-            **self.gen_p(),
-            Optional("keyword", default=None): scm_str
+            # 精准过滤
+            Optional("role_id", default=None): scm_gt0_int,
+            Optional("cmdb_id", default=None): scm_gt0_int,
+
+            # 模糊搜索
+            Optional("keyword", default=None): scm_str,
+
+            **self.gen_p()
         }))
         p = self.pop_p(params)
+        role_id = params.pop("role_id")
+        cmdb_id = params.pop("cmdb_id")
         keyword = params.pop("keyword")
+        del params
         with make_session() as session:
             qe = QueryEntity(CMDB.connect_name,
                              CMDB.cmdb_id,
@@ -242,6 +251,10 @@ class CMDBPermissionHandler(PrivilegeReq):
                                                 Role.role_name,
                                                 CMDB.connect_name,
                                                 RoleDataPrivilege.schema_name)
+            if role_id:
+                perm_datas = perm_datas.filter(RoleDataPrivilege.role_id == role_id)
+            if cmdb_id:
+                perm_datas = perm_datas.filter(CMDB.cmdb_id == cmdb_id)
             items, p = self.paginate(perm_datas, **p)
             self.resp([qe.to_dict(i) for i in perm_datas], **p)
 

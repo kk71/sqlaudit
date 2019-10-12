@@ -354,9 +354,9 @@ class SQLRiskDetailHandler(AuthReq):
                 sql_plan_object = MSQLPlan.objects(cmdb_id=cmdb_id, sql_id=sql_id,
                                                    plan_hash_value=plan_hash_value).first()
                 sql_stats["io_cost"].append(sql_plan_object.io_cost)
-                first_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}).\
+                first_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}). \
                     get("first_appearance", None)
-                last_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}).\
+                last_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}). \
                     get("last_appearance", None)
                 plans.append({
                     "plan_hash_value": plan_hash_value,
@@ -373,45 +373,52 @@ class SQLRiskDetailHandler(AuthReq):
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
                 sql_stats["elapsed_time_delta"] += list(sql_stat_objects.values_list("elapsed_time_delta"))
                 sql_stats["executions_delta"] += list(sql_stat_objects.values_list("executions_delta"))
+                gp = graphs[plan_hash_value]
                 for sql_stat_obj in sql_stat_objects:
-                    gp = graphs[plan_hash_value]
-                    etl_date_str = dt_to_str(sql_stat_obj.etl_date)
+                    etl_date = sql_stat_obj.etl_date
                     # 总数
                     gp['cpu_time_delta'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(sql_stat_obj.cpu_time_delta, 2)
                     })
                     gp['elapsed_time_delta'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(sql_stat_obj.elapsed_time_delta, 2)
                     })
                     gp['disk_reads_delta'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(sql_stat_obj.disk_reads_delta, 2)
                     })
                     gp['buffer_gets_delta'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(sql_stat_obj.buffer_gets_delta, 2)
                     })
 
                     get_delta_average = lambda x: x / sql_stat_obj.executions_delta if x > 0 else 0
                     # 平均数
                     gp['cpu_time_average'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(get_delta_average(sql_stat_obj.cpu_time_delta), 2)
                     })
                     gp['elapsed_time_average'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(get_delta_average(sql_stat_obj.elapsed_time_delta), 2)
                     })
                     gp['disk_reads_average'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(get_delta_average(sql_stat_obj.disk_reads_delta), 2)
                     })
                     gp['buffer_gets_average'][str(sql_stat_obj.plan_hash_value)].append({
-                        "date": etl_date_str,
+                        "date": etl_date,
                         "value": round(get_delta_average(sql_stat_obj.buffer_gets_delta), 2)
                     })
+
+                # deduplicate datetime as date
+                for i in gp.values():
+                    for j in i.values():
+                        deduplicated_items = self.list_of_dict_to_date_axis(j, "date", "value")
+                        j.clear()
+                        j.extend(deduplicated_items)
 
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0 for k, v in sql_stats.items()}
 

@@ -74,7 +74,7 @@ async def get_task(
             if t_dict["last_result"] is not None:
                 continue
         elif execution_status == const.TASK_DONE:
-            if t_dict["last_result"] is True:
+            if t_dict["last_result"] is not True:
                 continue
         elif execution_status == const.TASK_FAILED:
             if t_dict["last_result"] is not False:
