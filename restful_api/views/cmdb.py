@@ -2,6 +2,7 @@
 
 import cx_Oracle
 from collections import defaultdict
+from functools import reduce
 
 from schema import Schema, Optional, And
 
@@ -130,8 +131,8 @@ class CMDBHandler(AuthReq):
                 cmdb_role = [list(x) for x in cmdb_role]
                 cmdb_role=[x for x in cmdb_role  if i['cmdb_id']  in x]
 
-                i['role_id']=list(set([a[6] for a in cmdb_role ]))
-                i['role_name']=list(set([b[5] for b in cmdb_role]))
+                i['role'] = reduce(lambda x, y: x if y in x else x + [y],
+                                   [[], ] + [{'role_id': a[6], 'role_name': a[5]} for a in cmdb_role])
 
                 keys = QueryEntity(
                     UserRole.role_id,
@@ -144,10 +145,10 @@ class CMDBHandler(AuthReq):
                     join(User, UserRole.login_user == User.login_user)
 
                 role_user=[list(x) for x in role_user]
-                role_user=[y for y in role_user for d in i['role_id'] if d in y]
+                role_user=[y for y in role_user for d in i['role'] if d['role_id'] in y]
 
-                i['nanotubes_login_user']=list(set([c[2] for c in role_user]))
-                i['nanotubes_user_name']=list(set([d[3] for d in role_user]))
+                i['combined_user']=reduce(lambda x, y: x if y in x else x + [y],
+                                          [[],]+[{'combined_login_user':c[2],'combined_user_name':c[3]} for c in role_user])
 
             self.resp(ret, **p)
 

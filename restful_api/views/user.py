@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from collections import defaultdict
+from functools import reduce
 
 import jwt
 from schema import Schema, Optional, And
@@ -98,8 +99,7 @@ class UserHandler(AuthReq):
                 user_role=[list(x) for x in user_role]
                 user_role=[y for y in user_role if x['login_user'] in y]
 
-                x['role_id']=[a[0] for a in user_role]
-                x['role_name']=[b[1] for b in user_role]
+                x['role'] = [{'role_id': a[0], 'role_name': a[1]} for a in user_role]
 
                 qe = QueryEntity(CMDB.connect_name,
                              CMDB.cmdb_id,
@@ -113,11 +113,11 @@ class UserHandler(AuthReq):
                     join(Role, Role.role_id == RoleDataPrivilege.role_id)
 
                 role_cmdb=[list(x) for x in role_cmdb]
-                role_cmdb=[b for b in role_cmdb for c in x['role_id'] if c in b]
+                role_cmdb=[b for b in role_cmdb for c in x['role'] if c['role_id'] in b]
 
-                x['connect_name']=list(set([c[0] for c in role_cmdb]))
-                x['cmdb_id']=list(set([d[1] for d in role_cmdb]))
-                
+                x['cmdbs'] = reduce(lambda x,y:x if y in x else x+ [y],
+                                    [[],]+[{'connect_name': a[0], 'cmdb_id': a[1]} for a in role_cmdb])
+
             self.resp(to_ret, **p)
 
     def post(self):
