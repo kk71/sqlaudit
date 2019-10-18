@@ -42,7 +42,7 @@ def export_rule_to_json_file(filename: str):
     """导出rule"""
     rules = [i.to_dict() for i in Rule.objects()]
     with open(filename, "w") as z:
-        z.write(json.dumps(rules, indent=4))
+        z.write(json.dumps(rules, indent=4, ensure_ascii=False))
     return len(rules)
 
 
