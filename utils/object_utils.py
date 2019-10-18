@@ -158,6 +158,7 @@ def get_risk_object_list(session,
                 continue  # 规则key存在，值非空，但是其下records的值为空
             for record in getattr(result, risky_rule_name)["records"]:
                 r = {
+                    "schema": result.schema_name,
                     "object_name": record[0],
                     "rule_desc": risky_rule_object.rule_desc,
                     "risk_detail": rule_utils.format_rule_result_detail(
