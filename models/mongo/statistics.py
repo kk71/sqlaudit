@@ -554,6 +554,21 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                     yield new_doc
 
 
+class StatsRiskObjectsRule(BaseStatisticsDoc):
+    """风险对象外层规则"""
+
+    rule_desc=StringField()
+    severity=StringField()
+    last_appearance=DateTimeField()
+    rule_desc_num=IntField()
+    schema=StringField()
+    meta = {
+        "collection": "stats_risk_objects_rule"
+    }
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.object_utils import get_risk_object_list
+
 class StatsCMDBPhySize(BaseStatisticsDoc):
     """概览页库容量"""
 
