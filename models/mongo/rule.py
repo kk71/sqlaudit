@@ -11,7 +11,7 @@ class Rule(BaseDoc):
     """规则仓库"""
     _id = ObjectIdField()
     db_type = StringField(required=True)
-    db_model = StringField(required=True)
+    db_model = StringField()
     exclude_obj_type = DynamicField(default=list)
     input_parms = ListField()
     max_score = IntField()
@@ -28,6 +28,8 @@ class Rule(BaseDoc):
     weight = FloatField()
     obj_info_type = StringField(null=True)  # 类型为OBJ的规则，指明适用哪种OBJ
     output_datas = ListField()  # 极少数包含此字段
+    sql_type = StringField(choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
+    ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类
 
     meta = {
         "collection": "rule",

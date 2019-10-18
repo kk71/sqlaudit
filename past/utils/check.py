@@ -89,7 +89,7 @@ class Check:
         return False
 
     @classmethod
-    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql):
+    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql, sql_type):
 
         args = {param["parm_name"]: param["parm_value"] for param in input_params}
 
@@ -156,8 +156,12 @@ class Check:
                     parse_results[rule_name] = str(err)
                     logging.error("Exception:", exc_info=True)
 
-        violet_obj_rules = ObjStaticRules.run(sql, db_model) if worklist_type == DDL else ""
-        err_msgs = [RuleUtils.rule_info()[rule_name]['rule_desc'] for rule_name in parse_results if parse_results[rule_name]] + [violet_obj_rules]
+        # violet_obj_rules = ObjStaticRules.run(sql, db_model) if worklist_type == DDL else ""
+        err_msgs = [
+            RuleUtils.rule_info()[rule_name]['rule_desc']
+            for rule_name in parse_results
+            if parse_results[rule_name]
+        ]# + [violet_obj_rules]
         return "" if not err_msgs else '\n'.join(err_msgs)
 
     @classmethod

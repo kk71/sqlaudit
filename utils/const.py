@@ -106,6 +106,31 @@ ALL_RULE_TYPES_FOR_SQL_RULE = [
 
 RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
 
+# 静态规则DDL的类型
+
+DDL_TYPE_TABLE = "table"
+DDL_TYPE_INDEX = "index"
+DDL_TYPE_VIEW = "view"
+DDL_TYPE_SEQUENCE = "sequence"
+DDL_TYPE_PROCEDURE = "procedure"
+DDL_TYPE_TRIGGER = "trigger"
+DDL_TYPE_PACKAGE = "package"
+DDL_TYPE_JOB = "job"
+DDL_TYPE_TYPE = "type"
+DDL_TYPE_AUTHORIZATION = "authorization"
+ALL_DDL_TYPE = (
+    DDL_TYPE_TABLE,
+    DDL_TYPE_INDEX,
+    DDL_TYPE_VIEW,
+    DDL_TYPE_SEQUENCE,
+    DDL_TYPE_PROCEDURE,
+    DDL_TYPE_TRIGGER,
+    DDL_TYPE_PACKAGE,
+    DDL_TYPE_JOB,
+    DDL_TYPE_TYPE,
+    DDL_TYPE_AUTHORIZATION
+)
+
 # 任务状态
 
 JOB_STATUS_ERROR = 0
