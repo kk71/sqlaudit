@@ -560,18 +560,20 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     rule_desc=StringField()
     severity=StringField()
     last_appearance=DateTimeField()
-    rule_desc_nums=IntField()
+    rule_desc_num=IntField()
     schema=StringField()
+
     meta = {
         "collection": "stats_risk_objects_rule"
     }
+
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.object_utils import get_risk_object_list
         from models.oracle import  make_session
         from collections import Counter
-        with make_session() as session:
 
+        with make_session() as session:
             rst=get_risk_object_list(session,cmdb_id,task_record_id)
             rsts=[]
             rule_desc_nums=[]
@@ -589,7 +591,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 doc=cls(task_record_id=task_record_id,
                         cmdb_id=cmdb_id,
                         rule_desc=x["rule_desc"],
-                        rule_desc_nums=x["rule_desc_nums"],
+                        rule_desc_num=x["rule_desc_num"],
                         severity=x["severity"],
                         last_appearance=x["last_appearance"],
                         schema=x["schema"])
