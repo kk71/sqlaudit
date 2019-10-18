@@ -574,7 +574,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
         from collections import Counter
 
         with make_session() as session:
-            rst = get_risk_sql_list(session, cmdb_id,(None,None),task_record_id=task_record_id)
+            rst = get_risk_sql_list(session=session, cmdb_id=cmdb_id,date_range=(None,None),task_record_id=task_record_id)
             rsts=[]
             rule_desc_nums=[]
             [rule_desc_nums.append(x["rule_desc"]) for x in rst]
@@ -618,7 +618,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
         from collections import Counter
 
         with make_session() as session:
-            rst=get_risk_object_list(session,cmdb_id,task_record_id=task_record_id)
+            rst=get_risk_object_list(session=session,cmdb_id=cmdb_id,task_record_id=task_record_id)
             rsts=[]
             rule_desc_nums=[]
             [rule_desc_nums.append(x['rule_desc']) for x in rst]

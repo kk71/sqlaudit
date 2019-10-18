@@ -153,8 +153,8 @@ def get_risk_sql_list(session,
     """
     # 因为参数过多，加个判断。
     date_start, date_end = date_range
-    assert isinstance(date_start, date) and not isinstance(date_start, datetime)
-    assert isinstance(date_end, date) and not isinstance(date_end, datetime)
+    # assert isinstance(date_start, date) and not isinstance(date_start, datetime)
+    # assert isinstance(date_end, date) and not isinstance(date_end, datetime)
     assert sort_by in ("sum", "average")
     assert rule_type in ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE
     if kwargs:
