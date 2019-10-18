@@ -626,7 +626,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
             for x in rst:
                 rsts.append({"rule_desc":x["rule_desc"],
                              "severity":x["severity"],
-                             "scheam":x["scheam"],
+                             "schema":x["schema"],
                              "last_appearance":x["last_appearance"]})
             for x in rsts:
                 if x["rule_desc"] in rule_desc_nums:
