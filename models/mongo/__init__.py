@@ -20,7 +20,9 @@ __all__ = [
     "StatsNumDrillDown",
     "StatsCMDBPhySize",
     "StatsCMDBSQLPlan",
-    "StatsCMDBSQLText"
+    "StatsCMDBSQLText",
+    "StatsRiskSqlRule",
+    "StatsRiskObjectsRule"
 ]
 
 from .job import *

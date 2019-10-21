@@ -554,6 +554,94 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                     yield new_doc
 
 
+class StatsRiskSqlRule(BaseStatisticsDoc):
+    """风险sql外层规则"""
+
+    rule_desc=StringField()
+    severity=StringField()
+    last_appearance=DateTimeField()
+    rule_desc_num=IntField()
+    schema=StringField()
+
+    meta = {
+        "collection": "stats_risk_sql_rule"
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.sql_utils import get_risk_sql_list
+        from models.oracle import make_session
+        from collections import Counter
+
+        with make_session() as session:
+            rst = get_risk_sql_list(session=session, cmdb_id=cmdb_id,date_range=(None,None),task_record_id=task_record_id)
+            rsts=[]
+            rule_desc_nums=[]
+            [rule_desc_nums.append(x["rule_desc"]) for x in rst]
+            rule_desc_nums=Counter(rule_desc_nums)
+            for x in rst:
+                rsts.append({"rule_desc": x["rule_desc"],
+                             "severity": x["severity"],
+                             "schema": x["schema"],
+                             "last_appearance": x["last_appearance"]})
+            for x in rsts:
+                if x['rule_desc'] in rule_desc_nums:
+                    x['rule_desc_num'] = rule_desc_nums[x["rule_desc"]]
+            for x in rsts:
+                doc = cls(task_record_id=task_record_id,
+                          cmdb_id=cmdb_id,
+                          rule_desc=x["rule_desc"],
+                          rule_desc_num=x["rule_desc_num"],
+                          severity=x["severity"],
+                          last_appearance=x["last_appearance"],
+                          schema=x["schema"])
+                yield doc
+
+
+class StatsRiskObjectsRule(BaseStatisticsDoc):
+    """风险对象外层规则"""
+
+    rule_desc=StringField()
+    severity=StringField()
+    last_appearance=DateTimeField()
+    rule_desc_num=IntField()
+    schema=StringField()
+
+    meta = {
+        "collection": "stats_risk_objects_rule"
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.object_utils import get_risk_object_list
+        from models.oracle import  make_session
+        from collections import Counter
+
+        with make_session() as session:
+            rst=get_risk_object_list(session=session,cmdb_id=cmdb_id,task_record_id=task_record_id)
+            rsts=[]
+            rule_desc_nums=[]
+            [rule_desc_nums.append(x['rule_desc']) for x in rst]
+            rule_desc_nums=Counter(rule_desc_nums)
+            for x in rst:
+                rsts.append({"rule_desc":x["rule_desc"],
+                             "severity":x["severity"],
+                             "schema":x["schema"],
+                             "last_appearance":x["last_appearance"]})
+            for x in rsts:
+                if x["rule_desc"] in rule_desc_nums:
+                    x['rule_desc_num']=rule_desc_nums[x["rule_desc"]]
+            for x in rsts:
+                doc=cls(task_record_id=task_record_id,
+                        cmdb_id=cmdb_id,
+                        rule_desc=x["rule_desc"],
+                        rule_desc_num=x["rule_desc_num"],
+                        severity=x["severity"],
+                        last_appearance=x["last_appearance"],
+                        schema=x["schema"])
+                yield doc
+
+
 class StatsCMDBPhySize(BaseStatisticsDoc):
     """概览页库容量"""
 

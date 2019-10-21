@@ -17,6 +17,7 @@ from utils.datetime_utils import *
 from utils import rule_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
+from models.mongo.statistics import StatsRiskObjectsRule,StatsRiskSqlRule
 
 
 class ObjectRiskListHandler(AuthReq):
@@ -50,6 +51,22 @@ class ObjectRiskListHandler(AuthReq):
                 object_utils.get_risk_object_list, session=session, **params)
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
+
+
+class ObjectRiskRuleHandler(AuthReq):
+
+    def get(self):
+        """风险对象外层规则,违反规则个数等"""
+        params=self.get_query_args(Schema({
+            "cmdb_id":scm_int,
+            Optional("schema"): scm_str,
+            Optional("rule_desc"): scm_str,
+            Optional("severity"): scm_str,
+        }))
+
+        risk_obj_rule=StatsRiskObjectsRule.objects(**params)
+
+        self.resp(content=[x.to_dict() for x in risk_obj_rule])
 
 
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
@@ -175,6 +192,23 @@ class SQLRiskListHandler(PrivilegeReq):
                 return
             rst_this_page, p = self.paginate(rst, **p)
         self.resp(rst_this_page, **p)
+
+
+class SQLRiskRuleHandler(AuthReq):
+
+    def get(self):
+        """风险sql外层规则,违反规则个数等"""
+        params = self.get_query_args(Schema({
+            "cmdb_id":scm_int,
+            Optional("schema_name"): scm_str,
+            Optional("rule_desc"): scm_str,
+            Optional("severity"): scm_str,
+        }))
+
+        risk_sql_rule=StatsRiskSqlRule.objects(**params)
+
+        self.resp(content=[x.to_dict() for x in risk_sql_rule])
+
 
 
 class SQLRiskReportExportHandler(SQLRiskListHandler):
