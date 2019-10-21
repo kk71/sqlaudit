@@ -727,7 +727,7 @@
                 "parm_name": "col_position"
             }
         ],
-        "rule_desc": "组合索引数量过多或没有索引",
+        "rule_desc": "组合索引数量过多",
         "rule_name": "COMBINED_INDEX_PERCENT",
         "rule_complexity": "complex",
         "rule_cmd": "default",
@@ -4284,7 +4284,7 @@
                 "parm_name": "col_position"
             }
         ],
-        "rule_desc": "组合索引数量过多或没有索引",
+        "rule_desc": "组合索引数量过多",
         "rule_name": "COMBINED_INDEX_PERCENT",
         "rule_complexity": "complex",
         "rule_cmd": "default",
