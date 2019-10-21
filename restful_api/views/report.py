@@ -209,7 +209,8 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "object_owner",
                 "object_name",
                 "cost",
-                "cardinality"
+                "cardinality",
+                "operation_display"
             )) for i in dict(sorted(plans)).values()]
 
         self.resp({
