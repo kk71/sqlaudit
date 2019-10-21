@@ -7113,5 +7113,61 @@
         "weight": 0.5,
         "obj_info_type": null,
         "output_datas": []
+    },
+    {
+        "_id": "5dad284916fe3a2006d08538",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "INDEX",
+        "input_parms": [],
+        "max_score": 3,
+        "output_parms": [
+            {
+                "parm_desc": "表名",
+                "parm_name": "table_name"
+            }
+        ],
+        "rule_desc": "没有索引",
+        "rule_name": "TABLE_NO_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "表未设置任何索引。",
+        "rule_type": "OBJ",
+        "rule_type_detail": null,
+        "solution": [
+            "需要考虑建索引"
+        ],
+        "weight": 0.1,
+        "obj_info_type": null,
+        "output_datas": []
+    },
+    {
+        "_id": "5dad491616fe3a2006d0b119",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "INDEX",
+        "input_parms": [],
+        "max_score": 3,
+        "output_parms": [
+            {
+                "parm_desc": "表名",
+                "parm_name": "table_name"
+            }
+        ],
+        "rule_desc": "没有索引",
+        "rule_name": "TABLE_NO_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "表未设置任何索引。",
+        "rule_type": "OBJ",
+        "rule_type_detail": null,
+        "solution": [
+            "需要考虑建索引"
+        ],
+        "weight": 0.1,
+        "obj_info_type": null,
+        "output_datas": []
     }
 ]
