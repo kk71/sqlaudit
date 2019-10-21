@@ -31,9 +31,9 @@ def execute_rule(**kwargs):
         if i[0] == 'ALLINDEX':
             allind_num = i[1]
 
-    # 如果所有索引数量为0，则直接返回，并扣除本规则所有分数。
-    # if allind_num == 0:
-    #     return [], float("%0.2f" % (max_score))
+    # 如果所有索引数量为0，则直接返回
+    if allind_num == 0:
+        return [], 0.0
 
     # 计算组合索引占比
     comind_percent = (comind_num) * 100 / allind_num
