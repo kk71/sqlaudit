@@ -62,11 +62,17 @@ class ObjectRiskRuleHandler(AuthReq):
             Optional("schema"): scm_str,
             Optional("rule_desc"): scm_str,
             Optional("severity"): scm_str,
+
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
         }))
+        p = self.pop_p(params)
 
         risk_obj_rule=StatsRiskObjectsRule.objects(**params)
+        risk_obj_rule=[x.to_dict() for x in risk_obj_rule]
+        rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
-        self.resp(content=[x.to_dict() for x in risk_obj_rule])
+        self.resp(rst_this_page,**p)
 
 
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
@@ -203,11 +209,17 @@ class SQLRiskRuleHandler(AuthReq):
             Optional("schema_name"): scm_str,
             Optional("rule_desc"): scm_str,
             Optional("severity"): scm_str,
+
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
         }))
+        p = self.pop_p(params)
 
         risk_sql_rule=StatsRiskSqlRule.objects(**params)
+        risk_sql_rule=[x.to_dict() for x in risk_sql_rule]
+        rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
-        self.resp(content=[x.to_dict() for x in risk_sql_rule])
+        self.resp(rst_this_page, **p)
 
 
 
