@@ -161,7 +161,6 @@ def get_risk_object_list(session,
                     "schema": result.schema_name,
                     "object_name": record[0],
                     "rule_desc": risky_rule_object.rule_desc,
-                    "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in ("rule_name", "rule_desc")),
                     "risk_detail": rule_utils.format_rule_result_detail(
                         risky_rule_object, record),
                     "optimized_advice": risk_rule_object.optimized_advice,
@@ -174,6 +173,10 @@ def get_risk_object_list(session,
                 if r_tuple in rst_set_for_deduplicate:
                     continue
                 rst_set_for_deduplicate.add(r_tuple)
+                r.update({
+                    "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in (
+                        "rule_name", "rule_desc")),
+                })
                 rst.append(r)
 
     return rst
