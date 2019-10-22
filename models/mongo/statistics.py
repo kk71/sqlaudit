@@ -103,6 +103,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         task_record_id_to_replace={cmdb_id: task_record_id}
                     ).values()
                 )
+                print("latest task record ids(current included) of the user "
+                      f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
                     # SQL
                     doc.sql_num = len(SQLText.filter_by_exec_hist_id(

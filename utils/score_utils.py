@@ -207,7 +207,7 @@ def get_result_queryset_by(
     result_q = Results.filter_by_exec_hist_id(task_record_id)
     if rule_type:
         result_q = result_q.filter(rule_type__in=rule_type)
-    if rule_names_to_filter and obj_info_type:
+    if rule_names_to_filter:# and obj_info_type:
         Qs = None
         for rn in rule_names_to_filter:
             if not Qs:
