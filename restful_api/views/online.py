@@ -60,7 +60,7 @@ class ObjectRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule_desc"): scm_str,
+            Optional("rule__rule_name"): scm_str,
             Optional("severity"): scm_str,
 
             Optional("page", default=1): scm_int,
@@ -206,8 +206,8 @@ class SQLRiskRuleHandler(AuthReq):
         """风险sql外层规则,违反规则个数等"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name"): scm_str,
-            Optional("rule_desc"): scm_str,
+            Optional("schema"): scm_str,
+            Optional("rule__rule_name"): scm_str,
             Optional("severity"): scm_str,
 
             Optional("page", default=1): scm_int,

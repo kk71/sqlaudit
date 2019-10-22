@@ -560,7 +560,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
     rule = DictField()
     severity = StringField()
     last_appearance = DateTimeField()
-    rule_num = IntField(help_text="该规则找到的触犯数")
+    rule_num = IntField(default=0, help_text="该规则找到的触犯数")
     schema = StringField()
 
     meta = {
@@ -569,9 +569,10 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        import arrow
         from utils.sql_utils import get_risk_sql_list
         from models.oracle import make_session
-        from collections import Counter
+        from collections import defaultdict
 
         with make_session() as session:
             rst = get_risk_sql_list(
@@ -580,26 +581,17 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 date_range=(None, None),
                 task_record_id=task_record_id
             )
-            rsts = []
-            rule_desc_nums = []
-            [rule_desc_nums.append(x["rule_desc"]) for x in rst]
-            rule_desc_nums = Counter(rule_desc_nums)
-            for x in rst:
-                rsts.append({"rule_desc": x["rule_desc"],
-                             "severity": x["severity"],
-                             "schema": x["schema"],
-                             "last_appearance": x["last_appearance"]})
-            for x in rsts:
-                if x['rule_desc'] in rule_desc_nums:
-                    x['rule_desc_num'] = rule_desc_nums[x["rule_desc"]]
-                doc = cls(task_record_id=task_record_id,
-                          cmdb_id=cmdb_id,
-                          rule=x["rule"],
-                          rule_num=x["rule_desc_num"],
-                          severity=x["severity"],
-                          last_appearance=x["last_appearance"],
-                          schema=x["schema"])
-                yield doc
+        rsts = defaultdict(cls)
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x["schema"]
+            doc.rule_num += 1
+        return rsts.values()
 
 
 class StatsRiskObjectsRule(BaseStatisticsDoc):
@@ -608,7 +600,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     rule = DictField()
     severity = StringField()
     last_appearance = DateTimeField()
-    rule_num = IntField(help_text="该规则找到的触犯数")
+    rule_num = IntField(default=0, help_text="该规则找到的触犯数")
     schema = StringField()
 
     meta = {
@@ -617,9 +609,10 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        import arrow
         from utils.object_utils import get_risk_object_list
         from models.oracle import make_session
-        from collections import Counter
+        from collections import defaultdict
 
         with make_session() as session:
             rst = get_risk_object_list(
@@ -627,26 +620,17 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 cmdb_id=cmdb_id,
                 task_record_id=task_record_id
             )
-            rsts = []
-            rule_desc_nums = []
-            [rule_desc_nums.append(x['rule_desc']) for x in rst]
-            rule_desc_nums = Counter(rule_desc_nums)
-            for x in rst:
-                rsts.append({"rule_desc": x["rule_desc"],
-                             "severity": x["severity"],
-                             "schema": x["schema"],
-                             "last_appearance": x["last_appearance"]})
-            for x in rsts:
-                if x["rule_desc"] in rule_desc_nums:
-                    x['rule_desc_num'] = rule_desc_nums[x["rule_desc"]]
-                doc = cls(task_record_id=task_record_id,
-                          cmdb_id=cmdb_id,
-                          rule=x["rule"],
-                          rule_num=x["rule_desc_num"],
-                          severity=x["severity"],
-                          last_appearance=x["last_appearance"],
-                          schema=x["schema"])
-                yield doc
+        rsts = defaultdict(cls)
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x["schema"]
+            doc.rule_num += 1
+        return rsts.values()
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):
