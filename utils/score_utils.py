@@ -202,8 +202,8 @@ def get_result_queryset_by(
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
-        rule_names_to_filter = Rule.filter_enabled(obj_info_type=obj_info_type).\
-            values_list("rule_name")
+        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type).\
+            values_list("rule_name")))
     result_q = Results.filter_by_exec_hist_id(task_record_id)
     if rule_type:
         result_q = result_q.filter(rule_type__in=rule_type)

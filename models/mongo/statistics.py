@@ -106,7 +106,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                 print("latest task record ids(current included) of the user "
                       f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
-                    # SQL
+                    # SQL ==============
                     doc.sql_num = len(SQLText.filter_by_exec_hist_id(
                         latest_task_record_ids).distinct("sql_id"))
                     sql_r_q, _ = get_result_queryset_by(
@@ -117,27 +117,29 @@ class StatsLoginUser(BaseStatisticsDoc):
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / doc.sql_num, 4)
 
-                    # TABLE
+                    # TABLE ============
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
-                    table_r_q, _ = get_result_queryset_by(
+                    table_r_q, rule_names_to_tab = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_TABLE
                     )
-                    doc.table_problem_num = calc_problem_num(table_r_q)
+                    doc.table_problem_num = calc_problem_num(
+                        table_r_q, rule_name=rule_names_to_tab)
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / doc.table_num, 4)
 
-                    # INDEX
+                    # INDEX =============
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
-                    index_r_q, _ = get_result_queryset_by(
+                    index_r_q, rule_names_to_ind = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_INDEX
                     )
-                    doc.index_problem_num = calc_problem_num(index_r_q)
+                    doc.index_problem_num = calc_problem_num(
+                        index_r_q, rule_name=rule_names_to_ind)
                     if doc.index_num:
                         doc.table_problem_rate = round(doc.index_problem_num / doc.index_num, 4)
 
-                    # SEQUENCE
+                    # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
                         task_record_id__in=latest_task_record_ids).count()
@@ -146,7 +148,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ
                     )
                     print(f"rule names to sequence: {rule_names_to_seq}")
-                    doc.sequence_problem_num = calc_problem_num(sequence_r_q)
+                    doc.sequence_problem_num = calc_problem_num(
+                        sequence_r_q, rule_name=rule_names_to_seq)
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
 
