@@ -432,14 +432,15 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                                 filter(cmdb_id=cmdb_id, schema=schema_name).
                                 distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by(
+                        result_q, rule_names_text = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_TEXT,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_text)
 
                     elif t == STATS_NUM_SQL_PLAN:
                         new_doc.num = len(
@@ -447,42 +448,47 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                                 filter(cmdb_id=cmdb_id, schema=schema_name).
                                 distinct("plan_hash_value")
                         )
-                        result_q, _ = get_result_queryset_by(
+                        result_q, rule_names_sqlplan = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_SQLPLAN,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_sqlplan)
 
                     elif t == STATS_NUM_SQL_STATS:
                         new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by(
+                        result_q, rule_names_sqlstat = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=RULE_TYPE_SQLSTAT,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_sqlstat)
 
                     elif t == STATS_NUM_SQL:
                         new_doc.num = len(
                             SQLText.filter_by_exec_hist_id(task_record_id).
                                 filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
                         )
-                        result_q, _ = get_result_queryset_by(
+                        result_q, rule_names_sql = get_result_queryset_by(
                             task_record_id=task_record_id,
                             rule_type=ALL_RULE_TYPES_FOR_SQL_RULE,
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
                         new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q,
+                            rule_name=rule_names_sql
+                        )
 
                     elif t == STATS_NUM_TAB:
                         new_doc.num = ObjTabInfo. \
