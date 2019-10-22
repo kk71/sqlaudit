@@ -17,7 +17,7 @@ from utils.datetime_utils import *
 from utils import rule_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
-from models.mongo.statistics import StatsRiskObjectsRule,StatsRiskSqlRule
+from models.mongo.statistics import StatsRiskObjectsRule, StatsRiskSqlRule
 
 
 class ObjectRiskListHandler(AuthReq):
@@ -57,8 +57,8 @@ class ObjectRiskRuleHandler(AuthReq):
 
     def get(self):
         """风险对象外层规则,违反规则个数等"""
-        params=self.get_query_args(Schema({
-            "cmdb_id":scm_int,
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
             Optional("schema"): scm_str,
             Optional("rule_desc"): scm_str,
             Optional("severity"): scm_str,
@@ -68,11 +68,11 @@ class ObjectRiskRuleHandler(AuthReq):
         }))
         p = self.pop_p(params)
 
-        risk_obj_rule=StatsRiskObjectsRule.objects(**params)
-        risk_obj_rule=[x.to_dict() for x in risk_obj_rule]
+        risk_obj_rule = StatsRiskObjectsRule.objects(**params)
+        risk_obj_rule = [x.to_dict() for x in risk_obj_rule]
         rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
-        self.resp(rst_this_page,**p)
+        self.resp(rst_this_page, **p)
 
 
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
@@ -205,7 +205,7 @@ class SQLRiskRuleHandler(AuthReq):
     def get(self):
         """风险sql外层规则,违反规则个数等"""
         params = self.get_query_args(Schema({
-            "cmdb_id":scm_int,
+            "cmdb_id": scm_int,
             Optional("schema_name"): scm_str,
             Optional("rule_desc"): scm_str,
             Optional("severity"): scm_str,
@@ -215,12 +215,11 @@ class SQLRiskRuleHandler(AuthReq):
         }))
         p = self.pop_p(params)
 
-        risk_sql_rule=StatsRiskSqlRule.objects(**params)
-        risk_sql_rule=[x.to_dict() for x in risk_sql_rule]
+        risk_sql_rule = StatsRiskSqlRule.objects(**params)
+        risk_sql_rule = [x.to_dict() for x in risk_sql_rule]
         rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
         self.resp(rst_this_page, **p)
-
 
 
 class SQLRiskReportExportHandler(SQLRiskListHandler):

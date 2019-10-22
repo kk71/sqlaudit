@@ -273,6 +273,7 @@ def get_risk_sql_list(session,
                     "schema": sqlstat_dict["schema"],
                     "sql_text": sql_text_dict["sql_text"],
                     "rule_desc": risky_rule_object.rule_desc,
+                    "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in ("rule_name", "rule_desc")),
                     "severity": risk_rule_object.severity,
                     "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
                     "execution_time_cost_sum": execution_time_cost_sum,

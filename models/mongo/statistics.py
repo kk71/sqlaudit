@@ -9,7 +9,7 @@
 from typing import Union
 
 from mongoengine import IntField, StringField, DateTimeField, \
-    DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField,\
+    DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField, \
     EmbeddedDocument, EmbeddedDocumentListField
 
 from utils.const import *
@@ -148,8 +148,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
 
                     # schema排名
-                    tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids).\
-                        order_by("-usage_ratio")[:10]
+                    tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids). \
+                                    order_by("-usage_ratio")[:10]
                     for ts in tab_space:
                         doc.tablespace_rank.append(StatsLoginUser_TablespaceRank(
                             **ts.to_dict(iter_if=lambda k, v: k in (
@@ -161,11 +161,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                     all_current_cmdb_schema_dict = dict()
                     for the_cmdb in session.query(CMDB).filter(CMDB.cmdb_id.in_(cmdb_ids)):
                         for the_schema, the_score in calc_score_by(
-                                                        session,
-                                                        the_cmdb,
-                                                        perspective=const.OVERVIEW_ITEM_SCHEMA,
-                                                        score_by=const.SCORE_BY_LOWEST
-                                                        ).items():
+                                session,
+                                the_cmdb,
+                                perspective=const.OVERVIEW_ITEM_SCHEMA,
+                                score_by=const.SCORE_BY_LOWEST
+                        ).items():
                             all_current_cmdb_schema_dict[(the_cmdb.cmdb_id, the_schema)] = \
                                 StatsLoginUser_SchemaRank(
                                     schema_name=the_schema,
@@ -180,7 +180,7 @@ class StatsLoginUser(BaseStatisticsDoc):
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
-                        session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model).\
+                        session.query(CMDB.cmdb_id, CMDB.connect_name, CMDB.db_model). \
                                 filter(CMDB.cmdb_id.in_(cmdb_ids)):
                     if cmdb_id == the_cmdb_id:
                         latest_task_record_id = task_record_id
@@ -234,12 +234,12 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
     date_period = IntField(help_text="时间区间", choices=DATE_PERIOD)
     sql_num = DictField(default=lambda: {"active": [], "at_risk": []})
     risk_rule_rank = DictField(default=lambda:
-        {
-            "rule_name": None,
-            "num": 0,
-            "risk_name": None,
-            "severity": None,
-        })
+    {
+        "rule_name": None,
+        "num": 0,
+        "risk_name": None,
+        "severity": None,
+    })
     sql_execution_cost_rank = DictField(default=lambda: {"by_sum": [], "by_average": []})
     risk_rate = DictField(default=dict)
 
@@ -557,11 +557,11 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 class StatsRiskSqlRule(BaseStatisticsDoc):
     """风险sql外层规则"""
 
-    rule_desc=StringField()
-    severity=StringField()
-    last_appearance=DateTimeField()
-    rule_desc_num=IntField()
-    schema=StringField()
+    rule = DictField()
+    severity = StringField()
+    last_appearance = DateTimeField()
+    rule_num = IntField(help_text="该规则找到的触犯数")
+    schema = StringField()
 
     meta = {
         "collection": "stats_risk_sql_rule"
@@ -574,11 +574,16 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
         from collections import Counter
 
         with make_session() as session:
-            rst = get_risk_sql_list(session=session, cmdb_id=cmdb_id,date_range=(None,None),task_record_id=task_record_id)
-            rsts=[]
-            rule_desc_nums=[]
+            rst = get_risk_sql_list(
+                session=session,
+                cmdb_id=cmdb_id,
+                date_range=(None, None),
+                task_record_id=task_record_id
+            )
+            rsts = []
+            rule_desc_nums = []
             [rule_desc_nums.append(x["rule_desc"]) for x in rst]
-            rule_desc_nums=Counter(rule_desc_nums)
+            rule_desc_nums = Counter(rule_desc_nums)
             for x in rst:
                 rsts.append({"rule_desc": x["rule_desc"],
                              "severity": x["severity"],
@@ -587,11 +592,10 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
             for x in rsts:
                 if x['rule_desc'] in rule_desc_nums:
                     x['rule_desc_num'] = rule_desc_nums[x["rule_desc"]]
-            for x in rsts:
                 doc = cls(task_record_id=task_record_id,
                           cmdb_id=cmdb_id,
-                          rule_desc=x["rule_desc"],
-                          rule_desc_num=x["rule_desc_num"],
+                          rule=x["rule"],
+                          rule_num=x["rule_desc_num"],
                           severity=x["severity"],
                           last_appearance=x["last_appearance"],
                           schema=x["schema"])
@@ -601,11 +605,11 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
 class StatsRiskObjectsRule(BaseStatisticsDoc):
     """风险对象外层规则"""
 
-    rule_desc=StringField()
-    severity=StringField()
-    last_appearance=DateTimeField()
-    rule_desc_num=IntField()
-    schema=StringField()
+    rule = DictField()
+    severity = StringField()
+    last_appearance = DateTimeField()
+    rule_num = IntField(help_text="该规则找到的触犯数")
+    schema = StringField()
 
     meta = {
         "collection": "stats_risk_objects_rule"
@@ -614,31 +618,34 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.object_utils import get_risk_object_list
-        from models.oracle import  make_session
+        from models.oracle import make_session
         from collections import Counter
 
         with make_session() as session:
-            rst=get_risk_object_list(session=session,cmdb_id=cmdb_id,task_record_id=task_record_id)
-            rsts=[]
-            rule_desc_nums=[]
+            rst = get_risk_object_list(
+                session=session,
+                cmdb_id=cmdb_id,
+                task_record_id=task_record_id
+            )
+            rsts = []
+            rule_desc_nums = []
             [rule_desc_nums.append(x['rule_desc']) for x in rst]
-            rule_desc_nums=Counter(rule_desc_nums)
+            rule_desc_nums = Counter(rule_desc_nums)
             for x in rst:
-                rsts.append({"rule_desc":x["rule_desc"],
-                             "severity":x["severity"],
-                             "schema":x["schema"],
-                             "last_appearance":x["last_appearance"]})
+                rsts.append({"rule_desc": x["rule_desc"],
+                             "severity": x["severity"],
+                             "schema": x["schema"],
+                             "last_appearance": x["last_appearance"]})
             for x in rsts:
                 if x["rule_desc"] in rule_desc_nums:
-                    x['rule_desc_num']=rule_desc_nums[x["rule_desc"]]
-            for x in rsts:
-                doc=cls(task_record_id=task_record_id,
-                        cmdb_id=cmdb_id,
-                        rule_desc=x["rule_desc"],
-                        rule_desc_num=x["rule_desc_num"],
-                        severity=x["severity"],
-                        last_appearance=x["last_appearance"],
-                        schema=x["schema"])
+                    x['rule_desc_num'] = rule_desc_nums[x["rule_desc"]]
+                doc = cls(task_record_id=task_record_id,
+                          cmdb_id=cmdb_id,
+                          rule=x["rule"],
+                          rule_num=x["rule_desc_num"],
+                          severity=x["severity"],
+                          last_appearance=x["last_appearance"],
+                          schema=x["schema"])
                 yield doc
 
 
@@ -766,4 +773,3 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
                 sql_id=one.pop("_id"),
                 **one
             )
-
