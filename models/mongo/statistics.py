@@ -141,10 +141,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
                         task_record_id__in=latest_task_record_ids).count()
-                    sequence_r_q, _ = get_result_queryset_by(
+                    sequence_r_q, rule_names_to_seq = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ
                     )
+                    print(f"rule names to sequence: {rule_names_to_seq}")
                     doc.sequence_problem_num = calc_problem_num(sequence_r_q)
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)

@@ -62,13 +62,21 @@ class ObjectRiskRuleHandler(AuthReq):
             Optional("schema"): scm_str,
             Optional("rule__rule_name"): scm_str,
             Optional("severity"): scm_str,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
 
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         p = self.pop_p(params)
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
 
         risk_obj_rule = StatsRiskObjectsRule.objects(**params)
+        if date_start:
+            risk_obj_rule = risk_obj_rule.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_obj_rule = risk_obj_rule.filter(etl_date__lte=date_end)
         risk_obj_rule = [x.to_dict() for x in risk_obj_rule]
         rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
@@ -209,13 +217,21 @@ class SQLRiskRuleHandler(AuthReq):
             Optional("schema"): scm_str,
             Optional("rule__rule_name"): scm_str,
             Optional("severity"): scm_str,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
 
             Optional("page", default=1): scm_int,
             Optional("per_page", default=10): scm_int,
         }))
         p = self.pop_p(params)
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
 
         risk_sql_rule = StatsRiskSqlRule.objects(**params)
+        if date_start:
+            risk_sql_rule = risk_sql_rule.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_sql_rule = risk_sql_rule.filter(etl_date__lte=date_end)
         risk_sql_rule = [x.to_dict() for x in risk_sql_rule]
         rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
