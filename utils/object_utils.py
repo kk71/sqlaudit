@@ -75,6 +75,7 @@ def get_risk_object_list(session,
                          schema_name=None,
                          severity: Union[None, tuple, list] = None,
                          risk_sql_rule_id: Union[tuple, list] = (),
+                         rule_name: Union[None, str] = None,
                          task_record_id: int = None,
                          **kwargs):
     """
@@ -86,6 +87,7 @@ def get_risk_object_list(session,
     :param schema_name:
     :param severity: 严重程度过滤
     :param risk_sql_rule_id:
+    :param rule_name:
     :param task_record_id: 仅展示task_record_id指定的results, 如果指定了，则忽略开始结束时间
     :return:
     """
@@ -112,6 +114,8 @@ def get_risk_object_list(session,
     if risk_sql_rule_id_list:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id_list))
+    if rule_name:
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_name == rule_name)
     if severity:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start and not task_record_id:

@@ -125,6 +125,7 @@ def get_risk_sql_list(session,
                       date_range: (date, date),
                       schema_name: str = None,
                       rule_type: str = "ALL",
+                      rule_name: Union[None, str] = None,
                       risk_sql_rule_id: list = (),
                       sort_by: str = "sum",
                       enable_white_list: bool = True,
@@ -141,6 +142,7 @@ def get_risk_sql_list(session,
     :param date_range:
     :param schema_name:
     :param rule_type:
+    :param rule_name:
     :param risk_sql_rule_id:
     :param sort_by:
     :param enable_white_list:
@@ -179,6 +181,8 @@ def get_risk_sql_list(session,
     if risk_sql_rule_id:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id))
+    if rule_name:
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_name == rule_name)
     if severity:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start and not task_record_id:

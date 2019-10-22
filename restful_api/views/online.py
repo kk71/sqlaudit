@@ -29,6 +29,7 @@ class ObjectRiskListHandler(AuthReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            Optional("rule_name", default=None): scm_str,
             Optional("severity", default=None): scm_dot_split_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -172,6 +173,7 @@ class SQLRiskListHandler(PrivilegeReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            Optional("rule_name", default=None): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
             Optional("rule_type", default="ALL"): scm_one_of_choices(
