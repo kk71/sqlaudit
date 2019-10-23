@@ -185,7 +185,7 @@ class StatsNumDrillDownHandler(AuthReq):
             for cmdb_id in cmdb_ids:
                 try:
                     if the_schema_name:
-                        schema_name = the_schema_name
+                        schema_name = [the_schema_name]
                     else:
                         schema_name = await async_thr(
                             get_current_schema, session, self.current_user, cmdb_id)
