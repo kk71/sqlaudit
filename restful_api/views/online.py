@@ -479,7 +479,7 @@ class SQLRiskDetailHandler(AuthReq):
                 # deduplicate datetime as date
                 for i in gp.values():
                     for j in i.values():
-                        deduplicated_items = self.list_of_dict_to_date_axis(j, "date", "value")
+                        deduplicated_items = self.dict_to_verbose_dict_in_list(dict(self.list_of_dict_to_date_axis(j, "date", "value")))
                         j.clear()
                         j.extend(deduplicated_items)
 
