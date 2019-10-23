@@ -207,7 +207,7 @@ class StatsNumDrillDownHandler(AuthReq):
                 drill_down_type__in=ddt_in,
                 # job_id__ne=None,
                 num__ne=0,
-                score__nin=[None, 0, 100]
+                # score__nin=[None, 0, 100]
             ).filter(Qs).order_by("-etl_date")
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
