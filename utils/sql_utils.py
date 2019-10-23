@@ -2,6 +2,7 @@
 
 import re
 from typing import Union
+from collections import Counter
 
 import sqlparse
 from mongoengine import Q
@@ -212,6 +213,7 @@ def get_risk_sql_list(session,
 
     rst = []  # 详细信息的返回结果
     rst_sql_id_set = set()  # 统计sql_id防止重复
+    rst_sql_id_list = []  # 用于统计sql_id出现的次数
 
     if not sql_id_only:
         # ====== 如果仅统计sql_id，以下信息不需要 ======
@@ -253,6 +255,7 @@ def get_risk_sql_list(session,
 
             for sql_text_dict in sqls:
                 sql_id = sql_text_dict["sql_id"]
+                rst_sql_id_list.append(sql_id)
                 if sql_id in rst_sql_id_set:
                     continue
 
@@ -299,4 +302,9 @@ def get_risk_sql_list(session,
         rst = sorted(rst, key=lambda x: x["execution_time_cost_sum"], reverse=True)
     elif sort_by == "average":
         rst = sorted(rst, key=lambda x: x["execution_time_cost_on_average"], reverse=True)
+    # 统计同一个sql_id的出现次数
+    countered_sql_id_num = Counter(rst_sql_id_list)
+    for r in rst:
+        sql_id = r["sql_id"]
+        r["sql_id_num"] = countered_sql_id_num[sql_id]
     return rst
