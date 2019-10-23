@@ -67,7 +67,7 @@ class StatsLoginUser(BaseStatisticsDoc):
 
     sequence_num = IntField(default=0)
     sequence_problem_num = IntField(default=0)
-    sequence_problem_rate = IntField(default=0.0)
+    sequence_problem_rate = FloatField(default=0.0)
 
     schema_rank = EmbeddedDocumentListField(StatsLoginUser_SchemaRank, default=list)
     tablespace_rank = EmbeddedDocumentListField(StatsLoginUser_TablespaceRank, default=list)
@@ -115,7 +115,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                     )
                     doc.sql_problem_num = calc_problem_num(sql_r_q)
                     if doc.sql_num:
-                        doc.sql_problem_rate = round(doc.sql_problem_num / doc.sql_num, 4)
+                        doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
 
                     # TABLE ============
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
@@ -126,7 +126,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.table_problem_num = calc_problem_num(
                         table_r_q, rule_name=rule_names_to_tab)
                     if doc.table_num:
-                        doc.table_problem_rate = round(doc.table_problem_num / doc.table_num, 4)
+                        doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
 
                     # INDEX =============
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
@@ -137,7 +137,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.index_problem_num = calc_problem_num(
                         index_r_q, rule_name=rule_names_to_ind)
                     if doc.index_num:
-                        doc.table_problem_rate = round(doc.index_problem_num / doc.index_num, 4)
+                        doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
                     # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
@@ -151,7 +151,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.sequence_problem_num = calc_problem_num(
                         sequence_r_q, rule_name=rule_names_to_seq)
                     if doc.sequence_num:
-                        doc.sequence_problem_rate = round(doc.sequence_problem_num / doc.sequence_num, 4)
+                        doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
 
                     # schema排名
                     tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids). \
