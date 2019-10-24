@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from typing import Union
+
 from mongoengine import StringField, IntField, FloatField, ListField, \
     ObjectIdField, DynamicField
 
@@ -38,6 +40,16 @@ class Rule(BaseDoc):
 
     def get_3_key(self) -> tuple:
         return self.db_type, self.db_model, self.rule_name
+
+    def get_table_name(self, record) -> Union[str, None]:
+        """获取一条record数据的表名"""
+        table_name_key_index = None
+        for i, parm in enumerate(self.output_parms):
+            if "表名" in parm["parm_desc"]:
+                table_name_key_index = i
+                break
+        if table_name_key_index is not None:
+            return record[table_name_key_index]
 
     @classmethod
     def filter_enabled(cls, *args, **kwargs):
