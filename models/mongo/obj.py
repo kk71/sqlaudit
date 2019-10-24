@@ -15,7 +15,7 @@ class ObjTabInfo(BaseDocRecordID):
     sid = StringField(db_field="SID")
     cmdb_id = IntField()
     record_id = StringField()
-    table_name = StringField(db_field="TABLE_NAME")
+    table_name = StringField(db_field="TABLE_NAME")  # 需要去重！
     table_type = StringField(db_field="TABLE_TYPE")
     object_type = StringField(db_field="OBJECT_TYPE")
     iot_name = StringField(db_field="IOT_NAME", null=True)

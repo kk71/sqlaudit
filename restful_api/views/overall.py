@@ -208,6 +208,7 @@ class StatsNumDrillDownHandler(AuthReq):
                 # job_id__ne=None,
                 num__ne=0,
                 # score__nin=[None, 0, 100]
-            ).filter(Qs).order_by("-etl_date")
+            ).filter(Qs).filter(Q(num_with_risk__ne=0) | Q(problem_num__ne=0)).\
+                order_by("-etl_date")
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
