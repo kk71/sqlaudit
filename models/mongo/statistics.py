@@ -492,10 +492,12 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 
                     elif t == STATS_NUM_TAB:
                         # 统计个数的时候记得去重！
-                        new_doc.num = ObjTabInfo. \
-                            filter_by_exec_hist_id(task_record_id).filter(
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name).distinct("table_name").count()
+                        new_doc.num = len(
+                            ObjTabInfo.filter_by_exec_hist_id(task_record_id).filter(
+                                cmdb_id=cmdb_id,
+                                schema_name=schema_name
+                            ).distinct("table_name")
+                        )
                         result_q, rule_names = get_result_queryset_by(
                             task_record_id=task_record_id,
                             obj_info_type=OBJ_RULE_TYPE_TABLE,
