@@ -84,6 +84,144 @@ class ObjectRiskRuleHandler(AuthReq):
         self.resp(rst_this_page, **p)
 
 
+class ObjectRiskExportReportHandler(AuthReq):
+
+    async def post(self):
+        """Risk Object Export"""
+        params=self.get_json_args(Schema({
+            "export_type":scm_one_of_choices(["all_filtered","selected"]),
+            Optional(object):object
+        }))
+        export_type=params.pop("export_type")
+        del params
+
+        with make_session() as session:
+            if export_type=="all_filtered":
+                params=self.get_json_args(Schema({
+                    "cmdb_id":scm_int,
+
+                    "date_start": scm_date,
+                    "date_end": scm_date_end,
+                    Optional("severity",default=None): scm_dot_split_str,
+                    # Optional("severity", default=None): scm_str,
+                    Optional("schema",default=None): scm_str,
+                    Optional("rule__rule_name",default=None):scm_str,
+                    # Optional("rule__rule_name",default=None): list,
+                    Optional(object):object
+                }))
+                params.pop('export_type')
+                date_start,date_end=params.pop("date_start"),params.pop("date_end")
+                rule__rule_name=params.pop("rule__rule_name")
+                severity=params.pop("severity")
+                schema=params.pop("schema")
+
+                risk_objects=StatsRiskObjectsRule.objects(**params)
+                if date_start:
+                    risk_objects=risk_objects.filter(etl_date__gte=date_start)
+                if date_end:
+                    risk_objects=risk_objects.filter(etl_date__lte=date_end)
+                if schema:
+                    risk_objects=risk_objects.filter(schema=schema)
+                if severity:
+                    risk_objects=risk_objects.filter(severity__in=severity)
+                    # risk_objects = risk_objects.filter(severity=severity)
+                if rule__rule_name:
+                    risk_objects = risk_objects.filter(rule__rule_name=rule__rule_name)
+                #     risk_objects=risk_objects.filter(rule__rule_name__in=rule__rule_name)
+                rr=[]
+                for x in risk_objects:
+                    rr.append({"last_appearance":x.to_dict()['last_appearance'],
+                               "rule_num":x.to_dict()['rule_num'],
+                               "rule_desc":x.to_dict()["rule"]['rule_desc'],
+                               "rule_name":x.to_dict()["rule"]["rule_name"],
+                               "schema":x.to_dict()["schema"]})
+
+                rst = await AsyncTimeout(60).async_thr(
+                    object_utils.get_risk_object_list, session=session,
+                    date_end=date_end,date_start=date_start,
+                    severity=severity,schema_name=schema,
+                    rule_name=rule__rule_name,**params)
+
+            elif export_type=="selected":
+                params = self.get_json_args(Schema({
+                            "cmdb_id":scm_int,
+
+                            "_id":list,
+                            "date_start": scm_date,
+                            "date_end": scm_date_end,
+
+                            Optional(object): object
+                }))
+                params.pop('export_type')
+                date_start, date_end = params.pop("date_start"), params.pop("date_end")
+                _id=params.pop('_id')
+
+                risk_objects = StatsRiskObjectsRule.objects(**params)
+                if _id:
+                    risk_objects=risk_objects.filter(_id__in=_id)
+                if date_start:
+                    risk_objects=risk_objects.filter(etl_date__gte=date_start)
+                if date_end:
+                    risk_objects=risk_objects.filter(etl_date__lte=date_end)
+                rr=[]
+                for x in risk_objects:
+                    rr.append({"last_appearance":x.to_dict()['last_appearance'],
+                               "rule_num":x.to_dict()['rule_num'],
+                               "rule_desc":x.to_dict()["rule"]['rule_desc'],
+                               "rule_name":x.to_dict()["rule"]["rule_name"],
+                               "schema":x.to_dict()["schema"]})
+
+                rst = await AsyncTimeout(60).async_thr(
+                    object_utils.get_risk_object_list, session=session,
+                    date_end=date_end, date_start=date_start,**params)
+            else:
+                assert 0
+
+        title_heads = ['采集时间', "风险分类", '本项风险总数']
+        heads=['对象名称','风险问题','优化建议']
+        filename = f"risk_obj_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        full_filename = path.join(settings.EXPORT_DIR, filename)
+        wb = xlsxwriter.Workbook(full_filename)
+        title_format = wb.add_format({
+            'size': 14,
+            'bold': 30,
+            'align': 'center',
+            'valign': 'vcenter',
+        })
+        content_format = wb.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'size':13,
+            'text_wrap': True,
+        })
+        a = 0
+        for row_num,row in enumerate(rr):
+            a += 1
+            row_num = 0
+            ws = wb.add_worksheet(row["rule_desc"] + f'--{a}')
+            ws.set_row(0, 20, title_format)
+            ws.set_column(0, 0, 60)
+            ws.set_column(1, 1, 60)
+            ws.set_column(2, 2, 60)
+
+            [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+            row_num += 1
+            ws.write(row_num, 0, row["last_appearance"], content_format)
+            ws.write(row_num, 1, row["rule_desc"], content_format)
+            ws.write(row_num, 2, row["rule_num"], content_format)
+
+            rows_nums=1
+            for rows in rst:
+                [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+                if rows['schema'] and rows['rule_desc']  in row.values():
+                    ws.write(3+rows_nums,0,rows['object_name'],content_format)
+                    ws.write(3+rows_nums,1,rows['risk_detail'],content_format)
+                    ws.write(3+rows_nums,2,rows['optimized_advice'],content_format)
+                    rows_nums+=1
+        wb.close()
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
 
     async def post(self):
@@ -238,6 +376,138 @@ class SQLRiskRuleHandler(AuthReq):
         rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
         self.resp(rst_this_page, **p)
+
+
+class SQLRiskExportReportHandler(AuthReq):
+
+    async def post(self):
+        """Risk sql export"""
+        params = self.get_json_args(Schema({
+            "export_type": scm_one_of_choices(["all_filtered", "selected"]),
+            Optional(object): object
+        }))
+        export_type = params.pop("export_type")
+        del params
+
+        with make_session() as session:
+            if export_type == "all_filtered":
+                params=self.get_json_args(Schema({
+                    "cmdb_id":scm_int,
+
+                    "date_start": scm_date,
+                    "date_end": scm_date_end,
+                    Optional("severity",default=None): scm_dot_split_str,
+                    Optional("schema",default=None): scm_str,
+                    Optional("rule__rule_name",default=None):scm_str,
+                    Optional(object):object
+                }))
+                params.pop('export_type')
+                date_start, date_end = params.pop("date_start"), params.pop("date_end")
+                rule__rule_name = params.pop("rule__rule_name")
+                severity = params.pop("severity")
+                schema = params.pop("schema")
+
+                risk_sql=StatsRiskSqlRule.objects(**params)
+                if date_start:
+                    risk_sql = risk_sql.filter(etl_date__gte=date_start)
+                if date_end:
+                    risk_sql = risk_sql.filter(etl_date__lte=date_end)
+                if schema:
+                    risk_sql = risk_sql.filter(schema=schema)
+                if severity:
+                    risk_sql = risk_sql.filter(severity__in=severity)
+                if rule__rule_name:
+                    risk_sql = risk_sql.filter(rule__rule_name=rule__rule_name)
+                rr = []
+                for x in risk_sql:
+                    rr.append({"last_appearance": x.to_dict()['last_appearance'],
+                               "rule_num": x.to_dict()['rule_num'],
+                               "rule_desc": x.to_dict()["rule"]['rule_desc'],
+                               "rule_name": x.to_dict()["rule"]["rule_name"],
+                               "schema": x.to_dict()["schema"]})
+                rst = await AsyncTimeout(60).async_thr(
+                    sql_utils.get_risk_sql_list,session=session,
+                    date_range=(date_start,date_end),
+                    severity=severity, schema_name=schema,
+                    rule_name=rule__rule_name, **params)
+            elif export_type == "selected":
+                params = self.get_json_args(Schema({
+                    "cmdb_id": scm_int,
+
+                    "_id": list,
+                    "date_start": scm_date,
+                    "date_end": scm_date_end,
+                    Optional(object): object
+                }))
+                params.pop('export_type')
+                date_start, date_end = params.pop("date_start"), params.pop("date_end")
+                _id = params.pop('_id')
+
+                risk_sql = StatsRiskSqlRule.objects(**params)
+                if _id:
+                    risk_sql = risk_sql.filter(_id__in=_id)
+                if date_start:
+                    risk_sql = risk_sql.filter(etl_date__gte=date_start)
+                if date_end:
+                    risk_sql = risk_sql.filter(etl_date__lte=date_end)
+                rr = []
+                for x in risk_sql:
+                    rr.append({"last_appearance": x.to_dict()['last_appearance'],
+                               "rule_num": x.to_dict()['rule_num'],
+                               "rule_desc": x.to_dict()["rule"]['rule_desc'],
+                               "rule_name": x.to_dict()["rule"]["rule_name"],
+                               "schema": x.to_dict()["schema"]})
+                rst = await AsyncTimeout(60).async_thr(
+                    sql_utils.get_risk_sql_list, session=session,
+                    date_range=(date_start, date_end),**params)
+            else:
+                assert 0
+
+        title_heads = ['采集时间', "风险分类", '本项风险总数']
+        heads = ['sql_id', 'sql_text', 'similar_sql_num']
+        filename = f"risk_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        full_filename = path.join(settings.EXPORT_DIR, filename)
+        wb = xlsxwriter.Workbook(full_filename)
+        title_format = wb.add_format({
+            'size': 14,
+            'bold': 30,
+            'align': 'center',
+            'valign': 'vcenter',
+        })
+        content_format = wb.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'size': 11,
+            'text_wrap': True,
+        })
+        a = 0
+        for row_num, row in enumerate(rr):
+            a += 1
+            row_num = 0
+            ws = wb.add_worksheet(row['rule_desc'][0:7]+f'--{a}')
+            ws.set_row(0, 20, title_format)
+            ws.set_column(0, 0, 60)
+            ws.set_column(1, 1, 60)
+            ws.set_column(2, 2, 60)
+
+            [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+            row_num += 1
+            ws.write(row_num, 0, row["last_appearance"], content_format)
+            ws.write(row_num, 1, row["rule_desc"], content_format)
+            ws.write(row_num, 2, row["rule_num"], content_format)
+
+            rows_nums=1
+            for rows in rst:
+                [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+                if rows['schema'] and rows['rule_desc'] in row.values():
+                    ws.write(3+rows_nums, 0, rows['sql_id'], content_format)
+                    ws.write(3+rows_nums, 1, rows['sql_text'], content_format)
+                    ws.write(3+rows_nums, 2, rows['similar_sql_num'], content_format)
+                    rows_nums+=1
+
+        wb.close()
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
 
 
 class SQLRiskReportExportHandler(SQLRiskListHandler):
