@@ -137,9 +137,7 @@ class TicketHandler(OfflineTicketCommonHandler):
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
             "audit_role_id": scm_gt0_int,
-            Optional("task_name",
-                     default=offline_utils.get_current_offline_ticket_task_name()
-                     ): scm_unempty_str,
+            Optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
             Optional("online_username", default=None): scm_str,
             Optional("online_password", default=None): scm_str
@@ -150,6 +148,11 @@ class TicketHandler(OfflineTicketCommonHandler):
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
+            if not params["task_name"]:
+                params['task_name'] = offline_utils.get_current_offline_ticket_task_name(
+                    submit_owner=params["submit_owner"],
+                    sql_type=params["work_list_type"]
+                )
             ticket = WorkList(**params)
             session.add(ticket)
             session.commit()

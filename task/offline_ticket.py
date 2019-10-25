@@ -89,9 +89,9 @@ def offline_ticket(work_list_id, sqls):
                 elapsed_seconds=elapsed_second,
                 # check_owner=ticket.audit_owner,
                 comments=comments,
-                static_score=static_score
             )
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
+        ticket.static_score = static_score
         session.add(ticket)
