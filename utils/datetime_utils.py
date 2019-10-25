@@ -5,6 +5,7 @@ __all__ = [
     "date",
     "datetime",
     "COMMON_DATE_FORMAT",
+    "COMMON_DATE_FORMAT_COMPACT",
     "COMMON_TIME_FORMAT",
     "COMMON_DATETIME_FORMAT",
     "dt_to_str",
@@ -16,7 +17,8 @@ from typing import Union
 import arrow
 from datetime import date, datetime
 
-from utils.const import COMMON_DATETIME_FORMAT, COMMON_DATE_FORMAT, COMMON_TIME_FORMAT
+from utils.const import \
+    COMMON_DATETIME_FORMAT, COMMON_DATE_FORMAT, COMMON_TIME_FORMAT, COMMON_DATE_FORMAT_COMPACT
 
 
 def dt_to_str(dt: Union[datetime, arrow.Arrow, list, tuple, dict]):
@@ -33,7 +35,9 @@ def dt_to_str(dt: Union[datetime, arrow.Arrow, list, tuple, dict]):
         return dt
 
 
-def d_to_str(d: Union[datetime, arrow.Arrow, date]) -> Union[str, None]:
+def d_to_str(
+        d: Union[datetime, arrow.Arrow, date],
+        fmt=COMMON_DATE_FORMAT) -> Union[str, None]:
     if not d:
         return None
-    return arrow.get(d).format(fmt=COMMON_DATE_FORMAT)
+    return arrow.get(d).format(fmt=fmt)
