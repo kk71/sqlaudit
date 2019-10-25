@@ -22,6 +22,8 @@ from .constant import RULE_COMMANDS
 from .utils import is_annotation, filter_annotation
 from .constant import CREATE_APP_SQL, CREATE_DBA_SQL, OTHER_SQL, SQLPLUS_SQL
 
+from models.mongo import Rule
+
 
 class Check:
 
@@ -89,7 +91,7 @@ class Check:
         return False
 
     @classmethod
-    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql, sql_type):
+    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql):
 
         args = {param["parm_name"]: param["parm_value"] for param in input_params}
 
@@ -136,24 +138,36 @@ class Check:
         return True
 
     @classmethod
-    def parse_single_sql(cls, sql, worklist_type, db_model):
-
+    def parse_single_sql(cls, sql, worklist_type, db_model) -> tuple:
+        """
+        单条SQL语句的静态分析，得出该语句的扣分以及问题信息
+        :param sql: 单条语句文本
+        :param worklist_type: 工单类型
+        :param db_model:
+        :return: (错误信息, 扣分负数)
+        """
         formatted_sql = sqlparse.format(sql, strip_whitespace=True).lower()
         parse_results = {}
+        minus_score = 0  # 负数！
 
-        for rule_name, value in RuleUtils.text(db_model).items():
-            if rule_name in worklist_type_static_rule[worklist_type]:
+        rule_q = Rule.filter_enabled(db_model=db_model, sql_type=worklist_type)
+
+        for rule in rule_q:
+            if rule.rule_name in worklist_type_static_rule[worklist_type]:
                 try:
                     err = cls.text_parse(
-                        rule_name,
-                        value["rule_complexity"],
-                        value["rule_cmd"],
-                        value["input_parms"],
+                        rule.rule_name,
+                        rule.rule_complexity,
+                        rule.rule_cmd,
+                        rule.input_parms,
                         formatted_sql
                     )
-                    parse_results[rule_name] = err
+                    if err:
+                        # 规则违反一次的扣分现在是最高分乘以权重
+                        minus_score -= rule.max_score * rule.weight
+                    parse_results[rule.rule_name] = err
                 except Exception as err:
-                    parse_results[rule_name] = str(err)
+                    parse_results[rule.rule_name] = str(err)
                     logging.error("Exception:", exc_info=True)
 
         # violet_obj_rules = ObjStaticRules.run(sql, db_model) if worklist_type == DDL else ""
@@ -161,8 +175,8 @@ class Check:
             RuleUtils.rule_info()[rule_name]['rule_desc']
             for rule_name in parse_results
             if parse_results[rule_name]
-        ]# + [violet_obj_rules]
-        return "" if not err_msgs else '\n'.join(err_msgs)
+        ]  # + [violet_obj_rules]
+        return "" if not err_msgs else '\n'.join(err_msgs), minus_score
 
     @classmethod
     def parse_sql(cls, sqls):

@@ -40,6 +40,10 @@ def offline_ticket(work_list_id, sqls):
             print(f"the cmdb with id {ticket.cmdb_id} is not found")
             return
 
+        # 目前的静态评分，总分写死100，然后按照规则扣分
+        # 一个规则如果在一个sql语句上触发了，则扣掉该规则的分数，多个sql语句触发，则扣多次
+        static_score = 100
+
         for sql in sqls:
             sql_text = sql["sql_text"]
             comments = sql["comments"]
@@ -49,8 +53,9 @@ def offline_ticket(work_list_id, sqls):
                                         'alter' in sql_text \
                 else SQL_DML
             start = time.time()
-            static_error = past.utils.check.Check.parse_single_sql(
+            static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, work_list_type, cmdb.db_model)
+            static_score += static_score_to_minus  # 扣掉分数
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
             # TODO 时间问题，暂时用恶心写法。
@@ -83,7 +88,8 @@ def offline_ticket(work_list_id, sqls):
                 check_status=check_status,
                 elapsed_seconds=elapsed_second,
                 # check_owner=ticket.audit_owner,
-                comments=comments
+                comments=comments,
+                static_score=static_score
             )
             session.add(sub_ticket)
 
