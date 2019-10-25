@@ -45,7 +45,7 @@ class RuleRepoHandler(PrivilegeReq):
                     "parm_desc": scm_str,
                     "parm_name": scm_unempty_str,
                     "parm_unit": scm_str,
-                    "parm_value": Or(float, int, str),
+                    "parm_value": Or(float, int),
 
                     Optional(object): object
                 }
@@ -92,7 +92,7 @@ class RuleRepoHandler(PrivilegeReq):
                     "parm_desc": scm_str,
                     "parm_name": scm_str,
                     "parm_unit": scm_str,
-                    "parm_value": Or(float, int, str)
+                    "parm_value": Or(float, int)
                 }
             ],
             Optional("max_score"): scm_int,

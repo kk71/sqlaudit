@@ -17,6 +17,7 @@ from utils.datetime_utils import *
 from utils import rule_utils, sql_utils, object_utils, score_utils
 from models.oracle import *
 from models.mongo import *
+from models.mongo.statistics import StatsRiskObjectsRule, StatsRiskSqlRule
 
 
 class ObjectRiskListHandler(AuthReq):
@@ -28,6 +29,7 @@ class ObjectRiskListHandler(AuthReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            Optional("rule_name", default=None): scm_str,
             Optional("severity", default=None): scm_dot_split_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -49,6 +51,36 @@ class ObjectRiskListHandler(AuthReq):
             rst = await AsyncTimeout(60).async_thr(
                 object_utils.get_risk_object_list, session=session, **params)
             rst_this_page, p = self.paginate(rst, **p)
+        self.resp(rst_this_page, **p)
+
+
+class ObjectRiskRuleHandler(AuthReq):
+
+    def get(self):
+        """风险对象外层规则,违反规则个数等"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            Optional("schema"): scm_str,
+            Optional("rule__rule_name"): scm_str,
+            Optional("severity"): scm_str,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
+        }))
+        p = self.pop_p(params)
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
+
+        risk_obj_rule = StatsRiskObjectsRule.objects(**params)
+        if date_start:
+            risk_obj_rule = risk_obj_rule.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_obj_rule = risk_obj_rule.filter(etl_date__lte=date_end)
+        risk_obj_rule = [x.to_dict() for x in risk_obj_rule]
+        rst_this_page, p = self.paginate(risk_obj_rule, **p)
+
         self.resp(rst_this_page, **p)
 
 
@@ -141,6 +173,7 @@ class SQLRiskListHandler(PrivilegeReq):
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            Optional("rule_name", default=None): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
             Optional("rule_type", default="ALL"): scm_one_of_choices(
@@ -174,6 +207,36 @@ class SQLRiskListHandler(PrivilegeReq):
                 self.resp(msg="未设置风险规则。")
                 return
             rst_this_page, p = self.paginate(rst, **p)
+        self.resp(rst_this_page, **p)
+
+
+class SQLRiskRuleHandler(AuthReq):
+
+    def get(self):
+        """风险sql外层规则,违反规则个数等"""
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            Optional("schema"): scm_str,
+            Optional("rule__rule_name"): scm_str,
+            Optional("severity"): scm_str,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+
+            Optional("page", default=1): scm_int,
+            Optional("per_page", default=10): scm_int,
+        }))
+        p = self.pop_p(params)
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
+
+        risk_sql_rule = StatsRiskSqlRule.objects(**params)
+        if date_start:
+            risk_sql_rule = risk_sql_rule.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_sql_rule = risk_sql_rule.filter(etl_date__lte=date_end)
+        risk_sql_rule = [x.to_dict() for x in risk_sql_rule]
+        rst_this_page, p = self.paginate(risk_sql_rule, **p)
+
         self.resp(rst_this_page, **p)
 
 
@@ -416,7 +479,7 @@ class SQLRiskDetailHandler(AuthReq):
                 # deduplicate datetime as date
                 for i in gp.values():
                     for j in i.values():
-                        deduplicated_items = self.list_of_dict_to_date_axis(j, "date", "value")
+                        deduplicated_items = self.dict_to_verbose_dict_in_list(dict(self.list_of_dict_to_date_axis(j, "date", "value")))
                         j.clear()
                         j.extend(deduplicated_items)
 
@@ -654,7 +717,7 @@ class TablespaceHistoryHandler(AuthReq):
             "etl_date",
             "usage_ratio"
         )
-        ret = self.dict_to_verbose_dict_in_list(dict(ret[:7]))
+        ret = self.dict_to_verbose_dict_in_list(dict(ret[-7:]))
         self.resp(ret)
 
 
@@ -671,5 +734,5 @@ class TablespaceSumHistoryHandler(AuthReq):
             "etl_date",
             "usage_ratio"
         )
-        ret = self.dict_to_verbose_dict_in_list(dict(ret[:7]))
+        ret = self.dict_to_verbose_dict_in_list(dict(ret[-7:]))
         self.resp(ret)

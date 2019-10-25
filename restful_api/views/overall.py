@@ -172,15 +172,23 @@ class StatsNumDrillDownHandler(AuthReq):
         the_cmdb_id = params.pop("cmdb_id")
         the_schema_name = params.pop("schema_name")
         p = self.pop_p(params)
+        if not the_cmdb_id and the_schema_name:
+            return self.resp_bad_req(msg="参数错误，指定schema则必须指定纳管库")
         with make_session() as session:
-            cmdb_ids = get_current_cmdb(session, self.current_user)
+            if not the_cmdb_id:
+                cmdb_ids = get_current_cmdb(session, self.current_user)
+            else:
+                cmdb_ids = [the_cmdb_id]
             cmdb_id_task_record_id = await async_thr(
                 score_utils.get_latest_task_record_id, session, cmdb_id=cmdb_ids)
             Qs = None
             for cmdb_id in cmdb_ids:
                 try:
-                    schema_name = await async_thr(
-                        get_current_schema, session, self.current_user, cmdb_id)
+                    if the_schema_name:
+                        schema_name = [the_schema_name]
+                    else:
+                        schema_name = await async_thr(
+                            get_current_schema, session, self.current_user, cmdb_id)
                     if not Qs:
                         Qs = Q(**{
                             "cmdb_id": cmdb_id,
@@ -197,13 +205,10 @@ class StatsNumDrillDownHandler(AuthReq):
                 return self.resp([])
             drill_down_q = StatsNumDrillDown.objects(
                 drill_down_type__in=ddt_in,
-                job_id__ne=None,
+                # job_id__ne=None,
                 num__ne=0,
-                score__nin=[None, 0, 100]
-            ).filter(Qs).order_by("-etl_date")
-            if the_cmdb_id:
-                drill_down_q = drill_down_q.filter(cmdb_id=the_cmdb_id)
-            if the_schema_name:
-                drill_down_q = drill_down_q.filter(schema_name=the_schema_name)
+                # score__nin=[None, 0, 100]
+            ).filter(Qs).filter(Q(num_with_risk__ne=0) | Q(problem_num__ne=0)).\
+                order_by("-etl_date")
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)

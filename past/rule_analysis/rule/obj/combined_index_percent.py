@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 
 def execute_rule(**kwargs):
     username = kwargs.get("username")
@@ -29,9 +31,9 @@ def execute_rule(**kwargs):
         if i[0] == 'ALLINDEX':
             allind_num = i[1]
 
-    # 如果所有索引数量为0，则直接返回，并扣除本规则所有分数。
+    # 如果所有索引数量为0，则直接返回
     if allind_num == 0:
-        return [], float("%0.2f" % (max_score))
+        return [], 0.0
 
     # 计算组合索引占比
     comind_percent = (comind_num) * 100 / allind_num
@@ -65,4 +67,18 @@ def execute_rule(**kwargs):
         """
     db_cursor.execute(sql.replace("@username@", username))
     records = db_cursor.fetchall()
-    return records, scores
+    # mix the result with the same index name
+    # (table_name, index_name): ({"col_name", ...}, {col_pos, ...})
+    mixed_records_dict = defaultdict(lambda: (set(), set()))
+    for i in records:
+        table_name = i[0]
+        index_name = i[1]
+        col_name = i[2]
+        col_pos = i[3]
+        mixed_records_dict[(table_name, index_name)][0].add(col_name)
+        mixed_records_dict[(table_name, index_name)][1].add(col_pos)
+    mixed_records = [
+        [*k, ",".join(v[0]), ",".join([str(i) for i in v[1]])]
+        for k, v in mixed_records_dict.items()
+    ]
+    return mixed_records, scores

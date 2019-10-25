@@ -2,6 +2,7 @@
 
 import re
 from typing import Union
+from collections import Counter
 
 import sqlparse
 from mongoengine import Q
@@ -125,6 +126,7 @@ def get_risk_sql_list(session,
                       date_range: (date, date),
                       schema_name: str = None,
                       rule_type: str = "ALL",
+                      rule_name: Union[None, str] = None,
                       risk_sql_rule_id: list = (),
                       sort_by: str = "sum",
                       enable_white_list: bool = True,
@@ -141,6 +143,7 @@ def get_risk_sql_list(session,
     :param date_range:
     :param schema_name:
     :param rule_type:
+    :param rule_name:
     :param risk_sql_rule_id:
     :param sort_by:
     :param enable_white_list:
@@ -153,8 +156,8 @@ def get_risk_sql_list(session,
     """
     # 因为参数过多，加个判断。
     date_start, date_end = date_range
-    assert isinstance(date_start, date) and not isinstance(date_start, datetime)
-    assert isinstance(date_end, date) and not isinstance(date_end, datetime)
+    # assert isinstance(date_start, date) and not isinstance(date_start, datetime)
+    # assert isinstance(date_end, date) and not isinstance(date_end, datetime)
     assert sort_by in ("sum", "average")
     assert rule_type in ["ALL"] + const.ALL_RULE_TYPES_FOR_SQL_RULE
     if kwargs:
@@ -179,6 +182,8 @@ def get_risk_sql_list(session,
     if risk_sql_rule_id:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id))
+    if rule_name:
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_name == rule_name)
     if severity:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start and not task_record_id:
@@ -208,6 +213,7 @@ def get_risk_sql_list(session,
 
     rst = []  # 详细信息的返回结果
     rst_sql_id_set = set()  # 统计sql_id防止重复
+    rst_sql_id_list = []  # 用于统计sql_id出现的次数
 
     if not sql_id_only:
         # ====== 如果仅统计sql_id，以下信息不需要 ======
@@ -249,6 +255,7 @@ def get_risk_sql_list(session,
 
             for sql_text_dict in sqls:
                 sql_id = sql_text_dict["sql_id"]
+                rst_sql_id_list.append(sql_id)
                 if sql_id in rst_sql_id_set:
                     continue
 
@@ -273,6 +280,7 @@ def get_risk_sql_list(session,
                     "schema": sqlstat_dict["schema"],
                     "sql_text": sql_text_dict["sql_text"],
                     "rule_desc": risky_rule_object.rule_desc,
+                    "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in ("rule_name", "rule_desc")),
                     "severity": risk_rule_object.severity,
                     "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
                     "execution_time_cost_sum": execution_time_cost_sum,
@@ -294,4 +302,9 @@ def get_risk_sql_list(session,
         rst = sorted(rst, key=lambda x: x["execution_time_cost_sum"], reverse=True)
     elif sort_by == "average":
         rst = sorted(rst, key=lambda x: x["execution_time_cost_on_average"], reverse=True)
+    # 统计同一个sql_id的出现次数
+    countered_sql_id_num = Counter(rst_sql_id_list)
+    for r in rst:
+        sql_id = r["sql_id"]
+        r["sql_id_num"] = countered_sql_id_num[sql_id]
     return rst

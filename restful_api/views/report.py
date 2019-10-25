@@ -70,6 +70,9 @@ class OnlineReportTaskHandler(AuthReq):
         obj_type_info = params.pop("obj_type_info")
         del params  # shouldn't use params anymore
 
+        if job_id.lower() == "null":
+            return self.resp_bad_req(msg="无报告。")
+
         with make_session() as session:
             job = Job.objects(id=job_id).first()
             result = Results.objects(task_uuid=job_id).first()
@@ -209,7 +212,8 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "object_owner",
                 "object_name",
                 "cost",
-                "cardinality"
+                "cardinality",
+                "operation_display"
             )) for i in dict(sorted(plans)).values()]
 
         self.resp({
