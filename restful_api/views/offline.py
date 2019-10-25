@@ -13,7 +13,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils
+from utils import sql_utils, stream_utils, offline_utils
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
@@ -137,7 +137,9 @@ class TicketHandler(OfflineTicketCommonHandler):
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
             "audit_role_id": scm_gt0_int,
-            "task_name": scm_unempty_str,
+            Optional("task_name",
+                     default=offline_utils.get_current_offline_ticket_task_name()
+                     ): scm_unempty_str,
             "session_id": scm_unempty_str,
             Optional("online_username", default=None): scm_str,
             Optional("online_password", default=None): scm_str
