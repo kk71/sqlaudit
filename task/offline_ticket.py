@@ -40,9 +40,14 @@ def offline_ticket(work_list_id, sqls):
             print(f"the cmdb with id {ticket.cmdb_id} is not found")
             return
 
-        # 目前的评分，总分写死100，然后按照规则扣分
-        # 一个规则如果在一个sql语句上触发了，则扣掉该规则的分数，多个sql语句触发，则扣多次
+        # 目前的评分，总分写死100
         score = 100
+        # 因为一个sql脚本是由多条sql语句组成的，
+        # 每个sql语句都是需要跑完既定的所有规则，
+        # 因此以扣分最多的那一条sql语句的得分作为静态分析的扣分
+        # 动态分析也是同理
+        static_minus_scores = []
+        dynamic_minus_scores = []
 
         for sql in sqls:
             sql_text = sql["sql_text"]
@@ -56,7 +61,7 @@ def offline_ticket(work_list_id, sqls):
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, work_list_type, cmdb.db_model)
             print(f"score {static_score_to_minus} in static rule")
-            score += static_score_to_minus  # 扣掉分数
+            static_score_to_minus.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
             print(f"the schema to execute explain plan for is: {ticket.schema_name}")
@@ -94,5 +99,6 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        ticket.score = score if score > 45 else 45  # 给个分数下限显得好看一点
+        score = score + min(static_score_to_minus) + min(dynamic_minus_scores)
+        ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
         session.add(ticket)
