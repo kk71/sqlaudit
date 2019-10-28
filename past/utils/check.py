@@ -92,6 +92,7 @@ class Check:
 
     @classmethod
     def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql, db_model):
+        """处理静态审核的规则"""
 
         kwargs = {param["parm_name"]: param["parm_value"] for param in input_params}
 
@@ -109,6 +110,7 @@ class Check:
 
     @classmethod
     def sqlplan_parse(cls, record_id, rule_name, params):
+        """处理动态审核的规则"""
 
         tmp0, tmp1 = RuleUtils.gen_random_collection()
 
@@ -340,7 +342,8 @@ class Check:
                 params['db_model'] = db_model
                 params['ip_addr'] = oracle_settings['host']
                 params['sid'] = oracle_settings['sid']
-                if rule_name in worklist_type_dynamic_sqlplan_rule.get(worklist_type) and cls.sqlplan_parse(record_id, rule_name, params) is True:
+                if rule_name in worklist_type_dynamic_sqlplan_rule.get(worklist_type) and\
+                        cls.sqlplan_parse(record_id, rule_name, params) is True:
                     rule_descs.append(params['rule_desc'])
 
             if rule_descs:
