@@ -3,7 +3,7 @@
 import re
 
 
-def execte_rule(sql, db_model=None, **kwargs):
+def execute_rule(sql, db_model=None, **kwargs):
 
     if not re.search(r"create\s+table", sql, re.I) and not re.search(r"alter\s+table", sql, re.I):
         return True
