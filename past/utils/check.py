@@ -91,9 +91,9 @@ class Check:
         return False
 
     @classmethod
-    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql):
+    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql, db_model):
 
-        args = {param["parm_name"]: param["parm_value"] for param in input_params}
+        kwargs = {param["parm_name"]: param["parm_value"] for param in input_params}
 
         violate = False
         # 解析简单规则
@@ -102,7 +102,7 @@ class Check:
         elif rule_complexity == "complex":
             module_name = ".".join(["past.rule_analysis.rule.text", key.lower()])
             module = __import__(module_name, globals(), locals(), "execute_rule")
-            if module.execute_rule(sql=sql, **args):
+            if module.execute_rule(sql=sql, db_model=db_model, **kwargs):
                 violate = True
 
         return violate
@@ -160,7 +160,8 @@ class Check:
                         rule.rule_complexity,
                         rule.rule_cmd,
                         rule.input_parms,
-                        formatted_sql
+                        formatted_sql,
+                        db_model
                     )
                     if err:
                         # 规则违反一次的扣分现在是最高分乘以权重

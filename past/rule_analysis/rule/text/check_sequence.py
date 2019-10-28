@@ -3,7 +3,7 @@
 import re
 
 
-def execute_rule(sql, **kwargs):
+def execute_rule(sql, db_model, **kwargs):
     if not re.search(r"create\s+sequence", sql, re.I):
         return True, None
 
