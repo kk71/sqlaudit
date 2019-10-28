@@ -84,10 +84,14 @@ class TicketHandler(OfflineTicketCommonHandler):
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
             Optional("keyword", default=None): scm_str,
+            Optional("date_start", default=None): scm_date,
+            Optional("date_end", default=None): scm_date_end,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
         work_list_status = params.pop("work_list_status")
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
         p = self.pop_p(params)
         del params
 
@@ -109,6 +113,10 @@ class TicketHandler(OfflineTicketCommonHandler):
                                        WorkList.audit_role_id,
                                        WorkList.audit_comments
                                        )
+            if date_start:
+                q = q.filter(WorkList.submit_date > date_start)
+            if date_end:
+                q = q.filter(WorkList.submit_date <= date_end)
             q = self.privilege_filter_ticket(q)
             items, p = self.paginate(q, **p)
             ret = []
