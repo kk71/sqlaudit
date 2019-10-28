@@ -3,7 +3,7 @@
 import re
 
 
-def execute_rule(sql, db_model, **kwargs):
+def execute_rule(sql, db_model=None, **kwargs):
 
     if not re.search(r"create\s+table", sql, re.I):
         return True
