@@ -143,7 +143,7 @@ class TicketHandler(OfflineTicketCommonHandler):
         params = self.get_json_args(Schema({
             "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
             "cmdb_id": scm_int,
-            "schema_name": scm_unempty_str,
+            Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
             Optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
@@ -154,6 +154,10 @@ class TicketHandler(OfflineTicketCommonHandler):
         session_id = params.pop("session_id")
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+            if not params["schema_name"]:
+                # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
+                # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
+                params["schema_name"] = cmdb.user_name
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
             if not params["task_name"]:
