@@ -40,9 +40,9 @@ def offline_ticket(work_list_id, sqls):
             print(f"the cmdb with id {ticket.cmdb_id} is not found")
             return
 
-        # 目前的静态评分，总分写死100，然后按照规则扣分
+        # 目前的评分，总分写死100，然后按照规则扣分
         # 一个规则如果在一个sql语句上触发了，则扣掉该规则的分数，多个sql语句触发，则扣多次
-        static_score = 100
+        score = 100
 
         for sql in sqls:
             sql_text = sql["sql_text"]
@@ -55,10 +55,11 @@ def offline_ticket(work_list_id, sqls):
             start = time.time()
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, work_list_type, cmdb.db_model)
-            static_score += static_score_to_minus  # 扣掉分数
+            print(f"score {static_score_to_minus} in static rule")
+            score += static_score_to_minus  # 扣掉分数
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
-            # TODO 时间问题，暂时用恶心写法。
+            print(f"the schema to execute explain plan for is: {ticket.schema_name}")
             dynamic, dynamic_error = past.utils.check.Check.parse_sql_dynamicly(
                 sql_text,
                 statement_id,
@@ -93,5 +94,5 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        ticket.static_score = static_score
+        ticket.score = score if score > 45 else 45  # 给个分数下限显得好看一点
         session.add(ticket)
