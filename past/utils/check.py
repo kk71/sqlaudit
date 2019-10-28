@@ -150,7 +150,7 @@ class Check:
         parse_results = {}
         minus_score = 0  # 负数！
 
-        rule_q = Rule.filter_enabled(db_model=db_model, sql_type=worklist_type)
+        rule_q = Rule.filter_enabled(db_model=db_model)
 
         for rule in rule_q:
             if rule.rule_name in worklist_type_static_rule[worklist_type]:
