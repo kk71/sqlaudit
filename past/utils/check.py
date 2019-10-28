@@ -102,7 +102,7 @@ class Check:
         elif rule_complexity == "complex":
             module_name = ".".join(["past.rule_analysis.rule.text", key.lower()])
             module = __import__(module_name, globals(), locals(), "execute_rule")
-            if module.execute_rule(sql=sql, db_model=db_model, **kwargs):
+            if module.execute_rule(sql=sql, db_model=db_model, **kwargs) is True:
                 violate = True
 
         return violate
