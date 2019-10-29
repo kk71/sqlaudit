@@ -104,10 +104,19 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        min_sms = min(static_minus_scores)
-        min_dms = min(dynamic_minus_scores)
-        print(f"min_sctm = f{min_sms},"
-              f" min_dstm = f{min_dms}")
-        score = score + min_sms + min_dms
+
+        # 去最小
+        # min_sms = min(static_minus_scores)
+        # min_dms = min(dynamic_minus_scores)
+        # print(f"min_sms = {min_sms},"
+        #       f" min_dms = {min_dms}")
+        # score = score + min_sms + min_dms
+
+        # 取和
+        sum_sms = sum(static_minus_scores)
+        sum_dms = sum(dynamic_minus_scores)
+        print(f"sum_sms = {sum_sms}, sum_dms = {sum_dms}")
+        score = score + sum_sms + sum_dms
+        
         ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
         session.add(ticket)
