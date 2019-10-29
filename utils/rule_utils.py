@@ -71,7 +71,8 @@ def import_from_json_file(filename: str):
 def set_all_rules_as_risk_rule(session):
     """把当前mongo的全部rule都设置为风险规则"""
     risks = []
-    for rule in Rule.objects():
+    # 需要把DDL的规则排除
+    for rule in Rule.objects(sql_type__ne=SQL_DDL):
         key = json.loads(json.dumps(rule.to_dict(iter_if=lambda k, v: k in (
                 "rule_name", "rule_type", "db_model", "db_type"))))
         if session.query(RiskSQLRule).filter_by(**key).count():
