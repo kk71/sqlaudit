@@ -61,12 +61,13 @@ def offline_ticket(work_list_id, sqls):
                                         'alter' in sql_text \
                 else SQL_DML
             start = time.time()
+            # 静态分析
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, work_list_type, cmdb.db_model)
-            print(f"score {static_score_to_minus} in static rule")
-            static_score_to_minus.append(static_score_to_minus)
+            static_minus_scores.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
+            # 动态分析
             dynamic, dynamic_error, dynamic_score_to_minus = \
                 past.utils.check.Check.parse_sql_dynamicly(
                     sql_text,
@@ -84,6 +85,7 @@ def offline_ticket(work_list_id, sqls):
                 dynamic_check_results = dynamic  # 有报错
             else:
                 print(dynamic, type(dynamic))
+            dynamic_minus_scores.append(dynamic_score_to_minus)
 
             # check_status 值的意义参阅数据库表定义的注释
             check_status = 1 if not dynamic_error and not static_error else 0  # 通过测试
@@ -102,10 +104,10 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        min_sctm = min(static_score_to_minus)
-        min_dstm = min(dynamic_score_to_minus)
-        print(f"min_sctm = f{min_sctm},"
-              f" min_dstm = f{min_dstm}")
-        score = score + min_sctm + min_dstm
+        min_sms = min(static_minus_scores)
+        min_dms = min(dynamic_minus_scores)
+        print(f"min_sctm = f{min_sms},"
+              f" min_dstm = f{min_dms}")
+        score = score + min_sms + min_dms
         ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
         session.add(ticket)
