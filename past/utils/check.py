@@ -151,7 +151,6 @@ class Check:
         formatted_sql = sqlparse.format(sql, strip_whitespace=True).lower()
         parse_results = {}
         minus_score = 0  # 负数！
-        scores_sum = 0  # 最大扣分的总合
 
         rule_q = Rule.filter_enabled(db_model=db_model)
 
@@ -168,7 +167,7 @@ class Check:
                         db_model
                     )
                     if err:
-                        minus_score -= rule.weight
+                        minus_score -= rule.weight  # weight才是真正的单次扣分
                     parse_results[rule.rule_name] = err
                 except Exception as err:
                     parse_results[rule.rule_name] = str(err)
@@ -283,7 +282,7 @@ class Check:
         try:
 
             if cls.is_explain_unvalid_sql(sql):
-                return [], False, 100
+                return [], False, -100
 
             sql = filter_annotation(sql)
 
@@ -366,7 +365,7 @@ class Check:
             return sql_plans, False, minus_scores
 
         except Exception as e:
-            return str(e), True, 100
+            return str(e), True, -100
 
     @classmethod
     def sql_online(cls, sql, oracle_settings, schema_name):

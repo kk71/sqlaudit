@@ -25,7 +25,8 @@ def offline_ticket(work_list_id, sqls):
     def get_old_cmdb(cmdb_id):
         old_cmdb = past.models.get_cmdb(
             cmdb_id=cmdb_id,
-            select=["IP_ADDRESS as host", "port", "user_name as username", "password", "service_name as sid", "db_model"]
+            select=["IP_ADDRESS as host", "port", "user_name as username", "password",
+                    "service_name as sid", "db_model"]
         )
         old_cmdb.pop("db_model")
         return old_cmdb
@@ -35,6 +36,8 @@ def offline_ticket(work_list_id, sqls):
         if not ticket:
             print(f"the ticket with id {work_list_id} is not found")
             return
+        print(f"offline ticket {ticket.task_name} using schema {ticket.schema_name}"
+              f" is going to be analyse...")
         cmdb = session.query(CMDB).filter_by(cmdb_id=ticket.cmdb_id).first()
         if not cmdb:
             print(f"the cmdb with id {ticket.cmdb_id} is not found")
@@ -64,17 +67,17 @@ def offline_ticket(work_list_id, sqls):
             static_score_to_minus.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
-            print(f"the schema to execute explain plan for is: {ticket.schema_name}")
-            dynamic, dynamic_error = past.utils.check.Check.parse_sql_dynamicly(
-                sql_text,
-                statement_id,
-                work_list_type,
-                work_list_id,
-                ticket.schema_name,
-                cmdb.db_model,
-                get_old_cmdb(cmdb.cmdb_id),
-                cmdb.cmdb_id
-            )
+            dynamic, dynamic_error, dynamic_score_to_minus = \
+                past.utils.check.Check.parse_sql_dynamicly(
+                    sql_text,
+                    statement_id,
+                    work_list_type,
+                    work_list_id,
+                    ticket.schema_name,
+                    cmdb.db_model,
+                    get_old_cmdb(cmdb.cmdb_id),
+                    cmdb.cmdb_id
+                )
             if not dynamic_error and isinstance(dynamic, list):
                 dynamic_check_results = ""
             elif isinstance(dynamic, str):
@@ -99,6 +102,10 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        score = score + min(static_score_to_minus) + min(dynamic_minus_scores)
+        min_sctm = min(static_score_to_minus)
+        min_dstm = min(dynamic_score_to_minus)
+        print(f"min_sctm = f{min_sctm},"
+              f" min_dstm = f{min_dstm}")
+        score = score + min_sctm + min_dstm
         ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
         session.add(ticket)
