@@ -73,6 +73,150 @@ class OfflineTicketCommonHandler(PrivilegeReq):
         return q
 
 
+class TicketOuterHandler(OfflineTicketCommonHandler):
+
+    def get(self):
+        """线下审核外层列表
+        某天，每种状态下，状态数量，动静态问题数量，ddl,dml数量
+        """
+
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
+        params = self.get_query_args(Schema({
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+            **self.gen_p()
+        }))
+        p = self.pop_p(params)
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
+
+        with make_session() as session:
+            q = session.query(WorkList).filter(WorkList.submit_date >= date_start,
+                                               WorkList.submit_date <= date_end). \
+                order_by(WorkList.work_list_id.desc())
+            q = self.privilege_filter_ticket(q)
+            ret = []
+            for ticket in q:
+                r = session.query(SubWorkList). \
+                    filter(SubWorkList.work_list_id == ticket.work_list_id). \
+                    with_entities(
+                    SubWorkList.static_check_results,
+                    SubWorkList.dynamic_check_results
+                ).all()
+                static_rst, dynamic_rst = zip(*r) if r else ((), ())
+                ret_item = {
+                    **ticket.to_dict(),
+                    "result_stats": {
+                        "static_problem_num": len([i for i in static_rst if i]),
+                        "dynamic_problem_num": len([i for i in dynamic_rst if i])
+                    }
+                }
+                ret.append(ret_item)
+            rr = []
+            for x in ret:
+                if x["submit_date"][:10] not in [y["submit_date"] for y in rr]:
+                    rr.append({"submit_date": x["submit_date"][:10],
+                               "work_list_status": 0,
+                               "num": [q['work_list_status'] if q['submit_date'][:10]
+                                                                ==x["submit_date"][:10]
+                                       else 10 for q in ret].count(0),
+                               "result_stats": {
+                                   'static_problem_num':
+                                       sum([p["result_stats"]["static_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                            and p['work_list_status'] == 0
+                                            else 0 for p in ret]),
+                                   'dynamic_problem_num':
+                                       sum([p["result_stats"]["dynamic_problem_num"]
+                                       if p["submit_date"][:10]== x["submit_date"][:10]
+                                       and p['work_list_status'] == 0
+                                       else 0 for p in ret])},
+                               "work_list_type": {
+                                   "0": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 0
+                                         else 10 for b in ret].count(0),
+                                   "1": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 0
+                                         else 10 for b in ret].count(1)}})
+                    rr.append({"submit_date": x["submit_date"][:10], "work_list_status": 1,
+                               "num": [q['work_list_status'] if q['submit_date'][:10]
+                                                                == x["submit_date"][:10]
+                                       else 10 for q in ret].count(1),
+                               "result_stats": {
+                                   'static_problem_num':
+                                       sum([p["result_stats"]["static_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                               and p['work_list_status'] == 1
+                                            else 0 for p in ret]),
+                                   'dynamic_problem_num':
+                                       sum([p["result_stats"]["dynamic_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                               and p['work_list_status'] == 1
+                                            else 0 for p in ret])},
+                               "work_list_type": {
+                                   "0": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                        and b['work_list_status'] == 1
+                                         else 10 for b in ret].count(0),
+                                   "1": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 1
+                                         else 10 for b in ret].count(1)}})
+                    rr.append({"submit_date": x["submit_date"][:10], "work_list_status": 2,
+                               "num": [q['work_list_status'] if q['submit_date'][:10]
+                                                                == x["submit_date"][:10]
+                                       else 10 for q in ret].count(2),
+                               "result_stats": {
+                                   'static_problem_num':
+                                       sum([p["result_stats"]["static_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                            and p['work_list_status'] == 2
+                                            else 0 for p in ret]),
+                                   'dynamic_problem_num':
+                                       sum([p["result_stats"]["dynamic_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                               and p['work_list_status'] == 2
+                                            else 0 for p in ret])},
+                               "work_list_type": {
+                                   "0": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 2
+                                         else 10 for b in ret].count(0),
+                                   "1": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 2
+                                         else 10 for b in ret].count(1)}})
+                    rr.append({"submit_date": x["submit_date"][:10], "work_list_status": 3,
+                               "num": [q['work_list_status']
+                                       if q['submit_date'][:10] == x["submit_date"][:10]
+                                       else 10 for q in ret].count(3),
+                               "result_stats": {
+                                   'static_problem_num':
+                                       sum([p["result_stats"]["static_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                               and p['work_list_status'] == 3
+                                            else 0 for p in ret]),
+                                   'dynamic_problem_num':
+                                       sum([p["result_stats"]["dynamic_problem_num"]
+                                            if p["submit_date"][:10]== x["submit_date"][:10]
+                                               and p['work_list_status'] == 3
+                                            else 0 for p in ret])},
+                               "work_list_type": {
+                                   "0": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                         and b['work_list_status'] == 3
+                                         else 10 for b in ret].count(0),
+                                   "1": [b['work_list_type']
+                                         if b["submit_date"][:10] == x["submit_date"][:10]
+                                        and b['work_list_status'] == 3
+                                         else 10 for b in ret].count(1)}})
+
+            items, p = self.paginate(rr, **p)
+            self.resp(items, **p)
+
+
 class TicketHandler(OfflineTicketCommonHandler):
 
     def get(self):
