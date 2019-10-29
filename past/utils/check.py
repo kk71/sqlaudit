@@ -149,8 +149,8 @@ class Check:
         :return: (错误信息, 扣分负数)
         """
         formatted_sql = sqlparse.format(sql, strip_whitespace=True).lower()
-        parse_results = {}
         minus_score = 0  # 负数！
+        err_msgs = []
 
         rule_q = Rule.filter_enabled(db_model=db_model)
 
@@ -168,23 +168,11 @@ class Check:
                     )
                     if err:
                         minus_score -= rule.weight  # weight才是真正的单次扣分
-                    parse_results[rule.rule_name] = err
+                    err_msgs.append(rule.rule_desc)
                 except Exception as err:
-                    parse_results[rule.rule_name] = str(err)
+                    err_msgs.append(rule.rule_desc)
                     logging.error("Exception:", exc_info=True)
-
-        # violet_obj_rules = ObjStaticRules.run(sql, db_model) if worklist_type == DDL else ""
-        err_msgs = [
-            RuleUtils.rule_info()[rule_name]['rule_desc']
-            for rule_name in parse_results
-            if parse_results[rule_name]
-        ]  # + [violet_obj_rules]
         return "" if not err_msgs else '\n'.join(err_msgs), minus_score
-
-    @classmethod
-    def parse_sql(cls, sqls):
-        return_msgs = [cls.parse_single_sql(sql.lower()) for sql in sqls.split(";") if sql]
-        return return_msgs
 
     @classmethod
     def get_random_str(cls):
