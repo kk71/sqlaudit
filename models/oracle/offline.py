@@ -29,7 +29,7 @@ class WorkList(BaseModel):
     online_date = Column("ONLINE_DATE", DATE)
     online_username = Column("ONLINE_USERNAME", String, comment="上线用户名")
     online_password = Column("ONLINE_PASSWORD", String, comment="上线密码")
-    static_score = Column("STATIC_SCORE", Float, comment="工单静态评分")
+    score = Column("SCORE", Float, comment="工单评分")
 
 
 class SubWorkList(BaseModel):

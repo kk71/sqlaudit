@@ -91,9 +91,10 @@ class Check:
         return False
 
     @classmethod
-    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql):
+    def text_parse(cls, key, rule_complexity, rule_cmd, input_params, sql, db_model):
+        """处理静态审核的规则"""
 
-        args = {param["parm_name"]: param["parm_value"] for param in input_params}
+        kwargs = {param["parm_name"]: param["parm_value"] for param in input_params}
 
         violate = False
         # 解析简单规则
@@ -102,13 +103,14 @@ class Check:
         elif rule_complexity == "complex":
             module_name = ".".join(["past.rule_analysis.rule.text", key.lower()])
             module = __import__(module_name, globals(), locals(), "execute_rule")
-            if module.execute_rule(sql=sql, **args):
+            if module.execute_rule(sql=sql, db_model=db_model, **kwargs) is True:
                 violate = True
 
         return violate
 
     @classmethod
     def sqlplan_parse(cls, record_id, rule_name, params):
+        """处理动态审核的规则"""
 
         tmp0, tmp1 = RuleUtils.gen_random_collection()
 
@@ -150,21 +152,22 @@ class Check:
         parse_results = {}
         minus_score = 0  # 负数！
 
-        rule_q = Rule.filter_enabled(db_model=db_model, sql_type=worklist_type)
+        rule_q = Rule.filter_enabled(db_model=db_model)
 
         for rule in rule_q:
             if rule.rule_name in worklist_type_static_rule[worklist_type]:
                 try:
+                    print(f"parsing static rule {rule.rule_name}...")
                     err = cls.text_parse(
                         rule.rule_name,
                         rule.rule_complexity,
                         rule.rule_cmd,
                         rule.input_parms,
-                        formatted_sql
+                        formatted_sql,
+                        db_model
                     )
                     if err:
-                        # 规则违反一次的扣分现在是最高分乘以权重
-                        minus_score -= rule.max_score * rule.weight
+                        minus_score -= rule.weight  # weight才是真正的单次扣分
                     parse_results[rule.rule_name] = err
                 except Exception as err:
                     parse_results[rule.rule_name] = str(err)
@@ -258,15 +261,29 @@ class Check:
         oracle_settings: dict,
         cmdb_id: int,
     ):
+        """
+
+        :param sql:
+        :param statement_id:
+        :param worklist_type:
+        :param worklist_id:
+        :param schema_user:
+        :param db_model:
+        :param oracle_settings:
+        :param cmdb_id:
+        :return: ()
+        """
         # return: list(sql_plan) and dynamic_error = False | str(error_msg) and dynamic_error = True
 
         print(f"Params sql: {sql}, statement_id: {statement_id}, worklist_type: {worklist_type}, worklist_id: {worklist_id}, schema_user: {schema_user}, oracle_settings: {oracle_settings}")
 
         odb = OracleOB(**oracle_settings)
+        minus_scores = 0
         try:
+        # if True:
 
             if cls.is_explain_unvalid_sql(sql):
-                return [], False
+                return [], False, -100
 
             sql = filter_annotation(sql)
 
@@ -294,7 +311,7 @@ class Check:
                     "DEPTH": sqlplan['depth'],  # depth
                     "PARENT_ID": sqlplan['parent_id'],  # parent_id
                     "OPERATION": sqlplan['operation'],  # operation
-                    "OPERATION_DISPLAY": sqlplan["operation_display"],
+                    "OPERATION_DISPLAY": " " * sqlplan["depth"] + sqlplan["operation"],
                     "OPTIONS": sqlplan['options'],  # options
                     "OBJECT_NODE": sqlplan['object_node'],  # object_node
                     "OBJECT_OWNER": sqlplan['object_owner'],  # object_owner
@@ -339,15 +356,17 @@ class Check:
                 params['db_model'] = db_model
                 params['ip_addr'] = oracle_settings['host']
                 params['sid'] = oracle_settings['sid']
-                if rule_name in worklist_type_dynamic_sqlplan_rule.get(worklist_type) and cls.sqlplan_parse(record_id, rule_name, params) is True:
+                if rule_name in worklist_type_dynamic_sqlplan_rule.get(worklist_type) and\
+                        cls.sqlplan_parse(record_id, rule_name, params) is True:
                     rule_descs.append(params['rule_desc'])
+                    minus_scores -= params["weight"]
 
             if rule_descs:
                 raise Exception("\n".join(rule_descs))
-            return sql_plans, False
+            return sql_plans, False, minus_scores
 
         except Exception as e:
-            return str(e), True
+            return str(e), True, -100
 
     @classmethod
     def sql_online(cls, sql, oracle_settings, schema_name):

@@ -19,6 +19,6 @@ def get_current_offline_ticket_task_name(submit_owner, sql_type):
     current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
     k = f"offline-ticket-task-num-{current_date}"
     current_num = "%03d" % cache_redis_cli.incr(k, 1)
-    cache_redis_cli.expire(k, 60*60*24)  # 设置一天内就超时
+    cache_redis_cli.expire(k, 60*60*24*3)  # 设置三天内超时
     return f"{submit_owner}-{const.ALL_SQL_TYPE_NAME_MAPPING[sql_type]}-" \
            f"{current_date}-{current_num}"

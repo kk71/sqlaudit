@@ -228,10 +228,14 @@ class TicketHandler(OfflineTicketCommonHandler):
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
             Optional("keyword", default=None): scm_str,
+            Optional("date_start", default=None): scm_date,
+            Optional("date_end", default=None): scm_date_end,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
         work_list_status = params.pop("work_list_status")
+        date_start = params.pop("date_start")
+        date_end = params.pop("date_end")
         p = self.pop_p(params)
         del params
 
@@ -253,6 +257,10 @@ class TicketHandler(OfflineTicketCommonHandler):
                                        WorkList.audit_role_id,
                                        WorkList.audit_comments
                                        )
+            if date_start:
+                q = q.filter(WorkList.submit_date > date_start)
+            if date_end:
+                q = q.filter(WorkList.submit_date <= date_end)
             q = self.privilege_filter_ticket(q)
             items, p = self.paginate(q, **p)
             ret = []
@@ -279,7 +287,7 @@ class TicketHandler(OfflineTicketCommonHandler):
         params = self.get_json_args(Schema({
             "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
             "cmdb_id": scm_int,
-            "schema_name": scm_unempty_str,
+            Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
             Optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
@@ -290,6 +298,10 @@ class TicketHandler(OfflineTicketCommonHandler):
         session_id = params.pop("session_id")
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+            if not params["schema_name"]:
+                # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
+                # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
+                params["schema_name"] = cmdb.user_name
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
             if not params["task_name"]:

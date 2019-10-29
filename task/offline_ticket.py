@@ -25,7 +25,8 @@ def offline_ticket(work_list_id, sqls):
     def get_old_cmdb(cmdb_id):
         old_cmdb = past.models.get_cmdb(
             cmdb_id=cmdb_id,
-            select=["IP_ADDRESS as host", "port", "user_name as username", "password", "service_name as sid", "db_model"]
+            select=["IP_ADDRESS as host", "port", "user_name as username", "password",
+                    "service_name as sid", "db_model"]
         )
         old_cmdb.pop("db_model")
         return old_cmdb
@@ -35,14 +36,21 @@ def offline_ticket(work_list_id, sqls):
         if not ticket:
             print(f"the ticket with id {work_list_id} is not found")
             return
+        print(f"offline ticket {ticket.task_name} using schema {ticket.schema_name}"
+              f" is going to be analyse...")
         cmdb = session.query(CMDB).filter_by(cmdb_id=ticket.cmdb_id).first()
         if not cmdb:
             print(f"the cmdb with id {ticket.cmdb_id} is not found")
             return
 
-        # 目前的静态评分，总分写死100，然后按照规则扣分
-        # 一个规则如果在一个sql语句上触发了，则扣掉该规则的分数，多个sql语句触发，则扣多次
-        static_score = 100
+        # 目前的评分，总分写死100
+        score = 100
+        # 因为一个sql脚本是由多条sql语句组成的，
+        # 每个sql语句都是需要跑完既定的所有规则，
+        # 因此以扣分最多的那一条sql语句的得分作为静态分析的扣分
+        # 动态分析也是同理
+        static_minus_scores = []
+        dynamic_minus_scores = []
 
         for sql in sqls:
             sql_text = sql["sql_text"]
@@ -53,28 +61,31 @@ def offline_ticket(work_list_id, sqls):
                                         'alter' in sql_text \
                 else SQL_DML
             start = time.time()
+            # 静态分析
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, work_list_type, cmdb.db_model)
-            static_score += static_score_to_minus  # 扣掉分数
+            static_minus_scores.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
-            # TODO 时间问题，暂时用恶心写法。
-            dynamic, dynamic_error = past.utils.check.Check.parse_sql_dynamicly(
-                sql_text,
-                statement_id,
-                work_list_type,
-                work_list_id,
-                ticket.schema_name,
-                cmdb.db_model,
-                get_old_cmdb(cmdb.cmdb_id),
-                cmdb.cmdb_id
-            )
+            # 动态分析
+            dynamic, dynamic_error, dynamic_score_to_minus = \
+                past.utils.check.Check.parse_sql_dynamicly(
+                    sql_text,
+                    statement_id,
+                    work_list_type,
+                    work_list_id,
+                    ticket.schema_name,
+                    cmdb.db_model,
+                    get_old_cmdb(cmdb.cmdb_id),
+                    cmdb.cmdb_id
+                )
             if not dynamic_error and isinstance(dynamic, list):
                 dynamic_check_results = ""
             elif isinstance(dynamic, str):
                 dynamic_check_results = dynamic  # 有报错
             else:
                 print(dynamic, type(dynamic))
+            dynamic_minus_scores.append(dynamic_score_to_minus)
 
             # check_status 值的意义参阅数据库表定义的注释
             check_status = 1 if not dynamic_error and not static_error else 0  # 通过测试
@@ -93,5 +104,19 @@ def offline_ticket(work_list_id, sqls):
             session.add(sub_ticket)
 
         ticket.sql_counts = len(sqls)
-        ticket.static_score = static_score
+
+        # 去最小
+        # min_sms = min(static_minus_scores)
+        # min_dms = min(dynamic_minus_scores)
+        # print(f"min_sms = {min_sms},"
+        #       f" min_dms = {min_dms}")
+        # score = score + min_sms + min_dms
+
+        # 取和
+        sum_sms = sum(static_minus_scores)
+        sum_dms = sum(dynamic_minus_scores)
+        print(f"sum_sms = {sum_sms}, sum_dms = {sum_dms}")
+        score = score + sum_sms + sum_dms
+
+        ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
         session.add(ticket)

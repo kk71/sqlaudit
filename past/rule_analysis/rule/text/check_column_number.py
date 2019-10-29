@@ -2,11 +2,16 @@
 
 import re
 
+from .utils import judge_if_ddl
 
-def execute_rule(sql, username, etl_date_key, etl_date, **kwargs):
+
+def execute_rule(sql, db_model=None, **kwargs):
+
+    if not judge_if_ddl(sql):
+        return False
 
     if not re.search(r"create\s+table", sql, re.I):
-        return True, None
+        return True
 
     left_brackets = 0
     left_flag = 0
@@ -25,5 +30,5 @@ def execute_rule(sql, username, etl_date_key, etl_date, **kwargs):
     sql = sql[left_flag + 1: right_flag]
 
     if len(sql.split(',')) > 255:
-        return False, "表字段个数不能超过255"
-    return True, None
+        return "表字段个数不能超过255"
+    return True

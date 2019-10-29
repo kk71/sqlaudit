@@ -1,6 +1,6 @@
 [
     {
-        "_id": "5d7f2be1edbfaef8d16e85ef",
+        "_id": "5db7d2670c1e4b48de11e9ec",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -36,10 +36,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f0",
+        "_id": "5db7d2670c1e4b48de11e9ed",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -79,10 +81,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f1",
+        "_id": "5db7d2670c1e4b48de11e9ee",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "SEQUENCE",
@@ -118,10 +122,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "SEQUENCE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f2",
+        "_id": "5db7d2670c1e4b48de11e9ef",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -146,10 +152,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f3",
+        "_id": "5db7d2670c1e4b48de11e9f0",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "PROCEDURE",
@@ -178,10 +186,12 @@
         ],
         "weight": 3.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f4",
+        "_id": "5db7d2670c1e4b48de11e9f1",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "FUNCTION",
@@ -214,10 +224,12 @@
         ],
         "weight": 3.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f5",
+        "_id": "5db7d2670c1e4b48de11e9f2",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "COLUMN",
@@ -250,10 +262,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f6",
+        "_id": "5db7d2670c1e4b48de11e9f3",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "COLUMN",
@@ -309,10 +323,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f7",
+        "_id": "5db7d2670c1e4b48de11e9f4",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "PART_TABLE",
@@ -349,10 +365,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f8",
+        "_id": "5db7d2670c1e4b48de11e9f5",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "PART_TABLE",
@@ -392,10 +410,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85f9",
+        "_id": "5db7d2670c1e4b48de11e9f6",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "PART_TABLE",
@@ -432,10 +452,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85fa",
+        "_id": "5db7d2670c1e4b48de11e9f7",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "DBLINK",
@@ -468,10 +490,12 @@
         ],
         "weight": 10.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85fb",
+        "_id": "5db7d2670c1e4b48de11e9f8",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "F_INDEX",
@@ -509,10 +533,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85fc",
+        "_id": "5db7d2670c1e4b48de11e9f9",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "GLOBAL_INDEX",
@@ -541,10 +567,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85fd",
+        "_id": "5db7d2670c1e4b48de11e9fa",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TRIGGER",
@@ -573,10 +601,12 @@
         ],
         "weight": 5.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85fe",
+        "_id": "5db7d2670c1e4b48de11e9fb",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -617,10 +647,12 @@
         ],
         "weight": 0.25,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e85ff",
+        "_id": "5db7d2670c1e4b48de11e9fc",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "B_INDEX",
@@ -657,10 +689,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8600",
+        "_id": "5db7d2670c1e4b48de11e9fd",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -693,10 +727,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8601",
+        "_id": "5db7d2670c1e4b48de11e9fe",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -741,10 +777,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8602",
+        "_id": "5db7d2670c1e4b48de11e9ff",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -836,10 +874,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8603",
+        "_id": "5db7d2670c1e4b48de11ea00",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -950,10 +990,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8604",
+        "_id": "5db7d2670c1e4b48de11ea01",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1045,10 +1087,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8605",
+        "_id": "5db7d2670c1e4b48de11ea02",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1160,10 +1204,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8606",
+        "_id": "5db7d2670c1e4b48de11ea03",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1252,10 +1298,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8607",
+        "_id": "5db7d2670c1e4b48de11ea04",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -1308,10 +1356,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8608",
+        "_id": "5db7d2670c1e4b48de11ea05",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1415,10 +1465,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8609",
+        "_id": "5db7d2670c1e4b48de11ea06",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1521,10 +1573,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860a",
+        "_id": "5db7d2670c1e4b48de11ea07",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1616,10 +1670,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860b",
+        "_id": "5db7d2670c1e4b48de11ea08",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1714,10 +1770,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860c",
+        "_id": "5db7d2670c1e4b48de11ea09",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -1758,10 +1816,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860d",
+        "_id": "5db7d2670c1e4b48de11ea0a",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1825,10 +1885,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860e",
+        "_id": "5db7d2670c1e4b48de11ea0b",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -1917,10 +1979,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e860f",
+        "_id": "5db7d2670c1e4b48de11ea0c",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2004,10 +2068,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "VIEW",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8610",
+        "_id": "5db7d2670c1e4b48de11ea0d",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2079,10 +2145,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8611",
+        "_id": "5db7d2670c1e4b48de11ea0e",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -2127,10 +2195,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8612",
+        "_id": "5db7d2670c1e4b48de11ea0f",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2201,10 +2271,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8613",
+        "_id": "5db7d2670c1e4b48de11ea10",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2305,10 +2377,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8614",
+        "_id": "5db7d2670c1e4b48de11ea11",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2403,10 +2477,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8615",
+        "_id": "5db7d2670c1e4b48de11ea12",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -2439,10 +2515,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8616",
+        "_id": "5db7d2670c1e4b48de11ea13",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -2479,10 +2557,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8617",
+        "_id": "5db7d2670c1e4b48de11ea14",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -2511,10 +2591,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8618",
+        "_id": "5db7d2670c1e4b48de11ea15",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -2539,10 +2621,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8619",
+        "_id": "5db7d2670c1e4b48de11ea16",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -2578,10 +2662,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861a",
+        "_id": "5db7d2670c1e4b48de11ea17",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -2618,10 +2704,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861b",
+        "_id": "5db7d2670c1e4b48de11ea18",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2693,10 +2781,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861c",
+        "_id": "5db7d2670c1e4b48de11ea19",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2767,10 +2857,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861d",
+        "_id": "5db7d2670c1e4b48de11ea1a",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2841,10 +2933,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861e",
+        "_id": "5db7d2670c1e4b48de11ea1b",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -2864,10 +2958,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e861f",
+        "_id": "5db7d2670c1e4b48de11ea1c",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -2938,10 +3034,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8620",
+        "_id": "5db7d2670c1e4b48de11ea1d",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -2978,10 +3076,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8621",
+        "_id": "5db7d2670c1e4b48de11ea1e",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3001,10 +3101,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8622",
+        "_id": "5db7d2670c1e4b48de11ea1f",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3031,10 +3133,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8623",
+        "_id": "5db7d2670c1e4b48de11ea20",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3055,10 +3159,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8624",
+        "_id": "5db7d2670c1e4b48de11ea21",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3085,10 +3191,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8625",
+        "_id": "5db7d2670c1e4b48de11ea22",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3115,10 +3223,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8626",
+        "_id": "5db7d2670c1e4b48de11ea23",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3139,10 +3249,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8627",
+        "_id": "5db7d2670c1e4b48de11ea24",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -3213,10 +3325,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8628",
+        "_id": "5db7d2670c1e4b48de11ea25",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "TABLE",
@@ -3246,10 +3360,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8629",
+        "_id": "5db7d2670c1e4b48de11ea26",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3269,10 +3385,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862a",
+        "_id": "5db7d2670c1e4b48de11ea27",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3292,10 +3410,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862b",
+        "_id": "5db7d2670c1e4b48de11ea28",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3316,10 +3436,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862c",
+        "_id": "5db7d2670c1e4b48de11ea29",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3339,10 +3461,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862d",
+        "_id": "5db7d2670c1e4b48de11ea2a",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3362,10 +3486,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862e",
+        "_id": "5db7d2670c1e4b48de11ea2b",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3392,10 +3518,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e862f",
+        "_id": "5db7d2670c1e4b48de11ea2c",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3415,10 +3543,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8630",
+        "_id": "5db7d2670c1e4b48de11ea2d",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3438,10 +3568,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8631",
+        "_id": "5db7d2670c1e4b48de11ea2e",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3461,10 +3593,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8632",
+        "_id": "5db7d2670c1e4b48de11ea2f",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "",
@@ -3484,10 +3618,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8633",
+        "_id": "5db7d2670c1e4b48de11ea30",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": [
@@ -3529,10 +3665,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8634",
+        "_id": "5db7d2670c1e4b48de11ea31",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3568,10 +3706,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8635",
+        "_id": "5db7d2670c1e4b48de11ea32",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3611,10 +3751,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8636",
+        "_id": "5db7d2670c1e4b48de11ea33",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3639,10 +3781,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8637",
+        "_id": "5db7d2670c1e4b48de11ea34",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3667,10 +3811,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8638",
+        "_id": "5db7d2670c1e4b48de11ea35",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3700,10 +3846,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8639",
+        "_id": "5db7d2670c1e4b48de11ea36",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3740,10 +3888,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863a",
+        "_id": "5db7d2670c1e4b48de11ea37",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3780,10 +3930,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863b",
+        "_id": "5db7d2670c1e4b48de11ea38",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3816,10 +3968,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863c",
+        "_id": "5db7d2670c1e4b48de11ea39",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3852,10 +4006,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863d",
+        "_id": "5db7d2670c1e4b48de11ea3a",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3891,10 +4047,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863e",
+        "_id": "5db7d2670c1e4b48de11ea3b",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3935,10 +4093,12 @@
         ],
         "weight": 0.25,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e863f",
+        "_id": "5db7d2670c1e4b48de11ea3c",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TABLE",
@@ -3979,10 +4139,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8640",
+        "_id": "5db7d2670c1e4b48de11ea3d",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -4011,10 +4173,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8641",
+        "_id": "5db7d2670c1e4b48de11ea3e",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "FUNCTION",
@@ -4047,10 +4211,12 @@
         ],
         "weight": 3.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8642",
+        "_id": "5db7d2670c1e4b48de11ea3f",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -4087,10 +4253,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8643",
+        "_id": "5db7d2670c1e4b48de11ea40",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "PROCEDURE",
@@ -4119,10 +4287,12 @@
         ],
         "weight": 3.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8644",
+        "_id": "5db7d2670c1e4b48de11ea41",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -4175,10 +4345,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8645",
+        "_id": "5db7d2670c1e4b48de11ea42",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "SEQUENCE",
@@ -4214,10 +4386,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "SEQUENCE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8646",
+        "_id": "5db7d2670c1e4b48de11ea43",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "COLUMN",
@@ -4250,10 +4424,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8647",
+        "_id": "5db7d2670c1e4b48de11ea44",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -4298,10 +4474,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8648",
+        "_id": "5db7d2670c1e4b48de11ea45",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "DBLINK",
@@ -4334,10 +4512,12 @@
         ],
         "weight": 10.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8649",
+        "_id": "5db7d2670c1e4b48de11ea46",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "PART_TABLE",
@@ -4377,10 +4557,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864a",
+        "_id": "5db7d2670c1e4b48de11ea47",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -4425,10 +4607,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864b",
+        "_id": "5db7d2670c1e4b48de11ea48",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "PART_TABLE",
@@ -4465,10 +4649,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864c",
+        "_id": "5db7d2670c1e4b48de11ea49",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "TRIGGER",
@@ -4497,10 +4683,12 @@
         ],
         "weight": 5.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864d",
+        "_id": "5db7d2670c1e4b48de11ea4a",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "F_INDEX",
@@ -4538,10 +4726,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864e",
+        "_id": "5db7d2670c1e4b48de11ea4b",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "COLUMN",
@@ -4597,10 +4787,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e864f",
+        "_id": "5db7d2670c1e4b48de11ea4c",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "GLOBAL_INDEX",
@@ -4629,10 +4821,12 @@
         ],
         "weight": 0.3,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8650",
+        "_id": "5db7d2670c1e4b48de11ea4d",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "B_INDEX",
@@ -4669,10 +4863,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8651",
+        "_id": "5db7d2670c1e4b48de11ea4e",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "PART_TABLE",
@@ -4709,10 +4905,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8652",
+        "_id": "5db7d2670c1e4b48de11ea4f",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -4824,10 +5022,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8653",
+        "_id": "5db7d2670c1e4b48de11ea50",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -4919,10 +5119,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8654",
+        "_id": "5db7d2670c1e4b48de11ea51",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5025,10 +5227,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8655",
+        "_id": "5db7d2670c1e4b48de11ea52",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5120,10 +5324,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8656",
+        "_id": "5db7d2670c1e4b48de11ea53",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5227,10 +5433,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8657",
+        "_id": "5db7d2670c1e4b48de11ea54",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5341,10 +5549,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8658",
+        "_id": "5db7d2670c1e4b48de11ea55",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5436,10 +5646,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "PART_TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8659",
+        "_id": "5db7d2670c1e4b48de11ea56",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5534,10 +5746,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865a",
+        "_id": "5db7d2670c1e4b48de11ea57",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5621,10 +5835,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "VIEW",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865b",
+        "_id": "5db7d2670c1e4b48de11ea58",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5688,10 +5904,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865c",
+        "_id": "5db7d2670c1e4b48de11ea59",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5780,10 +5998,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865d",
+        "_id": "5db7d2670c1e4b48de11ea5a",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5872,10 +6092,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865e",
+        "_id": "5db7d2670c1e4b48de11ea5b",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -5976,10 +6198,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e865f",
+        "_id": "5db7d2670c1e4b48de11ea5c",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6074,10 +6298,12 @@
         ],
         "weight": 1.0,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8660",
+        "_id": "5db7d2670c1e4b48de11ea5d",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6148,10 +6374,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8661",
+        "_id": "5db7d2670c1e4b48de11ea5e",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6223,10 +6451,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8662",
+        "_id": "5db7d2670c1e4b48de11ea5f",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6298,10 +6528,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8663",
+        "_id": "5db7d2670c1e4b48de11ea60",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6372,10 +6604,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8664",
+        "_id": "5db7d2670c1e4b48de11ea61",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6395,10 +6629,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8665",
+        "_id": "5db7d2670c1e4b48de11ea62",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6419,10 +6655,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8666",
+        "_id": "5db7d2670c1e4b48de11ea63",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6449,10 +6687,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8667",
+        "_id": "5db7d2670c1e4b48de11ea64",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6523,10 +6763,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8668",
+        "_id": "5db7d2670c1e4b48de11ea65",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6546,10 +6788,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8669",
+        "_id": "5db7d2670c1e4b48de11ea66",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6576,10 +6820,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866a",
+        "_id": "5db7d2670c1e4b48de11ea67",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6650,10 +6896,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866b",
+        "_id": "5db7d2670c1e4b48de11ea68",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6674,10 +6922,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866c",
+        "_id": "5db7d2670c1e4b48de11ea69",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6704,10 +6954,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866d",
+        "_id": "5db7d2670c1e4b48de11ea6a",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6728,10 +6980,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866e",
+        "_id": "5db7d2670c1e4b48de11ea6b",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6751,10 +7005,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e866f",
+        "_id": "5db7d2670c1e4b48de11ea6c",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6774,10 +7030,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8670",
+        "_id": "5db7d2670c1e4b48de11ea6d",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6797,10 +7055,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8671",
+        "_id": "5db7d2670c1e4b48de11ea6e",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6820,10 +7080,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8672",
+        "_id": "5db7d2670c1e4b48de11ea6f",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6843,10 +7105,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8673",
+        "_id": "5db7d2670c1e4b48de11ea70",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6867,10 +7131,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8674",
+        "_id": "5db7d2670c1e4b48de11ea71",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6897,10 +7163,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8675",
+        "_id": "5db7d2670c1e4b48de11ea72",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -6920,10 +7188,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8676",
+        "_id": "5db7d2670c1e4b48de11ea73",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -6994,10 +7264,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8677",
+        "_id": "5db7d2670c1e4b48de11ea74",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "",
@@ -7017,10 +7289,12 @@
         ],
         "weight": 2.0,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8678",
+        "_id": "5db7d2670c1e4b48de11ea75",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -7062,10 +7336,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": "",
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5d7f2be1edbfaef8d16e8679",
+        "_id": "5db7d2670c1e4b48de11ea76",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": [
@@ -7112,10 +7388,12 @@
         ],
         "weight": 0.5,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5dad284916fe3a2006d08538",
+        "_id": "5db7d2670c1e4b48de11ea77",
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
@@ -7140,10 +7418,12 @@
         ],
         "weight": 0.1,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     },
     {
-        "_id": "5dad491616fe3a2006d0b119",
+        "_id": "5db7d2670c1e4b48de11ea78",
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
@@ -7168,6 +7448,358 @@
         ],
         "weight": 0.1,
         "obj_info_type": null,
-        "output_datas": []
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea79",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "位图索引",
+        "rule_name": "CHECK_BITMAP_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7a",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "位图索引",
+        "rule_name": "CHECK_BITMAP_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7b",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "列数",
+        "rule_name": "CHECK_COLUMN_NUMBER",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7c",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "列数",
+        "rule_name": "CHECK_COLUMN_NUMBER",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7d",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "并发水平",
+        "rule_name": "CHECK_CONCURRENCY_LEVEL",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7e",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "并发水平",
+        "rule_name": "CHECK_CONCURRENCY_LEVEL",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea7f",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "创建数据库链接",
+        "rule_name": "CHECK_DB_LINK_CREATED",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea80",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "创建数据库链接",
+        "rule_name": "CHECK_DB_LINK_CREATED",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea81",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "索引未定义表空间",
+        "rule_name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea82",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "索引未定义表空间",
+        "rule_name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea83",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "LOB使用",
+        "rule_name": "CHECK_LOB_USING",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea84",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "LOB使用",
+        "rule_name": "CHECK_LOB_USING",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea85",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "序列",
+        "rule_name": "CHECK_SEQUENCE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5db7d2670c1e4b48de11ea86",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "序列",
+        "rule_name": "CHECK_SEQUENCE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
     }
 ]
