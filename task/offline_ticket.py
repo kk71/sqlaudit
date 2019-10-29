@@ -118,5 +118,5 @@ def offline_ticket(work_list_id, sqls):
         print(f"sum_sms = {sum_sms}, sum_dms = {sum_dms}")
         score = score + sum_sms + sum_dms
 
-        ticket.score = score if score > 40 else 40  # 给个分数下限显得好看一点
+        ticket.score = score if score > 60 else 60  # 给个分数下限显得好看一点
         session.add(ticket)
