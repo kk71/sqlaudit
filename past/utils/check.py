@@ -283,7 +283,7 @@ class Check:
         # if True:
 
             if cls.is_explain_unvalid_sql(sql):
-                return [], False, -100
+                return [], False, 0  # 无报错
 
             sql = filter_annotation(sql)
 
