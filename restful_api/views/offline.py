@@ -687,7 +687,7 @@ class SubTicketSQLPlanHandler(AuthReq):
             }
 
             pt = PrettyTable(sql_plan_head.keys())
-            pt.align = "1"  # 左对齐
+            pt.align = "l"  # 左对齐
             sql_plans = MSQLPlan.objects(
                 plan_hash_value=hash_plan_value,
                 sql_id=params["statement_id"]
