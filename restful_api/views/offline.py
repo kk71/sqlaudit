@@ -633,38 +633,6 @@ class ExportSubTicketHandler(SubTicketHandler):
 
 class SubTicketSQLPlanHandler(AuthReq):
 
-    # TODO 时间关系，本接口几乎是从旧代码迁移过来的。
-    @staticmethod
-    def get_right_width(column, column_width):
-        times = 1
-        count = column.count(' ')
-        right_width = column_width - (len(column) - count) * times - count
-        return " " * right_width + column + " "
-
-    # TODO 时间关系，本接口几乎是从旧代码迁移过来的。
-    @classmethod
-    def get_plan_row(cls, plan_list):
-        row_id_width = 4
-        operation_width = 25
-        name_width = 20
-        rows_width = 7
-        row_bytes_width = 9
-        cost_width = 14
-        time_width = 4
-
-        row_id, operation, name, rows, row_bytes, cost, time = [str(x) for x in plan_list]
-
-        row_id = cls.get_right_width(row_id, row_id_width)
-        operation = cls.get_right_width(operation, operation_width)
-        name = cls.get_right_width(name, name_width)
-        rows = cls.get_right_width(rows, rows_width)
-        row_bytes = cls.get_right_width(row_bytes, row_bytes_width)
-        cost = cls.get_right_width(cost, cost_width)
-        time = cls.get_right_width(time, time_width)
-
-        content = '|' + '|\t'.join([row_id, operation, name, rows, row_bytes, cost, time]) + "|\n"
-        return content, len(content) + 5
-
     def get(self):
         """获取子工单的sql执行计划"""
         params = self.get_query_args(Schema({
@@ -676,6 +644,7 @@ class SubTicketSQLPlanHandler(AuthReq):
                 return self.resp(msg="执行计划为空")
             hash_plan_value = sql_plan_row.plan_id
 
+            # 指明的表中列明以及对应列数据在mongo-engine里的字段名
             sql_plan_head = {
                 'Id': "index",
                 'Operation': "operation_display",

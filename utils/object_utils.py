@@ -180,7 +180,7 @@ def get_risk_object_list(session,
                 rst_set_for_deduplicate.add(r_tuple)
                 r.update({
                     "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in (
-                        "rule_name", "rule_desc")),
+                        "rule_name", "rule_desc", "obj_info_type")),
                 })
                 rst.append(r)
 
