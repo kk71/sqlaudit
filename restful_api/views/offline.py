@@ -8,6 +8,7 @@ import xlrd
 import xlsxwriter
 from schema import Schema, Optional, And
 from sqlalchemy import or_
+from prettytable import PrettyTable
 
 import settings
 from utils.schema_utils import *
@@ -675,27 +676,26 @@ class SubTicketSQLPlanHandler(AuthReq):
                 return self.resp(msg="执行计划为空")
             hash_plan_value = sql_plan_row.plan_id
 
-            sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value,
-                                         sql_id=params["statement_id"]).values_list("index", "operation_display",
-                                                                                    "object_name", "cardinality",
-                                                                                    "bytes", "cpu_cost", "time")
-            sql_plan_head = OrderedDict({
-                'Id': "ID",
-                'Operation': "OPERATION",
-                'Name': "OBJECT_NAME",
-                'Rows': "CARDINALITY",
-                'Bytes': "BYTES",
-                'Cost (%CPU)': "CPU_COST",
-                'Time': "TIME"
-            })
+            sql_plan_head = {
+                'Id': "index",
+                'Operation': "operation_display",
+                'Name': "object_name",
+                'Rows': "cardinality",
+                'Bytes': "bytes",
+                'Cost (%CPU)': "cpu_cost",
+                'Time': "time"
+            }
 
-            sql_plan_text_head, dash_len = self.get_plan_row(sql_plan_head.keys())
-            # sql_plans = [[sql_plan[x] for x in sql_plan_head.values()] for sql_plan in sql_plans]
-            sql_plan_text_content = ''.join([self.get_plan_row(row)[0] for row in sql_plans])
+            pt = PrettyTable(sql_plan_head.keys())
+            pt.align = "1"  # 左对齐
+            sql_plans = MSQLPlan.objects(
+                plan_hash_value=hash_plan_value,
+                sql_id=params["statement_id"]
+            ).values_list(*sql_plan_head.values())
+            for sql_plan in sql_plans:
+                pt.add_row(sql_plan)
 
-            dashes = "-" * dash_len
-            sql_plan_text = f"""Plan hash value: {hash_plan_value}\n\n{dashes}\n{sql_plan_text_head}{dashes}\n{sql_plan_text_content}{dashes}\n"""
+            output_table = f"""Plan hash value: {hash_plan_value} \n\n{pt}"""
             self.resp({
-                'sql_plan_text': sql_plan_text,
-                # 'sql_plans': sql_plans
+                'sql_plan_text': output_table,
             })
