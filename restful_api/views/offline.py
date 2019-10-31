@@ -242,8 +242,9 @@ class ExportTicketHandler(AuthReq):
         works['online_date'] = str(works['online_date']) if works['online_date'] else ''
 
         # 主要信息
-        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称", "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-                       "工单状态", "审核人", "审核意见", "上线时间"]
+        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
+                       "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
+                       "工单状态", "审核人", "审核意见", "上线时间","工单的分数"]
         worklist_data = list(works.values())
 
         filename = '_'.join(['工单信息', works["task_name"], d_to_str(arrow.now())]) + '.xlsx'

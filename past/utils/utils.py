@@ -490,6 +490,7 @@ def create_worklist_xlsx(filename, parame_dict):
     ws.write(1, 12, works_data[12], format_text)
     ws.write(1, 13, works_data[13], format_text)
     ws.write(1, 14, works_data[14], format_text)
+    ws.write(1, 15, works_data[18], format_text)
 
     # 同一个sheet里面 统计工单数量
     fail_data = parame_dict['fail_data']
