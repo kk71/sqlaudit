@@ -321,7 +321,7 @@ class SQLRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule_name"): scm_dot_split_str,
+            Optional("rule_name", default=None): scm_dot_split_str,
             Optional("severity"): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
