@@ -385,10 +385,11 @@ class SQLRiskExportReportHandler(AuthReq):
         with make_session() as session:
             rst = await AsyncTimeout(60).async_thr(
                 sql_utils.get_risk_sql_list,
-                session=session,
+                cmdb_id=cmdb_id,
                 date_range=(date_start, date_end),
-                severity=severity,
                 schema_name=schema,
+                session=session,
+                severity=severity,
                 rule_name=rule_name
             )
 
