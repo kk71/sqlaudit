@@ -53,7 +53,9 @@ class MSQLPlan(BaseDocRecordID):
             "plan_hash_value",
             "etl_date",
             "index",
-            "sql_id"
+            "sql_id",
+            "operation",
+            "operation_display"
         ]
     }
 

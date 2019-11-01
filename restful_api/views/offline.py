@@ -8,6 +8,7 @@ import xlrd
 import xlsxwriter
 from schema import Schema, Optional, And
 from sqlalchemy import or_
+from prettytable import PrettyTable
 
 import settings
 from utils.schema_utils import *
@@ -321,8 +322,9 @@ class ExportTicketHandler(AuthReq):
         works['online_date'] = str(works['online_date']) if works['online_date'] else ''
 
         # 主要信息
-        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称", "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-                       "工单状态", "审核人", "审核意见", "上线时间"]
+        works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
+                       "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
+                       "工单状态", "审核人", "审核意见", "上线时间","工单的分数"]
         worklist_data = list(works.values())
 
         filename = '_'.join(['工单信息', works["task_name"], d_to_str(arrow.now())]) + '.xlsx'
@@ -712,38 +714,6 @@ class ExportSubTicketHandler(SubTicketHandler):
 
 class SubTicketSQLPlanHandler(AuthReq):
 
-    # TODO 时间关系，本接口几乎是从旧代码迁移过来的。
-    @staticmethod
-    def get_right_width(column, column_width):
-        times = 1
-        count = column.count(' ')
-        right_width = column_width - (len(column) - count) * times - count
-        return " " * right_width + column + " "
-
-    # TODO 时间关系，本接口几乎是从旧代码迁移过来的。
-    @classmethod
-    def get_plan_row(cls, plan_list):
-        row_id_width = 4
-        operation_width = 25
-        name_width = 20
-        rows_width = 7
-        row_bytes_width = 9
-        cost_width = 14
-        time_width = 4
-
-        row_id, operation, name, rows, row_bytes, cost, time = [str(x) for x in plan_list]
-
-        row_id = cls.get_right_width(row_id, row_id_width)
-        operation = cls.get_right_width(operation, operation_width)
-        name = cls.get_right_width(name, name_width)
-        rows = cls.get_right_width(rows, rows_width)
-        row_bytes = cls.get_right_width(row_bytes, row_bytes_width)
-        cost = cls.get_right_width(cost, cost_width)
-        time = cls.get_right_width(time, time_width)
-
-        content = '|' + '|\t'.join([row_id, operation, name, rows, row_bytes, cost, time]) + "|\n"
-        return content, len(content) + 5
-
     def get(self):
         """获取子工单的sql执行计划"""
         params = self.get_query_args(Schema({
@@ -755,27 +725,27 @@ class SubTicketSQLPlanHandler(AuthReq):
                 return self.resp(msg="执行计划为空")
             hash_plan_value = sql_plan_row.plan_id
 
-            sql_plans = MSQLPlan.objects(plan_hash_value=hash_plan_value,
-                                         sql_id=params["statement_id"]).values_list("index", "operation",
-                                                                                    "object_name", "cardinality",
-                                                                                    "bytes", "cpu_cost", "time")
-            sql_plan_head = OrderedDict({
-                'Id': "ID",
-                'Operation': "OPERATION",
-                'Name': "OBJECT_NAME",
-                'Rows': "CARDINALITY",
-                'Bytes': "BYTES",
-                'Cost (%CPU)': "CPU_COST",
-                'Time': "TIME"
-            })
+            # 指明的表中列明以及对应列数据在mongo-engine里的字段名
+            sql_plan_head = {
+                'Id': "index",
+                'Operation': "operation_display",
+                'Name': "object_name",
+                'Rows': "cardinality",
+                'Bytes': "bytes",
+                'Cost (%CPU)': "cpu_cost",
+                'Time': "time"
+            }
 
-            sql_plan_text_head, dash_len = self.get_plan_row(sql_plan_head.keys())
-            # sql_plans = [[sql_plan[x] for x in sql_plan_head.values()] for sql_plan in sql_plans]
-            sql_plan_text_content = ''.join([self.get_plan_row(row)[0] for row in sql_plans])
+            pt = PrettyTable(sql_plan_head.keys())
+            pt.align = "l"  # 左对齐
+            sql_plans = MSQLPlan.objects(
+                plan_hash_value=hash_plan_value,
+                sql_id=params["statement_id"]
+            ).values_list(*sql_plan_head.values())
+            for sql_plan in sql_plans:
+                pt.add_row(sql_plan)
 
-            dashes = "-" * dash_len
-            sql_plan_text = f"""Plan hash value: {hash_plan_value}\n\n{dashes}\n{sql_plan_text_head}{dashes}\n{sql_plan_text_content}{dashes}\n"""
+            output_table = f"""Plan hash value: {hash_plan_value} \n\n{pt}"""
             self.resp({
-                'sql_plan_text': sql_plan_text,
-                # 'sql_plans': sql_plans
+                'sql_plan_text': output_table,
             })

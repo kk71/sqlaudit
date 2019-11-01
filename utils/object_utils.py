@@ -75,7 +75,7 @@ def get_risk_object_list(session,
                          schema_name=None,
                          severity: Union[None, tuple, list] = None,
                          risk_sql_rule_id: Union[tuple, list] = (),
-                         rule_name: Union[None, str] = None,
+                         rule_name: Union[None, str, list, tuple] = None,
                          task_record_id: int = None,
                          **kwargs):
     """
@@ -114,8 +114,10 @@ def get_risk_object_list(session,
     if risk_sql_rule_id_list:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.risk_sql_rule_id.
                                          in_(risk_sql_rule_id_list))
-    if rule_name:
+    if rule_name and isinstance(rule_name, str):
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_name == rule_name)
+    if rule_name and isinstance(rule_name, (list, tuple)):
+        risk_rule_q = risk_rule_q.filter(RiskSQLRule.rule_name.in_(rule_name))
     if severity:
         risk_rule_q = risk_rule_q.filter(RiskSQLRule.severity.in_(severity))
     if date_start and not task_record_id:
@@ -180,7 +182,7 @@ def get_risk_object_list(session,
                 rst_set_for_deduplicate.add(r_tuple)
                 r.update({
                     "rule": risky_rule_object.to_dict(iter_if=lambda k, v: k in (
-                        "rule_name", "rule_desc")),
+                        "rule_name", "rule_desc", "obj_info_type")),
                 })
                 rst.append(r)
 

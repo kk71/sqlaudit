@@ -84,7 +84,107 @@ class ObjectRiskRuleHandler(AuthReq):
         self.resp(rst_this_page, **p)
 
 
+class ObjectRiskExportReportHandler(AuthReq):
+
+    async def post(self):
+        """风险对象列表导出v2"""
+        params = self.get_json_args(Schema({
+            "cmdb_id": scm_int,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+            Optional("schema", default=None): scm_str,
+            Optional("severity", default=None): list,
+            Optional("rule_name", default=None): list,
+            Optional("_id", default=None): list
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        schema: Union[str, None] = params.pop("schema")
+        date_start, date_end = params.pop("date_start"), params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
+        severity: Union[list, None] = params.pop("severity")
+        ids: Union[list, None] = params.pop("_id")
+        del params
+
+        risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
+        if schema:
+            risk_objects = risk_objects.filter(schema=schema)
+        if date_start:
+            risk_objects = risk_objects.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_objects = risk_objects.filter(etl_date__lte=date_end)
+        if severity:
+            risk_objects = risk_objects.filter(severity__in=severity)
+        if rule_name:
+            risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
+        if ids:
+            risk_objects = risk_objects.filter(_id__in=ids)
+            # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
+            rule_name: list = list(risk_objects.values_list("rule_name"))
+        rr = []
+        for x in risk_objects:
+            d = x.to_dict()
+            d.update({**d.pop("rule")})
+            rr.append(d)
+
+        with make_session() as session:
+            rst = await AsyncTimeout(60).async_thr(
+                object_utils.get_risk_object_list,
+                session=session,
+                cmdb_id=cmdb_id,
+                schema_name=schema,
+                date_end=date_end,
+                date_start=date_start,
+                severity=severity,
+                rule_name=rule_name
+            )
+
+        title_heads = ['采集时间', "风险分类", '本项风险总数']
+        heads = ['对象名称', '风险问题', '优化建议']
+        filename = f"risk_obj_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        full_filename = path.join(settings.EXPORT_DIR, filename)
+        wb = xlsxwriter.Workbook(full_filename)
+        title_format = wb.add_format({
+            'size': 14,
+            'bold': 30,
+            'align': 'center',
+            'valign': 'vcenter',
+        })
+        content_format = wb.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'size': 13,
+            'text_wrap': True,
+        })
+        a = 0
+        for row_num, row in enumerate(rr):
+            a += 1
+            row_num = 0
+            ws = wb.add_worksheet(row["rule_desc"] + f'--{a}')
+            ws.set_row(0, 20, title_format)
+            ws.set_column(0, 0, 60)
+            ws.set_column(1, 1, 60)
+            ws.set_column(2, 2, 60)
+
+            [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+            row_num += 1
+            ws.write(row_num, 0, row["last_appearance"], content_format)
+            ws.write(row_num, 1, row["rule_desc"], content_format)
+            ws.write(row_num, 2, row["rule_num"], content_format)
+
+            rows_nums = 1
+            for rows in rst:
+                [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+                if rows['schema'] and rows['rule_desc'] in row.values():
+                    ws.write(3 + rows_nums, 0, rows['object_name'], content_format)
+                    ws.write(3 + rows_nums, 1, rows['risk_detail'], content_format)
+                    ws.write(3 + rows_nums, 2, rows['optimized_advice'], content_format)
+                    rows_nums += 1
+        wb.close()
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+
 class ObjectRiskReportExportHandler(ObjectRiskListHandler):
+    # TODO: DEPRECATED
 
     async def post(self):
         """导出风险对象报告"""
@@ -240,7 +340,106 @@ class SQLRiskRuleHandler(AuthReq):
         self.resp(rst_this_page, **p)
 
 
+class SQLRiskExportReportHandler(AuthReq):
+
+    async def post(self):
+        """风险SQL列表导出v2"""
+        params = self.get_json_args(Schema({
+            "cmdb_id": scm_int,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+            Optional("schema", default=None): scm_str,
+            Optional("severity", default=None): list,
+            Optional("rule_name", default=None): list,
+            Optional("_id", default=None): list
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        schema: Union[str, None] = params.pop("schema")
+        date_start, date_end = params.pop("date_start"), params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
+        severity: Union[list, None] = params.pop("severity")
+        ids: Union[list, None] = params.pop("_id")
+        del params
+
+        risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
+        if schema:
+            risk_objects = risk_objects.filter(schema=schema)
+        if date_start:
+            risk_objects = risk_objects.filter(etl_date__gte=date_start)
+        if date_end:
+            risk_objects = risk_objects.filter(etl_date__lte=date_end)
+        if severity:
+            risk_objects = risk_objects.filter(severity__in=severity)
+        if rule_name:
+            risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
+        if ids:
+            risk_objects = risk_objects.filter(_id__in=ids)
+            # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
+            rule_name: list = list(risk_objects.values_list("rule_name"))
+        rr = []
+        for x in risk_objects:
+            d = x.to_dict()
+            d.update({**d.pop("rule")})
+            rr.append(d)
+
+        with make_session() as session:
+            rst = await AsyncTimeout(60).async_thr(
+                sql_utils.get_risk_sql_list,
+                session=session,
+                date_range=(date_start, date_end),
+                severity=severity,
+                schema_name=schema,
+                rule_name=rule_name
+            )
+
+        title_heads = ['采集时间', "风险分类", '本项风险总数']
+        heads = ['sql_id', 'sql_text', 'similar_sql_num']
+        filename = f"risk_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        full_filename = path.join(settings.EXPORT_DIR, filename)
+        wb = xlsxwriter.Workbook(full_filename)
+        title_format = wb.add_format({
+            'size': 14,
+            'bold': 30,
+            'align': 'center',
+            'valign': 'vcenter',
+        })
+        content_format = wb.add_format({
+            'align': 'center',
+            'valign': 'vcenter',
+            'size': 11,
+            'text_wrap': True,
+        })
+        a = 0
+        for row_num, row in enumerate(rr):
+            a += 1
+            row_num = 0
+            ws = wb.add_worksheet(row['rule_desc'][0:7] + f'--{a}')
+            ws.set_row(0, 20, title_format)
+            ws.set_column(0, 0, 60)
+            ws.set_column(1, 1, 60)
+            ws.set_column(2, 2, 60)
+
+            [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+            row_num += 1
+            ws.write(row_num, 0, row["last_appearance"], content_format)
+            ws.write(row_num, 1, row["rule_desc"], content_format)
+            ws.write(row_num, 2, row["rule_num"], content_format)
+
+            rows_nums = 1
+            for rows in rst:
+                [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+                if rows['schema'] and rows['rule_desc'] in row.values():
+                    ws.write(3 + rows_nums, 0, rows['sql_id'], content_format)
+                    ws.write(3 + rows_nums, 1, rows['sql_text'], content_format)
+                    ws.write(3 + rows_nums, 2, rows['similar_sql_num'], content_format)
+                    rows_nums += 1
+
+        wb.close()
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+
 class SQLRiskReportExportHandler(SQLRiskListHandler):
+    # TODO: DEPRECATED
 
     async def post(self):
         """导出风险SQL的报告"""
@@ -479,7 +678,8 @@ class SQLRiskDetailHandler(AuthReq):
                 # deduplicate datetime as date
                 for i in gp.values():
                     for j in i.values():
-                        deduplicated_items = self.dict_to_verbose_dict_in_list(dict(self.list_of_dict_to_date_axis(j, "date", "value")))
+                        deduplicated_items = self.dict_to_verbose_dict_in_list(
+                            dict(self.list_of_dict_to_date_axis(j, "date", "value")))
                         j.clear()
                         j.extend(deduplicated_items)
 
