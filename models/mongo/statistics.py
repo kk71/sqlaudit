@@ -572,11 +572,11 @@ class StatsNumDrillDown(BaseStatisticsDoc):
 class StatsRiskSqlRule(BaseStatisticsDoc):
     """风险sql外层规则"""
 
-    rule = DictField()
+    rule = DictField(default=dict)
     severity = StringField()
     last_appearance = DateTimeField()
     rule_num = IntField(default=0, help_text="该规则找到的触犯数")
-    schema = StringField()
+    schema = StringField(null=False)
 
     meta = {
         "collection": "stats_risk_sql_rule"
@@ -612,11 +612,11 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
 class StatsRiskObjectsRule(BaseStatisticsDoc):
     """风险对象外层规则"""
 
-    rule = DictField()
+    rule = DictField(default=dict)
     severity = StringField()
     last_appearance = DateTimeField()
     rule_num = IntField(default=0, help_text="该规则找到的触犯数")
-    schema = StringField()
+    schema = StringField(null=False)
 
     meta = {
         "collection": "stats_risk_objects_rule"

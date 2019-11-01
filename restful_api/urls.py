@@ -80,14 +80,12 @@ urls += [
     (r"/api/online/overview/tablespace_trend_sum", online.TablespaceSumHistoryHandler),
     (r"/api/online/object/rule", online.ObjectRiskRuleHandler),
     (r"/api/online/object", online.ObjectRiskListHandler),
-    (r"/api/online/object/export", online.ObjectRiskReportExportHandler),
-    (r"/api/online/object/report", online.ObjectRiskExportReportHandler),#
+    (r"/api/online/object/export", online.ObjectRiskExportReportHandler),
     (r"/api/online/object/table", online.TableInfoHandler),
     (r"/api/online/sql/rule", online.SQLRiskRuleHandler),
     (r"/api/online/sql", online.SQLRiskListHandler),
     (r"/api/online/sql/detail", online.SQLRiskDetailHandler),
-    (r"/api/online/sql/export", online.SQLRiskReportExportHandler),
-    (r"/api/online/sql/report", online.SQLRiskExportReportHandler),#
+    (r"/api/online/sql/export", online.SQLRiskExportReportHandler),
     (r"/api/online/sql/plan", online.SQLPlanHandler),
 ]
 
