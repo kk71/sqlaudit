@@ -119,7 +119,8 @@ class ObjectRiskExportReportHandler(AuthReq):
         if ids:
             risk_objects = risk_objects.filter(_id__in=ids)
             # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-            rule_name: list = list(risk_objects.values_list("rule__rule_name"))
+            rule_name: list = [a_rule["rule_name"]
+                               for a_rule in risk_objects.values_list("rule")]
         rr = []
         for x in risk_objects:
             d = x.to_dict()
@@ -375,7 +376,8 @@ class SQLRiskExportReportHandler(AuthReq):
         if ids:
             risk_objects = risk_objects.filter(_id__in=ids)
             # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-            rule_name: list = list(risk_objects.values_list("rule__rule_name"))
+            rule_name: list = [a_rule["rule_name"]
+                               for a_rule in risk_objects.values_list("rule")]
         rr = []
         for x in risk_objects:
             d = x.to_dict()
