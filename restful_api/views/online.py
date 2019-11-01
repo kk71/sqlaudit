@@ -61,7 +61,7 @@ class ObjectRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule__rule_name"): scm_dot_split_str,
+            Optional("rule_name", default=None): scm_dot_split_str,
             Optional("severity"): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -72,12 +72,15 @@ class ObjectRiskRuleHandler(AuthReq):
         p = self.pop_p(params)
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
 
         risk_obj_rule = StatsRiskObjectsRule.objects(**params)
         if date_start:
             risk_obj_rule = risk_obj_rule.filter(etl_date__gte=date_start)
         if date_end:
             risk_obj_rule = risk_obj_rule.filter(etl_date__lte=date_end)
+        if rule_name:
+            risk_obj_rule = risk_obj_rule.filter(rule__rule_name__in=rule_name)
         risk_obj_rule = [x.to_dict() for x in risk_obj_rule]
         rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
@@ -318,7 +321,7 @@ class SQLRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule__rule_name"): scm_dot_split_str,
+            Optional("rule_name"): scm_dot_split_str,
             Optional("severity"): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -329,12 +332,15 @@ class SQLRiskRuleHandler(AuthReq):
         p = self.pop_p(params)
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
 
         risk_sql_rule = StatsRiskSqlRule.objects(**params)
         if date_start:
             risk_sql_rule = risk_sql_rule.filter(etl_date__gte=date_start)
         if date_end:
             risk_sql_rule = risk_sql_rule.filter(etl_date__lte=date_end)
+        if rule_name:
+            risk_sql_rule = risk_sql_rule.filter(rule__rule_name__in=rule_name)
         risk_sql_rule = [x.to_dict() for x in risk_sql_rule]
         rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
