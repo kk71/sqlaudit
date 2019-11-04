@@ -112,7 +112,7 @@ def main():
     while True:
         try:
             now = arrow.now()
-            next_to_run = now.shift(minutes=1).replace(seconds=0)
+            next_to_run = now.shift(minutes=1).replace(second=0)
             print(f"next time to run: {dt_to_str(next_to_run)}")
             time.sleep((next_to_run - now).seconds)
 
