@@ -163,7 +163,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row["rule_desc"] + f'--{a}')
+            ws = wb.add_worksheet(row["rule_desc"][:20] + f'--{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
@@ -422,7 +422,7 @@ class SQLRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row['rule_desc'][0:7] + f'--{a}')
+            ws = wb.add_worksheet(row['rule_desc'][:20] + f'--{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
