@@ -7,7 +7,6 @@
 """
 import time
 import traceback
-from datetime import datetime
 
 import settings
 from task.capture import task_run
@@ -15,14 +14,11 @@ from .mail_report import timing_send_mail
 # from task.sqlaitune import sqlaitune_run
 import plain_db.oracleob
 from utils import const
+from utils.datetime_utils import *
 
 
 def get_time():
     return time.strftime("%R", time.localtime(time.time() + 60))
-
-
-def get_sleep_time():
-    return 60 - int(time.time()) % 60
 
 
 def time2int(timestamp: str):  # 返回目标的ts
@@ -48,7 +44,10 @@ def run_capture(now):
         if not task["schedule"] or not task["frequency"]:
             print(f"task with id {task['id']} has neither schedule date nor frequency.")
             continue
-        if (now - time2int(task['schedule'])) % (int(task['frequency']) * 60) == 0:
+        task_begin_time_sec = time2int(task['schedule'])
+        task_freq_sec = int(task['frequency']) * 60
+        if (now - task_begin_time_sec) % task_freq_sec == 0:
+            print(f'task {task["task_id"]} is going to run for frequency is {task_freq_sec}s ...')
             new_tasks.append(task)
     if new_tasks:
         print(f"Going to run {len(new_tasks)} tasks...")
@@ -112,23 +111,16 @@ def main():
     print("Start schedule tasks ...")
     while True:
         try:
+            now = arrow.now()
+            next_to_run = now.shift(minutes=1).replace(seconds=0)
+            print(f"next time to run: {dt_to_str(next_to_run)}")
+            time.sleep((next_to_run - now).seconds)
 
-            now = time.time()
-            next_minute_ts = now + 60 - now % 60
-            next_minute_structure = datetime.fromtimestamp(next_minute_ts)
-            t = get_sleep_time()
+            # 每分钟执行一次
+            run_capture(next_to_run)
 
-            if next_minute_structure.minute % 5 == 0:
-                print(next_minute_structure.strftime("%Y-%m-%d %X"))
-
-            time.sleep(t)
-            run_capture(next_minute_ts + 3600 * 8)
-
-            if next_minute_structure.minute == 0:  # 每小时执行一次
-                run_mail(next_minute_structure)
-
-            # if next_minute_structure.minute == 0 & next_minute_structure.hour == 0 & next_minute_structure.day == 1:
-            #     clean_mongo.delay()
+            if next_to_run.minute == 0:  # 每小时执行一次
+                run_mail(next_to_run)
 
         except:
             print(traceback.format_exc())
