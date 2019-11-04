@@ -46,7 +46,7 @@ def run_capture(now):
             continue
         task_begin_time_sec = time2int(task['schedule'])
         task_freq_sec = int(task['frequency']) * 60
-        if (now - task_begin_time_sec) % task_freq_sec == 0:
+        if (now - task_begin_time_sec).total_seconds() % task_freq_sec == 0:
             print(f'task {task["task_id"]} is going to run for frequency is {task_freq_sec}s ...')
             new_tasks.append(task)
     if new_tasks:
