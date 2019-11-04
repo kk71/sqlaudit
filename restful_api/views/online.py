@@ -74,7 +74,7 @@ class ObjectRiskRuleHandler(AuthReq):
         date_end = params.pop("date_end")
         rule_name: Union[list, None] = params.pop("rule_name")
 
-        risk_obj_rule = StatsRiskObjectsRule.objects(**params)
+        risk_obj_rule = StatsRiskObjectsRule.objects(**params).order_by("-etl_date")
         if date_start:
             risk_obj_rule = risk_obj_rule.filter(etl_date__gte=date_start)
         if date_end:
@@ -334,7 +334,7 @@ class SQLRiskRuleHandler(AuthReq):
         date_end = params.pop("date_end")
         rule_name: Union[list, None] = params.pop("rule_name")
 
-        risk_sql_rule = StatsRiskSqlRule.objects(**params)
+        risk_sql_rule = StatsRiskSqlRule.objects(**params).order_by("-etl_date")
         if date_start:
             risk_sql_rule = risk_sql_rule.filter(etl_date__gte=date_start)
         if date_end:
