@@ -747,6 +747,10 @@ class TableInfoHandler(AuthReq):
             "schema_name": scm_unempty_str,
             "table_name": scm_unempty_str
         }))
+        if params.get("table_name", None) and "." in params["table_name"]:
+            print(f"warning: the original table_name is {params['table_name']} "
+                  f"the word before the dot is recognized as schema and has been ignored.")
+            params["table_name"] = params["table_name"].split(".")[1]
         latest_tab_info = ObjTabInfo.objects(table_name=params["table_name"]). \
             order_by("-etl_date").first()
         if not latest_tab_info:
