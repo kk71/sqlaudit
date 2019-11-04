@@ -21,12 +21,12 @@ def get_time():
     return time.strftime("%R", time.localtime(time.time() + 60))
 
 
-def time2int(timestamp: str):  # 返回目标的ts
-    minute, second = timestamp.split(":")
-    return int(minute) * 3600 + int(second) * 60
+def time2int(timestamp: str, process_start_time: arrow.arrow):  # 返回目标的ts
+    hour, minute = timestamp.split(":")
+    return process_start_time.replace(hour=int(hour), minute=int(minute)).timestamp
 
 
-def run_capture(now):
+def run_capture(now, process_start_time):
     odb = plain_db.oracleob.OracleOB(settings.ORACLE_IP, settings.ORACLE_PORT,
                                      settings.ORACLE_USERNAME, settings.ORACLE_PASSWORD,
                                      settings.ORACLE_SID)
@@ -44,7 +44,7 @@ def run_capture(now):
         if not task["schedule"] or not task["frequency"]:
             print(f"task with id {task['id']} has neither schedule date nor frequency.")
             continue
-        task_begin_time_sec = time2int(task['schedule'])
+        task_begin_time_sec = time2int(task['schedule'], process_start_time)
         task_freq_sec = int(task['frequency']) * 60
         if (now.datetime.timestamp() - task_begin_time_sec) % task_freq_sec == 0:
             print(f'task {task["task_id"]} is going to run for frequency is {task_freq_sec}s ...')
@@ -108,7 +108,8 @@ def run_mail(time_structure):
 
 
 def main():
-    print("Start schedule tasks ...")
+    process_start_time = arrow.now()
+    print(f"Start schedule tasks at {dt_to_str(process_start_time)} ...")
     while True:
         try:
             now = arrow.now()
@@ -117,7 +118,7 @@ def main():
             time.sleep((next_to_run - now).seconds)
 
             # 每分钟执行一次
-            run_capture(next_to_run)
+            run_capture(next_to_run, process_start_time)
 
             if next_to_run.minute == 0:  # 每小时执行一次
                 run_mail(next_to_run)
