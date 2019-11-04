@@ -46,8 +46,10 @@ def run_capture(now, process_start_time):
             continue
         task_begin_time_sec = time2int(task['schedule'], process_start_time)
         task_freq_sec = int(task['frequency']) * 60
-        if (now.datetime.timestamp() - task_begin_time_sec) % task_freq_sec == 0:
-            print(f'task {task["task_id"]} is going to run for frequency is {task_freq_sec}s ...')
+        calced = (now.datetime.timestamp() - task_begin_time_sec) % task_freq_sec
+        if calced < 1:
+            print(f'task {task["task_id"]} is going to run for frequency '
+                  f'is {task_freq_sec}s with calced={calced} ...')
             new_tasks.append(task)
     if new_tasks:
         print(f"Going to run {len(new_tasks)} tasks...")
@@ -113,7 +115,8 @@ def main():
     while True:
         try:
             now = arrow.now()
-            next_to_run = now.shift(minutes=1).replace(second=0)
+            next_to_run = now.shift(minutes=1).\
+                replace(second=process_start_time.datetime.second)
             print(f"next time to run: {dt_to_str(next_to_run)}")
             time.sleep((next_to_run - now).seconds)
 
