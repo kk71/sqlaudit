@@ -368,24 +368,24 @@ class SQLRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
+        risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
         if schema:
-            risk_objects = risk_objects.filter(schema=schema)
+            risk_sql = risk_sql.filter(schema=schema)
         if date_start:
-            risk_objects = risk_objects.filter(etl_date__gte=date_start)
+            risk_sql = risk_sql.filter(etl_date__gte=date_start)
         if date_end:
-            risk_objects = risk_objects.filter(etl_date__lte=date_end)
+            risk_sql = risk_sql.filter(etl_date__lte=date_end)
         if severity:
-            risk_objects = risk_objects.filter(severity__in=severity)
+            risk_sql = risk_sql.filter(severity__in=severity)
         if rule_name:
-            risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
+            risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
         if ids:
-            risk_objects = risk_objects.filter(_id__in=ids)
+            risk_sql = risk_sql.filter(_id__in=ids)
             # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
             rule_name: list = [a_rule["rule_name"]
-                               for a_rule in risk_objects.values_list("rule")]
+                               for a_rule in risk_sql.values_list("rule")]
         rr = []
-        for x in risk_objects:
+        for x in risk_sql:
             d = x.to_dict()
             d.update({**d.pop("rule")})
             rr.append(d)
