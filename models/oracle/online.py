@@ -43,7 +43,7 @@ class TaskExecHistory(BaseModel):
     """任务执行历史"""
     __tablename__ = "T_TASK_EXEC_HISTORY"
 
-    id = Column("ID", Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
+    id = Column("ID", Integer, Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
     task_id = Column("TASK_ID", Integer)
     connect_name = Column("CONNECT_NAME", String)
     business_name = Column("BUSINESS_NAME", String)
