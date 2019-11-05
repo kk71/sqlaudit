@@ -48,9 +48,9 @@ class TaskExecHistory(BaseModel):
     connect_name = Column("CONNECT_NAME", String)
     business_name = Column("BUSINESS_NAME", String)
     task_start_date = Column("TASK_START_DATE", DATE, default=datetime.now)
-    task_end_date = Column("TASK_END_DATE", DATE)
-    status = Column("STATUS", Boolean)
-    error_msg = Column("ERROR_MSG", String)
+    task_end_date = Column("TASK_END_DATE", DATE, nullable=True)
+    status = Column("STATUS", Boolean, nullable=True)
+    error_msg = Column("ERROR_MSG", String, nullable=True)
     operator = Column("OPERATOR", String, nullable=True)  # null自动采集 str采集发起人的login_user
 
     @classmethod
