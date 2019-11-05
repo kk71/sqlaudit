@@ -51,7 +51,7 @@ class TaskExecHistory(BaseModel):
     task_end_date = Column("TASK_END_DATE", DATE)
     status = Column("STATUS", Boolean)
     error_msg = Column("ERROR_MSG", String)
-    operator = Column("OPERATOR", String)  # null自动采集 str采集发起人的login_user
+    operator = Column("OPERATOR", String, nullable=True)  # null自动采集 str采集发起人的login_user
 
     @classmethod
     def filter_succeed(cls, session, *args, **kwargs):
