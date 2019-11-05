@@ -94,7 +94,11 @@ class TaskManualExecute(AuthReq):
             "task_id": scm_int
         }))
         try:
-            mkdata.run(params.pop("task_id"), use_queue=True)
+            mkdata.run(
+                params.pop("task_id"),
+                use_queue=True,
+                operator=self.current_user
+            )
         except DatabaseError as e:
             return self.resp_bad_req(msg=str(e))
         self.resp_created({})
