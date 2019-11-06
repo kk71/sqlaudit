@@ -130,19 +130,20 @@ def create_excels(username,send_list_id):
 
         date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
         date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
+        now = arrow.now()
         if cmdb_ids==[]:
             wb = xlsxwriter.Workbook(
                 path + "/" + "此用户无纳管库" + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
             wb.close()
-
-        now=arrow.now()
         for cmdb_id in cmdb_ids:
             connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
+
             dh_q=session.query(DataHealth).filter(
                 DataHealth.database_name==connect_name,
                 DataHealth.collect_date>now.shift(weeks=-1).datetime
             ).order_by(DataHealth.collect_date)
             dh_d=[x.to_dict() for x in dh_q]
+
             job_q=Job.objects(
                 cmdb_id=cmdb_id,
                 score__nin=[None,0],
@@ -154,7 +155,9 @@ def create_excels(username,send_list_id):
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
             create_sql_healthy_files(job_d,dh_d,connect_name,wb)
+            create_risk_obj_file(cmdb_id,wb)
             wb.close()
+
     file_path_list = [
         settings.CLIENT_NAME,
         str(send_list_id),
@@ -224,8 +227,8 @@ def create_excel(username, send_list_id):
 # 创建sql健康度EXCEL
 import arrow
 def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
-    ws=wb.add_worksheet("1.整体健康度")
     # excel 表格样式sheet1
+    ws=wb.add_worksheet("1.整体健康度")
     ws.set_column(0, 7, 18)
     head_merge_format = wb.add_format({
         'size': 18,
@@ -236,6 +239,7 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
     ws.set_row(0, 30, head_merge_format)
     ws.merge_range('A1:H1', settings.CLIENT_NAME +
                    "“" + connect_name + "”SQL风险评估报告")
+
     # 1.最近7天的整体健康度
     title_format = wb.add_format({
         "size": 14,
@@ -262,23 +266,62 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
     ws.write(1, 7, arrow.now().date().strftime("%Y/%m/%d"), text_format)
     ws.set_row(3, 20)
     ws.merge_range('A4:H4', "1.最近7天整体健康度", title_format)
-    # content_format = wb.add_format({
-    #     'color': 'red',
-    #     'align': 'left',
-    #     'valign': 'vcenter',
-    #
-    # })
     ws.write(4, 0, "采集日期", title_format)
     ws.write(5, 0, "得分")
-
     col=1
     for dh in dh_d:
         ws.write(4,col,dh['collect_date'][:10],date_format)
         ws.write(5, col, dh['health_score'], text_format)
         col += 1
+
     # 根据健康度表格数据绘制折线图
+    chart1=wb.add_chart({'type':'line'})
+    chart1.width=650
+    chart1.height=350
 
-
+    chart1.add_series({
+        'name': '健康度',
+        'categories': ['1.整体健康度', 4, 1, 4, 7],
+        'values': ['1.整体健康度', 5, 1, 5, 7],
+        'line': {'color': 'black', 'width': 1},
+        'marker': {'type': 'automatic',
+                   },
+        'data_labels': {'value': True},
+        'name_font': {
+            'size': 10,
+        }
+    })
+    # 设置折线图的位置，标题，x轴，y轴
+    chart1.set_title({'name': '最近7天整体健康度',
+                      'name_font': {
+                          'bold': False,
+                          'size': 14, },
+                      })
+    chart1.set_plotarea({
+        'layout': {
+            'x': 0.1,
+            'y': 0.2,
+            'width': 0.88,
+            'height': 0.63,
+        }
+    })
+    chart1.set_legend({
+        'layout': {
+            'x': 0.90,
+            'y': 0.05,
+            'width': 0.2,
+            'height': 0.1,
+        }
+    })
+    chart1.set_y_axis({'name': '健康度分数',
+                       'min': 0,
+                       'max': 100,
+                       'name_font': {
+                           'bold': False,
+                           'size': 12,
+                       }
+                       })
+    ws.insert_chart('B7', chart1, {'x_offset': 25, 'y_offset': 20})
 
     #-----------------------------------------
     # 健康度下钻表格样式设置及填充
@@ -302,10 +345,6 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
         ws.write(row, col + 3, status_map[str(job['status'])], text_format)
         ws.write(row, col + 4, job["name"].split("#")[1], text_format)
         ws.write(row, col + 5, job.get("score", ""), text_format)
-        # if int(job.get("score", 0)) < 75:
-        #     ws.write(row, col + 5, job.get("score", ""), content_format)
-        # else:
-        #     ws.write(row, col + 5, job.get("score", ""), text_format)
         ws.write(row, col + 6, str(job["desc"]
                                ["capture_time_start"]), text_format)
         ws.write(row, col + 7, str(job["desc"]
