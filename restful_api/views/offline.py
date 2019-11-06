@@ -612,7 +612,19 @@ class SubTicketHandler(OfflineTicketCommonHandler):
         with make_session() as session:
             q = self.filter_sub_ticket(session)
             items, p = self.paginate(q, **p)
-            self.resp([i.to_dict() for i in items], **p)
+            # 加上工单的task_name
+            work_list_ids: list = list({i.work_list_id for i in items})
+            work_list_id_pairs = session.query(
+                WorkList.work_list_id,
+                WorkList.task_name
+            ).filter(WorkList.work_list_id.in_(work_list_ids))
+            work_list_id_pair_dict = dict(work_list_id_pairs)
+            self.resp([
+                {
+                    **i.to_dict(),
+                    "task_name": work_list_id_pair_dict.get(i.work_list_id, None)
+                }
+                for i in items], **p)
 
     def patch(self):
         """修改子工单"""
