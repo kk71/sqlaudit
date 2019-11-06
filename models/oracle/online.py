@@ -42,15 +42,16 @@ class TaskManage(BaseModel):
 class TaskExecHistory(BaseModel):
     """任务执行历史"""
     __tablename__ = "T_TASK_EXEC_HISTORY"
-    id = Column("ID", Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
+
+    id = Column("ID", Integer, Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
     task_id = Column("TASK_ID", Integer)
     connect_name = Column("CONNECT_NAME", String)
     business_name = Column("BUSINESS_NAME", String)
-    task_start_date = Column("TASK_START_DATE", DATE)
-    task_end_date = Column("TASK_END_DATE", DATE)
-    status = Column("STATUS", Boolean)
-    error_msg = Column("ERROR_MSG", String)
-    # task_uuid = Column("TASK_UUID", String)
+    task_start_date = Column("TASK_START_DATE", DATE, default=datetime.now)
+    task_end_date = Column("TASK_END_DATE", DATE, nullable=True)
+    status = Column("STATUS", Boolean, nullable=True)
+    error_msg = Column("ERROR_MSG", String, nullable=True)
+    operator = Column("OPERATOR", String, nullable=True)  # null自动采集 str采集发起人的login_user
 
     @classmethod
     def filter_succeed(cls, session, *args, **kwargs):

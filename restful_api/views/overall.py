@@ -125,6 +125,10 @@ class MetadataListHandler(PrivilegeReq):
         }))
         search_type = params.pop('search_type')
         if params.get("table_name", None):
+            if "." in params["table_name"]:
+                print(f"warning: the original table_name is {params['table_name']} "
+                      f"the word before the dot is recognized as schema and has been ignored.")
+                params["table_name"] = params["table_name"].split(".")[1]
             params[f"table_name__{search_type}"] = params.pop('table_name')
         keyword = params.pop("keyword")
         p = self.pop_p(params)

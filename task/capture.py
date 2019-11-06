@@ -19,6 +19,7 @@ import task.clear_cache
 import utils.capture_utils
 import utils.analyse_utils
 from models.mongo.utils import *
+from utils.datetime_utils import *
 
 
 logger = past.utils.log.get_logger("capture")
@@ -28,16 +29,16 @@ def sigintHandler(signum, frame):
     raise past.utils.utils.StopCeleryException("Stop!")
 
 
-def init_job(task_id, connect_name, business_name, task_uuid):
-
-    sql = """INSERT INTO t_task_exec_history(id, task_id, connect_name, business_name, task_start_date, task_uuid)
-             VALUES(SEQ_TASK_EXEC_HISTORY.nextval, :1, :2, :3, to_date(:4, 'yyyy-mm-dd hh24:mi:ss'), :5)
-          """
-    plain_db.oracleob.OracleHelper.insert(sql, [task_id, connect_name, business_name, past.utils.utils.
-                                          get_time(return_str=True), task_uuid])
-    sql = "SELECT SEQ_TASK_EXEC_HISTORY.CURRVAL FROM DUAL"
-    record_id = plain_db.oracleob.OracleHelper.select(sql, one=True)[0]
-    return record_id
+# def init_job(task_id, connect_name, business_name, task_uuid):
+#
+#     sql = """INSERT INTO t_task_exec_history(id, task_id, connect_name, business_name, task_start_date, task_uuid)
+#              VALUES(SEQ_TASK_EXEC_HISTORY.nextval, :1, :2, :3, to_date(:4, 'yyyy-mm-dd hh24:mi:ss'), :5)
+#           """
+#     plain_db.oracleob.OracleHelper.insert(sql, [task_id, connect_name, business_name, past.utils.utils.
+#                                           get_time(return_str=True), task_uuid])
+#     sql = "SELECT SEQ_TASK_EXEC_HISTORY.CURRVAL FROM DUAL"
+#     record_id = plain_db.oracleob.OracleHelper.select(sql, one=True)[0]
+#     return record_id
 
 
 def update_record(task_id, record_id, success, err_msg=""):
@@ -195,11 +196,29 @@ def run_default_script(host, port, sid, username, password, db_user, cmdb_id, co
 
 
 @celery.task
-def task_run(host, port, sid, username, password, task_id, connect_name, business_name, db_users, cmdb_id):
+def task_run(host, port, sid, username, password,
+             task_id, connect_name, business_name, db_users, cmdb_id, operator=None):
+    """
+    执行采集任务
+    :param host:
+    :param port:
+    :param sid:
+    :param username:
+    :param password:
+    :param task_id:
+    :param connect_name:
+    :param business_name:
+    :param db_users:
+    :param cmdb_id:
+    :param operator: py表示app.py mkdata创建的任务，
+                     None表示代码定时任务创建，其余记录操作的login_user
+    :return:
+    """
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
-    msg = f"{host}, {port}, {sid}, {username}, {password}, {task_id}, {connect_name}, {business_name}, {db_users}"
+    msg = f"{host}, {port}, {sid}, {username}, {password}, {task_id}," \
+          f" {connect_name}, {business_name}, {db_users}, {operator}"
     logger.info(msg)
 
     from models.oracle import make_session, TaskExecHistory
@@ -207,8 +226,21 @@ def task_run(host, port, sid, username, password, task_id, connect_name, busines
         # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
         session.query(TaskExecHistory).filter(TaskExecHistory.status==None).delete()
 
+    # 目前这个id已经废弃没有用了。
     task_uuid = celery.current_task.request.id
-    record_id = init_job(task_id, connect_name, business_name, task_uuid)
+
+    with make_session() as session:
+        # 写入任务
+        task_record_object = TaskExecHistory(
+            task_id=task_id,
+            connect_name=connect_name,
+            business_name=business_name,
+            operator=operator
+        )
+        session.add(task_record_object)
+        session.commit()
+        session.refresh(task_record_object)
+        record_id = task_record_object.id
 
     try:
         if not db_users:

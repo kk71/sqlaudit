@@ -61,7 +61,7 @@ class ObjectRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule__rule_name"): scm_str,
+            Optional("rule_name", default=None): scm_dot_split_str,
             Optional("severity"): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -72,12 +72,15 @@ class ObjectRiskRuleHandler(AuthReq):
         p = self.pop_p(params)
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
 
-        risk_obj_rule = StatsRiskObjectsRule.objects(**params)
+        risk_obj_rule = StatsRiskObjectsRule.objects(**params).order_by("-etl_date")
         if date_start:
             risk_obj_rule = risk_obj_rule.filter(etl_date__gte=date_start)
         if date_end:
             risk_obj_rule = risk_obj_rule.filter(etl_date__lte=date_end)
+        if rule_name:
+            risk_obj_rule = risk_obj_rule.filter(rule__rule_name__in=rule_name)
         risk_obj_rule = [x.to_dict() for x in risk_obj_rule]
         rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
@@ -119,7 +122,8 @@ class ObjectRiskExportReportHandler(AuthReq):
         if ids:
             risk_objects = risk_objects.filter(_id__in=ids)
             # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-            rule_name: list = list(risk_objects.values_list("rule_name"))
+            rule_name: list = [a_rule["rule_name"]
+                               for a_rule in risk_objects.values_list("rule")]
         rr = []
         for x in risk_objects:
             d = x.to_dict()
@@ -159,7 +163,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row["rule_desc"] + f'--{a}')
+            ws = wb.add_worksheet(row["rule_desc"][:20] + f'--{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
@@ -317,7 +321,7 @@ class SQLRiskRuleHandler(AuthReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema"): scm_str,
-            Optional("rule__rule_name"): scm_str,
+            Optional("rule_name", default=None): scm_dot_split_str,
             Optional("severity"): scm_str,
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -328,12 +332,15 @@ class SQLRiskRuleHandler(AuthReq):
         p = self.pop_p(params)
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        rule_name: Union[list, None] = params.pop("rule_name")
 
-        risk_sql_rule = StatsRiskSqlRule.objects(**params)
+        risk_sql_rule = StatsRiskSqlRule.objects(**params).order_by("-etl_date")
         if date_start:
             risk_sql_rule = risk_sql_rule.filter(etl_date__gte=date_start)
         if date_end:
             risk_sql_rule = risk_sql_rule.filter(etl_date__lte=date_end)
+        if rule_name:
+            risk_sql_rule = risk_sql_rule.filter(rule__rule_name__in=rule_name)
         risk_sql_rule = [x.to_dict() for x in risk_sql_rule]
         rst_this_page, p = self.paginate(risk_sql_rule, **p)
 
@@ -361,23 +368,24 @@ class SQLRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
+        risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
         if schema:
-            risk_objects = risk_objects.filter(schema=schema)
+            risk_sql = risk_sql.filter(schema=schema)
         if date_start:
-            risk_objects = risk_objects.filter(etl_date__gte=date_start)
+            risk_sql = risk_sql.filter(etl_date__gte=date_start)
         if date_end:
-            risk_objects = risk_objects.filter(etl_date__lte=date_end)
+            risk_sql = risk_sql.filter(etl_date__lte=date_end)
         if severity:
-            risk_objects = risk_objects.filter(severity__in=severity)
+            risk_sql = risk_sql.filter(severity__in=severity)
         if rule_name:
-            risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
+            risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
         if ids:
-            risk_objects = risk_objects.filter(_id__in=ids)
+            risk_sql = risk_sql.filter(_id__in=ids)
             # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-            rule_name: list = list(risk_objects.values_list("rule_name"))
+            rule_name: list = [a_rule["rule_name"]
+                               for a_rule in risk_sql.values_list("rule")]
         rr = []
-        for x in risk_objects:
+        for x in risk_sql:
             d = x.to_dict()
             d.update({**d.pop("rule")})
             rr.append(d)
@@ -385,10 +393,11 @@ class SQLRiskExportReportHandler(AuthReq):
         with make_session() as session:
             rst = await AsyncTimeout(60).async_thr(
                 sql_utils.get_risk_sql_list,
-                session=session,
+                cmdb_id=cmdb_id,
                 date_range=(date_start, date_end),
-                severity=severity,
                 schema_name=schema,
+                session=session,
+                severity=severity,
                 rule_name=rule_name
             )
 
@@ -413,7 +422,7 @@ class SQLRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row['rule_desc'][0:7] + f'--{a}')
+            ws = wb.add_worksheet(row['rule_desc'][:20] + f'--{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
@@ -738,6 +747,10 @@ class TableInfoHandler(AuthReq):
             "schema_name": scm_unempty_str,
             "table_name": scm_unempty_str
         }))
+        if params.get("table_name", None) and "." in params["table_name"]:
+            print(f"warning: the original table_name is {params['table_name']} "
+                  f"the word before the dot is recognized as schema and has been ignored.")
+            params["table_name"] = params["table_name"].split(".")[1]
         latest_tab_info = ObjTabInfo.objects(table_name=params["table_name"]). \
             order_by("-etl_date").first()
         if not latest_tab_info:
