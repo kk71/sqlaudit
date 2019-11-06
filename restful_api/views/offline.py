@@ -2,6 +2,7 @@
 
 import uuid
 from os import path
+from collections import defaultdict
 
 import xlrd
 import xlsxwriter
@@ -76,38 +77,6 @@ class OfflineTicketCommonHandler(PrivilegeReq):
 class TicketOuterHandler(OfflineTicketCommonHandler):
     """线下审核工单的外层统计接口(苏州银行提出的需求)"""
 
-    @staticmethod
-    def filter_ticket_date(ret, work_list_status):
-        rr = []
-        for x in ret:
-            if x["submit_date"] not in [y["submit_date"] for y in rr]:
-                rr.append({"submit_date": x["submit_date"],
-                           "work_list_status": work_list_status,
-                           "num": [q['work_list_status'] if q['submit_date']
-                                                            == x["submit_date"]
-                                   else 10 for q in ret].count(work_list_status),
-                           "result_stats": {
-                               'static_problem_num':
-                                   sum([p["result_stats"]["static_problem_num"]
-                                        if p["submit_date"] == x["submit_date"]
-                                           and p['work_list_status'] == work_list_status
-                                        else 0 for p in ret]),
-                               'dynamic_problem_num':
-                                   sum([p["result_stats"]["dynamic_problem_num"]
-                                        if p["submit_date"] == x["submit_date"]
-                                           and p['work_list_status'] == work_list_status
-                                        else 0 for p in ret])},
-                           "work_list_type": {
-                               "0": [b['work_list_type']
-                                     if b["submit_date"] == x["submit_date"]
-                                        and b['work_list_status'] == work_list_status
-                                     else 10 for b in ret].count(0),
-                               "1": [b['work_list_type']
-                                     if b["submit_date"] == x["submit_date"]
-                                        and b['work_list_status'] == work_list_status
-                                     else 10 for b in ret].count(1)}})
-        return rr
-
     def get(self):
         """
         线下审核外层列表
@@ -129,7 +98,7 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
                                                WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
             q = self.privilege_filter_ticket(q)
-            ret = []
+            tickets: list = []
             for ticket in q:
                 r = session.query(
                     SubWorkList.static_check_results,
@@ -139,19 +108,43 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
                 ret_item = {
                     **ticket.to_dict(
                         iter_by=lambda k, v:
-                            arrow.get(v).format(const.COMMON_DATE_FORMAT)
-                            if k == "submit_date" else v
+                        arrow.get(v).format(const.COMMON_DATE_FORMAT)
+                        if k == "submit_date" else v
                     ),
                     "result_stats": {
                         "static_problem_num": len([i for i in static_rst if i]),
                         "dynamic_problem_num": len([i for i in dynamic_rst if i])
                     }
                 }
-                ret.append(ret_item)
-            rr = []
-            for ticket_status in ALL_OFFLINE_TICKET_STATUS:
-                rr += self.filter_ticket_date(ret, work_list_status=ticket_status)
-            rr = sorted(rr, key=lambda x: arrow.get(x["submit_date"]).date(), reverse=True)
+                tickets.append(ret_item)
+            # ds: date: sql_type: work_list_status
+            ds = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+            for ticket in tickets:
+                submit_date: str = ticket["submit_date"]  # 只有日期没有时间
+                work_list_type: int = ticket["work_list_type"]
+                work_list_status: int = ticket["work_list_status"]
+                ds[submit_date][work_list_type][work_list_status].append(ticket)
+            rst = []
+            for the_date, date_vs in ds.items():
+                for sql_type, sql_type_vs in date_vs.items():
+                    for work_list_status, tickets in sql_type_vs.items():
+                        stats = {
+                            "submit_date": the_date,
+                            "work_list_status": work_list_status,
+                            "num": len(tickets),
+                            "work_list_type": sql_type,
+                            "result_stats": {
+                                'static_problem_num': 0,
+                                'dynamic_problem_num': 0
+                            }
+                        }
+                        for ticket in tickets:
+                            stats["result_stats"]["static_problem_num"] += \
+                                ticket["result_stats"]["static_problem_num"]
+                            stats["result_stats"]["dynamic_problem_num"] += \
+                                ticket["result_stats"]["dynamic_problem_num"]
+                        rst.append(stats)
+            rr = sorted(rst, key=lambda x: arrow.get(x["submit_date"]).date(), reverse=True)
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
 
