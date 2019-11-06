@@ -130,7 +130,7 @@ def makedata(task_id, schema, q):
         print("task_id is required.")
         return
     print(f"task_id={task_id} schema={schema} use_queue={q}")
-    past.mkdata.run(task_id, schema, q, operator="app.py")
+    past.mkdata.run(task_id, schema, q, operator=__file__)
 
 
 @click.command()
