@@ -153,7 +153,7 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
             work_list_2 = self.filter_ticket_date(ret, work_list_status=2)
             work_list_3 = self.filter_ticket_date(ret, work_list_status=3)
             rr = work_list_0 + work_list_1 + work_list_2 + work_list_3
-            rr = sorted(rr, key=lambda x: arrow.get(x).date(), reverse=True)
+            rr = sorted(rr, key=lambda x: arrow.get(x["submit_date"]).date(), reverse=True)
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
 
