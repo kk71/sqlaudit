@@ -114,10 +114,59 @@ def filter_data(data, filter_datetime=True):
     return data
 
 
-# 创建excel(SQL健康度数据、风险SQL)
+# 创建excel(SQL健康度数据、风险SQL,风险对象)
+def create_excels(username,send_list_id):
+    """new """
+    path = "/tmp/" + username + str(int(time.time()))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    from utils import cmdb_utils
+    from models.mongo import Job
+    from models.oracle import CMDB
+    import arrow
+    from models.oracle import DataHealth
+    with make_session() as session:
+        cmdb_ids:list=cmdb_utils.get_current_cmdb(session,username)
+
+        date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
+        date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
+        if cmdb_ids==[]:
+            wb = xlsxwriter.Workbook(
+                path + "/" + "此用户无纳管库" + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
+            wb.close()
+
+        now=arrow.now()
+        for cmdb_id in cmdb_ids:
+            connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
+            dh_q=session.query(DataHealth).filter(
+                DataHealth.database_name==connect_name,
+                DataHealth.collect_date>now.shift(weeks=-1).datetime
+            ).order_by(DataHealth.collect_date)
+            dh_d=[x.to_dict() for x in dh_q]
+            job_q=Job.objects(
+                cmdb_id=cmdb_id,
+                score__nin=[None,0],
+                create_time__gte=date_start,
+                create_time__lte=date_end,
+            ).order_by("-create_time")
+            job_d=[x.to_dict() for x in job_q]
+
+            wb = xlsxwriter.Workbook(
+                path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
+            create_sql_healthy_files(job_d,dh_d,connect_name,wb)
+            wb.close()
+    file_path_list = [
+        settings.CLIENT_NAME,
+        str(send_list_id),
+        datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+    ]
+    zipPath = zip_file_path(
+        path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
+    return zipPath
 
 
 def create_excel(username, send_list_id):
+    """old"""
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
         os.makedirs(path)
@@ -172,7 +221,96 @@ def create_excel(username, send_list_id):
     zipPath = zip_file_path(
         path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
     return zipPath
+# 创建sql健康度EXCEL
+import arrow
+def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
+    ws=wb.add_worksheet("1.整体健康度")
+    # excel 表格样式sheet1
+    ws.set_column(0, 7, 18)
+    head_merge_format = wb.add_format({
+        'size': 18,
+        'bold': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    ws.set_row(0, 30, head_merge_format)
+    ws.merge_range('A1:H1', settings.CLIENT_NAME +
+                   "“" + connect_name + "”SQL风险评估报告")
+    # 1.最近7天的整体健康度
+    title_format = wb.add_format({
+        "size": 14,
+        'bold': 1,
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    titles_format = wb.add_format({
+        "size": 14,
+        'bold': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    text_format = wb.add_format({
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    date_format = wb.add_format({
+        'bold': 1,
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    ws.write(1, 6, "报告日期", text_format)
+    ws.write(1, 7, arrow.now().date().strftime("%Y/%m/%d"), text_format)
+    ws.set_row(3, 20)
+    ws.merge_range('A4:H4', "1.最近7天整体健康度", title_format)
+    # content_format = wb.add_format({
+    #     'color': 'red',
+    #     'align': 'left',
+    #     'valign': 'vcenter',
+    #
+    # })
+    ws.write(4, 0, "采集日期", title_format)
+    ws.write(5, 0, "得分")
 
+    col=1
+    for dh in dh_d:
+        ws.write(4,col,dh['collect_date'][:10],date_format)
+        ws.write(5, col, dh['health_score'], text_format)
+        col += 1
+    # 根据健康度表格数据绘制折线图
+
+
+
+    #-----------------------------------------
+    # 健康度下钻表格样式设置及填充
+    ws.set_row(27,20)
+    ws.merge_range('A27:H27', "2.健康度下钻", title_format)
+    ws.set_row(28, 20)
+    titles = ['审计目标', '审计用户', '创建时间', '状态', '类型', '分数', '开始时间', '结束时间']
+    ws.write_row('A28', titles, titles_format)
+    status_map = {
+        "0": "失败",
+        "1": "成功",
+        "2": "正在运行"
+    }
+
+    row=28
+    col=0
+    for job in job_d:
+        ws.write(row,col,job['connect_name'],text_format)
+        ws.write(row, col + 1, job["name"].split("#")[0], text_format)
+        ws.write(row, col + 2, job["create_time"], text_format)
+        ws.write(row, col + 3, status_map[str(job['status'])], text_format)
+        ws.write(row, col + 4, job["name"].split("#")[1], text_format)
+        ws.write(row, col + 5, job.get("score", ""), text_format)
+        # if int(job.get("score", 0)) < 75:
+        #     ws.write(row, col + 5, job.get("score", ""), content_format)
+        # else:
+        #     ws.write(row, col + 5, job.get("score", ""), text_format)
+        ws.write(row, col + 6, str(job["desc"]
+                               ["capture_time_start"]), text_format)
+        ws.write(row, col + 7, str(job["desc"]
+                               ["capture_time_end"]), text_format)
+        row += 1
 
 # 创建sql健康度EXCEL
 def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):

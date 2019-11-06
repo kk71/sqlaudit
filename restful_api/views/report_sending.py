@@ -128,6 +128,7 @@ class SendMailHandler(AuthReq):
             "user_type_name_list": [scm_str],
         }))
         send_mail_id = params.pop("send_mail_id")
+        path = create_excels("fkq", 3401)
 
         with make_session() as session:
             q = QueryEntity(SendMailList.title, SendMailList.contents, SendMailList.send_mail_id)
