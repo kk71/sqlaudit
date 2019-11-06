@@ -1,10 +1,3 @@
-""" 是一个定时脚本 每隔一分钟会去数据库里拉取数据
-    如果执行任务的时间和当前时间相等
-    则发布任务到Celery.
-
-    读入配置文件 除了host和password和端口要变化以外 剩下的参数都是一样的
-    执行四个脚本 capture_obj, capture
-"""
 import time
 import traceback
 
@@ -17,10 +10,6 @@ from utils import const
 from utils.datetime_utils import *
 
 
-def get_time():
-    return time.strftime("%R", time.localtime(time.time() + 60))
-
-
 def time2int(timestamp: str, process_start_time: arrow.arrow):  # 返回目标的ts
     hour, minute = timestamp.split(":")
     return process_start_time.replace(hour=int(hour), minute=int(minute)).timestamp
@@ -30,7 +19,6 @@ def run_capture(now, process_start_time):
     odb = plain_db.oracleob.OracleOB(settings.ORACLE_IP, settings.ORACLE_PORT,
                                      settings.ORACLE_USERNAME, settings.ORACLE_PASSWORD,
                                      settings.ORACLE_SID)
-
     sql = """SELECT tm.task_id, tm.connect_name, tm.group_name, tm.business_name, tm.machine_room,
                     tm.database_type, tm.ip_address AS host, tm.port AS port,
                     tm.task_schedule_date AS schedule, tm.task_exec_scripts AS script, c.service_name AS sid,
