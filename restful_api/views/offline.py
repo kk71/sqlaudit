@@ -2,7 +2,6 @@
 
 import uuid
 from os import path
-from collections import OrderedDict
 
 import xlrd
 import xlsxwriter
@@ -14,7 +13,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils, offline_utils
+from utils import sql_utils, stream_utils, offline_utils, const
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
@@ -73,10 +72,12 @@ class OfflineTicketCommonHandler(PrivilegeReq):
 
         return q
 
-from utils import const
-class TicketOuterHandler(OfflineTicketCommonHandler):
 
-    def filter_ticket_date(self,ret,work_list_status):
+class TicketOuterHandler(OfflineTicketCommonHandler):
+    """线下审核工单的外层统计接口(苏州银行提出的需求)"""
+
+    @staticmethod
+    def filter_ticket_date(ret, work_list_status):
         rr = []
         for x in ret:
             if x["submit_date"] not in [y["submit_date"] for y in rr]:
@@ -108,11 +109,12 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
         return rr
 
     def get(self):
-        """线下审核外层列表
-        某天，每种状态下，状态数量，动静态问题数量，ddl,dml数量
         """
-
+        线下审核外层列表
+        :return:
+        """
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
+
         params = self.get_query_args(Schema({
             "date_start": scm_date,
             "date_end": scm_date_end,
@@ -124,32 +126,34 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
 
         with make_session() as session:
             q = session.query(WorkList).filter(WorkList.submit_date >= date_start,
-                                               WorkList.submit_date <= date_end). \
+                                               WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
             q = self.privilege_filter_ticket(q)
             ret = []
             for ticket in q:
-                r = session.query(SubWorkList). \
-                    filter(SubWorkList.work_list_id == ticket.work_list_id). \
-                    with_entities(
+                r = session.query(
                     SubWorkList.static_check_results,
                     SubWorkList.dynamic_check_results
-                ).all()
+                ).filter(SubWorkList.work_list_id == ticket.work_list_id).all()
                 static_rst, dynamic_rst = zip(*r) if r else ((), ())
                 ret_item = {
-                    **ticket.to_dict(iter_by = lambda k, v: arrow.get(v).format(const.COMMON_DATE_FORMAT)
-                    if k == "submit_date"  else v),
+                    **ticket.to_dict(
+                        iter_by=lambda k, v:
+                            arrow.get(v).format(const.COMMON_DATE_FORMAT)
+                            if k == "submit_date" else v
+                    ),
                     "result_stats": {
                         "static_problem_num": len([i for i in static_rst if i]),
                         "dynamic_problem_num": len([i for i in dynamic_rst if i])
                     }
                 }
                 ret.append(ret_item)
-            work_list_0=self.filter_ticket_date(ret,work_list_status=0)
-            work_list_1=self.filter_ticket_date(ret, work_list_status=1)
-            work_list_2=self.filter_ticket_date(ret, work_list_status=2)
-            work_list_3=self.filter_ticket_date(ret, work_list_status=3)
-            rr=work_list_0+work_list_1+work_list_2+work_list_3
+            work_list_0 = self.filter_ticket_date(ret, work_list_status=0)
+            work_list_1 = self.filter_ticket_date(ret, work_list_status=1)
+            work_list_2 = self.filter_ticket_date(ret, work_list_status=2)
+            work_list_3 = self.filter_ticket_date(ret, work_list_status=3)
+            rr = work_list_0 + work_list_1 + work_list_2 + work_list_3
+            rr = sorted(rr, key=lambda x: arrow.get(x).date(), reverse=True)
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
 
@@ -202,12 +206,10 @@ class TicketHandler(OfflineTicketCommonHandler):
             items, p = self.paginate(q, **p)
             ret = []
             for ticket in items:
-                r = session.query(SubWorkList). \
-                    filter(SubWorkList.work_list_id == ticket.work_list_id). \
-                    with_entities(
+                r = session.query(
                     SubWorkList.static_check_results,
                     SubWorkList.dynamic_check_results
-                ).all()
+                ).filter(SubWorkList.work_list_id == ticket.work_list_id).all()
                 static_rst, dynamic_rst = zip(*r) if r else ((), ())
                 ret_item = {
                     **ticket.to_dict(),
@@ -324,7 +326,7 @@ class ExportTicketHandler(AuthReq):
         # 主要信息
         works_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
                        "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-                       "工单状态", "审核人", "审核意见", "上线时间","工单的分数"]
+                       "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"]
         worklist_data = list(works.values())
 
         filename = '_'.join(['工单信息', works["task_name"], d_to_str(arrow.now())]) + '.xlsx'

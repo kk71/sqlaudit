@@ -63,7 +63,7 @@ urls += [
 
 # offline audit
 urls += [
-    (r"/api/offline/ticket/outer",offline.TicketOuterHandler),
+    (r"/api/offline/ticket/outer", offline.TicketOuterHandler),
     (r"/api/offline/ticket", offline.TicketHandler),
     (r"/api/offline/ticket/export", offline.ExportTicketHandler),
     (r"/api/offline/sub_ticket", offline.SubTicketHandler),
