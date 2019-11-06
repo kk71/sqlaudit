@@ -148,11 +148,9 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
                     }
                 }
                 ret.append(ret_item)
-            work_list_0 = self.filter_ticket_date(ret, work_list_status=0)
-            work_list_1 = self.filter_ticket_date(ret, work_list_status=1)
-            work_list_2 = self.filter_ticket_date(ret, work_list_status=2)
-            work_list_3 = self.filter_ticket_date(ret, work_list_status=3)
-            rr = work_list_0 + work_list_1 + work_list_2 + work_list_3
+            rr = []
+            for ticket_status in ALL_OFFLINE_TICKET_STATUS:
+                rr += self.filter_ticket_date(ret, work_list_status=ticket_status)
             rr = sorted(rr, key=lambda x: arrow.get(x["submit_date"]).date(), reverse=True)
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
