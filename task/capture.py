@@ -242,6 +242,8 @@ def task_run(host, port, sid, username, password,
         session.refresh(task_record_object)
         record_id = task_record_object.id
 
+    task.clear_cache.clear_cache.delay(no_prefetch=True)
+
     try:
         if not db_users:
             cmdb_odb = plain_db.oracleob.OracleOB(host, port, username, password, sid)
