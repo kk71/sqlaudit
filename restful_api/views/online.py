@@ -111,10 +111,10 @@ class ObjectRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        rr, rst = await risk_object_export_data(cmdb_id=cmdb_id, schema=schema,
-                                                date_start=date_start, date_end=date_end,
-                                                severity=severity, rule_name=rule_name,
-                                                ids=ids)
+        rr, rst = await async_thr(risk_object_export_data, cmdb_id=cmdb_id, schema=schema,
+                                  date_start=date_start, date_end=date_end,
+                                  severity=severity, rule_name=rule_name,
+                                  ids=ids)
 
         filename = f"risk_obj_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
         full_filename = path.join(settings.EXPORT_DIR, filename)
@@ -307,10 +307,10 @@ class SQLRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        rr, rst = await risk_sql_export_data(cmdb_id=cmdb_id, schema=schema,
-                                             date_start=date_start, date_end=date_end,
-                                             severity=severity, rule_name=rule_name,
-                                             ids=ids)
+        rr, rst = await async_thr(risk_sql_export_data, cmdb_id=cmdb_id, schema=schema,
+                                  date_start=date_start, date_end=date_end,
+                                  severity=severity, rule_name=rule_name,
+                                  ids=ids)
 
         filename = f"risk_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
         full_filename = path.join(settings.EXPORT_DIR, filename)

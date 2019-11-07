@@ -19,7 +19,7 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session,CMDB,DataHealth
+from models.oracle import make_session, CMDB, DataHealth
 from models.mongo import Job
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
@@ -49,6 +49,7 @@ def insert_send_mail_history(login_user, send_mail_id, result, file_path):
     sql_params = [send_mail_id, login_user, file_path, result, get_time()]
     OracleHelper.insert(sql, params=sql_params)
 
+
 @celery.task
 def timing_send_work_list_status(work_list):
     """
@@ -56,7 +57,7 @@ def timing_send_work_list_status(work_list):
     :param work_list:
     :return:
     """
-    sql="SELECT * FROM MAIL_SERVER"
+    sql = "SELECT * FROM MAIL_SERVER"
     server_data = OracleHelper.select_dict(sql, one=True)
 
     params = [work_list.submit_owner]
@@ -70,17 +71,17 @@ def timing_send_work_list_status(work_list):
     audit_owner = work_list.audit_owner
     work_list_id = work_list.work_list_id
     task_name = work_list.task_name
-    comment=None
+    comment = None
     if work_list_status == 1:
-        comment=f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核通过"
+        comment = f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核通过"
     elif work_list_status == 2:
-        comment=f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核不通过,理由为{audit_comments}"
+        comment = f"工单id为{work_list_id},任务名称为{task_name}的工单,在{audit_date}被{audit_owner}审核不通过,理由为{audit_comments}"
 
-    send_work_list_status(server_data, user_email,comment)
+    send_work_list_status(server_data, user_email, comment)
 
 
 @celery.task
-async def timing_send_mail(send_user_list):
+def timing_send_mail(send_user_list):
     """
     发送邮件
     :param send_user_list:
@@ -100,13 +101,13 @@ async def timing_send_mail(send_user_list):
             contents = send_detail['contents']
 
             # 获取EXCEL打包后的压缩包
-            path = await create_excels(login_user, send_detail['send_mail_id'])
+            path = create_excels(login_user, send_detail['send_mail_id'])
             result, error = send_mail(title, contents, user_email, server_data, path,
                                       settings.CLIENT_NAME + 'SQL审核报告' + datetime.now().strftime("%Y_%m_%d") + '.zip')
             result = 1 if result else 0
             error = str(error) if error is not None else ''
             update_send_mail(result, error, send_detail['send_mail_id'])
-            path=re.search('/dow.*',path).group()
+            path = re.search('/dow.*', path).group()
             insert_send_mail_history(login_user, send_detail['send_mail_id'], result, path)
 
 
@@ -120,55 +121,55 @@ def filter_data(data, filter_datetime=True):
 
 
 # 创建excel(SQL健康度数据、风险SQL,风险对象)
-async def create_excels(username,send_list_id):
+def create_excels(username, send_list_id):
     """new create excels """
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
         os.makedirs(path)
 
     with make_session() as session:
-        cmdb_ids:list=cmdb_utils.get_current_cmdb(session,username)
+        cmdb_ids: list = cmdb_utils.get_current_cmdb(session, username)
 
-        date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
-        date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
+        date_start = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
+        date_end = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
         date_start_today = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').date()
         now = arrow.now()
 
-        if cmdb_ids==[]:
+        if cmdb_ids == []:
             wb = xlsxwriter.Workbook(
                 path + "/" + "此用户无纳管库" + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
             wb.close()
         for cmdb_id in cmdb_ids:
             connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
 
-            dh_q=session.query(DataHealth).filter(
-                DataHealth.database_name==connect_name,
-                DataHealth.collect_date>now.shift(weeks=-1).datetime
+            dh_q = session.query(DataHealth).filter(
+                DataHealth.database_name == connect_name,
+                DataHealth.collect_date > now.shift(weeks=-1).datetime
             ).order_by(DataHealth.collect_date)
-            dh_d=[x.to_dict() for x in dh_q]
+            dh_d = [x.to_dict() for x in dh_q]
 
-            job_q=Job.objects(
+            job_q = Job.objects(
                 cmdb_id=cmdb_id,
-                score__nin=[None,0],
+                score__nin=[None, 0],
                 create_time__gte=date_start,
                 create_time__lte=date_end,
             ).order_by("-create_time")
-            job_d=[x.to_dict() for x in job_q]
+            job_d = [x.to_dict() for x in job_q]
 
-            rr_obj,rst_obj=await risk_object_export_data(
-                cmdb_id=cmdb_id,date_start=date_start_today,
+            rr_obj, rst_obj = risk_object_export_data(
+                cmdb_id=cmdb_id, date_start=date_start_today,
                 date_end=date_end)
 
-            rr_sql,rst_sql=await risk_sql_export_data(
+            rr_sql, rst_sql = risk_sql_export_data(
                 cmdb_id=cmdb_id,
                 date_start=date_start_today,
                 date_end=date_end)
 
             wb = xlsxwriter.Workbook(
-                path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_files(job_d,dh_d,connect_name,wb)
-            create_risk_obj_files(rr_obj,rst_obj,wb)
-            create_risk_sql_files(rr_sql,rst_sql,wb)
+                path + "/" + connect_name + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
+            create_sql_healthy_files(job_d, dh_d, connect_name, wb)
+            create_risk_obj_files(rr_obj, rst_obj, wb)
+            create_risk_sql_files(rr_sql, rst_sql, wb)
             wb.close()
 
     file_path_list = [
@@ -182,7 +183,7 @@ async def create_excels(username,send_list_id):
 
 
 def create_excel(username, send_list_id):
-    #TODO DEPRECATED
+    # TODO DEPRECATED
     """old"""
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
@@ -238,10 +239,12 @@ def create_excel(username, send_list_id):
     zipPath = zip_file_path(
         path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
     return zipPath
+
+
 # 创建sql健康度EXCEL
-def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
+def create_sql_healthy_files(job_d, dh_d, connect_name, wb):
     # excel 表格样式sheet1
-    ws=wb.add_worksheet("1.整体健康度")
+    ws = wb.add_worksheet("1.整体健康度")
     ws.set_column(0, 7, 18)
     head_merge_format = wb.add_format({
         'size': 18,
@@ -281,16 +284,16 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
     ws.merge_range('A4:H4', "1.最近7天整体健康度", title_format)
     ws.write(4, 0, "采集日期", title_format)
     ws.write(5, 0, "得分")
-    col=1
+    col = 1
     for dh in dh_d:
-        ws.write(4,col,dh['collect_date'][:10],date_format)
+        ws.write(4, col, dh['collect_date'][:10], date_format)
         ws.write(5, col, dh['health_score'], text_format)
         col += 1
 
     # 根据健康度表格数据绘制折线图
-    chart1=wb.add_chart({'type':'line'})
-    chart1.width=650
-    chart1.height=350
+    chart1 = wb.add_chart({'type': 'line'})
+    chart1.width = 650
+    chart1.height = 350
 
     chart1.add_series({
         'name': '健康度',
@@ -336,9 +339,9 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
                        })
     ws.insert_chart('B7', chart1, {'x_offset': 25, 'y_offset': 20})
 
-    #-----------------------------------------
+    # -----------------------------------------
     # 健康度下钻表格样式设置及填充
-    ws.set_row(27,20)
+    ws.set_row(27, 20)
     ws.merge_range('A27:H27', "2.健康度下钻", title_format)
     ws.set_row(28, 20)
     titles = ['审计目标', '审计用户', '创建时间', '状态', '类型', '分数', '开始时间', '结束时间']
@@ -349,20 +352,21 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
         "2": "正在运行"
     }
 
-    row=28
-    col=0
+    row = 28
+    col = 0
     for job in job_d:
-        ws.write(row,col,job['connect_name'],text_format)
+        ws.write(row, col, job['connect_name'], text_format)
         ws.write(row, col + 1, job["name"].split("#")[0], text_format)
         ws.write(row, col + 2, job["create_time"], text_format)
         ws.write(row, col + 3, status_map[str(job['status'])], text_format)
         ws.write(row, col + 4, job["name"].split("#")[1], text_format)
         ws.write(row, col + 5, job.get("score", ""), text_format)
         ws.write(row, col + 6, str(job["desc"]
-                               ["capture_time_start"]), text_format)
+                                   ["capture_time_start"]), text_format)
         ws.write(row, col + 7, str(job["desc"]
-                               ["capture_time_end"]), text_format)
+                                   ["capture_time_end"]), text_format)
         row += 1
+
 
 # 创建sql健康度EXCEL
 def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
@@ -526,16 +530,16 @@ def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
         else:
             ws.write(row, col + 5, value.get("score", ""), text_format)
         ws.write(row, col + 6, str(value["desc"]
-                               ["capture_time_start"])[:-3], text_format)
+                                   ["capture_time_start"])[:-3], text_format)
         ws.write(row, col + 7, str(value["desc"]
-                               ["capture_time_end"])[:-3], text_format)
+                                   ["capture_time_end"])[:-3], text_format)
         row += 1
 
 
 # ---------------------------------------------end---------------------------
 
 # 创建风险SQL EXCEL
-def create_risk_sql_files(rr,rst,wb):
+def create_risk_sql_files(rr, rst, wb):
     """new create risk sql files"""
     title_heads = ['采集时间', "风险分类", '本项风险总数']
     heads = ['sql_id', 'sql_text', 'similar_sql_num']
@@ -576,8 +580,9 @@ def create_risk_sql_files(rr,rst,wb):
                 ws.write(3 + rows_nums, 2, rows['similar_sql_num'], content_format)
                 rows_nums += 1
 
+
 def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
-    #TODO DEPRECATED
+    # TODO DEPRECATED
     """old create risk sql files"""
     ws = wb.add_worksheet("3.风险sql")
 
@@ -731,7 +736,7 @@ def format_results(results, rule_list, key='rule_name') -> dict:
             if rule_name not in rule_list or not sql_ids or 'records' in sql_ids:
                 continue
             if key == 'rule_name':
-                kvalues=[kvalue for krisk, kvalue in sql_ids.items() if krisk != 'scores']
+                kvalues = [kvalue for krisk, kvalue in sql_ids.items() if krisk != 'scores']
                 [set_dict[rule_name].add(
                     kvalue['sql_id']) for k in kvalues for kvalue in k]
             elif key == 'schemas':
@@ -841,8 +846,7 @@ def create_appendx(wb):
 
 
 # 风险对象
-def create_risk_obj_files(rr,rst,wb):
-
+def create_risk_obj_files(rr, rst, wb):
     title_heads = ['采集时间', "风险分类", '本项风险总数']
     heads = ['对象名称', '风险问题', '优化建议']
 
@@ -862,7 +866,7 @@ def create_risk_obj_files(rr,rst,wb):
     for row_num, row in enumerate(rr):
         a += 1
         row_num = 0
-        ws = wb.add_worksheet(re.sub('[*%]','',row["rule_desc"][:20]) + f'-{a}')
+        ws = wb.add_worksheet(re.sub('[*%]', '', row["rule_desc"][:20]) + f'-{a}')
         ws.set_row(0, 20, title_format)
         ws.set_column(0, 0, 60)
         ws.set_column(1, 1, 60)
@@ -885,7 +889,7 @@ def create_risk_obj_files(rr,rst,wb):
 
 
 def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):
-    #TODO DEPRECATED
+    # TODO DEPRECATED
     ws = wb.add_worksheet("2.风险对象")
     title = ["对象名称", "风险点", "风险详情", "最早出现时间", "最后出现时间", "优化建议"]
     title_format = wb.add_format({
@@ -933,4 +937,4 @@ def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):
 
 if __name__ == "__main__":
     timing_send_mail.delay([{'title': "测试", 'contents': "测试发邮件",
-                              'mail_sender': ['operator'], 'send_mail_id': 1001}])
+                             'mail_sender': ['operator'], 'send_mail_id': 1001}])

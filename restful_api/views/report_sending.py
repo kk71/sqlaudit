@@ -121,7 +121,7 @@ class ConfigSenderHandler(AuthReq):
 
 class SendMailHandler(AuthReq):
 
-    async def post(self):
+    def post(self):
         """发送测试邮件"""
         params = self.get_json_args(Schema({
             "send_mail_id": scm_int,
@@ -135,8 +135,7 @@ class SendMailHandler(AuthReq):
             send_mail = [q.to_dict(x) for x in send_mail]
             for x in send_mail:
                 x.update({**params})
-            await timing_send_mail.delay(send_mail)
-            # await timing_send_mail(send_mail)
+            timing_send_mail.delay(send_mail)
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 

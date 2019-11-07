@@ -47,7 +47,6 @@ def parse_sql_file(sql_contents, sql_keyword):
             return True
         return False
 
-
     # sql_keyword doesn't used.
 
     procedures = get_procedures_end_with_slash(sql_contents)
@@ -181,7 +180,7 @@ def get_risk_sql_list(session,
         rule_type: list = const.ALL_RULE_TYPES_FOR_SQL_RULE
     else:
         rule_type: list = [rule_type]
-    risk_rule_q = session.query(RiskSQLRule).\
+    risk_rule_q = session.query(RiskSQLRule). \
         filter(RiskSQLRule.rule_type.in_(rule_type),
                RiskSQLRule.db_model == cmdb.db_model)
     result_q = result_q.filter(rule_type__in=rule_type)
@@ -322,10 +321,11 @@ def get_risk_sql_list(session,
         r["sql_id_num"] = countered_sql_id_num[sql_id]
     return rst
 
-async def risk_sql_export_data(cmdb_id=None, schema=None,
-                                  date_start=None, date_end=None,
-                                  severity: list = None, rule_name: list = None,
-                                  ids: list = None):
+
+def risk_sql_export_data(cmdb_id=None, schema=None,
+                         date_start=None, date_end=None,
+                         severity: list = None, rule_name: list = None,
+                         ids: list = None):
     """风险SQL导出数据获取"""
     risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
     if schema:
@@ -350,8 +350,7 @@ async def risk_sql_export_data(cmdb_id=None, schema=None,
         rr.append(d)
 
     with make_session() as session:
-        rst = await AsyncTimeout(60).async_thr(
-            get_risk_sql_list,
+        rst = get_risk_sql_list(
             cmdb_id=cmdb_id,
             date_range=(date_start, date_end),
             schema_name=schema,

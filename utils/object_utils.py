@@ -189,7 +189,8 @@ def get_risk_object_list(session,
 
     return rst
 
-async def risk_object_export_data(cmdb_id=None, schema=None,
+
+def risk_object_export_data(cmdb_id=None, schema=None,
                                   date_start=None, date_end=None,
                                   severity: list = None, rule_name: list = None,
                                   ids: list = None):
@@ -217,8 +218,7 @@ async def risk_object_export_data(cmdb_id=None, schema=None,
         rr.append(d)
 
     with make_session() as session:
-        rst = await AsyncTimeout(60).async_thr(
-            get_risk_object_list,
+        rst = get_risk_object_list(
             session=session,
             cmdb_id=cmdb_id,
             schema_name=schema,
