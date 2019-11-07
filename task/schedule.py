@@ -35,10 +35,11 @@ def run_capture(now, process_start_time):
             continue
         task_begin_time_sec = time2int(task['schedule'], process_start_time)
         task_freq_sec = int(task['frequency']) * 60
-        calced = (now.datetime.timestamp() - task_begin_time_sec) % task_freq_sec
-        if calced < 1:
+        time_delta = now.datetime.timestamp() - task_begin_time_sec
+        sec_to_run: int = time_delta % task_freq_sec
+        if time_delta >= 0 and sec_to_run < 1:
             print(f'task {task["task_id"]} is going to run for frequency '
-                  f'is {task_freq_sec}s with calced={calced} ...')
+                  f'is {task_freq_sec}s with {sec_to_run}s remained...')
             new_tasks.append(task)
     if new_tasks:
         print(f"Going to run {len(new_tasks)} tasks...")
