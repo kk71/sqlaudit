@@ -318,7 +318,11 @@ def calculate_rules(result, search_temp):
 
     marks = sum([float(x[3]) for x in rules])
 
-    scores_total = round((total_score - marks) / total_score * 100 or 1, 2)
+    if total_score == 0:
+        print(f"total score is 0!!! {result}")
+        scores_total = 0
+    else:
+        scores_total = round((total_score - marks) / total_score * 100 or 1, 2)
     real_score = scores_total if scores_total > 40 else 40
 
     return rules, real_score
