@@ -130,6 +130,8 @@ def create_excels(username,send_list_id):
 
         date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
         date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
+        date_start_today = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').date()
+
         now = arrow.now()
         if cmdb_ids==[]:
             wb = xlsxwriter.Workbook(
@@ -155,7 +157,7 @@ def create_excels(username,send_list_id):
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
             create_sql_healthy_files(job_d,dh_d,connect_name,wb)
-            create_risk_obj_file(cmdb_id,wb)
+            # create_risk_obj_files(rr,rst,wb)
             wb.close()
 
     file_path_list = [
@@ -784,6 +786,51 @@ def create_appendx(wb):
 
 
 # 风险对象
+from models.mongo import StatsRiskObjectsRule
+from utils.conc_utils import *
+from utils import object_utils
+def create_risk_obj_files(rr,rst,wb):
+
+    title_heads = ['采集时间', "风险分类", '本项风险总数']
+    heads = ['对象名称', '风险问题', '优化建议']
+
+    title_format = wb.add_format({
+        'size': 14,
+        'bold': 30,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    content_format = wb.add_format({
+        'align': 'center',
+        'valign': 'vcenter',
+        'size': 13,
+        'text_wrap': True,
+    })
+    a = 0
+    for row_num, row in enumerate(rr):
+        a += 1
+        row_num = 0
+        ws = wb.add_worksheet(f'{a}')
+        ws.set_row(0, 20, title_format)
+        ws.set_column(0, 0, 60)
+        ws.set_column(1, 1, 60)
+        ws.set_column(2, 2, 60)
+
+        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        row_num += 1
+        ws.write(row_num, 0, row["last_appearance"], content_format)
+        ws.write(row_num, 1, row["rule_desc"], content_format)
+        ws.write(row_num, 2, row["rule_num"], content_format)
+
+        rows_nums = 1
+        for rows in rst:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+            if rows['schema'] and rows['rule_desc'] in row.values():
+                ws.write(3 + rows_nums, 0, rows['object_name'], content_format)
+                ws.write(3 + rows_nums, 1, rows['risk_detail'], content_format)
+                ws.write(3 + rows_nums, 2, rows['optimized_advice'], content_format)
+                rows_nums += 1
+
 
 
 def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):

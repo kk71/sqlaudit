@@ -137,7 +137,7 @@ class SendMailHandler(AuthReq):
         #     for x in send_mail:
         #         x.update({**params})
         #     timing_send_mail.delay(send_mail)
-        #     # timing_send_mail(send_mail)
+        #     timing_send_mail(send_mail)
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 

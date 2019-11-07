@@ -3,6 +3,7 @@
 from os import path
 from collections import defaultdict
 
+import re
 import sqlparse
 import xlsxwriter
 from schema import Schema, Optional, And
@@ -86,7 +87,43 @@ class ObjectRiskRuleHandler(AuthReq):
 
         self.resp(rst_this_page, **p)
 
-
+# def xx(cmdb_id=None,schema=None,
+#        date_start=None,date_end=None,
+#        severity=[],rule_name=[],ids=[]):
+#     risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
+#     if schema:
+#         risk_objects = risk_objects.filter(schema=schema)
+#     if date_start:
+#         risk_objects = risk_objects.filter(etl_date__gte=date_start)
+#     if date_end:
+#         risk_objects = risk_objects.filter(etl_date__lte=date_end)
+#     if severity:
+#         risk_objects = risk_objects.filter(severity__in=severity)
+#     if rule_name:
+#         risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
+#     if ids:
+#         risk_objects = risk_objects.filter(_id__in=ids)
+#         # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
+#         rule_name: list = [a_rule["rule_name"]
+#                            for a_rule in risk_objects.values_list("rule")]
+#     rr = []
+#     for x in risk_objects:
+#         d = x.to_dict()
+#         d.update({**d.pop("rule")})
+#         rr.append(d)
+#
+#     with make_session() as session:
+#         rst = await AsyncTimeout(60).async_thr(
+#             object_utils.get_risk_object_list,
+#             session=session,
+#             cmdb_id=cmdb_id,
+#             schema_name=schema,
+#             date_end=date_end,
+#             date_start=date_start,
+#             severity=severity,
+#             rule_name=rule_name
+#         )
+#     return rr,rst
 class ObjectRiskExportReportHandler(AuthReq):
 
     async def post(self):
@@ -163,7 +200,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row["rule_desc"][:20] + f'--{a}')
+            ws = wb.add_worksheet(re.sub('[*%]','',row["rule_desc"][:20]) + f'-{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
@@ -422,7 +459,7 @@ class SQLRiskExportReportHandler(AuthReq):
         for row_num, row in enumerate(rr):
             a += 1
             row_num = 0
-            ws = wb.add_worksheet(row['rule_desc'][:20] + f'--{a}')
+            ws = wb.add_worksheet(re.sub('[*%]', '', row['rule_desc'][:20]) + f'-{a}')
             ws.set_row(0, 20, title_format)
             ws.set_column(0, 0, 60)
             ws.set_column(1, 1, 60)
