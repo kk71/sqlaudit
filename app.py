@@ -3,6 +3,7 @@
 
 __VERSION__ = "0.2.0"
 
+from os import path
 from utils.datetime_utils import *
 print(f"SQL-Audit version {__VERSION__} ({dt_to_str(arrow.now())})")
 
@@ -130,7 +131,7 @@ def makedata(task_id, schema, q):
         print("task_id is required.")
         return
     print(f"task_id={task_id} schema={schema} use_queue={q}")
-    past.mkdata.run(task_id, schema, q, operator=__file__)
+    past.mkdata.run(task_id, schema, q, operator=path.split(__file__)[1])
 
 
 @click.command()
