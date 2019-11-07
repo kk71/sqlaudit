@@ -121,23 +121,22 @@ class ConfigSenderHandler(AuthReq):
 
 class SendMailHandler(AuthReq):
 
-    def post(self):
+    async def post(self):
         """发送测试邮件"""
         params = self.get_json_args(Schema({
             "send_mail_id": scm_int,
             "user_type_name_list": [scm_str],
         }))
         send_mail_id = params.pop("send_mail_id")
-        path = create_excels("fkq", 3401)
 
-        # with make_session() as session:
-        #     q = QueryEntity(SendMailList.title, SendMailList.contents, SendMailList.send_mail_id)
-        #     send_mail = session.query(*q).filter_by(send_mail_id=send_mail_id)
-        #     send_mail = [q.to_dict(x) for x in send_mail]
-        #     for x in send_mail:
-        #         x.update({**params})
-        #     timing_send_mail.delay(send_mail)
-        #     timing_send_mail(send_mail)
+        with make_session() as session:
+            q = QueryEntity(SendMailList.title, SendMailList.contents, SendMailList.send_mail_id)
+            send_mail = session.query(*q).filter_by(send_mail_id=send_mail_id)
+            send_mail = [q.to_dict(x) for x in send_mail]
+            for x in send_mail:
+                x.update({**params})
+            await timing_send_mail.delay(send_mail)
+            # await timing_send_mail(send_mail)
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 

@@ -4,6 +4,7 @@ import re
 import os
 import gzip
 import time
+import arrow
 import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -18,9 +19,12 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session
+from models.oracle import make_session,CMDB,DataHealth
+from models.mongo import Job
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
+from utils import cmdb_utils
+from restful_api.views.online import risk_object_export_data,risk_sql_export_data
 
 from .base import celery
 
@@ -75,7 +79,7 @@ def timing_send_work_list_status(work_list):
 
 
 @celery.task
-def timing_send_mail(send_user_list):
+async def timing_send_mail(send_user_list):
     """
     发送邮件
     :param send_user_list:
@@ -95,7 +99,7 @@ def timing_send_mail(send_user_list):
             contents = send_detail['contents']
 
             # 获取EXCEL打包后的压缩包
-            path = create_excel(login_user, send_detail['send_mail_id'])
+            path = await create_excels(login_user, send_detail['send_mail_id'])
             result, error = send_mail(title, contents, user_email, server_data, path,
                                       settings.CLIENT_NAME + 'SQL审核报告' + datetime.now().strftime("%Y_%m_%d") + '.zip')
             result = 1 if result else 0
@@ -115,24 +119,20 @@ def filter_data(data, filter_datetime=True):
 
 
 # 创建excel(SQL健康度数据、风险SQL,风险对象)
-def create_excels(username,send_list_id):
-    """new """
+async def create_excels(username,send_list_id):
+    """new create excels """
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
         os.makedirs(path)
-    from utils import cmdb_utils
-    from models.mongo import Job
-    from models.oracle import CMDB
-    import arrow
-    from models.oracle import DataHealth
+
     with make_session() as session:
         cmdb_ids:list=cmdb_utils.get_current_cmdb(session,username)
 
         date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
         date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
         date_start_today = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').date()
-
         now = arrow.now()
+
         if cmdb_ids==[]:
             wb = xlsxwriter.Workbook(
                 path + "/" + "此用户无纳管库" + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
@@ -154,10 +154,20 @@ def create_excels(username,send_list_id):
             ).order_by("-create_time")
             job_d=[x.to_dict() for x in job_q]
 
+            rr_obj,rst_obj=await risk_object_export_data(
+                cmdb_id=cmdb_id,date_start=date_start_today,
+                date_end=date_end)
+
+            rr_sql,rst_sql=await risk_sql_export_data(
+                cmdb_id=cmdb_id,
+                date_start=date_start_today,
+                date_end=date_end)
+
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
             create_sql_healthy_files(job_d,dh_d,connect_name,wb)
-            # create_risk_obj_files(rr,rst,wb)
+            create_risk_obj_files(rr_obj,rst_obj,wb)
+            create_risk_sql_files(rr_sql,rst_sql,wb)
             wb.close()
 
     file_path_list = [
@@ -171,6 +181,7 @@ def create_excels(username,send_list_id):
 
 
 def create_excel(username, send_list_id):
+    #TODO DEPRECATED
     """old"""
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
@@ -227,7 +238,6 @@ def create_excel(username, send_list_id):
         path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
     return zipPath
 # 创建sql健康度EXCEL
-import arrow
 def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
     # excel 表格样式sheet1
     ws=wb.add_worksheet("1.整体健康度")
@@ -355,6 +365,7 @@ def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
 
 # 创建sql健康度EXCEL
 def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
+    # TODO: DEPRECATED
     ws = wb.add_worksheet("1.整体健康度")
 
     query = """select connect_name from T_CMDB where cmdb_id = :1"""
@@ -522,8 +533,51 @@ def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
 
 # ---------------------------------------------end---------------------------
 
-# 创建风险SQL EXCELcmdb_id
+# 创建风险SQL EXCEL
+def create_risk_sql_files(rr,rst,wb):
+    """new create risk sql files"""
+    title_heads = ['采集时间', "风险分类", '本项风险总数']
+    heads = ['sql_id', 'sql_text', 'similar_sql_num']
+    title_format = wb.add_format({
+        'size': 14,
+        'bold': 30,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    content_format = wb.add_format({
+        'align': 'center',
+        'valign': 'vcenter',
+        'size': 11,
+        'text_wrap': True,
+    })
+    a = 0
+    for row_num, row in enumerate(rr):
+        a += 1
+        row_num = 0
+        ws = wb.add_worksheet(re.sub('[*%]', '', row['rule_desc'][:20]) + f'-{a}')
+        ws.set_row(0, 20, title_format)
+        ws.set_column(0, 0, 60)
+        ws.set_column(1, 1, 60)
+        ws.set_column(2, 2, 60)
+
+        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        row_num += 1
+        ws.write(row_num, 0, row["last_appearance"], content_format)
+        ws.write(row_num, 1, row["rule_desc"], content_format)
+        ws.write(row_num, 2, row["rule_num"], content_format)
+
+        rows_nums = 1
+        for rows in rst:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+            if rows['schema'] and rows['rule_desc'] in row.values():
+                ws.write(3 + rows_nums, 0, rows['sql_id'], content_format)
+                ws.write(3 + rows_nums, 1, rows['sql_text'], content_format)
+                ws.write(3 + rows_nums, 2, rows['similar_sql_num'], content_format)
+                rows_nums += 1
+
 def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
+    #TODO DEPRECATED
+    """old create risk sql files"""
     ws = wb.add_worksheet("3.风险sql")
 
     start_time = datetime.now() - timedelta(days=14)
@@ -786,9 +840,6 @@ def create_appendx(wb):
 
 
 # 风险对象
-from models.mongo import StatsRiskObjectsRule
-from utils.conc_utils import *
-from utils import object_utils
 def create_risk_obj_files(rr,rst,wb):
 
     title_heads = ['采集时间', "风险分类", '本项风险总数']
@@ -810,7 +861,7 @@ def create_risk_obj_files(rr,rst,wb):
     for row_num, row in enumerate(rr):
         a += 1
         row_num = 0
-        ws = wb.add_worksheet(f'{a}')
+        ws = wb.add_worksheet(re.sub('[*%]','',row["rule_desc"][:20]) + f'-{a}')
         ws.set_row(0, 20, title_format)
         ws.set_column(0, 0, 60)
         ws.set_column(1, 1, 60)
@@ -832,8 +883,8 @@ def create_risk_obj_files(rr,rst,wb):
                 rows_nums += 1
 
 
-
 def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):
+    #TODO DEPRECATED
     ws = wb.add_worksheet("2.风险对象")
     title = ["对象名称", "风险点", "风险详情", "最早出现时间", "最后出现时间", "优化建议"]
     title_format = wb.add_format({
