@@ -24,7 +24,8 @@ from models.mongo import Job
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
 from utils import cmdb_utils
-from restful_api.views.online import risk_object_export_data,risk_sql_export_data
+from utils.sql_utils import risk_sql_export_data
+from utils.object_utils import risk_object_export_data
 
 from .base import celery
 

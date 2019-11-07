@@ -16,6 +16,8 @@ from .base import AuthReq, PrivilegeReq
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils import rule_utils, sql_utils, object_utils, score_utils
+from utils.sql_utils import risk_sql_export_data
+from utils.object_utils import risk_object_export_data
 from models.oracle import *
 from models.mongo import *
 from models.mongo.statistics import StatsRiskObjectsRule, StatsRiskSqlRule
@@ -86,48 +88,6 @@ class ObjectRiskRuleHandler(AuthReq):
         rst_this_page, p = self.paginate(risk_obj_rule, **p)
 
         self.resp(rst_this_page, **p)
-
-
-async def risk_object_export_data(cmdb_id=None, schema=None,
-                                  date_start=None, date_end=None,
-                                  severity: list = None, rule_name: list = None,
-                                  ids: list = None):
-    """风险对象导出数据获取"""
-    risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
-    if schema:
-        risk_objects = risk_objects.filter(schema=schema)
-    if date_start:
-        risk_objects = risk_objects.filter(etl_date__gte=date_start)
-    if date_end:
-        risk_objects = risk_objects.filter(etl_date__lte=date_end)
-    if severity:
-        risk_objects = risk_objects.filter(severity__in=severity)
-    if rule_name:
-        risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
-    if ids:
-        risk_objects = risk_objects.filter(_id__in=ids)
-        # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-        rule_name: list = [a_rule["rule_name"]
-                           for a_rule in risk_objects.values_list("rule")]
-    rr = []
-    for x in risk_objects:
-        d = x.to_dict()
-        d.update({**d.pop("rule")})
-        rr.append(d)
-
-    with make_session() as session:
-        rst = await AsyncTimeout(60).async_thr(
-            object_utils.get_risk_object_list,
-            session=session,
-            cmdb_id=cmdb_id,
-            schema_name=schema,
-            date_end=date_end,
-            date_start=date_start,
-            severity=severity,
-            rule_name=rule_name
-        )
-
-    return rr, rst
 
 
 class ObjectRiskExportReportHandler(AuthReq):
@@ -326,45 +286,7 @@ class SQLRiskRuleHandler(AuthReq):
         self.resp(rst_this_page, **p)
 
 
-async def risk_sql_export_data(cmdb_id=None, schema=None,
-                                  date_start=None, date_end=None,
-                                  severity: list = None, rule_name: list = None,
-                                  ids: list = None):
-    """风险SQL导出数据获取"""
-    risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
-    if schema:
-        risk_sql = risk_sql.filter(schema=schema)
-    if date_start:
-        risk_sql = risk_sql.filter(etl_date__gte=date_start)
-    if date_end:
-        risk_sql = risk_sql.filter(etl_date__lte=date_end)
-    if severity:
-        risk_sql = risk_sql.filter(severity__in=severity)
-    if rule_name:
-        risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
-    if ids:
-        risk_sql = risk_sql.filter(_id__in=ids)
-        # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-        rule_name: list = [a_rule["rule_name"]
-                           for a_rule in risk_sql.values_list("rule")]
-    rr = []
-    for x in risk_sql:
-        d = x.to_dict()
-        d.update({**d.pop("rule")})
-        rr.append(d)
 
-    with make_session() as session:
-        rst = await AsyncTimeout(60).async_thr(
-            sql_utils.get_risk_sql_list,
-            cmdb_id=cmdb_id,
-            date_range=(date_start, date_end),
-            schema_name=schema,
-            session=session,
-            severity=severity,
-            rule_name=rule_name
-        )
-
-    return rr, rst
 
 
 class SQLRiskExportReportHandler(AuthReq):

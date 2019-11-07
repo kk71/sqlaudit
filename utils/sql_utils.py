@@ -13,6 +13,7 @@ from models.oracle import *
 from utils.datetime_utils import *
 from utils import rule_utils, const
 from utils.datetime_utils import *
+from utils.conc_utils import *
 from past.utils.constant import SQLPLUS_SQL
 
 
@@ -310,3 +311,43 @@ def get_risk_sql_list(session,
         sql_id = r["sql_id"]
         r["sql_id_num"] = countered_sql_id_num[sql_id]
     return rst
+
+async def risk_sql_export_data(cmdb_id=None, schema=None,
+                                  date_start=None, date_end=None,
+                                  severity: list = None, rule_name: list = None,
+                                  ids: list = None):
+    """风险SQL导出数据获取"""
+    risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
+    if schema:
+        risk_sql = risk_sql.filter(schema=schema)
+    if date_start:
+        risk_sql = risk_sql.filter(etl_date__gte=date_start)
+    if date_end:
+        risk_sql = risk_sql.filter(etl_date__lte=date_end)
+    if severity:
+        risk_sql = risk_sql.filter(severity__in=severity)
+    if rule_name:
+        risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
+    if ids:
+        risk_sql = risk_sql.filter(_id__in=ids)
+        # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
+        rule_name: list = [a_rule["rule_name"]
+                           for a_rule in risk_sql.values_list("rule")]
+    rr = []
+    for x in risk_sql:
+        d = x.to_dict()
+        d.update({**d.pop("rule")})
+        rr.append(d)
+
+    with make_session() as session:
+        rst = await AsyncTimeout(60).async_thr(
+            get_risk_sql_list,
+            cmdb_id=cmdb_id,
+            date_range=(date_start, date_end),
+            schema_name=schema,
+            session=session,
+            severity=severity,
+            rule_name=rule_name
+        )
+
+    return rr, rst
