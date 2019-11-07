@@ -140,7 +140,7 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
 def get_latest_task_record_id(
         session,
-        cmdb_id: Union[list, int, None],
+        cmdb_id: Union[list, int, None] = None,
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
                                 lambda: arrow.now().shift(days=-7).datetime,
