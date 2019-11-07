@@ -4,6 +4,7 @@ import re
 import os
 import gzip
 import time
+import arrow
 import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -18,9 +19,13 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session
+from models.oracle import make_session,CMDB,DataHealth
+from models.mongo import Job
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
+from utils import cmdb_utils
+from utils.sql_utils import risk_sql_export_data
+from utils.object_utils import risk_object_export_data
 
 from .base import celery
 
@@ -75,7 +80,7 @@ def timing_send_work_list_status(work_list):
 
 
 @celery.task
-def timing_send_mail(send_user_list):
+async def timing_send_mail(send_user_list):
     """
     发送邮件
     :param send_user_list:
@@ -95,7 +100,7 @@ def timing_send_mail(send_user_list):
             contents = send_detail['contents']
 
             # 获取EXCEL打包后的压缩包
-            path = create_excel(login_user, send_detail['send_mail_id'])
+            path = await create_excels(login_user, send_detail['send_mail_id'])
             result, error = send_mail(title, contents, user_email, server_data, path,
                                       settings.CLIENT_NAME + 'SQL审核报告' + datetime.now().strftime("%Y_%m_%d") + '.zip')
             result = 1 if result else 0
@@ -114,10 +119,71 @@ def filter_data(data, filter_datetime=True):
     return data
 
 
-# 创建excel(SQL健康度数据、风险SQL)
+# 创建excel(SQL健康度数据、风险SQL,风险对象)
+async def create_excels(username,send_list_id):
+    """new create excels """
+    path = "/tmp/" + username + str(int(time.time()))
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    with make_session() as session:
+        cmdb_ids:list=cmdb_utils.get_current_cmdb(session,username)
+
+        date_start= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=-6).date()
+        date_end= arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').shift(days=+1).date()
+        date_start_today = arrow.get(str(arrow.now().date()), 'YYYY-MM-DD').date()
+        now = arrow.now()
+
+        if cmdb_ids==[]:
+            wb = xlsxwriter.Workbook(
+                path + "/" + "此用户无纳管库" + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
+            wb.close()
+        for cmdb_id in cmdb_ids:
+            connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
+
+            dh_q=session.query(DataHealth).filter(
+                DataHealth.database_name==connect_name,
+                DataHealth.collect_date>now.shift(weeks=-1).datetime
+            ).order_by(DataHealth.collect_date)
+            dh_d=[x.to_dict() for x in dh_q]
+
+            job_q=Job.objects(
+                cmdb_id=cmdb_id,
+                score__nin=[None,0],
+                create_time__gte=date_start,
+                create_time__lte=date_end,
+            ).order_by("-create_time")
+            job_d=[x.to_dict() for x in job_q]
+
+            rr_obj,rst_obj=await risk_object_export_data(
+                cmdb_id=cmdb_id,date_start=date_start_today,
+                date_end=date_end)
+
+            rr_sql,rst_sql=await risk_sql_export_data(
+                cmdb_id=cmdb_id,
+                date_start=date_start_today,
+                date_end=date_end)
+
+            wb = xlsxwriter.Workbook(
+                path + "/" + connect_name+"-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
+            create_sql_healthy_files(job_d,dh_d,connect_name,wb)
+            create_risk_obj_files(rr_obj,rst_obj,wb)
+            create_risk_sql_files(rr_sql,rst_sql,wb)
+            wb.close()
+
+    file_path_list = [
+        settings.CLIENT_NAME,
+        str(send_list_id),
+        datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+    ]
+    zipPath = zip_file_path(
+        path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
+    return zipPath
 
 
 def create_excel(username, send_list_id):
+    #TODO DEPRECATED
+    """old"""
     path = "/tmp/" + username + str(int(time.time()))
     if not os.path.exists(path):
         os.makedirs(path)
@@ -172,10 +238,135 @@ def create_excel(username, send_list_id):
     zipPath = zip_file_path(
         path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
     return zipPath
+# 创建sql健康度EXCEL
+def create_sql_healthy_files(job_d,dh_d,connect_name,wb):
+    # excel 表格样式sheet1
+    ws=wb.add_worksheet("1.整体健康度")
+    ws.set_column(0, 7, 18)
+    head_merge_format = wb.add_format({
+        'size': 18,
+        'bold': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    ws.set_row(0, 30, head_merge_format)
+    ws.merge_range('A1:H1', settings.CLIENT_NAME +
+                   "“" + connect_name + "”SQL风险评估报告")
 
+    # 1.最近7天的整体健康度
+    title_format = wb.add_format({
+        "size": 14,
+        'bold': 1,
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    titles_format = wb.add_format({
+        "size": 14,
+        'bold': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    text_format = wb.add_format({
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    date_format = wb.add_format({
+        'bold': 1,
+        'align': 'left',
+        'valign': 'vcenter',
+    })
+    ws.write(1, 6, "报告日期", text_format)
+    ws.write(1, 7, arrow.now().date().strftime("%Y/%m/%d"), text_format)
+    ws.set_row(3, 20)
+    ws.merge_range('A4:H4', "1.最近7天整体健康度", title_format)
+    ws.write(4, 0, "采集日期", title_format)
+    ws.write(5, 0, "得分")
+    col=1
+    for dh in dh_d:
+        ws.write(4,col,dh['collect_date'][:10],date_format)
+        ws.write(5, col, dh['health_score'], text_format)
+        col += 1
+
+    # 根据健康度表格数据绘制折线图
+    chart1=wb.add_chart({'type':'line'})
+    chart1.width=650
+    chart1.height=350
+
+    chart1.add_series({
+        'name': '健康度',
+        'categories': ['1.整体健康度', 4, 1, 4, 7],
+        'values': ['1.整体健康度', 5, 1, 5, 7],
+        'line': {'color': 'black', 'width': 1},
+        'marker': {'type': 'automatic',
+                   },
+        'data_labels': {'value': True},
+        'name_font': {
+            'size': 10,
+        }
+    })
+    # 设置折线图的位置，标题，x轴，y轴
+    chart1.set_title({'name': '最近7天整体健康度',
+                      'name_font': {
+                          'bold': False,
+                          'size': 14, },
+                      })
+    chart1.set_plotarea({
+        'layout': {
+            'x': 0.1,
+            'y': 0.2,
+            'width': 0.88,
+            'height': 0.63,
+        }
+    })
+    chart1.set_legend({
+        'layout': {
+            'x': 0.90,
+            'y': 0.05,
+            'width': 0.2,
+            'height': 0.1,
+        }
+    })
+    chart1.set_y_axis({'name': '健康度分数',
+                       'min': 0,
+                       'max': 100,
+                       'name_font': {
+                           'bold': False,
+                           'size': 12,
+                       }
+                       })
+    ws.insert_chart('B7', chart1, {'x_offset': 25, 'y_offset': 20})
+
+    #-----------------------------------------
+    # 健康度下钻表格样式设置及填充
+    ws.set_row(27,20)
+    ws.merge_range('A27:H27', "2.健康度下钻", title_format)
+    ws.set_row(28, 20)
+    titles = ['审计目标', '审计用户', '创建时间', '状态', '类型', '分数', '开始时间', '结束时间']
+    ws.write_row('A28', titles, titles_format)
+    status_map = {
+        "0": "失败",
+        "1": "成功",
+        "2": "正在运行"
+    }
+
+    row=28
+    col=0
+    for job in job_d:
+        ws.write(row,col,job['connect_name'],text_format)
+        ws.write(row, col + 1, job["name"].split("#")[0], text_format)
+        ws.write(row, col + 2, job["create_time"], text_format)
+        ws.write(row, col + 3, status_map[str(job['status'])], text_format)
+        ws.write(row, col + 4, job["name"].split("#")[1], text_format)
+        ws.write(row, col + 5, job.get("score", ""), text_format)
+        ws.write(row, col + 6, str(job["desc"]
+                               ["capture_time_start"]), text_format)
+        ws.write(row, col + 7, str(job["desc"]
+                               ["capture_time_end"]), text_format)
+        row += 1
 
 # 创建sql健康度EXCEL
 def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
+    # TODO: DEPRECATED
     ws = wb.add_worksheet("1.整体健康度")
 
     query = """select connect_name from T_CMDB where cmdb_id = :1"""
@@ -343,8 +534,51 @@ def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
 
 # ---------------------------------------------end---------------------------
 
-# 创建风险SQL EXCELcmdb_id
+# 创建风险SQL EXCEL
+def create_risk_sql_files(rr,rst,wb):
+    """new create risk sql files"""
+    title_heads = ['采集时间', "风险分类", '本项风险总数']
+    heads = ['sql_id', 'sql_text', 'similar_sql_num']
+    title_format = wb.add_format({
+        'size': 14,
+        'bold': 30,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    content_format = wb.add_format({
+        'align': 'center',
+        'valign': 'vcenter',
+        'size': 11,
+        'text_wrap': True,
+    })
+    a = 0
+    for row_num, row in enumerate(rr):
+        a += 1
+        row_num = 0
+        ws = wb.add_worksheet(re.sub('[*%]', '', row['rule_desc'][:20]) + f'-{a}')
+        ws.set_row(0, 20, title_format)
+        ws.set_column(0, 0, 60)
+        ws.set_column(1, 1, 60)
+        ws.set_column(2, 2, 60)
+
+        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        row_num += 1
+        ws.write(row_num, 0, row["last_appearance"], content_format)
+        ws.write(row_num, 1, row["rule_desc"], content_format)
+        ws.write(row_num, 2, row["rule_num"], content_format)
+
+        rows_nums = 1
+        for rows in rst:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+            if rows['schema'] and rows['rule_desc'] in row.values():
+                ws.write(3 + rows_nums, 0, rows['sql_id'], content_format)
+                ws.write(3 + rows_nums, 1, rows['sql_text'], content_format)
+                ws.write(3 + rows_nums, 2, rows['similar_sql_num'], content_format)
+                rows_nums += 1
+
 def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
+    #TODO DEPRECATED
+    """old create risk sql files"""
     ws = wb.add_worksheet("3.风险sql")
 
     start_time = datetime.now() - timedelta(days=14)
@@ -607,9 +841,51 @@ def create_appendx(wb):
 
 
 # 风险对象
+def create_risk_obj_files(rr,rst,wb):
+
+    title_heads = ['采集时间', "风险分类", '本项风险总数']
+    heads = ['对象名称', '风险问题', '优化建议']
+
+    title_format = wb.add_format({
+        'size': 14,
+        'bold': 30,
+        'align': 'center',
+        'valign': 'vcenter',
+    })
+    content_format = wb.add_format({
+        'align': 'center',
+        'valign': 'vcenter',
+        'size': 13,
+        'text_wrap': True,
+    })
+    a = 0
+    for row_num, row in enumerate(rr):
+        a += 1
+        row_num = 0
+        ws = wb.add_worksheet(re.sub('[*%]','',row["rule_desc"][:20]) + f'-{a}')
+        ws.set_row(0, 20, title_format)
+        ws.set_column(0, 0, 60)
+        ws.set_column(1, 1, 60)
+        ws.set_column(2, 2, 60)
+
+        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        row_num += 1
+        ws.write(row_num, 0, row["last_appearance"], content_format)
+        ws.write(row_num, 1, row["rule_desc"], content_format)
+        ws.write(row_num, 2, row["rule_num"], content_format)
+
+        rows_nums = 1
+        for rows in rst:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
+            if rows['schema'] and rows['rule_desc'] in row.values():
+                ws.write(3 + rows_nums, 0, rows['object_name'], content_format)
+                ws.write(3 + rows_nums, 1, rows['risk_detail'], content_format)
+                ws.write(3 + rows_nums, 2, rows['optimized_advice'], content_format)
+                rows_nums += 1
 
 
 def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):
+    #TODO DEPRECATED
     ws = wb.add_worksheet("2.风险对象")
     title = ["对象名称", "风险点", "风险详情", "最早出现时间", "最后出现时间", "优化建议"]
     title_format = wb.add_format({
