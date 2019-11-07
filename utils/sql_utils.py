@@ -80,12 +80,16 @@ def parse_sql_file(sql_contents, sql_keyword):
 
 
 # @timing(cache=r_cache)
-def get_sql_id_stats(session, cmdb_id) -> dict:
+def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
     """
     计算sql文本的统计信息
     """
     from utils.score_utils import get_latest_task_record_id
-    latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(session, cmdb_id)
+    latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(
+        session,
+        cmdb_id,
+        task_record_id_to_replace=task_record_id_to_replace
+    )
     task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
     objs = StatsCMDBSQLText.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
     return {obj.sql_id: obj.to_dict() for obj in objs}
@@ -134,6 +138,7 @@ def get_risk_sql_list(session,
                       sqltext_stats: bool = True,
                       severity: Union[tuple, list, None] = None,
                       task_record_id: int = None,
+                      task_record_id_to_replace: Union[None, dict] = None,
                       **kwargs
                       ) -> Union[dict, set]:
     """
@@ -151,6 +156,7 @@ def get_risk_sql_list(session,
     :param sqltext_stats: 返回是否需要包含sqltext的统计信息（首末出现时间）
     :param severity: 严重程度过滤
     :param task_record_id: 仅展示task_record_id指定的results, 如果指定了，则忽略开始结束时间
+    :param task_record_id_to_replace:
     :param kwargs: 多余的参数，会被收集到这里，并且会提示
     :return:
     """
@@ -221,7 +227,11 @@ def get_risk_sql_list(session,
         # ====== 如果仅统计sql_id，以下信息不需要 ======
         sql_text_stats = {}
         if sqltext_stats:
-            sql_text_stats = get_sql_id_stats(session, cmdb_id=cmdb_id)
+            sql_text_stats = get_sql_id_stats(
+                session,
+                cmdb_id=cmdb_id,
+                task_record_id_to_replace=task_record_id_to_replace
+            )
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
         last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(record_id=list(result_q.distinct("record_id")))
 

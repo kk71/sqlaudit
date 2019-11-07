@@ -144,7 +144,7 @@ def get_latest_task_record_id(
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
                                 lambda: arrow.now().shift(days=-7).datetime,
-        task_record_id_to_replace: dict = None
+        task_record_id_to_replace: [dict, None] = None
         ) -> dict:
     """
     获取每个库最后一次采集分析的task_record_id

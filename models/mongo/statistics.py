@@ -594,7 +594,8 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 session=session,
                 cmdb_id=cmdb_id,
                 date_range=(None, None),
-                task_record_id=task_record_id
+                task_record_id=task_record_id,
+                task_record_id_to_replace={cmdb_id: task_record_id}
             )
         rsts = defaultdict(cls)
         for x in rst:
