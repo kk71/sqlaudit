@@ -140,7 +140,7 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
 def get_latest_task_record_id(
         session,
-        cmdb_id: Union[list, int],
+        cmdb_id: Union[list, int, None],
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
                                 lambda: arrow.now().shift(days=-7).datetime,
@@ -155,15 +155,16 @@ def get_latest_task_record_id(
     :param task_record_id_to_replace: 提供一个替换的{cmdb_id: record_id}
     :return: {cmdb_id: task_record_id, ...}
     """
-    if not isinstance(cmdb_id, (tuple, list)):
-        cmdb_id = [cmdb_id]
     if callable(task_start_date_gt):
         task_start_date_gt: Union[datetime, None] = task_start_date_gt()
     sub_q = session. \
         query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
         join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
-        filter(TaskManage.cmdb_id.in_(cmdb_id),
-               TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
+        filter(TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
+    if cmdb_id:
+        if not isinstance(cmdb_id, (tuple, list)):
+            cmdb_id = [cmdb_id]
+        sub_q = sub_q.filter(TaskManage.cmdb_id.in_(cmdb_id))
     if status is not None:
         sub_q = sub_q.filter(TaskExecHistory.status == status)
     if task_start_date_gt is not None:

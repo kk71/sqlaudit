@@ -62,12 +62,14 @@ class DashboardHandler(PrivilegeReq):
             }
 
             # 线上审核的采集任务
-            task_q = session.query(TaskManage).filter(TaskManage.task_exec_scripts == const.DB_TASK_CAPTURE)
+            task_q = session.query(TaskManage).\
+                filter(TaskManage.task_exec_scripts == const.DB_TASK_CAPTURE)
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(cmdb_ids))
             tasks = await task_utils.get_task(
-                session, task_q, execution_status=None, cmdb_ids=cmdb_ids)
-            task_status = {k: 0 for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()}
+                session, task_q, execution_status=None)
+            task_status = {k: 0
+                           for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()}
             for t in tasks:
                 task_status[
                     const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[

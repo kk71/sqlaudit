@@ -50,7 +50,7 @@ class TaskHandler(PrivilegeReq):
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
             ret = await task_utils.get_task(
-                session, task_q, cmdb_ids=current_cmdb_ids, execution_status=execution_status)
+                session, task_q, execution_status=execution_status)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
 

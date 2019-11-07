@@ -37,14 +37,12 @@ def get_pending_task() -> set:
 async def get_task(
         session,
         task_q,
-        cmdb_ids,
         execution_status=None
 ) -> list:
     """
     获取任务列表
     :param session:
     :param task_q:
-    :param cmdb_ids
     :param execution_status: 为None则表示不过滤状态
     :return:
     """
@@ -53,7 +51,6 @@ async def get_task(
     cmdb_capture_task_latest_task_id = await async_thr(
         score_utils.get_latest_task_record_id,
         session,
-        cmdb_id=cmdb_ids,
         status=None  # None表示不过滤状态
     )
     for t in task_q:
