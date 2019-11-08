@@ -20,6 +20,7 @@ worker_concurrency = 1
 worker_max_tasks_per_child = 1
 worker_prefetch_multiplier = 1
 task_acks_late = True
+broker_transport_options = {'visibility_timeout': 60*60*24*9}
 
 # when add new tasks in new a module, add it below.
 imports = (
