@@ -5,6 +5,9 @@ from os import path
 import xlsxwriter
 from schema import Optional, Schema, And
 
+import os
+import re
+import time
 import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
@@ -14,6 +17,8 @@ from models.mongo import *
 from models.oracle import *
 from utils import cmdb_utils
 from utils.conc_utils import *
+from task.mail_report import zip_file_path
+
 import html_report.export
 
 
@@ -228,121 +233,137 @@ class ExportReportXLSXHandler(AuthReq):
     async def get(self):
         """导出报告为xlsx"""
         params = self.get_query_args(Schema({
-            "job_id": scm_unempty_str,
-            "rule_type": scm_unempty_str
+            "job_id": scm_str_to_list,
         }))
-        job_id = params.pop("job_id")
-        rule_type = params.pop("rule_type").upper()
+        job_ids = params.pop("job_id")
         del params
 
-        result = Results.objects(task_uuid=job_id).first()
-        job_info = Job.objects(id=job_id).first()
+        #The path to the generated file
+        path = "/tmp/" +str(int(time.time()))
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-        port = 1521 if str(job_info.desc.port) == "1521" else int(job_info.desc.port)
-        search_temp = {
-            "db_ip": job_info.desc.db_ip,
-            "owner": job_info.desc.owner
-        }
-        if port == 1521:
-            search_temp["instance_name"] = job_info.desc.instance_name or "空"
+        for job_id in job_ids:
+            result = Results.objects(task_uuid=job_id).first()
+            job_info = Job.objects(id=job_id).first()
 
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
-            rules_violated, score_sum = await async_thr(
-                score_utils.calc_result, result, cmdb.db_model)
-            rules_violateds = []
-            for x in rules_violated:
-                rules_violateds.append([x['rule']['rule_name'],
-                                        x['rule']['rule_desc'],
-                                        x['violated_num'],
-                                        x['deduction'],
-                                        x['weighted_deduction']])
+            port = 1521 if str(job_info.desc.port) == "1521" else int(job_info.desc.port)
+            search_temp = {
+                "db_ip": job_info.desc.db_ip,
+                "owner": job_info.desc.owner
+            }
+            if port == 1521:
+                search_temp["instance_name"] = job_info.desc.instance_name or "空"
 
-            heads = ['任务ID', 'IP地址', '端口号', 'SCHEMA用户', '规则类型', '最终得分']
-            heads_data = [job_id, search_temp["db_ip"], port,
-                          search_temp["owner"], rule_type, score_sum]
+            with make_session() as session:
+                cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
+                rules_violated, score_sum = await async_thr(
+                    score_utils.calc_result, result, cmdb.db_model)
+                rules_violateds = []
+                for x in rules_violated:
+                    rules_violateds.append([x['rule']['rule_name'],
+                                            x['rule']['rule_desc'],
+                                            x['violated_num'],
+                                            x['deduction'],
+                                            x['weighted_deduction']])
 
-            rule_heads = ['规则名称', '规则描述', '违反次数', '扣分', '加权扣分']
-            rule_data_lists = rules_violateds
-            excel_data_dict = {}
+                heads = ['任务ID', 'IP地址', '端口号', 'SCHEMA用户', '规则类型', '最终得分']
+                heads_data = [job_id, search_temp["db_ip"], port,
+                              search_temp["owner"], job_info.name.split('#')[1], score_sum]
 
-            for rule_data in rule_data_lists:
-                rule_name = rule_data[0]
-                rule_detail_data = OnlineReportRuleDetailHandler.\
-                    get_report_rule_detail(session, job_id, rule_name)
-                rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model,
-                                         db_type=const.DB_ORACLE).first()
-                solution = ''.join(rule_info['solution'])
-                rule_detail_datas = []
-                rule_detail_title = []
-                for x in rule_detail_data['records']:
-                    rule_detail_datas.append(x.values())
-                    for y in x.keys():
-                        if y not in rule_detail_title:
-                            rule_detail_title.append(y)
-                excel_data_dict.update(
-                    {
-                        rule_name: {
-                            "rule_heads": rule_heads,
-                            "rule_data": rule_data,
-                            "solution": solution,
-                            "records": rule_detail_datas,
-                            "table_title": rule_detail_title,
+                rule_heads = ['规则名称', '规则描述', '违反次数', '扣分', '加权扣分']
+                rule_data_lists = rules_violateds
+                excel_data_dict = {}
+
+                for rule_data in rule_data_lists:
+                    rule_name = rule_data[0]
+                    rule_detail_data = OnlineReportRuleDetailHandler.\
+                        get_report_rule_detail(session, job_id, rule_name)
+                    rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model,
+                                             db_type=const.DB_ORACLE).first()
+                    solution = ''.join(rule_info['solution'])
+                    rule_detail_datas = []
+                    rule_detail_title = []
+                    for x in rule_detail_data['records']:
+                        rule_detail_datas.append(x.values())
+                        for y in x.keys():
+                            if y not in rule_detail_title:
+                                rule_detail_title.append(y)
+                    excel_data_dict.update(
+                        {
+                            rule_name: {
+                                "rule_heads": rule_heads,
+                                "rule_data": rule_data,
+                                "solution": solution,
+                                "records": rule_detail_datas,
+                                "table_title": rule_detail_title,
+                            }
                         }
-                    }
-                )
+                    )
 
-            filename = f"export_sqlhealth_details_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
-            full_filename = path.join(settings.EXPORT_DIR, filename)
-            wb = xlsxwriter.Workbook(full_filename)
-            format_title = wb.add_format({
-                'bold': 1,
-                'size': 14,
-                'align': 'center',
-                'valign': 'vcenter',
+                filename = f"export_sqlhealth_details_{job_info.name.split('#')[1]}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
+                full_filename=path + "/" + filename
+                wb = xlsxwriter.Workbook(full_filename)
+                format_title = wb.add_format({
+                    'bold': 1,
+                    'size': 14,
+                    'align': 'center',
+                    'valign': 'vcenter',
 
-            })
-            format_text = wb.add_format({
-                'valign': 'vcenter',
-                'align': 'center',
-                'size': 14,
-                'text_wrap': True,
-            })
+                })
+                format_text = wb.add_format({
+                    'valign': 'vcenter',
+                    'align': 'center',
+                    'size': 14,
+                    'text_wrap': True,
+                })
 
-            for rule_key, rule_value in excel_data_dict.items():
-                rule_heads = rule_value['rule_heads']
-                rule_data = rule_value['rule_data']
-                solution = rule_value['solution']
-                records = rule_value['records']
-                table_title = rule_value['table_title']
+                for rule_key, rule_value in excel_data_dict.items():
+                    rule_heads = rule_value['rule_heads']
+                    rule_data = rule_value['rule_data']
+                    solution = rule_value['solution']
+                    records = rule_value['records']
+                    table_title = rule_value['table_title']
 
-                rule_ws = wb.add_worksheet(rule_key)
+                    rule_ws = wb.add_worksheet(re.sub('[*%]','',rule_key[:20]))
 
-                rule_ws.set_column(0, 0, 40)
-                rule_ws.set_column(1, 1, 110)
-                rule_ws.set_column(2, 2, 30)
-                rule_ws.set_column(3, 6, 30)
+                    rule_ws.set_column(0, 0, 40)
+                    rule_ws.set_column(1, 1, 110)
+                    rule_ws.set_column(2, 2, 30)
+                    rule_ws.set_column(3, 6, 30)
 
-                [rule_ws.write(0, x, field, format_title) for x, field in enumerate(heads)]
-                [rule_ws.write(1, x, field, format_text) for x, field in enumerate(heads_data)]
-                [rule_ws.write(3, x, field, format_title) for x, field in enumerate(rule_heads)]
-                [rule_ws.write(4, x, field, format_text) for x, field in enumerate(rule_data)]
-                [rule_ws.write(6, x, field, format_title) for x, field in enumerate(table_title)]
+                    [rule_ws.write(0, x, field, format_title) for x, field in enumerate(heads)]
+                    [rule_ws.write(1, x, field, format_text) for x, field in enumerate(heads_data)]
+                    [rule_ws.write(3, x, field, format_title) for x, field in enumerate(rule_heads)]
+                    [rule_ws.write(4, x, field, format_text) for x, field in enumerate(rule_data)]
+                    [rule_ws.write(6, x, field, format_title) for x, field in enumerate(table_title)]
 
-                num = 1
-                for records_data in records:
-                    [rule_ws.write(6 + num, x, field, format_text) for x, field in
-                     enumerate(records_data)]
-                    num += 1
+                    num = 1
+                    for records_data in records:
+                        [rule_ws.write(6 + num, x, field, format_text) for x, field in
+                         enumerate(records_data)]
+                        num += 1
 
-                last_num = 6 + len(records) + 2
+                    last_num = 6 + len(records) + 2
 
-                last_data = ['修改意见: ', solution]
-                [rule_ws.write(last_num, x, field, format_title) for x, field in
-                 enumerate(last_data)]
-            wb.close()
+                    last_data = ['修改意见: ', solution]
+                    [rule_ws.write(last_num, x, field, format_title) for x, field in
+                     enumerate(last_data)]
+                wb.close()
+        """
+        packaging
+        zip_file_path(
+        The path to the generated file,
+        The path to place the file,
+        The name of the package file)"""
+        file_path_list = [
+            "export_sqlhealth_details",
+            datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+        ]
 
-            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        zipPath = zip_file_path(
+            path, settings.HEALTH_DIR+'/',''.join(file_path_list))
+        self.resp({"url": zipPath})
 
 
 class ExportReportHTMLHandler(AuthReq):
