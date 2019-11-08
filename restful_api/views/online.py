@@ -569,12 +569,18 @@ class SQLRiskDetailHandler(AuthReq):
 
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0 for k, v in sql_stats.items()}
 
+            the_first_appearance_time = sql_text_stats[sql_id].get("first_appearance", None)
+            the_last_appearance_time = sql_text_stats[sql_id].get("last_appearance", None)
+            if not the_first_appearance_time or not the_last_appearance_time:
+                print(f"* warning: this sql with sql_id({sql_id}) may currently "
+                      f"under capturing and has no statistic info")
+
             self.resp({
                 'sql_id': sql_id,
                 "stats": sql_stats,
                 'schema': schemas[0] if schemas else None,
-                'first_appearance': dt_to_str(sql_text_stats[sql_id]["first_appearance"]),
-                'last_appearance': dt_to_str(sql_text_stats[sql_id]["last_appearance"]),
+                'first_appearance': dt_to_str(the_first_appearance_time),
+                'last_appearance': dt_to_str(the_last_appearance_time),
                 'sql_text': latest_sql_text_object.sql_text,
                 'risk_rules': [rr.to_dict() for rr in risk_rules],
                 'graph': graphs,
