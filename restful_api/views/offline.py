@@ -159,20 +159,24 @@ class TicketHandler(OfflineTicketCommonHandler):
         params = self.get_query_args(Schema({
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
+            Optional("work_list_type", default=None):
+                And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
             Optional("keyword", default=None): scm_str,
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date_end,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
-        work_list_status = params.pop("work_list_status")
+        work_list_status: int = params.pop("work_list_status")
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
         p = self.pop_p(params)
-        del params
 
         with make_session() as session:
-            q = session.query(WorkList).order_by(WorkList.work_list_id.desc())
+            q = session.\
+                query(WorkList).\
+                filter_by(**params).\
+                order_by(WorkList.work_list_id.desc())
             if work_list_status is not None:  # take care of the value 0!
                 q = q.filter_by(work_list_status=work_list_status)
             if keyword:
