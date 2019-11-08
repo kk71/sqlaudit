@@ -18,6 +18,7 @@ from task.base import *
 import task.clear_cache
 import utils.capture_utils
 import utils.analyse_utils
+from models.oracle import *
 from models.mongo.utils import *
 from utils.datetime_utils import *
 
@@ -27,18 +28,6 @@ logger = past.utils.log.get_logger("capture")
 
 def sigintHandler(signum, frame):
     raise past.utils.utils.StopCeleryException("Stop!")
-
-
-# def init_job(task_id, connect_name, business_name, task_uuid):
-#
-#     sql = """INSERT INTO t_task_exec_history(id, task_id, connect_name, business_name, task_start_date, task_uuid)
-#              VALUES(SEQ_TASK_EXEC_HISTORY.nextval, :1, :2, :3, to_date(:4, 'yyyy-mm-dd hh24:mi:ss'), :5)
-#           """
-#     plain_db.oracleob.OracleHelper.insert(sql, [task_id, connect_name, business_name, past.utils.utils.
-#                                           get_time(return_str=True), task_uuid])
-#     sql = "SELECT SEQ_TASK_EXEC_HISTORY.CURRVAL FROM DUAL"
-#     record_id = plain_db.oracleob.OracleHelper.select(sql, one=True)[0]
-#     return record_id
 
 
 def update_record(task_id, record_id, success, err_msg=""):
@@ -246,9 +235,11 @@ def task_run(host, port, sid, username, password,
 
     try:
         if not db_users:
-            cmdb_odb = plain_db.oracleob.OracleOB(host, port, username, password, sid)
-            sql = past.capture.sql.GET_SCHEMA
-            db_users = [x[0] for x in cmdb_odb.select(sql, one=False)]
+            with make_session() as session:
+                db_users: list = list(
+                    session.query(RoleDataPrivilege.schema_name).
+                    filter(RoleDataPrivilege.cmdb_id == cmdb_id)[0]
+                )
         for user in db_users:
             run_default_script(host, port, sid, username, password, user, cmdb_id, connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
