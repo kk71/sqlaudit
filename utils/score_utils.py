@@ -80,8 +80,12 @@ def calc_result(result, db_model, obj_info_type: Union[str, list, tuple] = None)
                     rule_result["scores"],
                     max_score_sum=max_score_sum
                 )
-    scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) /
-                         max_score_sum * 100 or 1, 2)
+    if max_score_sum == 0:
+        print(f"total score is 0!!! {result}")
+        scores_total = 0
+    else:
+        scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) /
+                             max_score_sum * 100 or 1, 2)
     scores_total = scores_total if scores_total > 40 else 40
 
     return list(rule_name_to_detail.values()), scores_total
