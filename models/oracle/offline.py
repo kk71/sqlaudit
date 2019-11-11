@@ -37,8 +37,8 @@ class SubWorkList(BaseModel):
 
     work_list_id = Column("WORK_LIST_ID", Integer)
     statement_id = Column("STATEMENT_ID", String)
-    static_check_results = Column("STATIC_CHECK_RESULTS", CLOB)
-    dynamic_check_results = Column("DYNAMIC_CHECK_RESULTS", CLOB)
+    static_check_results = Column("STATIC_CHECK_RESULTS", CLOB)  # changed to CLOB
+    dynamic_check_results = Column("DYNAMIC_CHECK_RESULTS", CLOB)  # changed to CLOB
     check_time = Column("CHECK_TIME", DATE, default=datetime.now)
     check_owner = Column("CHECK_OWNER", String, comment="实际审批人")
     check_status = Column("CHECK_STATUS", Boolean)
