@@ -168,9 +168,10 @@ class Check:
                     )
                     if err:
                         minus_score -= rule.weight  # weight才是真正的单次扣分
-                    err_msgs.append(rule.rule_desc)
+                        err_msgs.append(rule.rule_desc)
                 except Exception as err:
                     err_msgs.append(rule.rule_desc)
+                    minus_score -= rule.weight  # weight才是真正的单次扣分
                     logging.error("Exception:", exc_info=True)
         return "" if not err_msgs else '\n'.join(err_msgs), minus_score
 
