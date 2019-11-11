@@ -586,6 +586,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         import arrow
         from utils.sql_utils import get_risk_sql_list
+        from utils.cmdb_utils import get_current_schema
         from models.oracle import make_session
         from collections import defaultdict
 
@@ -597,16 +598,19 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 task_record_id=task_record_id,
                 task_record_id_to_replace={cmdb_id: task_record_id}
             )
-        rsts = defaultdict(cls)
-        for x in rst:
-            doc = rsts[x["rule"]["rule_name"]]
-            doc.task_record_id = task_record_id
-            doc.cmdb_id = cmdb_id
-            doc.rule = x["rule"]
-            doc.severity = x["severity"]
-            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-            doc.schema = x["schema"]
-            doc.rule_num += 1
+            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
+        # rule_name, schema:
+        rsts = defaultdict(lambda: defaultdict(cls))
+        for schema in schemas:
+            for x in rst:
+                doc = rsts[x["rule"]["rule_name"]][schema]
+                doc.task_record_id = task_record_id
+                doc.cmdb_id = cmdb_id
+                doc.rule = x["rule"]
+                doc.severity = x["severity"]
+                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+                doc.schema = schema
+                doc.rule_num += 1
         return rsts.values()
 
 
@@ -627,6 +631,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         import arrow
         from utils.object_utils import get_risk_object_list
+        from utils.cmdb_utils import get_current_schema
         from models.oracle import make_session
         from collections import defaultdict
 
@@ -636,16 +641,19 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 cmdb_id=cmdb_id,
                 task_record_id=task_record_id
             )
-        rsts = defaultdict(cls)
-        for x in rst:
-            doc = rsts[x["rule"]["rule_name"]]
-            doc.task_record_id = task_record_id
-            doc.cmdb_id = cmdb_id
-            doc.rule = x["rule"]
-            doc.severity = x["severity"]
-            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-            doc.schema = x["schema"]
-            doc.rule_num += 1
+            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
+        # rule_name, schema:
+        rsts = defaultdict(lambda: defaultdict(cls))
+        for schema in schemas:
+            for x in rst:
+                doc = rsts[x["rule"]["rule_name"]][schema]
+                doc.task_record_id = task_record_id
+                doc.cmdb_id = cmdb_id
+                doc.rule = x["rule"]
+                doc.severity = x["severity"]
+                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+                doc.schema = schema
+                doc.rule_num += 1
         return rsts.values()
 
 
