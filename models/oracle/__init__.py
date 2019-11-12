@@ -9,7 +9,6 @@ __all__ = [
     # "Privilege",
     "Role",
     "CMDB",
-    # "DataPrivilege",
     "RoleDataPrivilege",
     "WorkList",
     "SubWorkList",

@@ -181,3 +181,27 @@ def test_cmdb_connectivity(cmdb):
     finally:
         conn and conn.close()
     return {"connectivity": True, "info": ""}
+
+
+def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[CMDB, int]):
+    """
+    获取某个纳管库当前绑定的全部schema列表
+    :param session:
+    :param cmdb_id:
+    :return: 返回的schema列表即: RoleDataPrivilege里登记的绑定schema，以及DataHealthUserConfig的
+    """
+    if isinstance(cmdb_or_cmdb_id, CMDB):
+        cmdb = cmdb_or_cmdb_id
+    elif isinstance(cmdb_or_cmdb_id, int):
+        cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_or_cmdb_id).first()
+    else:
+        assert 0
+    q_dhuc = session.\
+        query(DataHealthUserConfig.username).\
+        filter(DataHealthUserConfig.database_name == cmdb.connect_name)
+    schemas = [i[0] for i in q_dhuc]
+    q_rdp = session.\
+        query(RoleDataPrivilege.schema_name).\
+        filter(RoleDataPrivilege.cmdb_id == cmdb.cmdb_id)
+    schemas.extend([i[0] for i in q_rdp])
+    return list(set(schemas))

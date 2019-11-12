@@ -305,6 +305,11 @@ class CMDBNotFoundException(Exception):
     pass
 
 
+class CMDBHasNoSchemaBound(Exception):
+    """CMDB未绑定任何schema"""
+    pass
+
+
 class NoRiskRuleSetException(Exception):
     """没有设置风险规则"""
     pass

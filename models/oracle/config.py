@@ -41,17 +41,6 @@ class CMDB(BaseModel):
     sid = Column("SID", String)
 
 
-class DataPrivilege(BaseModel):
-    """数据库权限"""
-    __tablename__ = "T_DATA_PRIVILEGE"
-
-    login_user = Column("LOGIN_USER", String)
-    cmdb_id = Column("CMDB_ID", Integer)
-    schema_name = Column("SCHEMA_NAME", String)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now, primary_key=True)
-    comments = Column("COMMENTS", String)
-
-
 class RoleDataPrivilege(BaseModel):
     """角色数据库权限"""
     __tablename__ = "T_ROLE_DATA_PRIVILEGE"
@@ -79,9 +68,9 @@ class DataHealthUserConfig(BaseModel):
     """数据库评分配置"""
     __tablename__ = "T_DATA_HEALTH_USER_CONFIG"
 
-    database_name = Column("DATABASE_NAME", String, primary_key=True)
+    database_name = Column("DATABASE_NAME", String, primary_key=True)  # connect_name
     username = Column("USERNAME", String)
-    needcalc = Column("NEEDCALC", String, default=RANKING_CONFIG_NEED_CALC,)
+    needcalc = Column("NEEDCALC", String, default=RANKING_CONFIG_NEED_CALC)
     weight = Column("WEIGHT", Integer, default=1)
 
 
