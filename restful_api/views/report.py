@@ -234,6 +234,8 @@ class ExportReportXLSXHandler(AuthReq):
         """导出报告为xlsx"""
         params = self.get_query_args(Schema({
             "job_id": scm_str_to_list,
+            Optional(object): object
+
         }))
         job_ids = params.pop("job_id")
         del params
@@ -372,6 +374,7 @@ class ExportReportHTMLHandler(AuthReq):
         """导出报告为html"""
         params = self.get_query_args(Schema({
             "job_id": scm_str_to_list,
+            Optional(object): object
         }))
         job_ids = params.pop("job_id")
 
