@@ -809,7 +809,8 @@ def zip_file_path(input_path, output_path, output_name):
             f.write(os.path.join(dirpath, filename), filename)
 
     f.close()  # 调用了close方法才会保证完成压缩
-    return target_filepath
+    ret_url=os.path.join(settings.EXPORT_PREFIX_HEALTH,output_name)
+    return ret_url
 
 
 def get_cmdb_ids():
