@@ -611,7 +611,9 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 doc.last_appearance = arrow.get(x["last_appearance"]).datetime
                 doc.schema = schema
                 doc.rule_num += 1
-        return rsts.values()
+        for i in rsts.values():
+            for j in i.values():
+                yield j
 
 
 class StatsRiskObjectsRule(BaseStatisticsDoc):
@@ -654,7 +656,9 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 doc.last_appearance = arrow.get(x["last_appearance"]).datetime
                 doc.schema = schema
                 doc.rule_num += 1
-        return rsts.values()
+        for i in rsts.values():
+            for j in i.values():
+                yield j
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):
