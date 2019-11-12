@@ -48,7 +48,7 @@ def execute_rule(**kwargs):
         replace("@username@", username).\
         replace("@data_len_ratio@", str(data_len_ratio))
     db_cursor.execute(sql)
-    records = list(db_cursor.fetchall())
+    records = [list(i) for i in db_cursor.fetchall()]
     # 新增功能，返回超过实际长度的字段名
     sql = f"""select table_name, column_name, data_length from dba_tab_cols t
              where t.owner = '{username}'"""
