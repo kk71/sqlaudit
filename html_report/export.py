@@ -1,3 +1,4 @@
+import time
 import tarfile
 
 import os.path
@@ -17,6 +18,7 @@ from .utils import print_html_rule_detail_info
 from .utils import print_html_rule_text_detail_info
 from .utils import print_html_obj_detail_info
 from plain_db.mongo_operat import MongoHelper
+from task.mail_report import zip_file_path
 
 
 def format_sqlplan_result(result):
@@ -113,29 +115,48 @@ def main_task(task_uuid, page):
             print_html_rule_text_detail_info(page, result, rules)
 
 
-def export_task(job_id):
+def export_task(job_ids:list)-> str:
     """
     生成报告的离线压缩包，可配合下载服务器使用
     """
     # MongoHelper.update_one("job", {'_id': job_id}, {'$set': {'exported': 1}})
 
-    result = MongoHelper.find_one("results", {"task_uuid": job_id})
-    file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
-                "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
+    # The path to the generated file
+    paths = "/tmp/" + str(int(time.time()))
+    if not os.path.exists(paths):
+        os.makedirs(paths)
 
-    v_page = print_html_script()
-    main_task(job_id, v_page)
-    v_page.printOut("html_report/sqlreview.html")
-    path = os.path.join(settings.EXPORT_DIR, file_name)
-    tar = tarfile.open(str(path), "w:gz")
-    tar.add("html_report/css")
-    tar.add("html_report/assets")
-    tar.add("html_report/js")
-    tar.add("html_report/sqlreview.html")
-    tar.add("html_report/readme.txt")
-    tar.close()
-    # os.remove("task_export/sqlreview.html")
+    for job_id in job_ids:
+        result = MongoHelper.find_one("results", {"task_uuid": job_id})
+        file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
+                    "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
+        v_page = print_html_script()
+        main_task(job_id, v_page)
+        v_page.printOut(f"html_report/sqlreview.html")
+        path = paths+"/" +file_name
+        tar = tarfile.open(str(path), "w:gz")
+        tar.add("html_report/css")
+        tar.add("html_report/assets")
+        tar.add("html_report/js")
+        tar.add("html_report/sqlreview.html")
+        tar.add("html_report/readme.txt")
+        tar.close()
+        # os.remove("task_export/sqlreview.html")
 
-    # 文件生成完毕，状态export设置为True
-    Job.objects(id=job_id).update(set__exported=True)
-    return file_name
+        # 文件生成完毕，状态export设置为True
+        Job.objects(id=job_id).update(set__exported=True)
+
+    """
+               packaging
+               zip_file_path(
+               The path to the generated file,
+               The path to place the file,
+               The name of the package file)"""
+    file_path_list = [
+        "export_sqlhealth_details_html",
+        datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+    ]
+
+    zipPath = zip_file_path(
+        paths, settings.HEALTH_DIR + '/', ''.join(file_path_list))
+    return zipPath
