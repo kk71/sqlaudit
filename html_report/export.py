@@ -154,7 +154,7 @@ def export_task(job_ids:list)-> str:
                The name of the package file)"""
     file_path_list = [
         "export_sqlhealth_details_html",
-        datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+        datetime.now().strftime("%Y%m%d%H%M%S") + ".zip"
     ]
 
     zipPath = zip_file_path(
