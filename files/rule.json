@@ -2543,7 +2543,7 @@
                 "parm_name": "table_name"
             },
             {
-                "parm_desc": "表大小",
+                "parm_desc": "表大小（GB）",
                 "parm_name": "tab_phy_size"
             }
         ],
@@ -3920,7 +3920,7 @@
                 "parm_name": "table_name"
             },
             {
-                "parm_desc": "表大小",
+                "parm_desc": "表大小（GB）",
                 "parm_name": "tab_phy_size"
             }
         ],
