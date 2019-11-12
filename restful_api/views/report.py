@@ -245,6 +245,7 @@ class ExportReportXLSXHandler(AuthReq):
         if not os.path.exists(path):
             os.makedirs(path)
 
+        a = 1#防止类型一样导出错误
         for job_id in job_ids:
             result = Results.objects(task_uuid=job_id).first()
             job_info = Job.objects(id=job_id).first()
@@ -303,7 +304,8 @@ class ExportReportXLSXHandler(AuthReq):
                         }
                     )
 
-                filename = f"export_sqlhealth_details_{job_info.name.split('#')[1]}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}.xlsx"
+                filename = f"export_sqlhealth_details_{job_info.name.split('#')[1]}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}-{a}.xlsx"
+                a+=1
                 full_filename=path + "/" + filename
                 wb = xlsxwriter.Workbook(full_filename)
                 format_title = wb.add_format({
@@ -360,7 +362,7 @@ class ExportReportXLSXHandler(AuthReq):
         The name of the package file)"""
         file_path_list = [
             "export_sqlhealth_details",
-            datetime.now().strftime("%Y%m%d%H%M") + ".zip"
+            datetime.now().strftime("%Y%m%d%H%M%S") + ".zip"
         ]
 
         zipPath = zip_file_path(
