@@ -158,5 +158,6 @@ def export_task(job_ids:list)-> str:
     ]
 
     zipPath = zip_file_path(
-        paths, settings.HEALTH_DIR + '/', ''.join(file_path_list))
+        paths, settings.HEALTH_DIR, ''.join(file_path_list))
+
     return zipPath

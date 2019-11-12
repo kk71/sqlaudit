@@ -364,7 +364,7 @@ class ExportReportXLSXHandler(AuthReq):
         ]
 
         zipPath = zip_file_path(
-            path, settings.HEALTH_DIR+'/',''.join(file_path_list))
+            path, settings.HEALTH_DIR,''.join(file_path_list))
         self.resp({"url": zipPath})
 
 

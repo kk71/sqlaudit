@@ -37,6 +37,7 @@ STATIC_PREFIX = "/downloads"
 EXPORT_DIR = path.join(STATIC_DIR, "export")
 HEALTH_DIR = path.join(STATIC_DIR, "health")
 EXPORT_PREFIX = "/downloads/export"
+EXPORT_PREFIX_HEALTH = "/downloads/health/"
 TIMING_ENABLED = bool(env_get("TIMING_ENABLED", 1, int))
 TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.5, float)
 ADMIN_LOGIN_USER = "admin"
