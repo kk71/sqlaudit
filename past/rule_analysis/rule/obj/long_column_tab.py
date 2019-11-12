@@ -48,5 +48,18 @@ def execute_rule(**kwargs):
         replace("@username@", username).\
         replace("@data_len_ratio@", str(data_len_ratio))
     db_cursor.execute(sql)
-    records = db_cursor.fetchall()
+    records = list(db_cursor.fetchall())
+    # 新增功能，返回超过实际长度的字段名
+    sql = f"""select table_name, column_name, data_length from dba_tab_cols t
+             where t.owner = '{username}'"""
+    db_cursor.execute(sql)
+    table_columns = db_cursor.fetchall()
+    for record in records:
+        table_name, data_length, avg_col_len = record
+        record.append([])
+        column_names = record[3]
+        for the_table_name, the_column_name, the_data_length in table_columns:
+            if table_name == the_table_name:
+                if the_data_length > avg_col_len:
+                    column_names.append(the_column_name)
     return records, True

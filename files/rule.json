@@ -66,6 +66,10 @@
             {
                 "parm_desc": "记录实际平均存放字节数",
                 "parm_name": "avg_col_len"
+            },
+            {
+                "parm_desc": "超过长度的字段名",
+                "parm_name": "column_names"
             }
         ],
         "rule_desc": "记录长度定义过长",
@@ -3736,6 +3740,10 @@
             {
                 "parm_desc": "记录实际平均存放字节数",
                 "parm_name": "avg_col_len"
+            },
+            {
+                "parm_desc": "超过长度的字段名",
+                "parm_name": "column_names"
             }
         ],
         "rule_desc": "记录长度定义过长",
