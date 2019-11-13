@@ -21,7 +21,7 @@ def execute_rule(**kwargs):
     sql = """
     select index_name, table_owner, table_name, column_name
     from dba_ind_columns
-    WHERE T.INDEX_OWNER = '@username@' 
+    WHERE INDEX_OWNER = '@username@' 
     """
     db_cursor.execute(sql.replace("@username@", username))
     index_records = db_cursor.fetchall()
