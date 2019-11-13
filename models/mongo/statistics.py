@@ -613,8 +613,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
-                for k in j:
-                    yield k
+                yield j
 
 
 class StatsRiskObjectsRule(BaseStatisticsDoc):
@@ -659,8 +658,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
-                for k in j:
-                    yield k
+                yield j
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):
