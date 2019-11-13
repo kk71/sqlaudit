@@ -28,7 +28,7 @@ def execute_rule(**kwargs):
     # table_owner: table_name: column_name:: {index_name}
     column_name_index_name_dict = \
         defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
-    for table_owner_table_name, column_name in records:
+    for table_owner_table_name, column_name, _ in records:
         table_owner, table_name = table_owner_table_name.split(".")
         for the_index_name, \
             the_table_owner, \
@@ -40,7 +40,7 @@ def execute_rule(**kwargs):
                 column_name_index_name_dict[table_owner][table_name][column_name].add(
                     the_index_name)
     for record in records:
-        table_owner_table_name, column_name, _ = records
+        table_owner_table_name, column_name, _ = record
         table_owner, table_name = table_owner_table_name.split(".")
         record.append(list(column_name_index_name_dict[table_owner][table_name][column_name]))
     return records, True
