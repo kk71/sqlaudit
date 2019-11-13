@@ -28,7 +28,7 @@ def execute_rule(**kwargs):
     # table_owner: table_name: column_name:: {index_name}
     column_name_index_name_dict = \
         defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
-    for table_owner_table_name, column_name, _ in records:
+    for table_owner_table_name, column_name in records:
         table_owner, table_name = table_owner_table_name.split(".")
         for the_index_name, \
             the_table_owner, \
