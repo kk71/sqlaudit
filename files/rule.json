@@ -251,11 +251,15 @@
             {
                 "parm_desc": "重复次数",
                 "parm_name": "repeat_times"
+            },
+            {
+                "parm_desc": "涉及索引名",
+                "parm_name": "referred_index_name"
             }
         ],
         "rule_desc": "字段重复索引",
         "rule_name": "DUPLICATE_INDEX",
-        "rule_complexity": "simple",
+        "rule_complexity": "complex",
         "rule_cmd": "SELECT T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME, COUNT(T.INDEX_NAME) FROM DBA_IND_COLUMNS T WHERE T.INDEX_OWNER = '@username@' GROUP BY T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME HAVING COUNT(T.INDEX_NAME) > 1",
         "rule_status": "ON",
         "rule_summary": "一个字段被多个索引引用,请考虑构建策略。删除不必要的索引。",
@@ -4417,11 +4421,15 @@
             {
                 "parm_desc": "重复次数",
                 "parm_name": "repeat_times"
+            },
+            {
+                "parm_desc": "涉及索引名",
+                "parm_name": "referred_index_name"
             }
         ],
         "rule_desc": "字段重复索引",
         "rule_name": "DUPLICATE_INDEX",
-        "rule_complexity": "simple",
+        "rule_complexity": "complex",
         "rule_cmd": "SELECT T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME, COUNT(T.INDEX_NAME) FROM DBA_IND_COLUMNS T WHERE T.INDEX_OWNER = '@username@' GROUP BY T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME HAVING COUNT(T.INDEX_NAME) > 1",
         "rule_status": "ON",
         "rule_summary": "一个字段被多个索引引用,请考虑构建策略。删除不必要的索引。",
