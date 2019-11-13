@@ -15,7 +15,7 @@ def execute_rule(**kwargs):
     HAVING COUNT(T.INDEX_NAME) > 1
     """
     db_cursor.execute(sql.replace("@username@", username))
-    records = db_cursor.fetchall()
+    records = [list(i) for i in db_cursor.fetchall()]
 
     # 获取字段重复索引的索引名
     sql = """
