@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__VERSION__ = "0.2.0"
+from utils.version_utils import get_versions
+__VERSION__ = get_versions()[-1]
 
 from os import path
 from utils.datetime_utils import *

@@ -42,6 +42,7 @@ TIMING_ENABLED = bool(env_get("TIMING_ENABLED", 1, int))
 TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.5, float)
 ADMIN_LOGIN_USER = "admin"
 CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
+VERSION_FILE = path.join(SETTINGS_FILE_DIR, "version.json")
 
 
 REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "192.0.0.3")
