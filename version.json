@@ -1,0 +1,12 @@
+{
+    "versions": [
+        {
+            "version": [1,0,0],
+            "version_name": "test-version",
+            "client_name": "bsz",
+            "msg": "emmm",
+            "developers": ["fk"],
+            "create_time": "2019-11-11 12:12:12"
+        }
+    ]
+}

@@ -2,7 +2,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from utils.version_utils import get_versions
-__VERSION__ = get_versions()[-1]
+__VERSION__ = ".".join([str(i) for i in get_versions()["versions"][-1]["version"]])
 
 from os import path
 from utils.datetime_utils import *

@@ -74,5 +74,8 @@ class VersionHandler(BaseReq):
         }))
         p = self.pop_p(params)
         del params
+        rst = get_versions()
+        rst["versions"].reverse()
+        rst["versions"], p = self.paginate(rst["versions"], **p)
+        self.resp(dt_to_str(rst), **p)
 
-        self.resp()

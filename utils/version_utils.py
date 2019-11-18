@@ -44,3 +44,4 @@ def add_version(filename=settings.VERSION_FILE):
     :param filename:
     :return:
     """
+    return
