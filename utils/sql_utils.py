@@ -85,17 +85,17 @@ def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
     计算sql文本的统计信息
     """
     from utils.score_utils import get_latest_task_record_id
-    latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(
-        session,
-        cmdb_id,
-        task_record_id_to_replace=task_record_id_to_replace
-    )
     try:
+        latest_cmdb_id_task_record_id: dict = get_latest_task_record_id(
+            session,
+            cmdb_id,
+            task_record_id_to_replace=task_record_id_to_replace
+        )
         task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
-    except IndexError:
-        raise const.TaskLongTimeNoCapturedException
-    objs = StatsCMDBSQLText.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
-    return {obj.sql_id: obj.to_dict() for obj in objs}
+        objs = StatsCMDBSQLText.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
+        return {obj.sql_id: obj.to_dict() for obj in objs}
+    except KeyError:
+        return {}
 
 
 # @timing(cache=r_cache)
