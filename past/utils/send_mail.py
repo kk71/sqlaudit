@@ -4,7 +4,8 @@ import traceback
 
 import yagmail
 
-def send_work_list_status(server_data,user_email,comment):
+
+def send_work_list_status(server_data, user_email, comment):
     mail_host = server_data['ip_address']
     mail_port = server_data['port']
     mail_user = server_data['username']
@@ -18,7 +19,7 @@ def send_work_list_status(server_data,user_email,comment):
                            smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
         print(smtp_kwargs)
         yag = yagmail.SMTP(**smtp_kwargs)
-        send_kwargs = dict(to=user_email,subject='线下工单审核状态', contents=comment)
+        send_kwargs = dict(to=user_email, subject='线下工单审核状态', contents=comment)
         print(send_kwargs)
         yag.send(**send_kwargs)
     except Exception as error:
@@ -29,8 +30,10 @@ def send_work_list_status(server_data,user_email,comment):
     print(result, errors)
     return result, errors
 
+
 def send_mail(title, contents, receivers, server_data, path=None, filename=None):
-    print(f"Mail parameters: title: {title}, contents: {contents}, receivers: {receivers}, path: {path}, filename: {filename}, server_data: {server_data}")
+    print(
+        f"Mail parameters: title: {title}, contents: {contents}, receivers: {receivers}, path: {path}, filename: {filename}, server_data: {server_data}")
     mail_host = server_data['ip_address']
     mail_port = server_data['port']
     mail_user = server_data['username']
@@ -65,4 +68,8 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
 
 
 if __name__ == '__main__':
-    send_mail(title='测试邮件', contents='您好 这是一封测试邮件', receivers='574691837@qq.com', server_data=dict(mail_server_name='smtp.qq.com', port=25, username='1002751472@qq.com', password='ftvcpmagklagbeii', usessl=0), path='/home/sqlaudit/sqlauditcg/sqlaudit2/downloads/mail_files/25测试2802201907011030.zip', filename="SQL审核报告.zip")
+    send_mail(title='测试邮件', contents='您好 这是一封测试邮件', receivers='574691837@qq.com',
+              server_data=dict(mail_server_name='smtp.qq.com', port=25, username='1002751472@qq.com',
+                               password='ftvcpmagklagbeii', usessl=0),
+              path='/home/sqlaudit/sqlauditcg/sqlaudit2/downloads/mail_files/25测试2802201907011030.zip',
+              filename="SQL审核报告.zip")
