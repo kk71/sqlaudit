@@ -32,11 +32,18 @@ def get_versions(filename=settings.VERSION_FILE):
     :param filename:
     :return:
     """
-    with open(filename, "r") as z:
-        original_file_content = z.read()
-        structure = json.loads(original_file_content)
-        # validation, if not then throw exception
-        validated = file_structure.validate(structure)
+    default_structure = {"versions": []}
+    try:
+        with open(filename, "r") as z:
+            original_file_content = z.read()
+            if original_file_content:
+                structure = json.loads(original_file_content)
+            else:
+                structure = default_structure
+            # validation, if not then throw exception
+            validated = file_structure.validate(structure)
+    except FileNotFoundError:
+        return default_structure
     return validated
 
 
@@ -99,7 +106,7 @@ def add_version(filename=settings.VERSION_FILE):
     new_msg = new_v["msg"] = None
     while not new_msg:
         new_msg = input("input msg to show what this version fixed and upgraded: ")
-    new_msg["msg"] = new_msg
+    new_v["msg"] = new_msg
 
     # developers
     new_developers = new_v["developers"] = None
@@ -118,7 +125,7 @@ def add_version(filename=settings.VERSION_FILE):
     new_v["developers"] = new_developers
 
     with open(filename, "w") as z:
-        old_versions.append(new_v)
-        z.write(json.dumps({"versions": old_versions}, indent=4, ensure_ascii=False))
+        old_versions.append(dt_to_str(new_v))
+        z.write(json.dumps({"versions": dt_to_str(old_versions)}, indent=4, ensure_ascii=False))
     print(get_versions()["versions"][-1])
     print("updated.")
