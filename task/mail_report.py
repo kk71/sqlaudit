@@ -179,7 +179,8 @@ def create_excels(username, send_list_id):
     ]
     zipPath = zip_file_path(
         path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
-    return zipPath
+    ret_url = os.path.join("downloads/mail_files/", ''.join(file_path_list))
+    return ret_url
 
 
 def create_excel(username, send_list_id):

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import settings
 import traceback
 
@@ -56,7 +57,7 @@ def send_mail(title, contents, receivers, server_data, path=None, filename=None)
                            smtp_ssl=use_ssl, smtp_skip_login=smtp_skip_login)
         print(smtp_kwargs)
         yag = yagmail.SMTP(**smtp_kwargs)
-        send_kwargs = dict(to=receivers, subject=title, contents=contents, attachments=settings.SETTINGS_FILE_DIR+path)
+        send_kwargs = dict(to=receivers, subject=title, contents=contents, attachments=os.path.join(settings.SETTINGS_FILE_DIR,path))
         # send_kwargs = dict(to=receivers, subject=title, contents=contents, attachments=path)
         print(send_kwargs)
         yag.send(**send_kwargs)
