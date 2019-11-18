@@ -305,6 +305,11 @@ class CMDBNotFoundException(Exception):
     pass
 
 
+class TaskLongTimeNoCapturedException(Exception):
+    """任务长期未执行成功错误"""
+    pass
+
+
 class CMDBHasNoSchemaBound(Exception):
     """CMDB未绑定任何schema"""
     pass
