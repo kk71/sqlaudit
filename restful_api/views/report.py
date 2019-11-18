@@ -344,7 +344,7 @@ class ExportReportXLSXHandler(AuthReq):
 
                     num = 1
                     for records_data in records:
-                        [rule_ws.write(6 + num, x, field, format_text) for x, field in
+                        [rule_ws.write(6 + num, x, str(field), format_text) for x, field in
                          enumerate(records_data)]
                         num += 1
 
@@ -364,7 +364,6 @@ class ExportReportXLSXHandler(AuthReq):
             "export_sqlhealth_details",
             datetime.now().strftime("%Y%m%d%H%M%S") + ".zip"
         ]
-
         zipPath = zip_file_path(
             path, settings.HEALTH_DIR,''.join(file_path_list))
         self.resp({"url": zipPath})
