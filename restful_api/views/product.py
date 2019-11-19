@@ -1,17 +1,18 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema
+from schema import Schema, Optional
 
 from utils.schema_utils import *
 from .base import BaseReq
 from past.utils.product_license import *
 from utils.datetime_utils import *
+from utils.version_utils import *
 
 
 class ProductLicenseHandler(BaseReq):
 
     def get(self):
-        """查询序列号状态"""
+        """查询序列号状态以及版本信息"""
         try:
             license_key = SqlAuditLicenseKeyManager.latest_license_key()
             license_key_ins = SqlAuditLicenseKey.decode(license_key)
@@ -62,3 +63,19 @@ class ProductLicenseHandler(BaseReq):
             msg = str(e)
             print(msg)
             return self.resp_bad_req(msg=str(e))
+
+
+class VersionHandler(BaseReq):
+
+    def get(self):
+        """获取版本信息"""
+        params = self.get_query_args(Schema({
+            **self.gen_p()
+        }))
+        p = self.pop_p(params)
+        del params
+        rst = get_versions()
+        rst["versions"].reverse()
+        rst["versions"], p = self.paginate(rst["versions"], **p)
+        self.resp(dt_to_str(rst), **p)
+

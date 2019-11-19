@@ -248,6 +248,7 @@ def task_run(host, port, sid, username, password,
                 db_users: list = utils.cmdb_utils.get_cmdb_bound_schema(session, cmdb_id)
                 if not db_users:
                     raise utils.const.CMDBHasNoSchemaBound
+                print(f"going to capture the following schema(s): {db_users}")
         for user in db_users:
             run_default_script(host, port, sid, username, password, user, cmdb_id,
                                connect_name, str(record_id) + "##" + user)

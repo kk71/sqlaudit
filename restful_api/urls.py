@@ -25,6 +25,7 @@ urls += [
     (r"/api/role/privilege", permisson.SystemPrivilegeHandler),
     (r"/api/permission/cmdb", permisson.CMDBPermissionHandler),
     (r'/api/product/license', product.ProductLicenseHandler),
+    (r'/api/product/version', product.VersionHandler),
 ]
 
 # rule and risk rules
