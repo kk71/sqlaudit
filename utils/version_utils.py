@@ -127,5 +127,6 @@ def add_version(filename=settings.VERSION_FILE):
     with open(filename, "w") as z:
         old_versions.append(dt_to_str(new_v))
         z.write(json.dumps({"versions": dt_to_str(old_versions)}, indent=4, ensure_ascii=False))
-    print(get_versions()["versions"][-1])
+    current_version = get_versions()["versions"][-1]
     print("updated.")
+    return current_version
