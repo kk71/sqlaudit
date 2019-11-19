@@ -1,4 +1,5 @@
 import time
+from collections import defaultdict
 
 
 from past.capture.sql import (
@@ -39,7 +40,7 @@ class CaptureObj(past.capture.base.Capture):
     def extract_column(self, data, column=0):
         return [value[column] for value in data]
 
-    def parse_result(self, data, columns, *args):
+    def parse_result(self, data, columns, *args) -> dict:
         full_dict = {}
         for value in data:
             temp_dict = {}
@@ -155,7 +156,8 @@ class CaptureObj(past.capture.base.Capture):
             OBJ_PART_TAB_PARENT_PHY_SIZE_SQL.format(obj_owner=obj_owner))
         col_sum, _ = self.query_sql(
             OBJ_PART_TAB_PARENT_COL_SQL.format(obj_owner=obj_owner))
-        results = self.parse_result(records, columns, *(1,))
+        results = defaultdict(lambda: 0)
+        results.update(self.parse_result(records, columns, *(1,)))
         for item in phy_size:
             if item[0] not in results:
                 results[item[0]]["PHY_SIZE(MB)"] = 0
@@ -167,7 +169,7 @@ class CaptureObj(past.capture.base.Capture):
             else:
                 results[val[0]].update({"NUM_ROW": val[1]})
 
-        return results
+        return dict(results)
 
     # def obj_part_tab_son(self, obj_owner):
     #    records, columns = self.query_sql(

@@ -36,7 +36,7 @@ class TaskManage(BaseModel):
     last_task_exec_succ_date = Column("LAST_TASK_EXEC_SUCC_DATE", DATE)
     task_create_date = Column("TASK_CREATE_DATE", DATE, default=datetime.now)
     cmdb_id = Column("CMDB_ID", Integer)
-    task_exec_frequency = Column("TASK_EXEC_FREQUENCY", Integer, default=60*60*24)
+    task_exec_frequency = Column("TASK_EXEC_FREQUENCY", Integer, default=60*60*24)  # 单位分钟
 
 
 class TaskExecHistory(BaseModel):
