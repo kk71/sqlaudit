@@ -156,25 +156,25 @@ def analysis_obj(
     com.run_analysis(**args)
 
 
-def run_default_script(
-        host, port, sid, username, password, db_user, cmdb_id, connect_name, record_id):
+def run_old_capture(
+        host, port, sid, username, password, cmdb_id, connect_name, record_id):
 
     com = past.command.Command()
 
-    now = past.utils.utils.get_time()
-    time.sleep(5)
-
-    logger.info("run obj capture start...")
+    logger.info("old object capture start...")
     com.run_capture(host, port, sid, username, password,
                     past.utils.utils.get_time(return_str=True),
                     "OBJ", connect_name, record_id, cmdb_id)
-    logger.info("run other capture start...")
+    logger.info("old other capture start...")
     com.run_capture(host, port, sid, username, password,
                     past.utils.utils.get_time(format='%Y-%m-%d', return_str=True),
                     "OTHER", connect_name, record_id, cmdb_id)
 
-    print(">>>>>>>>>>>>>>>>>> now >>>>>>>>>>>>>>>>>")
-    print(now)
+
+def analyse_rule_by_schema(
+        host, port, sid, username, password, db_user, cmdb_id, connect_name, record_id):
+    com = past.command.Command()
+    now = past.utils.utils.get_time()
 
     # plan
     logger.info("run analysis plan start...")
@@ -249,9 +249,12 @@ def task_run(host, port, sid, username, password,
                 if not db_users:
                     raise utils.const.CMDBHasNoSchemaBound
                 print(f"going to capture the following schema(s): {db_users}")
+        run_old_capture(host, port, sid, username, password, cmdb_id,
+                        connect_name, record_id)
         for user in db_users:
-            run_default_script(host, port, sid, username, password, user, cmdb_id,
-                               connect_name, str(record_id) + "##" + user)
+            analyse_rule_by_schema(
+                host, port, sid, username, password, user, cmdb_id,
+                connect_name, str(record_id) + "##" + user)
             logger.info("run script for health data...")
             past.utils.health_data_gen.calculate(record_id)
             utils.capture_utils.capture(

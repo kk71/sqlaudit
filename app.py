@@ -6,7 +6,7 @@ __VERSION__ = ".".join([str(i) for i in get_versions()["versions"][-1]["version"
 
 from os import path
 from utils.datetime_utils import *
-print(f"SQL-Audit version {__VERSION__} ({dt_to_str(arrow.now())})")
+print(f"SQL-Audit version {__VERSION__} (process started at {dt_to_str(arrow.now())})")
 
 import click
 from tornado.web import Application
