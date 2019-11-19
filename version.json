@@ -1,0 +1,19 @@
+{
+    "versions": [
+        {
+            "create_time": "2019-11-19 11:10:03",
+            "version": [
+                1,
+                0,
+                1
+            ],
+            "version_name": "initial version",
+            "client_name": "common",
+            "msg": "first version",
+            "developers": [
+                "tianlei.yan",
+                "kai.fang"
+            ]
+        }
+    ]
+}
