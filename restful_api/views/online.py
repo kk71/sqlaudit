@@ -747,6 +747,7 @@ class OverviewScoreByHandler(AuthReq):
                 cmdb_id=cmdb.cmdb_id,
                 item=perspective
             ).order_by(OverviewRate.id.desc()).first()
+
             if score_type is None:
                 if overview_rate:
                     score_type = overview_rate.type
@@ -768,7 +769,7 @@ class OverviewScoreByHandler(AuthReq):
                 d = sorted(
                     self.dict_to_verbose_dict_in_list(ret, "schema", "num"),
                     key=lambda k: k["num"]
-                )
+                )[:10]
             elif perspective == OVERVIEW_ITEM_RADAR:
                 d = ret
             else:
