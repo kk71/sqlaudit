@@ -379,7 +379,7 @@ class ExportReportHTMLHandler(AuthReq):
         }))
         job_ids = params.pop("job_id")
 
-        zipPath=await AsyncTimeout(10).async_thr(
+        zipPath=await AsyncTimeout(60).async_thr(
             html_report.export.export_task, job_ids)
 
         self.resp({
