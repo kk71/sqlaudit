@@ -50,11 +50,13 @@ MODEL_OLTP = "OLTP"
 MODEL_OLAP = "OLAP"
 ALL_SUPPORTED_MODEL = (MODEL_OLAP, MODEL_OLTP)
 
+
 # 规则状态
 
 RULE_STATUS_ON = "ON"
 RULE_STATUS_OFF = "OFF"
 ALL_RULE_STATUS = (RULE_STATUS_ON, RULE_STATUS_OFF)
+
 
 # 规则类型
 
@@ -63,6 +65,7 @@ RULE_TYPE_TEXT = "TEXT"
 RULE_TYPE_SQLPLAN = "SQLPLAN"
 RULE_TYPE_SQLSTAT = "SQLSTAT"
 ALL_RULE_TYPE = (RULE_TYPE_OBJ, RULE_TYPE_TEXT, RULE_TYPE_SQLPLAN, RULE_TYPE_SQLSTAT)
+
 
 # OBJ规则的子类型（obj_info_type）
 
@@ -73,6 +76,7 @@ OBJ_RULE_TYPE_VIEW = "VIEW"
 OBJ_RULE_TYPE_SEQ = "SEQUENCE"
 ALL_OBJ_RULE_TYPE = (OBJ_RULE_TYPE_TABLE, OBJ_RULE_TYPE_PART_TABLE, OBJ_RULE_TYPE_INDEX,
                      OBJ_RULE_TYPE_VIEW, OBJ_RULE_TYPE_SEQ)
+
 
 # 仪表盘以及概览页所需的统计数据
 
@@ -95,6 +99,7 @@ ALL_STATS_NUM_TYPE = (
     STATS_NUM_OBJ
 )
 
+
 # 所有归类为SQL的规则类型(与OBJ对应)
 
 ALL_RULE_TYPES_FOR_SQL_RULE = [
@@ -103,9 +108,11 @@ ALL_RULE_TYPES_FOR_SQL_RULE = [
     RULE_TYPE_SQLSTAT,
 ]
 
+
 # 定位一条规则的字段们
 
 RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
+
 
 # 静态规则DDL的类型
 
@@ -132,12 +139,14 @@ ALL_DDL_TYPE = (
     DDL_TYPE_AUTHORIZATION
 )
 
+
 # 任务状态
 
 JOB_STATUS_ERROR = 0
 JOB_STATUS_FINISHED = 1
 JOB_STATUS_RUNNING = 2
 ALL_JOB_STATUS = (JOB_STATUS_ERROR, JOB_STATUS_FINISHED, JOB_STATUS_RUNNING)
+
 
 # SQL语句的类型
 
@@ -149,17 +158,20 @@ ALL_SQL_TYPE_NAME_MAPPING = {
     SQL_DML: "DML"
 }
 
+
 # 评分显示类型
 
 SCORE_BY_AVERAGE = 1  # 按照平均分展示
 SCORE_BY_LOWEST = 2  # 按照最低分展示
 ALL_SCORE_BY = (SCORE_BY_AVERAGE, SCORE_BY_LOWEST)
 
+
 # 评分对象名(对应T_OVERVIEW_RATE.ITEM)
 
 OVERVIEW_ITEM_RADAR = "RADAR"
 OVERVIEW_ITEM_SCHEMA = "SCHEMA"
 ALL_OVERVIEW_ITEM = (OVERVIEW_ITEM_SCHEMA, OVERVIEW_ITEM_RADAR)
+
 
 # 线下审核工单状态
 
@@ -176,11 +188,13 @@ ALL_OFFLINE_TICKET_STATUS = (
     OFFLINE_TICKET_FAILED
 )
 
+
 # PARAM_TYPE
 
 PARAM_TYPE_ENV = 4  # 环境
 PARAM_TYPE_DATA_CENTER = 1  # 数据中心
 ALL_PARAM_TYPE = (PARAM_TYPE_ENV, PARAM_TYPE_DATA_CENTER)
+
 
 # 风险白名单类型
 
@@ -191,16 +205,19 @@ ALL_WHITE_LIST_CATEGORY = (WHITE_LIST_CATEGORY_USER,
                            WHITE_LIST_CATEGORY_MODULE,
                            WHITE_LIST_CATEGORY_TEXT)
 
+
 # 自动优化SQL前后
 
 AI_TUNE_PRE_OPTIMIZED = "B"
 AI_TUNE_POST_OPTIMIZED = "A"
+
 
 # 纳管数据库权限是否算分needcalc
 
 RANKING_CONFIG_NEED_CALC = "Y"
 RANKING_CONFIG_NO_CALC = "N"
 ALL_RANKING_CONFIG_CALC_OR_NOT = (RANKING_CONFIG_NEED_CALC, RANKING_CONFIG_NO_CALC)
+
 
 # mail发送时间
 
@@ -209,11 +226,14 @@ ALL_SEND_TIME = ("0:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00",
                  "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00",
                  "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 
+
 # 排序
 SORT_DESC = "desc"
 SORT_ASC = "asc"
 ALL_SORTS = (SORT_ASC, SORT_DESC)
 
+
+# 系统权限
 
 class PRIVILEGE:
     # 权限执行方
@@ -332,6 +352,11 @@ class PrivilegeRequired(Exception):
 
 class CannotUsePositionArgs(Exception):
     """函数参数必须带key"""
+    pass
+
+
+class RuleCodeInvalidException(Exception):
+    """规则代码无法执行"""
     pass
 
 

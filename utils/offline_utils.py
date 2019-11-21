@@ -22,3 +22,13 @@ def get_current_offline_ticket_task_name(submit_owner, sql_type):
     cache_redis_cli.expire(k, 60*60*24*3)  # 设置三天内超时
     return f"{submit_owner}-{const.ALL_SQL_TYPE_NAME_MAPPING[sql_type]}-" \
            f"{current_date}-{current_num}"
+
+
+def analyse_sql(sql_text: list, ticket_result_object):
+    """
+    分析线下审核
+    :param sql_text:
+    :param ticket_result_object:
+    :return:
+    """
+    return
