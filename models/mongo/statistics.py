@@ -116,7 +116,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.sql_problem_num = calc_problem_num(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
-
                     # TABLE ============
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
@@ -127,7 +126,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         table_r_q, rule_name=rule_names_to_tab)
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
-
                     # INDEX =============
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
@@ -138,7 +136,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         index_r_q, rule_name=rule_names_to_ind)
                     if doc.index_num:
                         doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
-
                     # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
@@ -152,7 +149,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         sequence_r_q, rule_name=rule_names_to_seq)
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
-
                     # schema排名
                     tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids). \
                                     order_by("-usage_ratio")[:10]
@@ -183,6 +179,21 @@ class StatsLoginUser(BaseStatisticsDoc):
                         all_current_cmdb_schema_dict.items(),
                         key=lambda x: x[1].health_score
                     )[:10]).values())  # 只取分数最低的x个
+                else:
+                    doc.sql_num = 100
+                    doc.sql_problem_num = 100
+                    doc.sql_problem_rate = 100
+                    doc.table_num = 100
+                    doc.table_problem_num = 100
+                    doc.table_problem_rate = 100
+                    doc.index_num = 100
+                    doc.index_problem_num = 100
+                    doc.table_problem_rate = 100
+                    doc.sequence_problem_num = 100
+                    doc.sequence_num = 100
+                    doc.sequence_problem_rate = 100
+                    doc.tablespace_rank = []
+                    doc.schema_rank = []
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
