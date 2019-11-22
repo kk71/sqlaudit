@@ -239,6 +239,7 @@ def task_run(host, port, sid, username, password,
         session.commit()
         session.refresh(task_record_object)
         record_id = task_record_object.id
+        print(f"* current task record_id: {record_id}")
 
     task.clear_cache.clear_cache.delay(no_prefetch=True)
 

@@ -45,7 +45,7 @@ class RuleRepoHandler(PrivilegeReq):
                     "parm_desc": scm_str,
                     "parm_name": scm_unempty_str,
                     "parm_unit": scm_str,
-                    "parm_value": Or(float, int),
+                    "parm_value": scm_num,
 
                     Optional(object): object
                 }
@@ -67,7 +67,7 @@ class RuleRepoHandler(PrivilegeReq):
             "rule_summary": scm_str,
             "rule_type": scm_str,
             "solution": [scm_unempty_str],
-            "weight": scm_float
+            "weight": scm_num
         }))
         params["input_parms"] = [{k: v for k, v in i.items() if k in (
             "parm_desc", "parm_name", "parm_unit", "parm_value"
@@ -92,7 +92,7 @@ class RuleRepoHandler(PrivilegeReq):
                     "parm_desc": scm_str,
                     "parm_name": scm_str,
                     "parm_unit": scm_str,
-                    "parm_value": Or(float, int)
+                    "parm_value": scm_num
                 }
             ],
             Optional("max_score"): scm_int,
@@ -109,7 +109,7 @@ class RuleRepoHandler(PrivilegeReq):
             # Optional("rule_summary"): scm_str,
             # Optional("rule_type"): scm_str,
             # Optional("solution"): [scm_unempty_str],
-            Optional("weight"): scm_float
+            Optional("weight"): scm_num
         }))
         rule_id = params.pop("_id")
         rule = Rule.objects(_id=rule_id).first()
