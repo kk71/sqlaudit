@@ -594,19 +594,19 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 task_record_id=task_record_id,
                 task_record_id_to_replace={cmdb_id: task_record_id}
             )
-            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
+
         # rule_name, schema:
         rsts = defaultdict(lambda: defaultdict(cls))
-        for schema in schemas:
-            for x in rst:
-                doc = rsts[x["rule"]["rule_name"]][schema]
-                doc.task_record_id = task_record_id
-                doc.cmdb_id = cmdb_id
-                doc.rule = x["rule"]
-                doc.severity = x["severity"]
-                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-                doc.schema = schema
-                doc.rule_num += 1
+
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x['schema']
+            doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
                 yield j
