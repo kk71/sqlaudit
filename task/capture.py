@@ -253,13 +253,12 @@ def task_run(host, port, sid, username, password,
         run_old_capture(host, port, sid, username, password, cmdb_id,
                         connect_name, record_id)
         for user in db_users:
+            utils.capture_utils.capture(
+                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
             analyse_rule_by_schema(
                 host, port, sid, username, password, user, cmdb_id,
                 connect_name, str(record_id) + "##" + user)
-            logger.info("run script for health data...")
             past.utils.health_data_gen.calculate(record_id)
-            utils.capture_utils.capture(
-                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
         utils.capture_utils.capture(
             record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
         utils.analyse_utils.calc_statistics(
