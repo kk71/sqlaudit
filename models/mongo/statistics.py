@@ -179,21 +179,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         all_current_cmdb_schema_dict.items(),
                         key=lambda x: x[1].health_score
                     )[:10]).values())  # 只取分数最低的x个
-                else:
-                    doc.sql_num = 100
-                    doc.sql_problem_num = 100
-                    doc.sql_problem_rate = 100
-                    doc.table_num = 100
-                    doc.table_problem_num = 100
-                    doc.table_problem_rate = 100
-                    doc.index_num = 100
-                    doc.index_problem_num = 100
-                    doc.table_problem_rate = 100
-                    doc.sequence_problem_num = 100
-                    doc.sequence_num = 100
-                    doc.sequence_problem_rate = 100
-                    doc.tablespace_rank = []
-                    doc.schema_rank = []
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
@@ -654,19 +639,18 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 cmdb_id=cmdb_id,
                 task_record_id=task_record_id
             )
-            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
         # rule_name, schema:
         rsts = defaultdict(lambda: defaultdict(cls))
-        for schema in schemas:
-            for x in rst:
-                doc = rsts[x["rule"]["rule_name"]][schema]
-                doc.task_record_id = task_record_id
-                doc.cmdb_id = cmdb_id
-                doc.rule = x["rule"]
-                doc.severity = x["severity"]
-                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-                doc.schema = schema
-                doc.rule_num += 1
+
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x['schema']
+            doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
                 yield j
