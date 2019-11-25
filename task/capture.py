@@ -239,7 +239,7 @@ def task_run(host, port, sid, username, password,
         session.commit()
         session.refresh(task_record_object)
         record_id = task_record_object.id
-        print(f"* current task record_id: {record_id}")
+        print(f"* current task task_record_id: {record_id}")
 
     task.clear_cache.clear_cache.delay(no_prefetch=True)
 
@@ -253,13 +253,12 @@ def task_run(host, port, sid, username, password,
         run_old_capture(host, port, sid, username, password, cmdb_id,
                         connect_name, record_id)
         for user in db_users:
+            utils.capture_utils.capture(
+                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
             analyse_rule_by_schema(
                 host, port, sid, username, password, user, cmdb_id,
                 connect_name, str(record_id) + "##" + user)
-            logger.info("run script for health data...")
             past.utils.health_data_gen.calculate(record_id)
-            utils.capture_utils.capture(
-                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
         utils.capture_utils.capture(
             record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
         utils.analyse_utils.calc_statistics(
@@ -277,4 +276,4 @@ def task_run(host, port, sid, username, password,
         update_record(task_id, record_id, False, err_msg=stack)
 
     task.clear_cache.clear_cache.delay(no_prefetch=False)
-    logger.warning("Task finished..........")
+    logger.warning(f"Task finished(task_record_id: {record_id})..........")
