@@ -51,7 +51,7 @@ class CaptureObj(past.capture.base.Capture):
                     'IPADDR': self.ipaddress,
                     'SID': self.sid,
                     'cmdb_id': self.cmdb_id,
-                    'record_id': "#".join([self.record_id, obj_owner])
+                    'record_id': "#".join([str(self.record_id), obj_owner])
                 })
             index_list = [str(value[index]) for index in args]
             full_dict.update({"#".join(index_list): temp_dict})
