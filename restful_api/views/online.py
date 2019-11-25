@@ -546,7 +546,7 @@ class SQLRiskDetailHandler(AuthReq):
                     })
 
                     get_delta_average = lambda x: x / sql_stat_obj.executions_delta \
-                        if x > 0 else 0
+                        if x > 0 and sql_stat_obj.executions_delta>0 else 0
                     # 平均数
                     gp['cpu_time_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date,
