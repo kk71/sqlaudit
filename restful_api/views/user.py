@@ -82,8 +82,8 @@ class UserHandler(AuthReq):
                         login_users.append(login_user)
                 user_q = user_q.filter(User.login_user.in_(login_users))
             items, p = self.paginate(user_q, **p)
-            iter_by = lambda k, v: "***" if k == "password" and not self.is_admin() else v
-            to_ret = [i.to_dict(iter_by=iter_by) for i in items]
+            # iter_by = lambda k, v: "***" if k == "password" and not self.is_admin() else v
+            to_ret = [i.to_dict() for i in items]
             # TODO 这里给to_ret每个用户加上绑定的角色列表（包含角色id和角色名），
             #  以及纳管库的信息列表（connect_name, cmdb_id）
             for x in to_ret:
@@ -146,17 +146,21 @@ class UserHandler(AuthReq):
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
             Optional("user_name"): scm_unempty_str,
+            Optional("old_password",default=None): scm_unempty_str,
             Optional("password"): scm_unempty_str,
             Optional("email"): scm_unempty_str,
             Optional("mobile_phone"): scm_str,
             Optional("department"): scm_str,
             Optional("status"): scm_int,
         }))
+        old_password=params.pop("old_password")
+
         with make_session() as session:
             the_user = session.query(User).filter_by(login_user=params.pop("login_user")).first()
-            the_user.from_dict(params,
-                               iter_if=lambda k, v:
-                               False if k == "password" and v == "***" else True)
+            if self.current_user!="admin" and the_user.password !=old_password:
+                return self.resp_forbidden(msg="老密码不正确")
+
+            the_user.from_dict(params)
             self.resp_created(the_user.to_dict())
 
     def delete(self):
