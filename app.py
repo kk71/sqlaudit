@@ -2,10 +2,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from utils.version_utils import get_versions
+
 __VERSION__ = ".".join([str(i) for i in get_versions()["versions"][-1]["version"]])
 
 from os import path
 from utils.datetime_utils import *
+
 print(f"SQL-Audit version {__VERSION__} (process started at {dt_to_str(arrow.now())})")
 
 import click
@@ -15,7 +17,6 @@ from tornado.log import enable_pretty_logging
 
 import settings
 from models import init_models
-
 
 # initiate database models/connections
 
@@ -209,6 +210,20 @@ def flush_celery_q(q):
     print('done')
 
 
+@click.command()
+def password_convert():
+    from hashlib import md5
+    from models.oracle import make_session, User
+    if input("make sure you're going to convert all users' password to md5.?(y) ") != "y":
+        print("aborted.")
+        exit()
+    with make_session() as session:
+        for user in session.query(User):
+            user.password = md5(user.password.encode("utf-8")).hexdegist()
+            session.add(user)
+    print("all changed.")
+
+
 if __name__ == "__main__":
     cli.add_command(runserver)
     cli.add_command(shell)
@@ -224,4 +239,5 @@ if __name__ == "__main__":
     cli.add_command(gen_license)
     cli.add_command(delete_rules)
     cli.add_command(flush_celery_q)
+    cli.add_command(password_convert)
     cli()
