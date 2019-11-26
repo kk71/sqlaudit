@@ -219,7 +219,7 @@ def password_convert():
         exit()
     with make_session() as session:
         for user in session.query(User):
-            user.password = md5(user.password.encode("utf-8")).hexdegist()
+            user.password = md5(user.password.encode("utf-8")).hexdigest()
             session.add(user)
     print("all changed.")
 
