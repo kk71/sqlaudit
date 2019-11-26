@@ -21,7 +21,7 @@ class AuthHandler(BaseReq):
         """查看token的登录用户信息"""
         with make_session() as session:
             current_user_object = session.query(User).\
-                filter(User.user_name == self.current_user).first()
+                filter(User.login_user == self.current_user).first()
             if not current_user_object:
                 return self.resp_unauthorized(msg="当前登录用户不存在。")
             self.resp(current_user_object.to_dict())
