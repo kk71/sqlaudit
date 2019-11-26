@@ -54,7 +54,7 @@ class CaptureObj(past.capture.base.Capture):
                     'record_id': "#".join([str(self.record_id), obj_owner])
                 })
             index_list = [str(value[index]) for index in args]
-            full_dict.update({"#".join(index_list): temp_dict})
+            full_dict.update({"##".join(index_list): temp_dict})
         return full_dict
 
     # def obj_ind_info(self, obj_owner):
