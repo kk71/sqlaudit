@@ -11,6 +11,7 @@ def execute_rule(sql, db_model=None, **kwargs):
         return False
 
     if re.search('create\s+index', sql, re.I) and 'tablespace' not in sql:
-        return "需要为索引指定表空间"
-    return True
+        #return "需要为索引指定表空间"
+        return True
+    return False
 
