@@ -212,6 +212,7 @@ def flush_celery_q(q):
 
 @click.command()
 def password_convert():
+    """warning: this should be run only once!!! For migration only."""
     from hashlib import md5
     from models.oracle import make_session, User
     if input("make sure you're going to convert all users' password to md5.?(y) ") != "y":
