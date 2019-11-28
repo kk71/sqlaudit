@@ -171,7 +171,7 @@ class UserHandler(AuthReq):
                 filter_by(login_user=params.pop("login_user")).first()
             if "password" in params.keys():
                 if not self.is_admin() and the_user.password != old_password:
-                    return self.resp_forbidden(msg="老密码不正确")
+                    return self.resp_bad_req(msg="老密码不正确")
 
             the_user.from_dict(params)
             self.resp_created(the_user.to_dict())
