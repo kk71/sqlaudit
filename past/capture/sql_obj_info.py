@@ -40,7 +40,7 @@ class CaptureObj(past.capture.base.Capture):
     def extract_column(self, data, column=0):
         return [value[column] for value in data]
 
-    def parse_result(self, data, columns, *args) -> dict:
+    def parse_result(self, data, columns, obj_owner, *args) -> dict:
         full_dict = {}
         for value in data:
             temp_dict = {}
@@ -51,10 +51,10 @@ class CaptureObj(past.capture.base.Capture):
                     'IPADDR': self.ipaddress,
                     'SID': self.sid,
                     'cmdb_id': self.cmdb_id,
-                    'record_id': self.record_id
+                    'record_id': "#".join([str(self.record_id), obj_owner])
                 })
             index_list = [str(value[index]) for index in args]
-            full_dict.update({"#".join(index_list): temp_dict})
+            full_dict.update({"##".join(index_list): temp_dict})
         return full_dict
 
     # def obj_ind_info(self, obj_owner):
@@ -77,7 +77,7 @@ class CaptureObj(past.capture.base.Capture):
     def obj_ind_col_info(self, obj_owner):
         records, columns = self.query_sql(
             OBJ_BASE_IDX_COL_HEAP_COL_INFO_SQL.format(obj_owner=obj_owner))
-        results = self.parse_result(records, columns, *(1, 4))
+        results = self.parse_result(records, columns, obj_owner, *(1, 4))
         return results
 
     # def obj_part_idx_detail(self, obj_owner):
@@ -97,7 +97,7 @@ class CaptureObj(past.capture.base.Capture):
         info_name = self.extract_column(records, column=1)
         phy_null = list(set(info_name) - set(phy_name))
 
-        results = self.parse_result(records, columns, *(1,))
+        results = self.parse_result(records, columns, obj_owner, *(1,))
         for data in phy_null:
             if data not in results:
                 continue
@@ -157,7 +157,7 @@ class CaptureObj(past.capture.base.Capture):
         col_sum, _ = self.query_sql(
             OBJ_PART_TAB_PARENT_COL_SQL.format(obj_owner=obj_owner))
         results = defaultdict(lambda: 0)
-        results.update(self.parse_result(records, columns, *(1,)))
+        results.update(self.parse_result(records, columns, obj_owner, *(1,)))
         for item in phy_size:
             if item[0] not in results:
                 results[item[0]]["PHY_SIZE(MB)"] = 0
@@ -199,13 +199,13 @@ class CaptureObj(past.capture.base.Capture):
     def obj_tab_col(self, obj_owner):
         records, columns = self.query_sql(
             OBJ_TAB_COL_SQL.format(obj_owner=obj_owner))
-        results = self.parse_result(records, columns, *(1, 2))
+        results = self.parse_result(records, columns, obj_owner, *(1, 2))
         return results
 
     def obj_view_info(self, obj_owner):
         records, columns = self.query_sql(
             OBJ_VIEW_INFO_SQL.format(obj_owner=obj_owner))
-        results = self.parse_result(records, columns, *(1, 2))
+        results = self.parse_result(records, columns, obj_owner, *(1, 2))
         return results
 
     def run(self):

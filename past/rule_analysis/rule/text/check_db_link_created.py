@@ -11,6 +11,7 @@ def execute_rule(sql, db_model=None, **kwargs):
         return False
 
     if re.search('create\s+database\s+link', sql, re.I):
-        return "不建议创建DB LINK"
-    return True
+        #return "不建议创建DB LINK"
+        return True
+    return False
 

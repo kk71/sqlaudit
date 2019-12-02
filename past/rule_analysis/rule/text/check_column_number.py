@@ -11,7 +11,7 @@ def execute_rule(sql, db_model=None, **kwargs):
         return False
 
     if not re.search(r"create\s+table", sql, re.I):
-        return True
+        return False
 
     left_brackets = 0
     left_flag = 0
@@ -30,5 +30,6 @@ def execute_rule(sql, db_model=None, **kwargs):
     sql = sql[left_flag + 1: right_flag]
 
     if len(sql.split(',')) > 255:
-        return "表字段个数不能超过255"
-    return True
+        #return "表字段个数不能超过255"
+        return True
+    return False

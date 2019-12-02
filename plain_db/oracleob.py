@@ -103,15 +103,15 @@ class OracleHelper:
         return res
 
     @classmethod
-    def select_with_lob(cls, sql, params=None, one=True, index=2):
+    def select_with_lob(cls, sql, params=None, one=True, index=(2)):
         params = params or []
         conn = cls.get_conn()
         cursor = conn.cursor()
         cursor.execute(sql, params)
         if one:
-            res = [(x.read() if i == index else x) for i, x in enumerate(cursor.fetchone() or [])]
+            res = [(x.read() if i in index else x) for i, x in enumerate(cursor.fetchone() or [])]
         else:
-            res = [[(x.read() if x and i == index else x) for i, x in enumerate(row)] for row in cursor.fetchall()]
+            res = [[(x.read() if x and i in index else x) for i, x in enumerate(row)] for row in cursor.fetchall()]
         cursor.close()
         cls.pool.release(conn)
         return res

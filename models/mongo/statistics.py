@@ -116,7 +116,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.sql_problem_num = calc_problem_num(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
-
                     # TABLE ============
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
@@ -127,7 +126,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         table_r_q, rule_name=rule_names_to_tab)
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
-
                     # INDEX =============
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
@@ -138,7 +136,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         index_r_q, rule_name=rule_names_to_ind)
                     if doc.index_num:
                         doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
-
                     # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
@@ -152,7 +149,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         sequence_r_q, rule_name=rule_names_to_seq)
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
-
                     # schema排名
                     tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids). \
                                     order_by("-usage_ratio")[:10]
@@ -598,19 +594,19 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                 task_record_id=task_record_id,
                 task_record_id_to_replace={cmdb_id: task_record_id}
             )
-            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
+
         # rule_name, schema:
         rsts = defaultdict(lambda: defaultdict(cls))
-        for schema in schemas:
-            for x in rst:
-                doc = rsts[x["rule"]["rule_name"]][schema]
-                doc.task_record_id = task_record_id
-                doc.cmdb_id = cmdb_id
-                doc.rule = x["rule"]
-                doc.severity = x["severity"]
-                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-                doc.schema = schema
-                doc.rule_num += 1
+
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x['schema']
+            doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
                 yield j
@@ -643,19 +639,18 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 cmdb_id=cmdb_id,
                 task_record_id=task_record_id
             )
-            schemas: list = get_current_schema(session, cmdb_id=cmdb_id)
         # rule_name, schema:
         rsts = defaultdict(lambda: defaultdict(cls))
-        for schema in schemas:
-            for x in rst:
-                doc = rsts[x["rule"]["rule_name"]][schema]
-                doc.task_record_id = task_record_id
-                doc.cmdb_id = cmdb_id
-                doc.rule = x["rule"]
-                doc.severity = x["severity"]
-                doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-                doc.schema = schema
-                doc.rule_num += 1
+
+        for x in rst:
+            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc.task_record_id = task_record_id
+            doc.cmdb_id = cmdb_id
+            doc.rule = x["rule"]
+            doc.severity = x["severity"]
+            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
+            doc.schema = x['schema']
+            doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
                 yield j

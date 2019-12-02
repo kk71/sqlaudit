@@ -10,6 +10,7 @@ __all__ = [
     "scm_int",
     "scm_gt0_int",
     "scm_float",
+    "scm_num",
     "scm_unempty_str",
     "scm_str_with_no_lr_spaces",
     "scm_something_split_str",
@@ -25,6 +26,18 @@ __all__ = [
 ]
 
 
+def auto_num(x):
+    if isinstance(x, (int, float)):
+        return x
+    elif isinstance(x, str):
+        if "." in x:
+            return float(x)
+        else:
+            return int(x)
+    else:
+        raise Exception("not a number.")
+
+
 # for string
 scm_str = Use(str)
 scm_unempty_str = And(scm_str, lambda x: len(x.strip()) > 0)
@@ -38,6 +51,7 @@ scm_one_of_choices = lambda choices: lambda x: x in choices
 # for integer and float
 scm_float = Use(float)
 scm_int = Use(int)
+scm_num = Use(auto_num)
 scm_gt0_int = And(scm_int, lambda x: x > 0)
 scm_dot_split_int = scm_something_split_str(",", scm_int)
 

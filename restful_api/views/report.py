@@ -4,6 +4,7 @@ from os import path
 
 import xlsxwriter
 from schema import Optional, Schema, And
+from functools import reduce
 
 import os
 import re
@@ -177,7 +178,7 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 self.get_report_rule_detail, session, job_id, rule_name)
             self.resp({
                 "columns": ret["columns"],
-                "records": ret["records"],
+                "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + ret['records']),
                 "rule": ret["rule"].to_dict(iter_if=lambda k, v: k in (
                     "rule_desc", "rule_name", "rule_type", "solution")),
             })
@@ -379,7 +380,7 @@ class ExportReportHTMLHandler(AuthReq):
         }))
         job_ids = params.pop("job_id")
 
-        zipPath=await AsyncTimeout(10).async_thr(
+        zipPath=await AsyncTimeout(60).async_thr(
             html_report.export.export_task, job_ids)
 
         self.resp({

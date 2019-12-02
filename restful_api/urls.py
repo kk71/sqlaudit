@@ -19,6 +19,7 @@ urls = [
 # user, authentication, privilege, role and other permissions, licence
 urls += [
     (r"/api/user/login", user.AuthHandler),
+    (r"/api/user/current", user.CurrentUserHandler),
     (r"/api/user/users", user.UserHandler),
     (r"/api/role", permisson.RoleHandler),
     (r"/api/role/user", permisson.RoleUserHandler),

@@ -44,7 +44,7 @@ class CaptureOther(past.capture.base.Capture):
                     'ETL_DATE': self.capture_time,
                     'IPADDR': self.ipaddress,
                     'DB_SID': self.sid,
-                    'record_id': self.record_id,
+                    'record_id': "##".join([str(self.record_id), username]),
                     'cmdb_id': self.cmdb_id,
                 })
             if temp_dict.get("COST") == 18446744073709551615:
@@ -76,7 +76,7 @@ class CaptureOther(past.capture.base.Capture):
                     'ETL_DATE': self.capture_time,
                     'IPADDR': self.ipaddress,
                     'DB_SID': self.sid,
-                    'record_id': self.record_id,
+                    'record_id': "##".join([str(self.record_id), username]),
                     'cmdb_id': self.cmdb_id,
                 })
             past.rule_analysis.db.mongo_operat.MongoHelper.insert(collection, temp_dict)
@@ -97,7 +97,7 @@ class CaptureOther(past.capture.base.Capture):
                     'DB_SID': self.sid,
                     'USERNAME': username,
                     'ETL_DATE': self.capture_time,
-                    'record_id': self.record_id,
+                    'record_id': "##".join([str(self.record_id), username]),
                     'cmdb_id': self.cmdb_id,
                 })
             past.rule_analysis.db.mongo_operat.MongoHelper.insert(collection, temp_dict)
@@ -111,7 +111,7 @@ class CaptureOther(past.capture.base.Capture):
                 'IPADDR': self.ipaddress,
                 'DB_SID': self.sid,
                 'ETL_DATE': self.capture_time,
-                'record_id': self.record_id,
+                'record_id': "##".join([str(self.record_id), username]),
                 'cmdb_id': self.cmdb_id,
             })
             past.rule_analysis.db.mongo_operat.MongoHelper.insert("sqltext", sql_no_bind_data[key])
@@ -129,7 +129,7 @@ class CaptureOther(past.capture.base.Capture):
                     'IPADDR': self.ipaddress,
                     'DB_SID': self.sid,
                     'ETL_DATE': self.capture_time,
-                    'record_id': self.record_id,
+                    'record_id': "##".join([str(self.record_id), username]),
                     'cmdb_id': self.cmdb_id,
                 })
             past.rule_analysis.db.mongo_operat.MongoHelper.insert("stat_cursor", cursor_dict)
@@ -251,7 +251,7 @@ class CaptureOther(past.capture.base.Capture):
                     'IPADDR': self.ipaddress,
                     'DB_SID': self.sid,
                     'ETL_DATE': self.capture_time,
-                    'record_id': self.record_id,
+                    'record_id': "##".join([str(self.record_id), username]),
                     'cmdb_id': self.cmdb_id,
                 })
             past.rule_analysis.db.mongo_operat.MongoHelper.insert("stat_cursor", cursor_dict)

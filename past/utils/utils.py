@@ -512,7 +512,6 @@ def create_worklist_xlsx(filename, parame_dict):
 
     static_fail_heads = parame_dict['static_fail_heads']
     static_fail_data = parame_dict['static_fail_data']
-
     [static_ws.write(0, x, field.upper(), format_title) for x, field in enumerate(static_fail_heads)]
     for row_num, row in enumerate(static_fail_data):
         static_ws.write(row_num + 1, 0, row[0], format_text)

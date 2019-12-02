@@ -340,7 +340,7 @@ class ExportTicketHandler(AuthReq):
                       WHERE WORK_LIST_ID = {worklist_id}"""
 
         subworks = [[self.filter_data(x) for x in subwork]
-                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=2)]
+                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=(2,3,4))]
 
         sql_count = len(subworks)
         fail_count = len([item[3] or item[4] for item in subworks if item[3] or item[4]])
