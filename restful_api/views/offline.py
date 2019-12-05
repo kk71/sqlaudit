@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import re
 import uuid
 from os import path
 from collections import defaultdict
@@ -423,8 +424,8 @@ class SQLUploadHandler(AuthReq):
 
         # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
         sql_keywords = {
-            SQL_DDL: ['drop', 'create', 'alter'],
-            SQL_DML: ['update', 'insert', 'delete', 'select']
+            SQL_DDL: ['drop', 'create', 'alter'],#1
+            SQL_DML: ['update', 'insert', 'delete', 'select']#0
         }
         if if_filter:
             sql_keyword = sql_keywords.get(ticket_type, [])
@@ -445,6 +446,7 @@ class SQLUploadHandler(AuthReq):
             except UnicodeDecodeError:
                 body = body.decode('utf-8')
             body = body.replace("\"", "'")
+            # sql_keyword是要的语句
             formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
             sqls = [
@@ -467,6 +469,10 @@ class SQLUploadHandler(AuthReq):
             system_name = sheet.row_values(0)[1]
             database_name = sheet.row_values(0)[1]
             sql = [[x for x in sheet.row_values(row)[:2]] for row in range(3, sheet.nrows)]
+            sql=[x for x in sql if re.match('drop|create|alter'
+                                                 '|update|insert| delete'
+                                                 '|select', x[0]).group()
+                                                    in sql_keyword]
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
             sqls = [
                 {

@@ -47,7 +47,13 @@ def parse_sql_file(sql_contents, sql_keyword):
             return True
         return False
 
-    # sql_keyword doesn't used.
+    # sql_keyword  used.
+    def filter_sql_keyword(new_sql_list,sql_keyword):
+
+        return [x for x in new_sql_list if re.match('drop|create|alter'
+                                                    '|update|insert| delete'
+                                                    '|select',x).group()
+                                                    in sql_keyword]
 
     procedures = get_procedures_end_with_slash(sql_contents)
     for procedure in procedures:
@@ -75,6 +81,8 @@ def parse_sql_file(sql_contents, sql_keyword):
             new_sql_list.append(
                 (annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
+
+    new_sql_list=filter_sql_keyword(new_sql_list,sql_keyword)
 
     return new_sql_list
 
