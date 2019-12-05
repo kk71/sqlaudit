@@ -29,6 +29,21 @@
                 "tianlei.yan",
                 "kai.fang"
             ]
+        },
+        {
+            "create_time": "2019-11-29 15:57:37",
+            "version": [
+                1,
+                0,
+                3
+            ],
+            "version_name": "updated",
+            "client_name": "common",
+            "msg": "修复任务频率",
+            "developers": [
+                "tianlei.yan",
+                "kai.fang"
+            ]
         }
     ]
 }
