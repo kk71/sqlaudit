@@ -22,7 +22,11 @@ __all__ = [
     "StatsCMDBSQLPlan",
     "StatsCMDBSQLText",
     "StatsRiskSqlRule",
-    "StatsRiskObjectsRule"
+    "StatsRiskObjectsRule",
+    "TicketRule",
+    "TicketRuleInputOutputParams",
+    "TicketSubResult",
+    "TicketSubResultItem"
 ]
 
 from .job import *
@@ -33,3 +37,4 @@ from .stat import *
 from .txt import *
 from .results import *
 from .statistics import *
+from .offline import *

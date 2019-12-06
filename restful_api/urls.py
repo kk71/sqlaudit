@@ -34,7 +34,6 @@ urls += [
     (r"/api/rule/rules", rules.RuleRepoHandler),
     (r"/api/rule/risk_rules", rules.RiskRuleHandler),
     (r"/api/rule/white_list", rules.WhiteListHandler),
-
 ]
 
 # CMDB
@@ -65,13 +64,23 @@ urls += [
 
 # offline audit
 urls += [
+    # TODO DEPRECATED!!!
     (r"/api/offline/ticket/outer", offline.TicketOuterHandler),
     (r"/api/offline/ticket", offline.TicketHandler),
     (r"/api/offline/ticket/export", offline.ExportTicketHandler),
     (r"/api/offline/sub_ticket", offline.SubTicketHandler),
-    (r"/api/offline/sub_ticket/sql_plan", offline.SubTicketSQLPlanHandler),
     (r"/api/offline/sub_ticket/export", offline.ExportSubTicketHandler),
+    # continuing used.
     (r"/api/offline/sql_upload", offline.SQLUploadHandler),
+    (r"/api/offline/sub_ticket/sql_plan", offline.SubTicketSQLPlanHandler),
+    # new version of ticket
+    (r"/api/offline2/rule", rules.TicketRuleHandler),
+    (r"/api/offline2/ticket/outer", offline2.TicketOuterHandler),
+    (r"/api/offline2/ticket", offline2.TicketHandler),
+    (r"/api/offline2/ticket/export", offline2.TicketExportHandler),
+    (r"/api/offline2/sub_ticket", offline2.SubTicketHandler),
+    (r"/api/offline2/sub_ticket/export", offline2.SubTicketExportHandler),
+
 ]
 
 # online audit

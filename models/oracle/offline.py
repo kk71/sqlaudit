@@ -1,11 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from datetime import datetime
+from typing import Union
+from collections import defaultdict
+from functools import reduce
 
 from sqlalchemy import Column, String, Integer, Boolean, Sequence, Float
 from sqlalchemy.dialects.oracle import DATE, CLOB
 
 from .utils import BaseModel
+from utils import const
 
 
 class WorkList(BaseModel):
@@ -22,7 +26,8 @@ class WorkList(BaseModel):
     submit_date = Column("SUBMIT_DATE", DATE, default=datetime.now)
     submit_owner = Column("SUBMIT_OWNER", String, comment="发起人")
     audit_date = Column("AUDIT_DATE", DATE)
-    work_list_status = Column("WORK_LIST_STATUS", Integer, default=0)
+    work_list_status = Column("WORK_LIST_STATUS", Integer,
+                              default=const.OFFLINE_TICKET_ANALYSING)
     audit_role_id = Column("AUDIT_ROLE_ID", Integer)
     audit_owner = Column("AUDIT_OWNER", String, comment="审批人")
     audit_comments = Column("AUDIT_COMMENTS", String)
@@ -31,7 +36,47 @@ class WorkList(BaseModel):
     online_password = Column("ONLINE_PASSWORD", String, comment="上线密码")
     score = Column("SCORE", Float, comment="工单评分")
 
+    def calc_score(self, at_least: Union[None, int, float] = 60):
+        """
+        根据已有的子工单诊断结果，计算当前工单的总分
+        算分逻辑简述
+        一个工单为一个整体，规则的最大扣分是共用的，也就是说不同子工单里规则最多扣分是算在一起的。
+        每个子工单的每个规则的扣分加在一起，判断是否超过该规则的最大扣分，超过则去最大扣分，
+        然后该工单下的所有扣分取和，除以所有启用的规则的最大扣分之和，乘以一百，
+        最后看是否有遮羞分，如果有且小余遮羞分，则总分以遮羞分计，否则按实际计。
+        :param session:
+        :param at_least: 遮羞分，为None或者0的时候表示不需要
+        :return:
+        """
+        from models.mongo import TicketRule, TicketSubResult
+        print("* calculating total score for offline ticket "
+              f"with id: {self.work_list_id}...")
+        # (3-key): (当前已扣, 最大扣分)
+        rules_max_score = defaultdict(lambda: [0, 0])
+        for rule in TicketRule.filter_enabled():
+            rules_max_score[rule.get_3_key()][1] = rule.max_score  # 赋值规则的最大扣分
+        for sub_result in TicketSubResult.objects(work_list_id=self.work_list_id):
+            static_and_dynamic_results = sub_result.static + sub_result.dynamic
+            for item_of_sub_result in static_and_dynamic_results:
+                rule_3_key = item_of_sub_result.get_rule_3_key()
+                if rules_max_score[rule_3_key][0] < rules_max_score[rule_3_key][1]:
+                    # 仅当已经扣掉的分数依然小于最大扣分的时候才继续扣分
+                    rules_max_score[rule_3_key][0] -= item_of_sub_result.score_to_minus
+                else:
+                    # 否则，直接将扣分置为最大扣分
+                    rules_max_score[rule_3_key][0] = rules_max_score[rule_3_key][1]
+        total_minus_score, total_minus_score_max = reduce(
+            lambda x, y: [x[0] + y[0], x[1] + y[1]],
+            rules_max_score.values()
+        )
+        final_score = (total_minus_score_max - total_minus_score) / \
+                      float(total_minus_score_max)
+        if at_least and final_score < at_least:
+            final_score = at_least
+        self.score = final_score  # 未更新库中数据，需要手动加入session并commit
 
+
+# TODO DEPRECATED!!!
 class SubWorkList(BaseModel):
     __tablename__ = "T_SUB_WORK_LIST"
 
