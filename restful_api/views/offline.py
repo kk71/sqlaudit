@@ -424,8 +424,8 @@ class SQLUploadHandler(AuthReq):
 
         # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
         sql_keywords = {
-            SQL_DDL: ['drop', 'create', 'alter'],#1
-            SQL_DML: ['update', 'insert', 'delete', 'select']#0
+            SQL_DDL: ['drop', 'create', 'alter', "truncate", "revoke"],#1
+            SQL_DML: ['update', 'insert', 'delete', 'select', " delete"]#0
         }
         if if_filter:
             sql_keyword = sql_keywords.get(ticket_type, [])
