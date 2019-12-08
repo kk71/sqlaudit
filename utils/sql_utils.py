@@ -49,14 +49,13 @@ def parse_sql_file(sql_contents, sql_keyword):
 
     # sql_keyword  used.
     def filter_sql_keyword(new_sql_list, sql_keyword):
-
         ret = []
         for x in new_sql_list:
             matched = re.match(
                 'drop|create|alter|update|'
                 'insert| delete|select|truncate|'
                 'revoke', x, flags=re.I)
-            if matched and matched.group() in sql_keyword:
+            if matched and matched.group().lower() in sql_keyword:
                 ret.append(x)
         return ret
 
