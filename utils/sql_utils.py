@@ -50,11 +50,13 @@ def parse_sql_file(sql_contents, sql_keyword):
     # sql_keyword  used.
     def filter_sql_keyword(new_sql_list, sql_keyword):
 
-        return [x
-                for x in new_sql_list
-                if re.match(
-                    '(drop|create|alter|update|insert| delete|select)', x, re.I).group()
-                in sql_keyword]
+        ret = []
+        for x in new_sql_list:
+            matched = re.match(
+                '(drop|create|alter|update|insert| delete|select)', x, re.I)
+            if matched and matched.group() in sql_keyword:
+                ret.append(x)
+        return ret
 
     procedures = get_procedures_end_with_slash(sql_contents)
     for procedure in procedures:
