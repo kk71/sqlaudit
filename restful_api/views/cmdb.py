@@ -246,11 +246,14 @@ class CMDBHandler(AuthReq):
         }))
         cmdb_id = params.pop("cmdb_id")
 
-        if not self.is_admin() and "allow_online" in params.keys():
-            return self.resp_forbidden("只有管理员可以操作自助上线开关")
-
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+
+            if not self.is_admin() \
+                    and "allow_online" in params.keys()\
+                    and params["allow_online"] != the_cmdb.allow_online:
+                return self.resp_forbidden("只有管理员可以操作自助上线开关")
+
             the_cmdb.from_dict(params)
 
             # 同步更新全部任务的数据库字段信息
