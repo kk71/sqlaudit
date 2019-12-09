@@ -112,6 +112,8 @@ class ExecuteHandler(PrivilegeReq):
             sub_ticket_q = session.query(SubWorkList).\
                 filter(SubWorkList.work_list_id == work_list_id)
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
+            if not cmdb.allow_online:
+                return self.resp_forbidden("当前库不允许自助上线")
 
             last_online_err = None
             for sub_ticket in sub_ticket_q:
