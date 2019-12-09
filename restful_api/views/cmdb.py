@@ -177,7 +177,8 @@ class CMDBHandler(AuthReq):
             "baseline": scm_int,
             "is_pdb": scm_bool,
             "version": scm_unempty_str,
-            Optional("sid"): scm_str
+            Optional("sid"): scm_str,
+            Optional("allow_online", default=False): scm_bool
         }))
         params["create_owner"] = self.current_user
         with make_session() as session:
@@ -240,9 +241,14 @@ class CMDBHandler(AuthReq):
             Optional("baseline"): scm_int,
             Optional("is_pdb"): scm_bool,
             Optional("version"): scm_unempty_str,
-            Optional("sid"): scm_str
+            Optional("sid"): scm_str,
+            Optional("allow_online"): scm_bool  # 这个字段只有admin可以修改
         }))
         cmdb_id = params.pop("cmdb_id")
+
+        if not self.is_admin() and "allow_online" in params.keys():
+            return self.resp_forbidden("只有管理员可以操作自助上线开关")
+
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             the_cmdb.from_dict(params)
