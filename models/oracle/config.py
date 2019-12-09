@@ -39,6 +39,7 @@ class CMDB(BaseModel):
     is_pdb = Column("IS_PDB", Boolean)
     version = Column("VERSION", String)
     sid = Column("SID", String)
+    allow_online = Column("ALLOW_ONLINE", Boolean, default=False)
 
 
 class RoleDataPrivilege(BaseModel):
