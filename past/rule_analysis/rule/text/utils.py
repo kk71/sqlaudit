@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import re
+
 
 def judge_if_ddl(sql):
     """
@@ -7,6 +9,10 @@ def judge_if_ddl(sql):
     :param sql:
     :return:
     """
-    if 'create' in sql or 'drop' in sql or 'alter' in sql:
+    if re.match(
+            'drop|create|alter|update|'
+            'insert| delete|select|truncate|'
+            'revoke', sql, flags=re.I):
         return True
+
     return False

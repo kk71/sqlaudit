@@ -9,7 +9,7 @@ def execute_rule(sql, db_model=None, **kwargs):
     if not judge_if_ddl(sql):
         return False
 
-    if re.search('truncate\s+table', sql, re.I):
+    if re.search('truncate\s+table\s+', sql, re.I):
         return True
 
     return False

@@ -12,6 +12,5 @@ def execute_rule(sql, db_model=None, **kwargs):
 
     if re.search('revoke\s+', sql, re.I):
         return True
+
     return False
-
-
