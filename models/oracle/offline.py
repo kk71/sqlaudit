@@ -77,24 +77,24 @@ class WorkList(BaseModel):
 
 
 # TODO DEPRECATED!!!
-class SubWorkList(BaseModel):
-    __tablename__ = "T_SUB_WORK_LIST"
-
-    work_list_id = Column("WORK_LIST_ID", Integer)
-    statement_id = Column("STATEMENT_ID", String)
-    static_check_results = Column("STATIC_CHECK_RESULTS", CLOB)  # changed to CLOB
-    dynamic_check_results = Column("DYNAMIC_CHECK_RESULTS", CLOB)  # changed to CLOB
-    check_time = Column("CHECK_TIME", DATE, default=datetime.now)
-    check_owner = Column("CHECK_OWNER", String, comment="实际审批人")
-    check_status = Column("CHECK_STATUS", Boolean)
-    online_date = Column("ONLINE_DATE", DATE, default=datetime.now)
-    online_owner = Column("ONLINE_OWNER", String, comment="上线人")
-    elapsed_seconds = Column("ELAPSED_SECONDS", Integer)
-    status = Column("STATUS", Boolean)  # 上线是否成功
-    error_msg = Column("ERROR_MSG", String)
-    comments = Column("COMMENTS", String)
-    sql_text = Column("SQL_TEXT", CLOB)
-    id = Column("ID", Integer, Sequence("SEQ_T_SUB_WORK_LIST"), primary_key=True)
+# class SubWorkList(BaseModel):
+#     __tablename__ = "T_SUB_WORK_LIST"
+#
+#     work_list_id = Column("WORK_LIST_ID", Integer)
+#     statement_id = Column("STATEMENT_ID", String)
+#     static_check_results = Column("STATIC_CHECK_RESULTS", CLOB)  # changed to CLOB
+#     dynamic_check_results = Column("DYNAMIC_CHECK_RESULTS", CLOB)  # changed to CLOB
+#     check_time = Column("CHECK_TIME", DATE, default=datetime.now)
+#     check_owner = Column("CHECK_OWNER", String, comment="实际审批人")
+#     check_status = Column("CHECK_STATUS", Boolean)
+#     online_date = Column("ONLINE_DATE", DATE, default=datetime.now)
+#     online_owner = Column("ONLINE_OWNER", String, comment="上线人")
+#     elapsed_seconds = Column("ELAPSED_SECONDS", Integer)
+#     status = Column("STATUS", Boolean)  # 上线是否成功
+#     error_msg = Column("ERROR_MSG", String)
+#     comments = Column("COMMENTS", String)
+#     sql_text = Column("SQL_TEXT", CLOB)
+#     id = Column("ID", Integer, Sequence("SEQ_T_SUB_WORK_LIST"), primary_key=True)
 
 
 class WorkListAnalyseTemp(BaseModel):
@@ -105,6 +105,7 @@ class WorkListAnalyseTemp(BaseModel):
     sql_text = Column("SQL_TEXT", CLOB)
     comments = Column("COMMENTS", String)
     analyse_date = Column("ANALYSE_DATE", DATE, default=datetime.now)
+    num = Column("NUM", Integer)
 
 
 class OSQLPlan(BaseModel):
