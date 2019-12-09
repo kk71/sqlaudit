@@ -9,10 +9,7 @@ def judge_if_ddl(sql):
     :param sql:
     :return:
     """
-    if re.match(
-            'drop|create|alter|update|'
-            'insert| delete|select|truncate|'
-            'revoke', sql, flags=re.I):
+    if re.match('drop|create|alter|truncate|revoke', sql, flags=re.I):
         return True
 
     return False
