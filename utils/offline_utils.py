@@ -7,6 +7,7 @@ __all__ = [
 
 import re
 
+import sqlparse
 from redis import StrictRedis
 from sqlalchemy import or_
 from mongoengine import QuerySet as mongoengine_qs
@@ -15,6 +16,7 @@ from sqlalchemy.orm.query import Query as sqlalchemy_qs
 import settings
 from models.mongo import *
 from models.oracle import CMDB, WorkList
+from plain_db.oracleob import *
 from utils.const import *
 from utils.datetime_utils import *
 from restful_api.views.base import PrivilegeReq
@@ -79,13 +81,20 @@ class OfflineTicketCommonHandler(PrivilegeReq):
 
 class SubTicketAnalysis:
 
-    def __init__(self, rules_qs: mongoengine_qs = None):
+    def __init__(self,
+                 static_rules_qs: mongoengine_qs = None,
+                 dynamic_rules_qs: mongoengine_qs = None):
         # 存放规则快照，当前工单在分析的时候，每一条语句都用这个规则快照去分析
         # 如果语句很长，分析过程中如果有人修改了线下规则，则同一个工单里不同语句的依据标准不一样
         # 另一个是，每次都产生新的规则对象，会重新构建规则代码，耗时没意义
-        if rules_qs is None:
-            rules_qs = TicketRule.filter_enabled()
-        self.rules = list(rules_qs)
+
+        if static_rules_qs is None:
+            static_rules_qs = TicketRule.filter_enabled(type=TICKET_RULE_STATIC)
+        self.static_rules = list(static_rules_qs)
+
+        if dynamic_rules_qs is None:
+            dynamic_rules_qs = TicketRule.filter_enabled(type=TICKET_RULE_DYNAMIC)
+        self.dynamic_rules = list(dynamic_rules_qs)
 
     def run(
             self,
@@ -108,8 +117,41 @@ class SubTicketAnalysis:
             position=position,
             sql_text=single_sql
         )
-        for t_rule in self.rules:
-            t_rule.analyse()
+        # 静态分析
+        for sr in self.static_rules:
+            sub_result_item = TicketSubResultItem()
+            sub_result_item.as_sub_result_of(sr)
+            formatted_sql = sqlparse.format(single_sql, strip_whitespace=True).lower()
+            ret = sr.analyse(formatted_sql)
+            if not isinstance(ret, (list, tuple)):
+                raise RuleCodeInvalidException("The data ticket rule returned "
+                                               f"is not a list or tuple: {ret}")
+            if len(ret) != len(sr.output_params):
+                raise RuleCodeInvalidException(
+                    f"The length of the iterable ticket rule returned({len(ret)}) "
+                    f"is not equal with defined in rule({len(sr.output_params)})")
+            for output, current_ret in zip(sr.output_params, ret):
+                sub_result_item.add_output(**{
+                    **output,
+                    "value": current_ret
+                })
+            sub_result_item.calc_score()
+            sub_result.static.append(sub_result_item)
+        # 动态分析
+        for dr in self.dynamic_rules:
+            sub_result_item = TicketSubResultItem()
+            sub_result_item.as_sub_result_of(dr)
+            cmdb_connector = OracleCMDBConnector(cmdb)
+            formatted_sql = sql_filter_annotation(single_sql)
+            cmdb_connector.execute(f"alter session set current_schema={schema}")
+            cmdb_connector.execute(f"EXPLAIN PLAN SET statement_id='{statement_id}' for {sql}")
+            cmdb_connector= f"SELECT * FROM plan_table WHERE statement_id = '{statement_id}'"
+            sql_plans = cmdb_connector.select_dict(formatted_sql, one=False)
+            cmdb_connector.execute(f"alter session set current_schema={oracle_settings['username']}")
+            odb.close()
+            if not sql_plans:
+                raise Exception(f"No sqlplan for statement_id: {statement_id}, sql: {sql}")
+
         return sub_result
 
 
@@ -137,3 +179,13 @@ def judge_sql_type(sql_text: str) -> int:
         return SQL_DDL
     else:
         assert 0
+
+
+def sql_filter_annotation(sql):
+    """老代码挪过来的，主要是用于去掉每句sql末尾的分号"""
+    if not sql:
+        return ""
+
+    sql = sql[:-1] if sql and sql[-1] == ";" else sql
+
+    return sql.strip()

@@ -58,7 +58,7 @@ RULE_STATUS_OFF = "OFF"
 ALL_RULE_STATUS = (RULE_STATUS_ON, RULE_STATUS_OFF)
 
 
-# 规则类型
+# 线上规则类型
 
 RULE_TYPE_OBJ = "OBJ"
 RULE_TYPE_TEXT = "TEXT"
@@ -112,6 +112,16 @@ ALL_RULE_TYPES_FOR_SQL_RULE = [
 # 定位一条规则的字段们
 
 RULE_ALLOCATING_KEYS = ("db_type", "db_model", "rule_name")
+
+
+# 线下工单规则类型
+
+TICKET_RULE_STATIC = "STATIC"
+TICKET_RULE_DYNAMIC = "DYNAMIC"
+ALL_TICKET_RULE_TYPE = (
+    TICKET_RULE_STATIC,
+    TICKET_RULE_DYNAMIC
+)
 
 
 # 静态规则DDL的类型
@@ -357,7 +367,7 @@ class CannotUsePositionArgs(Exception):
 
 
 class RuleCodeInvalidException(Exception):
-    """规则代码无法执行"""
+    """规则代码无法执行，或者返回结果非正常"""
     pass
 
 

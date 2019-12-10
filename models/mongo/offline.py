@@ -26,6 +26,8 @@ class TicketRule(BaseDoc):
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
+    analysis_type = StringField(
+        required=True, choices=const.ALL_TICKET_RULE_TYPE)  # 规则类型，静态还是动态
     sql_type = StringField(choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
@@ -38,15 +40,19 @@ class TicketRule(BaseDoc):
     code = StringField(required=True)  # 规则的python代码
     status = BooleanField(default=True)  # 规则是否启用
     summary = StringField()  # 比desc更详细的一个规则解说
-    type = StringField(required=True)
     solution = ListField()
     weight = FloatField(required=True)
 
     meta = {
         "collection": "ticket_rule",
         'indexes': [
-            {'fields': ("db_type", "name"), 'unique': True}
-        ]
+            {'fields': ("db_type", "name"), 'unique': True},
+            "name",
+            "analysis_type",
+            "sql_type",
+            "db_type",
+            "status"
+        ],
     }
 
     def __init__(self, *args, **kwargs):
@@ -61,18 +67,27 @@ class TicketRule(BaseDoc):
         """
         return f'''# code template for offline ticket rule
         
-def code(sql_text, cmdb_connector=None):
-    return
+def code(sql_text, cmdb_connector=None, **kwargs):
+    
+    # What returned should be a list(or tuple) as a series of values
+    # as defined in output_params.
+    ret = []
+    return ret
         '''
 
     def unique_key(self) -> tuple:
         return self.db_type, self.name
 
-    def analyse(self, sql_text: str, cmdb_connector=None):
+    def analyse(self,
+                sql_text: str,
+                cmdb_connector=None,
+                **kwargs
+                ) -> Union[list, tuple]:
         """
         在给定的sql文本上执行当前规则
         :param sql_text: 单条待分析的sql语句
         :param cmdb_connector: 如果是静态规则，可能不需要当前纳管库的连接。这个完全取决于规则代码。
+        :param kwargs: 任何别的参数通过这个字典传入，这些参数不经处理，直接传给调用函数本身
         :return:
         """
         try:
@@ -95,9 +110,9 @@ def code(sql_text, cmdb_connector=None):
             raise const.RuleCodeInvalidException(trace)
 
     @classmethod
-    def filter_enabled(cls):
+    def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
-        return cls.objects.filter(status=True)
+        return cls.objects.filter(status=True).filter(*args, **kwargs)
 
 
 class TicketSubResultItem(EmbeddedDocument):
@@ -107,10 +122,15 @@ class TicketSubResultItem(EmbeddedDocument):
     input_params = EmbeddedDocumentListField(
         TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
-    score_to_minus = FloatField(default=0)
+    weight = FloatField(default=0)
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
+
+    def get_rule(self) -> Union[TicketRule, None]:
+        """获取当前的规则对象"""
+        return TicketRule.\
+            filter_enabled(db_type=self.db_type, name=self.rule_name).first()
 
     def as_sub_result_of(self, rule_object: TicketRule):
         """
@@ -124,6 +144,18 @@ class TicketSubResultItem(EmbeddedDocument):
 
     def add_output(self, **kwargs):
         self.output_params.append(TicketRuleInputOutputParams(**kwargs))
+
+    def calc_score(self, rule: TicketRule = None):
+        """
+        计算这个当前子工单当前规则的分数
+        :param rule: 如果传一个rule对象进来，则优先用这个对象去计算
+                     不传也可，但是不传会手动查询新的规则对象，如果该对象已经禁用，则扣分计0
+        """
+        if not rule:
+            rule = self.get_rule()
+        if not rule:
+            self.weight = 0
+        self.weight = rule.weight
 
 
 class TicketSubResult(BaseDoc):
