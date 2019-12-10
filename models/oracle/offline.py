@@ -25,7 +25,7 @@ class WorkList(BaseModel):
     sql_counts = Column("SQL_COUNTS", Integer)
     submit_date = Column("SUBMIT_DATE", DATE, default=datetime.now)
     submit_owner = Column("SUBMIT_OWNER", String, comment="发起人")
-    audit_date = Column("AUDIT_DATE", DATE)
+    audit_date = Column("AUDIT_DATE", DATE)  # 人工审核时间
     work_list_status = Column("WORK_LIST_STATUS", Integer,
                               default=const.OFFLINE_TICKET_ANALYSING)
     audit_role_id = Column("AUDIT_ROLE_ID", Integer)
@@ -54,7 +54,7 @@ class WorkList(BaseModel):
         # (3-key): (当前已扣, 最大扣分)
         rules_max_score = defaultdict(lambda: [0, 0])
         for rule in TicketRule.filter_enabled():
-            rules_max_score[rule.get_3_key()][1] = rule.max_score  # 赋值规则的最大扣分
+            rules_max_score[rule.unique_key()][1] = rule.max_score  # 赋值规则的最大扣分
         for sub_result in TicketSubResult.objects(work_list_id=self.work_list_id):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for item_of_sub_result in static_and_dynamic_results:

@@ -2,8 +2,10 @@
 
 __all__ = [
     "OfflineTicketCommonHandler",
-    "analyse_sql"
+    "SubTicketAnalysis",
 ]
+
+import re
 
 from redis import StrictRedis
 from sqlalchemy import or_
@@ -12,7 +14,7 @@ from sqlalchemy.orm.query import Query as sqlalchemy_qs
 
 import settings
 from models.mongo import *
-from models.oracle import WorkList
+from models.oracle import CMDB, WorkList
 from utils.const import *
 from utils.datetime_utils import *
 from restful_api.views.base import PrivilegeReq
@@ -75,6 +77,42 @@ class OfflineTicketCommonHandler(PrivilegeReq):
         return q
 
 
+class SubTicketAnalysis:
+
+    def __init__(self, rules_qs: mongoengine_qs = None):
+        # 存放规则快照，当前工单在分析的时候，每一条语句都用这个规则快照去分析
+        # 如果语句很长，分析过程中如果有人修改了线下规则，则同一个工单里不同语句的依据标准不一样
+        # 另一个是，每次都产生新的规则对象，会重新构建规则代码，耗时没意义
+        if rules_qs is None:
+            rules_qs = TicketRule.filter_enabled()
+        self.rules = list(rules_qs)
+
+    def run(
+            self,
+            session,
+            cmdb: CMDB,
+            schema: str,
+            single_sql: str,
+            position: int) -> TicketSubResult:
+        """
+        单条sql的静态动态审核
+        :param session:
+        :param cmdb:
+        :param schema:
+        :param single_sql:
+        :param position: 当前语句在整个工单里的位置，从0开始计
+        """
+        sub_result = TicketSubResult(
+            cmdb_id=cmdb.cmdb_id,
+            schema_name=schema,
+            position=position,
+            sql_text=single_sql
+        )
+        for t_rule in self.rules:
+            t_rule.analyse()
+        return sub_result
+
+
 def get_current_offline_ticket_task_name(submit_owner, sql_type):
     """获取当前可用的线下审核任务名"""
     current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
@@ -85,21 +123,17 @@ def get_current_offline_ticket_task_name(submit_owner, sql_type):
            f"{current_date}-{current_num}"
 
 
-def judge_sql_type(sql_text: str):
+def judge_sql_type(sql_text: str) -> int:
     """
     判断单条语句是DDL还是DML
-    :param sql_text:
+    :param sql_text: 单条sql语句
     :return:
     """
-    return SQL_DDL if 'create' in sql_text or \
-                      'drop' in sql_text or \
-                      'alter' in sql_text else SQL_DML
-
-
-def analyse_sql(work_list_id: int):
-    """
-    分析线下审核
-    :param work_list_id:
-    :return:
-    """
-    return
+    if re.match(r"select\s+|delete\s+|insert\s+|update\s+",
+                sql_text, re.I):
+        return SQL_DML
+    elif re.match(r"create\s+|alter\s+|drop\s+|truncate\s+|grant\s+|revoke\s+",
+                  sql_text, re.I):
+        return SQL_DDL
+    else:
+        assert 0

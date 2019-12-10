@@ -32,8 +32,6 @@ class TicketRule(BaseDoc):
         required=True,
         choices=const.ALL_SUPPORTED_DB_TYPE,
         default=const.DB_ORACLE)
-    db_model = StringField(
-        required=True, choices=const.ALL_SUPPORTED_DB_TYPE)
     input_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)
     max_score = IntField()
@@ -47,7 +45,7 @@ class TicketRule(BaseDoc):
     meta = {
         "collection": "ticket_rule",
         'indexes': [
-            {'fields': ("db_type", "db_model", "name"), 'unique': True}
+            {'fields': ("db_type", "name"), 'unique': True}
         ]
     }
 
@@ -67,14 +65,14 @@ def code(sql_text, cmdb_connector=None):
     return
         '''
 
-    def get_3_key(self) -> tuple:
-        return self.db_type, self.db_model, self.name
+    def unique_key(self) -> tuple:
+        return self.db_type, self.name
 
-    def run(self, sql_text, cmdb_connector=None):
+    def analyse(self, sql_text: str, cmdb_connector=None):
         """
         在给定的sql文本上执行当前规则
-        :param sql_text:
-        :param cmdb_connector:
+        :param sql_text: 单条待分析的sql语句
+        :param cmdb_connector: 如果是静态规则，可能不需要当前纳管库的连接。这个完全取决于规则代码。
         :return:
         """
         try:
@@ -82,7 +80,7 @@ def code(sql_text, cmdb_connector=None):
                 code_func = self._code
             else:
                 print("generating code function for ticket rule "
-                      f"{self.get_3_key()}...")
+                      f"{self.unique_key()}...")
                 exec(self.code)
                 code_func = code  # 这个code是在代码里面的
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
@@ -92,7 +90,7 @@ def code(sql_text, cmdb_connector=None):
             # 执行规则代码失败，需要报错
             trace = traceback.format_exc()
             print("failed when executing(or generating) ticket rule "
-                  f"{self.get_3_key()}: {e}")
+                  f"{self.unique_key()}: {e}")
             print(trace)
             raise const.RuleCodeInvalidException(trace)
 
@@ -105,15 +103,14 @@ def code(sql_text, cmdb_connector=None):
 class TicketSubResultItem(EmbeddedDocument):
     """子工单的一个规则的诊断"""
     db_type = StringField(required=True)
-    db_model = StringField(required=True)
     rule_name = StringField(required=True)
     input_params = EmbeddedDocumentListField(
         TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
     score_to_minus = FloatField(default=0)
 
-    def get_rule_3_key(self) -> tuple:
-        return self.db_type, self.db_model, self.rule_name
+    def get_rule_unique_key(self) -> tuple:
+        return self.db_type, self.rule_name
 
     def as_sub_result_of(self, rule_object: TicketRule):
         """
@@ -122,7 +119,6 @@ class TicketSubResultItem(EmbeddedDocument):
         :return:
         """
         self.db_type = rule_object.db_type
-        self.db_model = rule_object.db_model
         self.rule_name = rule_object.name
         self.input_params = deepcopy(rule_object.input_params)
 
@@ -134,6 +130,7 @@ class TicketSubResult(BaseDoc):
     """子工单"""
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
+    schema_name = StringField()
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
