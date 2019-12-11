@@ -458,7 +458,9 @@ class SQLUploadHandler(AuthReq):
             for sql in sqlparse.parse(sql_remark_replaced):
                 if sql_keyword and sql.get_type() not in sql_keyword:
                     continue
-                perfect_sql = sql.normalized.replace(label, "remark")
+                perfect_sql = sql.normalized.replace(label, "remark").strip()
+                if perfect_sql[-1] == ";":
+                    perfect_sql = perfect_sql[:-1]
                 formatted_sqls.append(perfect_sql)
             # formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
