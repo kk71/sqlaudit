@@ -707,7 +707,6 @@ class ExportSubTicketHandler(SubTicketHandler):
                       "上线状态", "错误信息", "备注"]
             for x, field in enumerate(fields):
                 ws.write(0, x, field.upper(), format_title)
-            convert_datetime_to_str = lambda x: arrow.get(x).strftime(COMMON_DATETIME_FORMAT)
             for row_num, sub_ticket in enumerate(q.all()):
                 row_num += 1
                 ws.write(row_num, 0, sub_ticket.work_list_id, format_text)
@@ -715,9 +714,9 @@ class ExportSubTicketHandler(SubTicketHandler):
                 ws.write(row_num, 2, sub_ticket.sql_text, format_text)
                 ws.write(row_num, 3, sub_ticket.static_check_results, format_text)
                 ws.write(row_num, 4, sub_ticket.dynamic_check_results, format_text)
-                ws.write(row_num, 5, convert_datetime_to_str(sub_ticket.check_time), format_text)
+                ws.write(row_num, 5, dt_to_str(sub_ticket.check_time))
                 ws.write(row_num, 6, sub_ticket.check_owner, format_text)
-                ws.write(row_num, 7, convert_datetime_to_str(sub_ticket.online_date), format_text)
+                ws.write(row_num, 7, dt_to_str(sub_ticket.online_date))
                 ws.write(row_num, 8, sub_ticket.online_owner, format_text)
                 ws.write(row_num, 9, sub_ticket.elapsed_seconds, format_text)
                 ws.write(row_num, 10, sub_ticket.status, format_text)
