@@ -80,24 +80,15 @@ def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
     new_sql_list = []
     annotation_sql = ""
     for sql in sql_list:
-
         if is_annotation(sql):
             annotation_sql += sql
-        else:
-            new_sql_list.append(
-                (annotation_sql + "\n" + sql).lstrip())
+            continue
+        formatted_sql = (annotation_sql + "\n" + sql).lstrip()
+        if re.match(sql_keyword, formatted_sql, re.I):
+            new_sql_list.append(formatted_sql)
             annotation_sql = ""
 
-    new_new_sql_list = []
-    if not sql_keyword:
-        new_new_sql_list = new_sql_list
-    else:
-        for single_sql in new_sql_list:
-            if re.match(sql_keyword, single_sql, re.I) or \
-                    is_annotation(single_sql):
-                new_new_sql_list.append(single_sql)
-
-    return new_new_sql_list
+    return new_sql_list
 
 
 # @timing(cache=r_cache)
