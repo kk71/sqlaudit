@@ -52,7 +52,7 @@ def parse_sql_file(sql_contents, sql_keyword):
         ret = []
         for x in new_sql_list:
             matched = re.match(
-                'drop|create|alter|update|'
+                'drop|create|alter|update|delete'
                 'insert| delete|select|truncate|'
                 'revoke', x, flags=re.I)
             if matched and matched.group().lower() in sql_keyword:

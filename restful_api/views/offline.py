@@ -433,7 +433,7 @@ class SQLUploadHandler(AuthReq):
             sql_keyword = [x for keywords in sql_keywords.values() for x in keywords]
         filename = file_object['filename']
 
-        if filename.split('.')[-1].lower() in ['sql']:
+        if filename.split('.')[-1].lower() in ['sql', "txt"]:
             # SQL script
             if file_object['body'].startswith(b"\xef\xbb\xbf"):
                 body = file_object['body'][3:]
