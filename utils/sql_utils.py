@@ -76,6 +76,7 @@ def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
             sql_list.append(procedures[index].strip())
 
     sql_list = [sql for sql in sql_list if sql]
+    print(sql_list)
 
     new_sql_list = []
     annotation_sql = ""
