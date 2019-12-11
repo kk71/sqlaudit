@@ -459,6 +459,8 @@ class SQLUploadHandler(AuthReq):
                 if sql_keyword and sql.get_type() not in sql_keyword:
                     continue
                 perfect_sql = sql.normalized.replace(label, "remark").strip()
+                if not perfect_sql:
+                    continue
                 if perfect_sql[-1] == ";":
                     perfect_sql = perfect_sql[:-1]
                 formatted_sqls.append(perfect_sql)
