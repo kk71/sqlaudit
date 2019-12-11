@@ -451,7 +451,7 @@ class SQLUploadHandler(AuthReq):
                 body = body.decode('utf-8')
             body = body.replace("\"", "'")
             # sql_keyword是要的语句
-            tmpl_replaced_remark = re.compile(r"^\s*remark", re.I)
+            tmpl_replaced_remark = re.compile(r"^\s*remark", re.I | re.M)
             sql_remark_replaced: str = tmpl_replaced_remark.sub(body, "--REMARKREMARK")
             formatted_sqls = []
             for sql in sqlparse.parse(sql_remark_replaced):
