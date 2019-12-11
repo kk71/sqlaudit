@@ -17,8 +17,12 @@ from utils.conc_utils import *
 from past.utils.constant import SQLPLUS_SQL
 
 
-def parse_sql_file(sql_contents, sql_keyword):
-    """读取sql文件"""
+def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
+    """
+    读取sql文件
+    :param sql_contents:
+    :param sql_keyword:
+    """
 
     def get_procedures_end_with_slash(sql_contents):
         cate = ["declare",
@@ -48,16 +52,16 @@ def parse_sql_file(sql_contents, sql_keyword):
         return False
 
     # sql_keyword  used.
-    def filter_sql_keyword(new_sql_list, sql_keyword):
-        ret = []
-        for x in new_sql_list:
-            matched = re.match(
-                r'drop|create|alter|update|delete|'
-                r'insert|\s+delete|select|truncate|'
-                r'revoke', x, flags=re.I)
-            if matched and matched.group().lower() in sql_keyword:
-                ret.append(x)
-        return ret
+    # def filter_sql_keyword(new_sql_list, sql_keyword):
+    #     ret = []
+    #     for x in new_sql_list:
+    #         matched = re.match(
+    #             r'drop|create|alter|update|delete|'
+    #             r'insert|\s+delete|select|truncate|'
+    #             r'revoke', x, flags=re.I)
+    #         if matched and matched.group().lower() in sql_keyword:
+    #             ret.append(x)
+    #     return ret
 
     procedures = get_procedures_end_with_slash(sql_contents)
     for procedure in procedures:
@@ -84,9 +88,16 @@ def parse_sql_file(sql_contents, sql_keyword):
                 (annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
 
-    # new_sql_list = filter_sql_keyword(new_sql_list, sql_keyword)
+    new_new_sql_list = []
+    if not sql_keyword:
+        new_new_sql_list = new_sql_list
+    else:
+        for single_sql in new_sql_list:
+            if re.match(sql_keyword, single_sql, re.I) or \
+                    is_annotation(single_sql):
+                new_new_sql_list.append(single_sql)
 
-    return new_sql_list
+    return new_new_sql_list
 
 
 # @timing(cache=r_cache)
