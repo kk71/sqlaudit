@@ -84,7 +84,7 @@ def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
         if is_annotation(sql):
             annotation_sql += sql
             continue
-        if re.match(sql_keyword, sql, re.I):
+        if not sql_keyword or re.match(sql_keyword, sql, re.I):
             new_sql_list.append((annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
 
