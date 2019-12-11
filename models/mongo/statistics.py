@@ -83,7 +83,7 @@ class StatsLoginUser(BaseStatisticsDoc):
         from models.oracle import make_session, CMDB, User
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
-            get_latest_task_record_id, calc_score_by,set_calc_problem_num
+            get_latest_task_record_id, calc_score_by, calc_problem_sql_id_num
         from utils.cmdb_utils import get_current_schema, get_current_cmdb
         from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo, ObjTabSpace
         from models.mongo import SQLText
@@ -114,7 +114,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                     )
                     # doc.sql_problem_num = calc_problem_num(sql_r_q)
-                    doc.sql_problem_num=set_calc_problem_num(sql_r_q)
+                    doc.sql_problem_num = calc_problem_sql_id_num(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
                     # TABLE ============

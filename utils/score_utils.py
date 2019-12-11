@@ -258,7 +258,8 @@ def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) ->
                 sql_id_set.add(sql["sql_id"])
     return len(sql_id_set)
 
-def set_calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
+
+def calc_problem_sql_id_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
     """计算result的query set得出哪些sql有问题 sqlplan sqlstat text三个维度"""
     ret=[]
     if isinstance(rule_name, str):
@@ -277,9 +278,8 @@ def set_calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) ->
             if not records:
                 continue
             ret.append(records)
-    count=len(list(set([y for x in ret for y in x])))
+    count = len(list(set([y for x in ret for y in x])))
     return count
-
 
 
 def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
