@@ -452,12 +452,12 @@ class SQLUploadHandler(AuthReq):
             body = body.replace("\"", "'")
             # sql_keyword是要的语句
             tmpl_replaced_remark = re.compile(r"^\s*remark", re.I | re.M)
-            sql_remark_replaced: str = tmpl_replaced_remark.sub(body, "--REMARKREMARK")
+            sql_remark_replaced: str = tmpl_replaced_remark.sub("--REMARKREMARK", body)
             formatted_sqls = []
             for sql in sqlparse.parse(sql_remark_replaced):
                 if sql_keyword and sql.get_type() not in sql_keyword:
                     continue
-                perfect_sql = tmpl_replaced_remark.sub(sql.normalized, "--REMARKREMARK")
+                perfect_sql = tmpl_replaced_remark.sub("--REMARKREMARK", sql.normalized)
                 formatted_sqls.append(perfect_sql)
             # formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
