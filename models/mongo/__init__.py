@@ -26,7 +26,8 @@ __all__ = [
     "TicketRule",
     "TicketRuleInputOutputParams",
     "TicketSubResult",
-    "TicketSubResultItem"
+    "TicketSubResultItem",
+    "OracleTicketSQLPlan"
 ]
 
 from .job import *

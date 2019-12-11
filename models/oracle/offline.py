@@ -35,6 +35,7 @@ class WorkList(BaseModel):
     online_username = Column("ONLINE_USERNAME", String, comment="上线用户名")
     online_password = Column("ONLINE_PASSWORD", String, comment="上线密码")
     score = Column("SCORE", Float, comment="工单评分")
+    db_type = Column("db_type", String, comment="数据库类型")
 
     def calc_score(self, at_least: Union[None, int, float] = 60):
         """
