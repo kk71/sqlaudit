@@ -84,7 +84,7 @@ def parse_sql_file(sql_contents, sql_keyword):
                 (annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
 
-    new_sql_list = filter_sql_keyword(new_sql_list, sql_keyword)
+    # new_sql_list = filter_sql_keyword(new_sql_list, sql_keyword)
 
     return new_sql_list
 
