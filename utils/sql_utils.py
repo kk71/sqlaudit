@@ -52,9 +52,9 @@ def parse_sql_file(sql_contents, sql_keyword):
         ret = []
         for x in new_sql_list:
             matched = re.match(
-                'drop|create|alter|update|delete'
-                'insert| delete|select|truncate|'
-                'revoke', x, flags=re.I)
+                r'drop|create|alter|update|delete|'
+                r'insert|\s+delete|select|truncate|'
+                r'revoke', x, flags=re.I)
             if matched and matched.group().lower() in sql_keyword:
                 ret.append(x)
         return ret
@@ -80,8 +80,6 @@ def parse_sql_file(sql_contents, sql_keyword):
         if is_annotation(sql):
             annotation_sql += sql
         else:
-            # new_sql_list.append(
-            #     (annotation_sql + "\n" + sql).lstrip().replace('\n\n', '\n').replace('\n', '<br/>').replace("\"", "'"))
             new_sql_list.append(
                 (annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
