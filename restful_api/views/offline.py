@@ -174,9 +174,9 @@ class TicketHandler(OfflineTicketCommonHandler):
         p = self.pop_p(params)
 
         with make_session() as session:
-            q = session.\
-                query(WorkList).\
-                filter_by(**params).\
+            q = session. \
+                query(WorkList). \
+                filter_by(**params). \
                 order_by(WorkList.work_list_id.desc())
             if work_list_status is not None:  # take care of the value 0!
                 q = q.filter_by(work_list_status=work_list_status)
@@ -341,7 +341,7 @@ class ExportTicketHandler(AuthReq):
                       WHERE WORK_LIST_ID = {worklist_id}"""
 
         subworks = [[self.filter_data(x) for x in subwork]
-                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=(2,3,4))]
+                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=(2, 3, 4))]
 
         sql_count = len(subworks)
         fail_count = len([item[3] or item[4] for item in subworks if item[3] or item[4]])
@@ -424,8 +424,8 @@ class SQLUploadHandler(AuthReq):
 
         # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
         sql_keywords = {
-            SQL_DDL: ['drop', 'create', 'alter', "truncate", "revoke"],#1
-            SQL_DML: ['update', 'insert', 'delete', 'select', " delete"]#0
+            SQL_DDL: ['drop', 'create', 'alter', "truncate", "revoke"],  # 1
+            SQL_DML: ['update', 'insert', 'delete', 'select', " delete"]  # 0
         }
         if if_filter:
             sql_keyword = sql_keywords.get(ticket_type, [])
@@ -466,13 +466,13 @@ class SQLUploadHandler(AuthReq):
             if sheet.nrows <= 3:
                 self.resp_bad_req(msg="空文件。")
                 return
-            system_name = sheet.row_values(0)[1]
-            database_name = sheet.row_values(0)[1]
+            # system_name = sheet.row_values(0)[1]
+            # database_name = sheet.row_values(0)[1]
             sql = [[x for x in sheet.row_values(row)[:2]] for row in range(3, sheet.nrows)]
-            sql=[x for x in sql if re.match('drop|create|alter'
-                                                 '|update|insert| delete'
-                                                 '|select', x[0]).group()
-                                                    in sql_keyword]
+            sql = [x for x in sql if re.match('drop|create|alter'
+                                              '|update|insert| delete'
+                                              '|select', x[0], re.I).group()
+                   in sql_keyword]
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
             sqls = [
                 {
