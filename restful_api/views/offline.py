@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import xlrd
 import xlsxwriter
+import sqlparse
 from schema import Schema, Optional, And
 from sqlalchemy import or_
 from prettytable import PrettyTable
@@ -422,10 +423,13 @@ class SQLUploadHandler(AuthReq):
         ticket_type = params.pop("ticket_type")
         if_filter = params.pop("if_filter")
 
-        # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
+        # sql_keywords = {
+        #     SQL_DDL: r'^(\s*drop\s+|\s*create\s+|\s*alter\s+|\s*truncate\s+|\s*revoke\s+)',
+        #     SQL_DML: r'# ^(\s*update\s+|\s*insert\s+|\s*delete\s+|\s*select\s+)'
+        # }
         sql_keywords = {
-            SQL_DDL: r'^(\s*drop\s+|\s*create\s+|\s*alter\s+|\s*truncate\s+|\s*revoke\s+)',
-            SQL_DML: r'^(\s*update\s+|\s*insert\s+|\s*delete\s+|\s*select\s+)'
+            SQL_DDL: ["DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE"],
+            SQL_DML: ["UPDATE", "INSERT", "DELETE", "SELECT"],
         }
         if if_filter:
             sql_keyword = sql_keywords[ticket_type]
@@ -447,7 +451,15 @@ class SQLUploadHandler(AuthReq):
                 body = body.decode('utf-8')
             body = body.replace("\"", "'")
             # sql_keyword是要的语句
-            formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
+            tmpl_replaced_remark = re.compile(r"^\s*remark", re.I)
+            sql_remark_replaced: str = tmpl_replaced_remark.sub(body, "--REMARKREMARK")
+            formatted_sqls = []
+            for sql in sqlparse.parse(sql_remark_replaced):
+                if sql_keyword and sql.get_type() not in sql_keyword:
+                    continue
+                perfect_sql = tmpl_replaced_remark.sub(sql.normalized, "--REMARKREMARK")
+                formatted_sqls.append(perfect_sql)
+            # formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
             sqls = [
                 {
