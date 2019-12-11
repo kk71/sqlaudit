@@ -424,8 +424,8 @@ class SQLUploadHandler(AuthReq):
 
         # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
         sql_keywords = {
-            SQL_DDL: r'^(\s+drop\s+|\s+create\s+|\s+alter\s+|\s+truncate\s+|\s+revoke\s+)',
-            SQL_DML: r'^(\s+update\s+|\s+insert\s+|\s+delete\s+|\s+select\s+)'
+            SQL_DDL: r'^(\s*drop\s+|\s*create\s+|\s*alter\s+|\s*truncate\s+|\s*revoke\s+)',
+            SQL_DML: r'^(\s*update\s+|\s*insert\s+|\s*delete\s+|\s*select\s+)'
         }
         if if_filter:
             sql_keyword = sql_keywords[ticket_type]
