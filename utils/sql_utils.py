@@ -51,21 +51,11 @@ def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
             return True
         return False
 
-    # sql_keyword  used.
-    # def filter_sql_keyword(new_sql_list, sql_keyword):
-    #     ret = []
-    #     for x in new_sql_list:
-    #         matched = re.match(
-    #             r'drop|create|alter|update|delete|'
-    #             r'insert|\s+delete|select|truncate|'
-    #             r'revoke', x, flags=re.I)
-    #         if matched and matched.group().lower() in sql_keyword:
-    #             ret.append(x)
-    #     return ret
-
     procedures = get_procedures_end_with_slash(sql_contents)
+    print(f"procedures:   {procedures}")
     for procedure in procedures:
         sql_contents = sql_contents.replace(procedure, "|||||")
+    print(f"sql_contents:   {sql_contents}")
 
     sql_contents = [x.strip(' ') for x in sql_contents.split("|||||")]
 
@@ -76,7 +66,7 @@ def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
             sql_list.append(procedures[index].strip())
 
     sql_list = [sql for sql in sql_list if sql]
-    print(sql_list)
+    print(f"sql_list:   {sql_list}")
 
     new_sql_list = []
     annotation_sql = ""
