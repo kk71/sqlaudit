@@ -428,7 +428,7 @@ class SQLUploadHandler(AuthReq):
         #     SQL_DML: r'# ^(\s*update\s+|\s*insert\s+|\s*delete\s+|\s*select\s+)'
         # }
         sql_keywords = {
-            SQL_DDL: ["DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE", "COMMENT"],
+            SQL_DDL: ["UNKNOWN", "DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE", "COMMENT"],
             SQL_DML: ["UPDATE", "INSERT", "DELETE", "SELECT"],
         }
         if if_filter:
