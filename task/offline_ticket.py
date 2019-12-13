@@ -51,17 +51,14 @@ def offline_ticket(work_list_id, sqls):
         dynamic_minus_scores = []
 
         for sql in sqls:
-            sql_text = sql["sql_text"]
-            comments = sql["comments"]
+            sql_text: str = sql["sql_text"]
+            comments: str = sql["comments"]
+            sql_type: int = sql["sql_type"]
 
-            # work_list_type = SQL_DDL if 'create' in sql_text or \
-            #                             'drop' in sql_text or \
-            #                             'alter' in sql_text \
-            #     else SQL_DML
             start = time.time()
             # 静态分析
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
-                sql_text, ticket.work_list_type, cmdb.db_model)
+                sql_text, sql_type, cmdb.db_model)
             static_minus_scores.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
@@ -70,7 +67,7 @@ def offline_ticket(work_list_id, sqls):
                 past.utils.check.Check.parse_sql_dynamicly(
                     sql_text,
                     statement_id,
-                    ticket.work_list_type,
+                    sql_type,
                     work_list_id,
                     ticket.schema_name,
                     cmdb.db_model,
