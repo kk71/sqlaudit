@@ -278,7 +278,8 @@ class Check:
 
             sql = filter_annotation(sql)
 
-            odb.execute(f"alter session set current_schema={schema_user}")
+            if schema_user:
+                odb.execute(f"alter session set current_schema={schema_user}")
             odb.execute(f"EXPLAIN PLAN SET statement_id='{statement_id}' for {sql}")
             # 如果没有出错的话就往下跑 取出执行计划  get_sql_plan
             sql = f"SELECT * FROM plan_table WHERE statement_id = '{statement_id}'"
