@@ -441,10 +441,19 @@ class SQLUploadHandler(AuthReq):
                     continue
                 if perfect_sql[-1] == ";":
                     perfect_sql = perfect_sql[:-1]
+
+                # 分析当前导入的sql语句是什么类型的，ddl还是dml
+                if sql.get_type() in SQL_KEYWORDS[SQL_DDL]:
+                    sql_type = SQL_DDL
+                elif sql.get_type() in SQL_KEYWORDS[SQL_DML]:
+                    sql_type = SQL_DML
+                else:
+                    sql_type = None
+
                 # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
                 sqls.append({
                     "sql_text": perfect_sql,
-                    "sql_type": sql.get_type(),
+                    "sql_type": sql_type,
                     "comments": ""
                 })
 

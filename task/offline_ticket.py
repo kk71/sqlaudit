@@ -11,6 +11,7 @@ import past.utils.check
 import past.models
 from models.oracle import make_session, CMDB, WorkList, SubWorkList
 from task.base import *
+from utils.const import *
 
 
 @celery.task
@@ -49,6 +50,7 @@ def offline_ticket(work_list_id, sqls):
         # 动态分析也是同理
         static_minus_scores = []
         dynamic_minus_scores = []
+        sql_types: set = {sql["sql_type"] for sql in sqls}
 
         for sql in sqls:
             sql_text: str = sql["sql_text"]
@@ -59,6 +61,12 @@ def offline_ticket(work_list_id, sqls):
             # 静态分析
             static_error, static_score_to_minus = past.utils.check.Check.parse_single_sql(
                 sql_text, sql_type, cmdb.db_model)
+
+            # 特殊规则，判断是否ddl和dml混合在当前工单里了。
+            # 如果有混合，则在每个sql子工单的静态审核结果里加上风险提示，
+            if SQL_DML in sql_types and SQL_DDL in sql_types:
+                static_error = "DML和DDL类型的语句混写 " + static_error
+
             static_minus_scores.append(static_score_to_minus)
             statement_id = past.utils.utils.get_random_str_without_duplicate()
             elapsed_second = int(time.time() - start)
@@ -100,18 +108,18 @@ def offline_ticket(work_list_id, sqls):
 
         ticket.sql_counts = len(sqls)
 
-        # 去最小
-        # min_sms = min(static_minus_scores)
-        # min_dms = min(dynamic_minus_scores)
-        # print(f"min_sms = {min_sms},"
-        #       f" min_dms = {min_dms}")
-        # score = score + min_sms + min_dms
-
         # 取和
         sum_sms = sum(static_minus_scores)
         sum_dms = sum(dynamic_minus_scores)
         print(f"sum_sms = {sum_sms}, sum_dms = {sum_dms}")
         score = score + sum_sms + sum_dms
+
+        # 特殊规则，判断是否ddl和dml混合在当前工单里了。
+        # 如果有混合，则在每个sql子工单的静态审核结果里加上风险提示，
+        # 但是整个工单只扣一次分数
+        DDL_DML_MIXED_SCORE_TO_MINUS = 5
+        if SQL_DML in sql_types and SQL_DDL in sql_types:
+            score -= DDL_DML_MIXED_SCORE_TO_MINUS
 
         ticket.score = score if score > 60 else 60  # 给个分数下限显得好看一点
         session.add(ticket)
