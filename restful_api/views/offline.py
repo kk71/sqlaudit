@@ -16,7 +16,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils, offline_utils, const
+from utils import sql_utils, stream_utils, offline_utils, const, cmdb_utils
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
@@ -214,6 +214,7 @@ class TicketHandler(OfflineTicketCommonHandler):
 
     def post(self):
         """创建DDL，DML工单"""
+
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             Optional("schema_name"): scm_unempty_str,
@@ -225,8 +226,15 @@ class TicketHandler(OfflineTicketCommonHandler):
         }))
         params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")
+
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+
+            # 提交工单之前，先检查纳管库配置的登录用户是否有足够的权限
+            if not cmdb_utils.check_cmdb_privilege(cmdb):
+                return self.resp_forbidden(msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
+                                               "无法做诊断分析。")
+
             # if not params["schema_name"]:
             #     # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
             #     # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema

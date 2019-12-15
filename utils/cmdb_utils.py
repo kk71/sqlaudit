@@ -5,10 +5,10 @@ from typing import Union
 import cx_Oracle
 
 from models.oracle import *
-from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
 from utils import privilege_utils
+from plain_db.oracleob import OracleOB
 
 import plain_db.oracleob
 
@@ -205,3 +205,28 @@ def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[CMDB, int]):
         filter(RoleDataPrivilege.cmdb_id == cmdb.cmdb_id)
     schemas.extend([i[0] for i in q_rdp])
     return list(set(schemas))
+
+
+def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
+    """
+    检查纳管库的访问权限
+    :param cmdb: cmdb_id或者cmdb对象
+    """
+    # TODO 要求有的权限
+    user_sys_privs = ("SELECT ANY TABLE",)
+    cmdb_connector = OracleOB(
+        host=cmdb.cmdb_id,
+        port=cmdb.port,
+        username=cmdb.user_name,
+        password=cmdb.password,
+        sid=cmdb.service_name,
+        service_name=cmdb.sid
+    )
+    sql = f"select * from user_sys_privs where username='{cmdb.user_name.upper()}'"
+    ret = cmdb_connector.select_dict(sql)
+    all_privileges = {i["privilege"] for i in ret}
+    for priv in user_sys_privs:
+        if priv not in all_privileges:
+            print(f"* fatal: this privilege required: {priv} for {cmdb.user_name.upper()}")
+            return False
+    return True
