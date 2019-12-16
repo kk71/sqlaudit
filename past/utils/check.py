@@ -139,8 +139,6 @@ class Check:
         MongoHelper.drop(tmp0)
         MongoHelper.drop(tmp1)
 
-        print(records is True)
-
         if not records:
             return False
 

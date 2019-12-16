@@ -445,7 +445,8 @@ class SQLUploadHandler(AuthReq):
             sql_remark_replaced: str = tmpl_replaced_remark.sub(REMARK_PLACEHOLDER, body)
             sqls = []
             for sql in sqlparse.parse(sql_remark_replaced):
-                if filter_sql_type and sql.get_type() not in SQL_KEYWORDS[filter_sql_type]:
+                if filter_sql_type is not None and \
+                        sql.get_type() not in SQL_KEYWORDS[filter_sql_type]:
                     # 判断是否需要过滤单句sql，并且判断当前这句sql是否在需要被过滤的列表里
                     continue
                 perfect_sql = sql.normalized.replace(REMARK_PLACEHOLDER, "remark").strip()
