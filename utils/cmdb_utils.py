@@ -215,7 +215,7 @@ def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
     # TODO 要求有的权限
     user_sys_privs = ("SELECT ANY TABLE",)
     cmdb_connector = OracleOB(
-        host=cmdb.cmdb_id,
+        host=cmdb.ip_address,
         port=cmdb.port,
         username=cmdb.user_name,
         password=cmdb.password,
