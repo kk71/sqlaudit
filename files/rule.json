@@ -8425,5 +8425,55 @@
         "output_datas": [],
         "sql_type": 0,
         "ddl_type": null
+    },
+    {
+        "_id": "5df73791fbe069b0e6467874",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "创建表未指定表空间",
+        "rule_name": "CHECK_CREATE_TABEL_NOT_DEFINE_TABLE_SPACE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
+    },
+    {
+        "_id": "5df737a9fbe069b0e6467892",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "创建表未指定表空间",
+        "rule_name": "CHECK_CREATE_TABEL_NOT_DEFINE_TABLE_SPACE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 1,
+        "ddl_type": null
     }
 ]
