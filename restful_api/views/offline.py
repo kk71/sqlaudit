@@ -257,8 +257,7 @@ class TicketHandler(OfflineTicketCommonHandler):
                 filter(WorkListAnalyseTemp.session_id == session_id).all()
             sqls = [i.to_dict(iter_if=lambda k, v: k in ("sql_text", "comments", "sql_type"))
                     for i in wlats]
-            # offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
-            offline_ticket(work_list_id=ticket.work_list_id, sqls=sqls)
+            offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
     def patch(self):
