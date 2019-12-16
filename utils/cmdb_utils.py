@@ -220,7 +220,7 @@ def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
         username=cmdb.user_name,
         password=cmdb.password,
         sid=cmdb.service_name,
-        service_name=cmdb.sid
+        # service_name=cmdb.sid
     )
     sql = f"select * from user_sys_privs where username='{cmdb.user_name.upper()}'"
     ret = cmdb_connector.select_dict(sql)
