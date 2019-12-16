@@ -272,8 +272,8 @@ class Check:
 
         odb = OracleOB(**oracle_settings)
         minus_scores = 0
-        try:
-        # if True:
+        # try:
+        if True:
 
             if cls.is_explain_unvalid_sql(sql):
                 return [], False, 0  # 无报错
@@ -359,8 +359,8 @@ class Check:
                 raise Exception("\n".join(rule_descs))
             return sql_plans, False, minus_scores
 
-        except Exception as e:
-            return str(e), True, -100
+        # except Exception as e:
+        #     return str(e), True, -100
 
     @classmethod
     def sql_online(cls, sql, oracle_settings, schema_name):
