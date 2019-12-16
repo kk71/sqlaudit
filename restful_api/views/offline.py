@@ -217,7 +217,7 @@ class TicketHandler(OfflineTicketCommonHandler):
 
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name"): scm_unempty_str,
+            Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
             Optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
@@ -235,10 +235,14 @@ class TicketHandler(OfflineTicketCommonHandler):
                 return self.resp_forbidden(msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
                                                "无法做诊断分析。")
 
-            # if not params["schema_name"]:
-            #     # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
-            #     # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
-            #     params["schema_name"] = cmdb.user_name
+            if not params["schema_name"]:
+                # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
+                # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
+                # 如果他的sql不带上schema，则它必须在提交工单的时候指定sql运行的schema_name
+                # 否则无法确定他的对象是处在哪个schema下面的
+                # 默认的纳管库用户是需要打开权限的，以保证能够在访问别的schema的对象
+                # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
+                params["schema_name"] = cmdb.user_name
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
             if not params["task_name"]:
@@ -442,7 +446,8 @@ class SQLUploadHandler(AuthReq):
             sql_remark_replaced: str = tmpl_replaced_remark.sub(REMARK_PLACEHOLDER, body)
             sqls = []
             for sql in sqlparse.parse(sql_remark_replaced):
-                if filter_sql_type and sql.get_type() not in SQL_KEYWORDS[filter_sql_type]:
+                if filter_sql_type is not None and \
+                        sql.get_type() not in SQL_KEYWORDS[filter_sql_type]:
                     # 判断是否需要过滤单句sql，并且判断当前这句sql是否在需要被过滤的列表里
                     continue
                 perfect_sql = sql.normalized.replace(REMARK_PLACEHOLDER, "remark").strip()

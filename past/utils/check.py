@@ -139,8 +139,6 @@ class Check:
         MongoHelper.drop(tmp0)
         MongoHelper.drop(tmp1)
 
-        print(records is True)
-
         if not records:
             return False
 
@@ -285,10 +283,7 @@ class Check:
 
             sql = filter_annotation(sql)
 
-            if schema_user:
-                odb.execute(f"alter session set current_schema={schema_user}")
-            else:
-                schema_user = "null"
+            odb.execute(f"alter session set current_schema={schema_user}")
             odb.execute(f"EXPLAIN PLAN SET statement_id='{statement_id}' for {sql}")
             # 如果没有出错的话就往下跑 取出执行计划  get_sql_plan
             sql = f"SELECT * FROM plan_table WHERE statement_id = '{statement_id}'"
@@ -340,6 +335,7 @@ class Check:
                     "FILTER_PREDICATES": sqlplan['filter_predicates'],  # filter_predicates
                     "ACCESS_PREDICATES": sqlplan['access_predicates'],  # access_predicates
                     "TIME": sqlplan['time'],  # time
+                    "record_id": record_id
                 }
                 MongoHelper.insert('sqlplan', insert_data)
 
