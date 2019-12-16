@@ -217,7 +217,7 @@ class TicketHandler(OfflineTicketCommonHandler):
 
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name"): scm_unempty_str,
+            Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
             Optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
