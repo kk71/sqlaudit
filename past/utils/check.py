@@ -117,6 +117,8 @@ class Check:
         tmp0, tmp1 = RuleUtils.gen_random_collection()
 
         rule_cmd = RULE_COMMANDS.get(rule_name, params['rule_cmd'])
+        if rule_cmd != params["rule_cmd"]:
+            print(f"warning: using different rule command hard-coded in constant.py: {rule_name}")
         for parm in params['input_parms']:
             rule_cmd = rule_cmd.replace("@" + parm["parm_name"] + "@", str(parm["parm_value"]))
 
