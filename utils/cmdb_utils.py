@@ -223,7 +223,7 @@ def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
         # service_name=cmdb.sid
     )
     sql = f"select * from user_sys_privs where username='{cmdb.user_name.upper()}'"
-    ret = cmdb_connector.select_dict(sql)
+    ret = cmdb_connector.select_dict(sql, one=False)
     all_privileges = {i["privilege"] for i in ret}
     for priv in user_sys_privs:
         if priv not in all_privileges:
