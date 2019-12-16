@@ -235,10 +235,14 @@ class TicketHandler(OfflineTicketCommonHandler):
                 return self.resp_forbidden(msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
                                                "无法做诊断分析。")
 
-            # if not params["schema_name"]:
-            #     # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
-            #     # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
-            #     params["schema_name"] = cmdb.user_name
+            if not params["schema_name"]:
+                # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
+                # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
+                # 如果他的sql不带上schema，则它必须在提交工单的时候指定sql运行的schema_name
+                # 否则无法确定他的对象是处在哪个schema下面的
+                # 默认的纳管库用户是需要打开权限的，以保证能够在访问别的schema的对象
+                # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
+                params["schema_name"] = cmdb.user_name
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
             if not params["task_name"]:
