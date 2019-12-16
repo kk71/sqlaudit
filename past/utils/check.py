@@ -127,8 +127,9 @@ class Check:
             replace("\"@etl_date_key@\"", "\"record_id\"").replace("\"@etl_date@\"", "\"%s\"" % record_id).\
             replace("@record_id@", "%s" % record_id).replace("@ip_addr@", params['ip_addr']).replace("@sid@", params['sid'])
 
-        # if rule_name in ["LOOP_IN_TAB_FULL_SCAN"]:
-        #     print(rule_name)
+        if "FULL" in rule_name:
+            print(rule_cmd)
+
         MongoHelper.drop(tmp0)
         MongoHelper.drop(tmp1)
 
@@ -137,6 +138,8 @@ class Check:
 
         MongoHelper.drop(tmp0)
         MongoHelper.drop(tmp1)
+
+        print(records is True)
 
         if not records:
             return False
