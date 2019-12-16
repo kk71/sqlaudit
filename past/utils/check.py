@@ -112,7 +112,7 @@ class Check:
     def sqlplan_parse(cls, record_id, rule_name, params):
         """处理动态审核的规则"""
 
-        print(f"* parsing dynamic rule {rule_name} with params: {params}")
+        print(f"* parsing dynamic rule {rule_name}")
 
         tmp0, tmp1 = RuleUtils.gen_random_collection()
 
