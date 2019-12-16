@@ -8375,5 +8375,55 @@
         "output_datas": [],
         "sql_type": 1,
         "ddl_type": null
+    },
+    {
+        "_id": "5df710f36e49d0c9177a8a3e",
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "存在DBLINK",
+        "rule_name": "CHECK_DB_LINK_OFFLINE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 0,
+        "ddl_type": null
+    },
+    {
+        "_id": "5df711166e49d0c9177a8a74",
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 1,
+        "output_parms": [],
+        "rule_desc": "存在DBLINK",
+        "rule_name": "CHECK_DB_LINK_OFFLINE",
+        "rule_complexity": "complex",
+        "rule_cmd": "default",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "TEXT",
+        "rule_type_detail": null,
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "obj_info_type": null,
+        "output_datas": [],
+        "sql_type": 0,
+        "ddl_type": null
     }
 ]
