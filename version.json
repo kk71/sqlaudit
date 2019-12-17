@@ -59,6 +59,22 @@
                 "tianlei.yan",
                 "kai.fang"
             ]
+        },
+        {
+            "create_time": "2019-12-17 18:16:18",
+            "version": [
+                1,
+                0,
+                5
+            ],
+            "version_name": "updated",
+            "client_name": "common",
+            "msg": "修复线下全表扫描，新增线下规则等。",
+            "developers": [
+                "yj.han",
+                "tianlei.yan",
+                "kai.fang"
+            ]
         }
     ]
 }
