@@ -9,11 +9,11 @@ def judge_if_ddl(sql):
     :param sql:
     :return:
     """
-    from utils.const import SQL_KEYWORDS
+    from utils.const import SQL_KEYWORDS, SQL_DDL
 
-    d_l="|".join(SQL_KEYWORDS[1])
+    d_l = "|".join(SQL_KEYWORDS[SQL_DDL])
 
-    if re.findall(r'^\s*'+'('+d_l+')', sql, flags=re.I | re.M):
+    if re.findall(r'^\s*' + '(' + d_l + ')', sql, flags=re.I | re.M):
         return True
 
     return False
