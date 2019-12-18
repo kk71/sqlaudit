@@ -250,13 +250,13 @@ def main(raw, private_key, public_key):
 
 def gen_license():
     """创建新的license"""
-    enterprise_name = "苏州银行"
+    enterprise_name = "咪咕"
     unique_key = "BFEBFBFF00000F27;" * 8
     license_status = "1"
-    install_date = "2019-7-18 00:00:00"
+    install_date = "2019-12-18 00:00:00"
     available_days = 365
-    expired_day = "2020-7-18 00:00:00"
-    database_counts = 10
+    expired_day = "2020-12-18 00:00:00"
+    database_counts = 20
 
     raw_msg = generate_raw_msg(enterprise_name, unique_key, license_status,
                                install_date, available_days, expired_day, database_counts)
