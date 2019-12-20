@@ -36,7 +36,7 @@ def conc(func, executor, *args, **kwargs) -> Future:
 
 class AsyncTimeout:
 
-    def __init__(self, timeout=20):
+    def __init__(self, timeout=120):
         self.timeout = timeout
 
     def async_thr(self, func, *args, **kwargs):
