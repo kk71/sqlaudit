@@ -432,10 +432,14 @@ class SchemaHandler(AuthReq):
                 # 当前cmdb的全部的schema，不考虑数据权限
                 cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
                 try:
-                    all_schemas = await async_thr(
-                        cmdb_utils.get_cmdb_available_schemas, cmdb)
-                except cx_Oracle.DatabaseError as err:
-                    return self.resp_bad_req(msg="无法连接到数据库")
+                    a
+                    # all_schemas = await async_thr(
+                    #     cmdb_utils.get_cmdb_available_schemas, cmdb)
+                except Exception as err:
+                    return self.resp_bad_username_password(msg="无法连接到数据库")
+                # except cx_Oracle.DatabaseError as err:
+                #     return self.resp_bad_req(msg="无法连接到数据库")
+                all_schemas="1"
                 self.resp(all_schemas)
 
 
