@@ -169,6 +169,14 @@ ALL_SQL_TYPE_NAME_MAPPING = {
 }
 
 
+# SQL语句名称与语句类型的对应关系
+
+SQL_KEYWORDS = {
+    SQL_DDL: ["UNKNOWN", "DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE", "COMMENT"],
+    SQL_DML: ["UPDATE", "INSERT", "DELETE", "SELECT", "COMMIT", "ROLLBACK"],
+}
+
+
 # 评分显示类型
 
 SCORE_BY_AVERAGE = 1  # 按照平均分展示

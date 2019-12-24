@@ -16,7 +16,7 @@ class WorkList(BaseModel):
     __tablename__ = "T_WORK_LIST"
 
     work_list_id = Column("WORK_LIST_ID", Integer, Sequence('SEQ_WORK_LIST'), primary_key=True)
-    work_list_type = Column("WORK_LIST_TYPE", Integer)
+    # work_list_type = Column("WORK_LIST_TYPE", Integer)
     cmdb_id = Column("CMDB_ID", Integer)
     schema_name = Column("SCHEMA_NAME", String)
     task_name = Column("TASK_NAME", String)
@@ -105,6 +105,7 @@ class WorkListAnalyseTemp(BaseModel):
     session_id = Column("SESSION_ID", String, nullable=False)
     sql_text = Column("SQL_TEXT", CLOB)
     comments = Column("COMMENTS", String)
+    sql_type = Column("SQL_TYPE", Integer)
     analyse_date = Column("ANALYSE_DATE", DATE, default=datetime.now)
     num = Column("NUM", Integer)
 

@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import xlrd
 import xlsxwriter
+import sqlparse
 from schema import Schema, Optional, And
 from sqlalchemy import or_
 from prettytable import PrettyTable
@@ -15,7 +16,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils, offline_utils, const
+from utils import sql_utils, stream_utils, offline_utils, const, cmdb_utils
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
@@ -118,33 +119,30 @@ class TicketOuterHandler(OfflineTicketCommonHandler):
                     }
                 }
                 tickets.append(ret_item)
-            # ds: date: sql_type: work_list_status
-            ds = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+            # ds: date: work_list_status
+            ds = defaultdict(lambda: defaultdict(list))
             for ticket in tickets:
                 submit_date: str = ticket["submit_date"]  # 只有日期没有时间
-                work_list_type: int = ticket["work_list_type"]
                 work_list_status: int = ticket["work_list_status"]
-                ds[submit_date][work_list_type][work_list_status].append(ticket)
+                ds[submit_date][work_list_status].append(ticket)
             rst = []
             for the_date, date_vs in ds.items():
-                for sql_type, sql_type_vs in date_vs.items():
-                    for work_list_status, tickets in sql_type_vs.items():
-                        stats = {
-                            "submit_date": the_date,
-                            "work_list_status": work_list_status,
-                            "num": len(tickets),
-                            "work_list_type": sql_type,
-                            "result_stats": {
-                                'static_problem_num': 0,
-                                'dynamic_problem_num': 0
-                            }
+                for work_list_status, tickets in date_vs.items():
+                    stats = {
+                        "submit_date": the_date,
+                        "work_list_status": work_list_status,
+                        "num": len(tickets),
+                        "result_stats": {
+                            'static_problem_num': 0,
+                            'dynamic_problem_num': 0
                         }
-                        for ticket in tickets:
-                            stats["result_stats"]["static_problem_num"] += \
-                                ticket["result_stats"]["static_problem_num"]
-                            stats["result_stats"]["dynamic_problem_num"] += \
-                                ticket["result_stats"]["dynamic_problem_num"]
-                        rst.append(stats)
+                    }
+                    for ticket in tickets:
+                        stats["result_stats"]["static_problem_num"] += \
+                            ticket["result_stats"]["static_problem_num"]
+                        stats["result_stats"]["dynamic_problem_num"] += \
+                            ticket["result_stats"]["dynamic_problem_num"]
+                    rst.append(stats)
             rr = sorted(rst, key=lambda x: arrow.get(x["submit_date"]).date(), reverse=True)
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
@@ -160,8 +158,6 @@ class TicketHandler(OfflineTicketCommonHandler):
         params = self.get_query_args(Schema({
             Optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
-            Optional("work_list_type", default=None):
-                And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
             Optional("keyword", default=None): scm_str,
             Optional("date_start", default=None): scm_date,
             Optional("date_end", default=None): scm_date_end,
@@ -174,16 +170,15 @@ class TicketHandler(OfflineTicketCommonHandler):
         p = self.pop_p(params)
 
         with make_session() as session:
-            q = session.\
-                query(WorkList).\
-                filter_by(**params).\
+            q = session. \
+                query(WorkList). \
+                filter_by(**params). \
                 order_by(WorkList.work_list_id.desc())
             if work_list_status is not None:  # take care of the value 0!
                 q = q.filter_by(work_list_status=work_list_status)
             if keyword:
                 q = self.query_keyword(q, keyword,
                                        WorkList.work_list_id,
-                                       WorkList.work_list_type,
                                        WorkList.cmdb_id,
                                        WorkList.schema_name,
                                        WorkList.task_name,
@@ -219,8 +214,8 @@ class TicketHandler(OfflineTicketCommonHandler):
 
     def post(self):
         """创建DDL，DML工单"""
+
         params = self.get_json_args(Schema({
-            "work_list_type": scm_one_of_choices(ALL_SQL_TYPE),
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
@@ -231,18 +226,28 @@ class TicketHandler(OfflineTicketCommonHandler):
         }))
         params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")
+
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+
+            # 提交工单之前，先检查纳管库配置的登录用户是否有足够的权限
+            if not cmdb_utils.check_cmdb_privilege(cmdb):
+                return self.resp_forbidden(msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
+                                               "无法做诊断分析。")
+
             if not params["schema_name"]:
                 # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
                 # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
+                # 如果他的sql不带上schema，则它必须在提交工单的时候指定sql运行的schema_name
+                # 否则无法确定他的对象是处在哪个schema下面的
+                # 默认的纳管库用户是需要打开权限的，以保证能够在访问别的schema的对象
+                # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
                 params["schema_name"] = cmdb.user_name
             params["system_name"] = cmdb.business_name
             params["database_name"] = cmdb.connect_name
             if not params["task_name"]:
                 params['task_name'] = offline_utils.get_current_offline_ticket_task_name(
                     submit_owner=params["submit_owner"],
-                    sql_type=params["work_list_type"]
                 )
             ticket = WorkList(**params)
             session.add(ticket)
@@ -250,7 +255,8 @@ class TicketHandler(OfflineTicketCommonHandler):
             session.refresh(ticket)
             wlats = session.query(WorkListAnalyseTemp). \
                 filter(WorkListAnalyseTemp.session_id == session_id).all()
-            sqls = [i.to_dict(iter_if=lambda k, v: k in ("sql_text", "comments")) for i in wlats]
+            sqls = [i.to_dict(iter_if=lambda k, v: k in ("sql_text", "comments", "sql_type"))
+                    for i in wlats]
             offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
@@ -313,8 +319,6 @@ class ExportTicketHandler(AuthReq):
         else:
             works['work_list_status'] = "未知状态"
 
-        works['work_list_type'] = 'DDL分析任务' if works['work_list_type'] else 'DML分析任务'
-
         works['submit_date'] = str(works['submit_date']) if works['submit_date'] else ''
         works['audit_date'] = str(works['audit_date']) if works['audit_date'] else ''
         works['online_date'] = str(works['online_date']) if works['online_date'] else ''
@@ -341,7 +345,7 @@ class ExportTicketHandler(AuthReq):
                       WHERE WORK_LIST_ID = {worklist_id}"""
 
         subworks = [[self.filter_data(x) for x in subwork]
-                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=(2,3,4))]
+                    for subwork in plain_db.oracleob.OracleHelper.select_with_lob(sql, one=False, index=(2, 3, 4))]
 
         sql_count = len(subworks)
         fail_count = len([item[3] or item[4] for item in subworks if item[3] or item[4]])
@@ -415,26 +419,14 @@ class SQLUploadHandler(AuthReq):
             self.resp_bad_req(msg="未选择文件。")
             return
         params = self.get_query_args(Schema({
-            "ticket_type": And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
-            "if_filter": scm_bool
+            Optional("filter_sql_type", default=None):
+                And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
         }))
         file_object = self.request.files.get("file")[0]
-        ticket_type = params.pop("ticket_type")
-        if_filter = params.pop("if_filter")
-
-        # 以下大部参考旧代码，旧代码是两个接口，这里合并了，统一返回结构。
-        sql_keywords = {
-            SQL_DDL: ['drop', 'create', 'alter', "truncate", "revoke"],#1
-            SQL_DML: ['update', 'insert', 'delete', 'select', " delete"]#0
-        }
-        if if_filter:
-            sql_keyword = sql_keywords.get(ticket_type, [])
-        else:
-            sql_keyword = [x for keywords in sql_keywords.values() for x in keywords]
+        filter_sql_type = params.pop("filter_sql_type")
         filename = file_object['filename']
 
-        if filename.split('.')[-1].lower() in ['sql']:
-            # SQL script
+        if filename.split('.')[-1].lower() in ['sql', "txt"]:
             if file_object['body'].startswith(b"\xef\xbb\xbf"):
                 body = file_object['body'][3:]
                 encoding = 'utf-8'
@@ -446,44 +438,63 @@ class SQLUploadHandler(AuthReq):
             except UnicodeDecodeError:
                 body = body.decode('utf-8')
             body = body.replace("\"", "'")
-            # sql_keyword是要的语句
-            formatted_sqls = sql_utils.parse_sql_file(body, sql_keyword)
-            # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
-            sqls = [
-                {
-                    "sql_text": x,
-                    "comments": ""
-                } for x in formatted_sqls if x
-            ]
+            # 下面这个处理是要把remark替换成普通单行注释，然后交给sqlparse去处理，
+            # 处理完之后，再把remark加回去。
+            REMARK_PLACEHOLDER: str = "--REMARKREMARK"
+            tmpl_replaced_remark = re.compile(r"^\s*remark", re.I | re.M)
+            sql_remark_replaced: str = tmpl_replaced_remark.sub(REMARK_PLACEHOLDER, body)
+            sqls = []
+            for sql in sqlparse.parse(sql_remark_replaced):
+                if filter_sql_type is not None and \
+                        sql.get_type() in SQL_KEYWORDS[filter_sql_type]:
+                    # 判断是否需要过滤单句sql，并且判断当前这句sql是否在需要被过滤的列表里
+                    continue
+                perfect_sql = sql.normalized.replace(REMARK_PLACEHOLDER, "remark").strip()
+                if not perfect_sql:
+                    continue
+                if perfect_sql[-1] == ";":
+                    perfect_sql = perfect_sql[:-1]
 
-        elif filename.split('.')[-1].lower() in ['xls', "xlsx", "csv", "xlt"]:
-            # excel doc or csv
-            the_xls_filepath = path.join(settings.UPLOAD_DIR, filename)
-            with open(the_xls_filepath, "wb") as z:
-                z.write(file_object.body)
-            excel = xlrd.open_workbook(the_xls_filepath)
-            sheet = excel.sheet_by_index(0)
-            if sheet.nrows <= 3:
-                self.resp_bad_req(msg="空文件。")
-                return
-            system_name = sheet.row_values(0)[1]
-            database_name = sheet.row_values(0)[1]
-            sql = [[x for x in sheet.row_values(row)[:2]] for row in range(3, sheet.nrows)]
-            sql=[x for x in sql if re.match('drop|create|alter'
-                                                 '|update|insert| delete'
-                                                 '|select', x[0]).group()
-                                                    in sql_keyword]
+                # 分析当前导入的sql语句是什么类型的，ddl还是dml
+                if sql.get_type() in SQL_KEYWORDS[SQL_DDL]:
+                    sql_type = SQL_DDL
+                elif sql.get_type() in SQL_KEYWORDS[SQL_DML]:
+                    sql_type = SQL_DML
+                else:
+                    sql_type = None
+
+                # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
+                sqls.append({
+                    "sql_text": perfect_sql,
+                    "sql_type": sql_type,
+                    "comments": ""
+                })
+
+        # elif filename.split('.')[-1].lower() in ['xls', "xlsx", "csv", "xlt"]:
+            # the_xls_filepath = path.join(settings.UPLOAD_DIR, filename)
+            # with open(the_xls_filepath, "wb") as z:
+            #     z.write(file_object.body)
+            # excel = xlrd.open_workbook(the_xls_filepath)
+            # sheet = excel.sheet_by_index(0)
+            # if sheet.nrows <= 3:
+            #     self.resp_bad_req(msg="空文件。")
+            #     return
+            # sql = [[x for x in sheet.row_values(row)[:2]] for row in range(3, sheet.nrows)]
+            # sql = [x for x in sql if re.match('drop|create|alter'
+            #                                   '|update|insert| delete'
+            #                                   '|select', x[0], re.I).group()
+            #        in sql_keyword]
             # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
-            sqls = [
-                {
-                    "sql_text": x[0],
-                    "comments": x[1]
-                } for x in sql
-            ]
+            # sqls = [
+            #     {
+            #         "sql_text": x[0],
+            #         "comments": x[1]
+            #     } for x in sql
+            # ]
 
         else:
-            self.resp_bad_req(msg="文件不是SQL脚本，Excel文档或者CSV文档的任何一种。")
-            return
+            # self.resp_bad_req(msg="文件不是SQL脚本，Excel文档或者CSV文档的任何一种。")
+            return self.resp_bad_req(msg="文件不是SQL脚本")
         with make_session() as session:
             session_id = self.get_unique_random_session_id()
             to_add = [
@@ -549,7 +560,6 @@ class SubTicketHandler(OfflineTicketCommonHandler):
             ]),
             Optional("start_time", default=None): scm_datetime,
             Optional("end_time", default=None): scm_datetime,
-            Optional("work_list_type"): scm_int,
             Optional("work_list_id"): scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("cmdb_id", default=None): scm_int,
@@ -564,7 +574,7 @@ class SubTicketHandler(OfflineTicketCommonHandler):
         cmdb_id = params.pop("cmdb_id")
 
         to_filter = {k: v for k, v in params.items() if k in
-                     ("work_list_type", "work_list_id")}
+                     ("work_list_id",)}
 
         # TODO 需要根据权限加过滤判断
         q = session.query(SubWorkList).filter_by(**to_filter)
@@ -707,7 +717,6 @@ class ExportSubTicketHandler(SubTicketHandler):
                       "上线状态", "错误信息", "备注"]
             for x, field in enumerate(fields):
                 ws.write(0, x, field.upper(), format_title)
-            convert_datetime_to_str = lambda x: arrow.get(x).strftime(COMMON_DATETIME_FORMAT)
             for row_num, sub_ticket in enumerate(q.all()):
                 row_num += 1
                 ws.write(row_num, 0, sub_ticket.work_list_id, format_text)
@@ -715,9 +724,9 @@ class ExportSubTicketHandler(SubTicketHandler):
                 ws.write(row_num, 2, sub_ticket.sql_text, format_text)
                 ws.write(row_num, 3, sub_ticket.static_check_results, format_text)
                 ws.write(row_num, 4, sub_ticket.dynamic_check_results, format_text)
-                ws.write(row_num, 5, convert_datetime_to_str(sub_ticket.check_time), format_text)
+                ws.write(row_num, 5, dt_to_str(sub_ticket.check_time))
                 ws.write(row_num, 6, sub_ticket.check_owner, format_text)
-                ws.write(row_num, 7, convert_datetime_to_str(sub_ticket.online_date), format_text)
+                ws.write(row_num, 7, dt_to_str(sub_ticket.online_date))
                 ws.write(row_num, 8, sub_ticket.online_owner, format_text)
                 ws.write(row_num, 9, sub_ticket.elapsed_seconds, format_text)
                 ws.write(row_num, 10, sub_ticket.status, format_text)

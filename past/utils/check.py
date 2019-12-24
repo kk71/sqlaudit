@@ -112,9 +112,13 @@ class Check:
     def sqlplan_parse(cls, record_id, rule_name, params):
         """处理动态审核的规则"""
 
+        print(f"* parsing dynamic rule {rule_name}")
+
         tmp0, tmp1 = RuleUtils.gen_random_collection()
 
         rule_cmd = RULE_COMMANDS.get(rule_name, params['rule_cmd'])
+        if rule_cmd != params["rule_cmd"]:
+            print(f"warning: using different rule command hard-coded in constant.py: {rule_name}")
         for parm in params['input_parms']:
             rule_cmd = rule_cmd.replace("@" + parm["parm_name"] + "@", str(parm["parm_value"]))
 
@@ -123,8 +127,9 @@ class Check:
             replace("\"@etl_date_key@\"", "\"record_id\"").replace("\"@etl_date@\"", "\"%s\"" % record_id).\
             replace("@record_id@", "%s" % record_id).replace("@ip_addr@", params['ip_addr']).replace("@sid@", params['sid'])
 
-        # if rule_name in ["LOOP_IN_TAB_FULL_SCAN"]:
-        #     print(rule_name)
+        if "FULL" in rule_name:
+            print(rule_cmd)
+
         MongoHelper.drop(tmp0)
         MongoHelper.drop(tmp1)
 
@@ -140,11 +145,11 @@ class Check:
         return True
 
     @classmethod
-    def parse_single_sql(cls, sql, worklist_type, db_model) -> tuple:
+    def parse_single_sql(cls, sql, single_sql_type, db_model) -> tuple:
         """
         单条SQL语句的静态分析，得出该语句的扣分以及问题信息
         :param sql: 单条语句文本
-        :param worklist_type: 工单类型
+        :param single_sql_type: 当前语句的类型是ddl还是dml
         :param db_model:
         :return: (错误信息, 扣分负数)
         """
@@ -155,7 +160,7 @@ class Check:
         rule_q = Rule.filter_enabled(db_model=db_model)
 
         for rule in rule_q:
-            if rule.rule_name in worklist_type_static_rule[worklist_type]:
+            if rule.rule_name in worklist_type_static_rule[single_sql_type]:
                 try:
                     print(f"parsing static rule {rule.rule_name}...")
                     err = cls.text_parse(
@@ -243,7 +248,7 @@ class Check:
         cls,
         sql: str,
         statement_id: str,
-        worklist_type: int,
+        sql_type: int,
         worklist_id: int,
         schema_user: str,
         db_model: int,
@@ -254,7 +259,7 @@ class Check:
 
         :param sql:
         :param statement_id:
-        :param worklist_type:
+        :param sql_type:
         :param worklist_id:
         :param schema_user:
         :param db_model:
@@ -264,7 +269,9 @@ class Check:
         """
         # return: list(sql_plan) and dynamic_error = False | str(error_msg) and dynamic_error = True
 
-        print(f"Params sql: {sql}, statement_id: {statement_id}, worklist_type: {worklist_type}, worklist_id: {worklist_id}, schema_user: {schema_user}, oracle_settings: {oracle_settings}")
+        print(f"Params sql: {sql}, statement_id: {statement_id}, "
+              f"sql_type: {sql_type}, worklist_id: {worklist_id},"
+              f" schema_user: {schema_user}, oracle_settings: {oracle_settings}")
 
         odb = OracleOB(**oracle_settings)
         minus_scores = 0
@@ -328,6 +335,7 @@ class Check:
                     "FILTER_PREDICATES": sqlplan['filter_predicates'],  # filter_predicates
                     "ACCESS_PREDICATES": sqlplan['access_predicates'],  # access_predicates
                     "TIME": sqlplan['time'],  # time
+                    "record_id": record_id
                 }
                 MongoHelper.insert('sqlplan', insert_data)
 
@@ -345,7 +353,7 @@ class Check:
                 params['db_model'] = db_model
                 params['ip_addr'] = oracle_settings['host']
                 params['sid'] = oracle_settings['sid']
-                if rule_name in worklist_type_dynamic_sqlplan_rule.get(worklist_type) and\
+                if rule_name in worklist_type_dynamic_sqlplan_rule.get(sql_type) and\
                         cls.sqlplan_parse(record_id, rule_name, params) is True:
                     rule_descs.append(params['rule_desc'])
                     minus_scores -= params["weight"]

@@ -17,8 +17,12 @@ from utils.conc_utils import *
 from past.utils.constant import SQLPLUS_SQL
 
 
-def parse_sql_file(sql_contents, sql_keyword):
-    """读取sql文件"""
+def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
+    """
+    读取sql文件
+    :param sql_contents:
+    :param sql_keyword:
+    """
 
     def get_procedures_end_with_slash(sql_contents):
         cate = ["declare",
@@ -47,21 +51,11 @@ def parse_sql_file(sql_contents, sql_keyword):
             return True
         return False
 
-    # sql_keyword  used.
-    def filter_sql_keyword(new_sql_list, sql_keyword):
-        ret = []
-        for x in new_sql_list:
-            matched = re.match(
-                'drop|create|alter|update|'
-                'insert| delete|select|truncate|'
-                'revoke', x, flags=re.I)
-            if matched and matched.group().lower() in sql_keyword:
-                ret.append(x)
-        return ret
-
     procedures = get_procedures_end_with_slash(sql_contents)
+    print(f"procedures:   {procedures}")
     for procedure in procedures:
         sql_contents = sql_contents.replace(procedure, "|||||")
+    print(f"sql_contents:   {sql_contents}")
 
     sql_contents = [x.strip(' ') for x in sql_contents.split("|||||")]
 
@@ -72,21 +66,17 @@ def parse_sql_file(sql_contents, sql_keyword):
             sql_list.append(procedures[index].strip())
 
     sql_list = [sql for sql in sql_list if sql]
+    print(f"sql_list:   {sql_list}")
 
     new_sql_list = []
     annotation_sql = ""
     for sql in sql_list:
-
         if is_annotation(sql):
             annotation_sql += sql
-        else:
-            # new_sql_list.append(
-            #     (annotation_sql + "\n" + sql).lstrip().replace('\n\n', '\n').replace('\n', '<br/>').replace("\"", "'"))
-            new_sql_list.append(
-                (annotation_sql + "\n" + sql).lstrip())
+            continue
+        if not sql_keyword or re.match(sql_keyword, sql, re.I):
+            new_sql_list.append((annotation_sql + "\n" + sql).lstrip())
             annotation_sql = ""
-
-    new_sql_list = filter_sql_keyword(new_sql_list, sql_keyword)
 
     return new_sql_list
 
