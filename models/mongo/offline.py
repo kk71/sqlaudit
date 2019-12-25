@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import traceback
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 from copy import deepcopy
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
@@ -11,6 +11,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
 from .utils import BaseDoc
 from utils import const
 from utils.datetime_utils import *
+from utils.parsed_sql import *
 
 
 class TicketRuleInputOutputParams(EmbeddedDocument):
@@ -65,31 +66,49 @@ class TicketRule(BaseDoc):
         返回code的模板
         :return:
         """
-        return f'''# code template for offline ticket rule
+        return '''# code template for offline ticket rule
         
-def code(sql_text, cmdb_connector=None, **kwargs):
+def code(**kwargs):
     
-    # What returned should be a list(or tuple) as a series of values
-    # as defined in output_params.
-    ret = []
-    return ret
+    # kwargs存放当前规则类型下会给定的输入参数，
+    # 可能包括纳管库连接对象，当前工单的全部语句，当前停留在的语句索引，执行计划等等。具体看业务。
+    # 可通过self活得当前规则的参数信息，
+    # 输入参数可使用self.get_input_params()获取简化的{name: value}字典
+
+    minus_score = 0      # 扣分
+    outout_params = []   # 按照输出的顺序给出返回的数据(list),或者给出{name: value}这样的结构(dict)
+    return minus_score, output_params
         '''
 
     def unique_key(self) -> tuple:
         return self.db_type, self.name
 
-    def analyse(self,
-                sql_text: str,
-                cmdb_connector=None,
-                **kwargs
-                ) -> Union[list, tuple]:
+    def get_input_params(self) -> dict:
+        """获取简单的输入参数"""
+        return {i["name"]: i["value"] for i in self.to_dict()["input_params"]}
+
+    def analyse(self, test_only=False, **kwargs) -> Optional[list, tuple]:
         """
         在给定的sql文本上执行当前规则
-        :param sql_text: 单条待分析的sql语句
-        :param cmdb_connector: 如果是静态规则，可能不需要当前纳管库的连接。这个完全取决于规则代码。
-        :param kwargs: 任何别的参数通过这个字典传入，这些参数不经处理，直接传给调用函数本身
+        :param test_only: 仅测试生成code代码函数，并不执行。
+        :param kwargs: 别的参数，根据业务不同传入不同的参数，具体看业务实现
         :return:
         """
+        if test_only:
+            # 仅生成code函数，并不缓存，也不执行。
+            if getattr(self, "_code", None):
+                delattr(self, "_code")
+            print("generating code function for ticket rule "
+                  f"{self.unique_key()}(for test only)...")
+            try:
+                exec(self.code)
+            except Exception as e:
+                trace = traceback.format_exc()
+                print("failed when generating ticket rule "
+                      f"{self.unique_key()}: {e}")
+                print(trace)
+                raise const.RuleCodeInvalidException(trace)
+            return
         try:
             if getattr(self, "_code", None):
                 code_func = self._code
@@ -100,7 +119,7 @@ def code(sql_text, cmdb_connector=None, **kwargs):
                 code_func = code  # 这个code是在代码里面的
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = code_func
-            return code_func(sql_text, cmdb_connector)
+            return code_func(**kwargs)
         except Exception as e:
             # 执行规则代码失败，需要报错
             trace = traceback.format_exc()
@@ -129,7 +148,7 @@ class TicketSubResultItem(EmbeddedDocument):
 
     def get_rule(self) -> Union[TicketRule, None]:
         """获取当前的规则对象"""
-        return TicketRule.\
+        return TicketRule. \
             filter_enabled(db_type=self.db_type, name=self.rule_name).first()
 
     def as_sub_result_of(self, rule_object: TicketRule):
@@ -145,7 +164,7 @@ class TicketSubResultItem(EmbeddedDocument):
     def add_output(self, **kwargs):
         self.output_params.append(TicketRuleInputOutputParams(**kwargs))
 
-    def calc_score(self, rule: TicketRule = None):
+    def calc_score(self, rule: Optional[TicketRule] = None):
         """
         计算这个当前子工单当前规则的分数
         :param rule: 如果传一个rule对象进来，则优先用这个对象去计算
@@ -215,78 +234,24 @@ class TicketSQLPlan(BaseDoc):
         raise NotImplementedError
 
 
-class OracleTicketSQLPlan(TicketSQLPlan):
-    """oracle工单动态审核产生的执行计划"""
+class TicketMeta(BaseDoc):
+    """工单的附加信息"""
 
-    # 以下都是oracle的plan_table返回的数据结构
-    statement_id = StringField()
-    plan_id = IntField()
-    timestamp = DateTimeField()
-    remarks = StringField()
-    operation = StringField()
-    options = StringField()
-    object_node = StringField()
-    object_owner = StringField()
-    object_name = StringField()
-    object_alias = StringField()
-    object_instance = IntField()
-    object_type = StringField()
-    optimizer = StringField()
-    search_columns = IntField()
-    the_id = IntField()
-    parent_id = IntField()
-    depth = IntField()
-    position = IntField()
-    cost = IntField()
-    cardinality = IntField()
-    bytes = IntField()
-    other_tag = StringField()
-    partition_start = StringField()
-    partition_stop = StringField()
-    partition_id = IntField()
-    other = IntField()
-    other_xml = StringField()
-    distribution = StringField()
-    cpu_cost = FloatField()
-    io_cost = FloatField()
-    temp_space = FloatField()
-    access_predicates = StringField()
-    filter_predicates = StringField()
-    projection = StringField()
-    time = FloatField()
-    qblock_name = StringField()
+    session_id = StringField(required=True)
+    work_list_id = IntField()
+    cmdb_id = IntField()
+    schema_name = StringField()
+    original_sql = StringField(required=True)  # 原始上传的sql脚本文本
+    comment_striped_sql = StringField(required=True)  # 去掉注释的sql
 
     meta = {
-        "collection": "oracle_ticket_sql_plan",
+        "collection": "ticket_meta",
         'indexes': [
-            "statement_id",
-            "timestamp"
+            "session_id",
+            "work_list_id",
+            "cmdb_id"
         ]
     }
 
-    @classmethod
-    def add_from_dict(cls,
-                      work_list_id: int,
-                      cmdb_id: int,
-                      schema_name: str,
-                      list_of_plan_dicts: list) -> list:
-        docs = []
-        for one_dict in list_of_plan_dicts:
-            doc = cls(
-                **one_dict,
-                work_list_id=work_list_id,
-                cmdb_id=cmdb_id,
-                schema_name=schema_name,
-            )
-            doc.from_dict(one_dict)
-            docs.append(doc)
-        cls.objects.insert(docs)
-
-
-class MySQLTicketSQLPlan(TicketSQLPlan):
-    """mysql工单动态审核产生的执行计划"""
-
-    meta = {
-        "collection": "mysql_ticket_sql_plan",
-        'indexes': []
-    }
+    def generate_parsed_sql(self):
+        return ParsedSQL(self.original_sql)

@@ -5,7 +5,6 @@ import uuid
 from os import path
 from collections import defaultdict
 
-import xlrd
 import xlsxwriter
 import sqlparse
 from schema import Schema, Optional, And
@@ -16,7 +15,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils, offline_utils, const, cmdb_utils
+from utils import stream_utils, const, cmdb_utils
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *

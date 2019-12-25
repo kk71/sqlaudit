@@ -172,9 +172,15 @@ ALL_SQL_TYPE_NAME_MAPPING = {
 # SQL语句名称与语句类型的对应关系
 
 SQL_KEYWORDS = {
-    SQL_DDL: ["UNKNOWN", "DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE", "COMMENT"],
+    SQL_DDL: ["DROP", "CREATE", "ALTER", "TRUNCATE", "REVOKE", "COMMENT"],
     SQL_DML: ["UPDATE", "INSERT", "DELETE", "SELECT", "COMMIT", "ROLLBACK"],
 }
+ALL_SQL_KEYWORDS = {j for i in SQL_KEYWORDS.values() for j in i}
+
+
+# SQL里面的remark是不能被sqlparse当作注释处理的，需要用一个占位符先替换
+
+REMARK_PLACEHOLDER: str = "--REMARKREMARK"
 
 
 # 评分显示类型

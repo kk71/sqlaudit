@@ -22,6 +22,8 @@ from .base import SubTicketAnalysis
 class OracleSubTicketAnalysis(SubTicketAnalysis):
     """oracle子工单分析模块"""
 
+    db_type = DB_ORACLE
+
     def __init__(self,
                  static_rules_qs: mongoengine_qs = None,
                  dynamic_rules_qs: mongoengine_qs = None):

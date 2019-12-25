@@ -1,8 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OfflineTicketCommonHandler",
-    "SubTicketAnalysis",
+    "TicketReq"
 ]
 
 import re
@@ -23,14 +22,8 @@ from utils.datetime_utils import *
 from restful_api.views.base import PrivilegeReq
 
 
-cache_redis_cli = StrictRedis(
-    host=settings.CACHE_REDIS_IP,
-    port=settings.CACHE_REDIS_PORT,
-    db=settings.CACHE_REDIS_DB
-)
-
-
-class OfflineTicketCommonHandler(PrivilegeReq):
+class TicketReq(PrivilegeReq):
+    """工单通用请求，提供权限过滤"""
 
     def privilege_filter_ticket(self, q: sqlalchemy_qs) -> sqlalchemy_qs:
         """根据登录用户的权限过滤工单"""
@@ -83,39 +76,44 @@ class OfflineTicketCommonHandler(PrivilegeReq):
 class SubTicketAnalysis:
     """子工单分析模块，不指明纳管库类型"""
 
-    @staticmethod
-    def get_available_task_name(submit_owner: str, sql_type: int) -> str:
+    # TODO 指明数据库类型，mysql还是oracle
+    db_type = None
+
+    def get_available_task_name(self, submit_owner: str, sql_type: int) -> str:
         """获取当前可用的线下审核任务名"""
         current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
         k = f"offline-ticket-task-num-{current_date}"
-        current_num = "%03d" % cache_redis_cli.incr(k, 1)
-        cache_redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
-        return f"{submit_owner}-{ALL_SQL_TYPE_NAME_MAPPING[sql_type]}-" \
+        current_num = "%03d" % self.redis_cli.incr(k, 1)
+        self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
+        return f"{self.db_type}-{submit_owner}-{ALL_SQL_TYPE_NAME_MAPPING[sql_type]}-" \
                f"{current_date}-{current_num}"
 
     def __init__(self,
                  static_rules_qs: mongoengine_qs,
                  dynamic_rules_qs: mongoengine_qs):
+        # 缓存存放每日工单的子增流水号
+        self.redis_cli = StrictRedis(
+            host=settings.CACHE_REDIS_IP,
+            port=settings.CACHE_REDIS_PORT,
+            db=settings.CACHE_REDIS_DB
+        )
         # 存放规则快照，当前工单在分析的时候，每一条语句都用这个规则快照去分析
         # 如果语句很长，分析过程中如果有人修改了线下规则，则同一个工单里不同语句的依据标准不一样
         # 另一个是，每次都产生新的规则对象，会重新构建规则代码，耗时没意义
-
         # TODO 重载初始化函数，指明是使用oracle还是mysql的规则
         self.static_rules = list(static_rules_qs)
         self.dynamic_rules = list(dynamic_rules_qs)
 
-    @classmethod
-    def sql_filter_annotation(cls, sql):
-        """老代码挪过来的，主要是用于去掉每句sql末尾的分号"""
+    @staticmethod
+    def sql_filter_annotation(sql):
+        """用于去掉每句sql末尾的分号(目前仅oracle需要这么做)"""
         if not sql:
             return ""
-
         sql = sql[:-1] if sql and sql[-1] == ";" else sql
-
         return sql.strip()
 
-    @classmethod
-    def judge_sql_type(cls, sql_text: str) -> int:
+    @staticmethod
+    def judge_sql_type(sql_text: str) -> int:
         """
         判断单条语句是DDL还是DML
         :param sql_text: 单条sql语句
@@ -208,4 +206,3 @@ class SubTicketAnalysis:
                 work_list_id, cmdb.cmdb_id, schema, sql_plans)
 
         return sub_result
-
