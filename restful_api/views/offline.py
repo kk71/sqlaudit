@@ -1,13 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import re
 import uuid
 from os import path
 from collections import defaultdict
 
 import xlrd
 import xlsxwriter
-import sqlparse
 from schema import Schema, Optional, And
 from sqlalchemy import or_
 from prettytable import PrettyTable
@@ -16,7 +14,7 @@ import settings
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.const import *
-from utils import sql_utils, stream_utils, offline_utils, const, cmdb_utils
+from utils import sql_utils, offline_utils, const, cmdb_utils
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
 from models.oracle import *
@@ -413,7 +411,7 @@ class SQLUploadHandler(AuthReq):
         session_id = uuid.uuid4().hex
         return session_id
 
-    def post(self):
+    async def post(self):
         """上传一个sql文件，或者一个excel的sql文件"""
         if not len(self.request.files) or not self.request.files.get("file"):
             self.resp_bad_req(msg="未选择文件。")
@@ -427,48 +425,8 @@ class SQLUploadHandler(AuthReq):
         filename = file_object['filename']
 
         if filename.split('.')[-1].lower() in ['sql', "txt"]:
-            if file_object['body'].startswith(b"\xef\xbb\xbf"):
-                body = file_object['body'][3:]
-                encoding = 'utf-8'
-            else:
-                encoding = stream_utils.check_file_encoding(file_object['body'])
-                body = file_object['body']
-            try:
-                body = body.decode(encoding)
-            except UnicodeDecodeError:
-                body = body.decode('utf-8')
-            body = body.replace("\"", "'")
-            # 下面这个处理是要把remark替换成普通单行注释，然后交给sqlparse去处理，
-            # 处理完之后，再把remark加回去。
-            REMARK_PLACEHOLDER: str = "--REMARKREMARK"
-            tmpl_replaced_remark = re.compile(r"^\s*remark", re.I | re.M)
-            sql_remark_replaced: str = tmpl_replaced_remark.sub(REMARK_PLACEHOLDER, body)
-            sqls = []
-            for sql in sqlparse.parse(sql_remark_replaced):
-                if filter_sql_type is not None and \
-                        sql.get_type() in SQL_KEYWORDS[filter_sql_type]:
-                    # 判断是否需要过滤单句sql，并且判断当前这句sql是否在需要被过滤的列表里
-                    continue
-                perfect_sql = sql.normalized.replace(REMARK_PLACEHOLDER, "remark").strip()
-                if not perfect_sql:
-                    continue
-                if perfect_sql[-1] == ";":
-                    perfect_sql = perfect_sql[:-1]
-
-                # 分析当前导入的sql语句是什么类型的，ddl还是dml
-                if sql.get_type() in SQL_KEYWORDS[SQL_DDL]:
-                    sql_type = SQL_DDL
-                elif sql.get_type() in SQL_KEYWORDS[SQL_DML]:
-                    sql_type = SQL_DML
-                else:
-                    sql_type = None
-
-                # 以下返回结构应该与创建工单输入的sqls一致，方便前端对接
-                sqls.append({
-                    "sql_text": perfect_sql,
-                    "sql_type": sql_type,
-                    "comments": ""
-                })
+            sqls=await AsyncTimeout(120).async_thr(
+                offline_utils.sql_processing,file_object,filter_sql_type)
 
         # elif filename.split('.')[-1].lower() in ['xls', "xlsx", "csv", "xlt"]:
             # the_xls_filepath = path.join(settings.UPLOAD_DIR, filename)
