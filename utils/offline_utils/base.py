@@ -115,22 +115,6 @@ class SubTicketAnalysis(abc.ABC):
         sql = sql[:-1] if sql and sql[-1] == ";" else sql
         return sql.strip()
 
-    @staticmethod
-    def judge_sql_type(sql_text: str) -> int:
-        """
-        判断单条语句是DDL还是DML
-        :param sql_text: 单条sql语句
-        :return:
-        """
-        if re.match(r"select\s+|delete\s+|insert\s+|update\s+",
-                    sql_text, re.I):
-            return SQL_DML
-        elif re.match(r"create\s+|alter\s+|drop\s+|truncate\s+|grant\s+|revoke\s+",
-                      sql_text, re.I):
-            return SQL_DDL
-        else:
-            assert 0
-
     def run_static(
             self,
             sub_result,

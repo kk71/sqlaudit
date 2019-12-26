@@ -71,18 +71,18 @@ class TicketRule(BaseDoc):
         return '''# code template for offline ticket rule
 
 
-def code(**kwargs):
+def code(rule, **kwargs):
     
     # kwargs存放当前规则类型下会给定的输入参数，
     # 可能包括纳管库连接对象，当前工单的全部语句，当前停留在的语句索引，执行计划等等。具体看业务。
     # 可通过self活得当前规则的参数信息，
     # 输入参数可使用rule.gip()获取单个输入参数的值
 
-    minus_score = RULE_MINUS_DEFAULT
-                           # 扣分，如果为DEFAULT，表示按照默认weight扣一次分数，
+    minus_score = -rule.weight
+                           # 扣分，-rule.weight即默认按照权重扣分
                            #      为0或者为None表示不扣分,
                            #      为负数则扣相应的分
-                           #      正数会报错
+                           #      正数报错
     output_params = []     # 按照输出的顺序给出返回的数据(list),或者给出{name: value}这样的结构(dict)
     return minus_score, output_params
 code_hole.append(code)
@@ -103,12 +103,9 @@ code_hole.append(code)
 
     def _construct_code(self, code: str) -> Callable:
         """构建code函数"""
-        from utils.const import RULE_MINUS_DEFAULT
         code_hole = []
         exec(code, {
-            "rule": self,
             "code_hole": code_hole,
-            "RULE_MINUS_DEFAULT": RULE_MINUS_DEFAULT
         })
         if len(code_hole) != 1 or not callable(code_hole[0]):
             raise const.RuleCodeInvalidException("code not put in to the hole!")
@@ -121,7 +118,6 @@ code_hole.append(code)
         :param kwargs: 别的参数，根据业务不同传入不同的参数，具体看业务实现
         :return:
         """
-        from utils.const import RULE_MINUS_DEFAULT
         if test_only:
             # 仅生成code函数，并不缓存，也不执行。
             if getattr(self, "_code", None):
@@ -144,25 +140,23 @@ code_hole.append(code)
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = self._construct_code(self.code)
 
-            ret = self._code(**kwargs)
+            ret = self._code(self, **kwargs)
 
             # 校验函数返回的结构是否合乎预期
             Schema([
                 Or(
                     And(scm_num, lambda x: x <= 0),
-                    scm_one_of_choices([None, RULE_MINUS_DEFAULT])
+                    None
                 ),
                 Or([object], {scm_Optional(object): object})
             ]).validate(ret)
             if len(ret) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret)}) "
-                    f"is not equal with defined in rule({len(sr.output_params)})")
+                    f"is not equal with defined in rule({len(self.output_params)})")
 
             if ret[0] is None:
                 ret[0] = 0
-            elif ret[0] == RULE_MINUS_DEFAULT:
-                ret[0] = -self.weight
             return ret
         except Exception as e:
             # 执行规则代码失败，需要报错

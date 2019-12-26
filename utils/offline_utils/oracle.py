@@ -4,18 +4,11 @@ __all__ = [
     "OracleSubTicketAnalysis",
 ]
 
-import re
 import uuid
 
-import sqlparse
-from mongoengine import QuerySet as mongoengine_qs
-from sqlalchemy.orm.query import Query as sqlalchemy_qs
-
 from models.mongo import *
-from models.oracle import CMDB, WorkList
 from plain_db.oracleob import *
 from utils.const import *
-from utils.datetime_utils import *
 from .base import SubTicketAnalysis
 
 
@@ -40,6 +33,10 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             if self.ticket.schema_name else self.cmdb.user_name
         self.cmdb_connector = OracleCMDBConnector(self.cmdb)
         self.cmdb_connector.execute(f"alter session set current_schema={self.schema_name}")
+
+    def write_sql_plan(self, **kwargs):
+        """写入执行计划"""
+        return
 
     def run_dynamic(self,
                     sub_result: OracleTicketSubResult,

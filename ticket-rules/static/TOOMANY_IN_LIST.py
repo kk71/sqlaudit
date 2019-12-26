@@ -1,7 +1,7 @@
 import re
 
 
-def code(**kwargs):
+def code(rule, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
     sql_text: str = single_sql["sql_text"]
 
@@ -12,7 +12,7 @@ def code(**kwargs):
     ]
     for value in sql_content:
         if value.count(",") > rule.gip("in_list_num") - 1:
-            return RULE_MINUS_DEFAULT, []
+            return -rule.weight, []
     return None, []
 
 code_hole.append(code)
