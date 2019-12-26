@@ -24,7 +24,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
 
     db_type = DB_ORACLE
 
-    def __init__(self, schema_name=None, **kwargs):
+    def __init__(self, **kwargs):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
                 analyse_type=TICKET_RULE_STATIC,
@@ -36,7 +36,8 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 db_type=DB_ORACLE
             )
         super(OracleSubTicketAnalysis, self).__init__(**kwargs)
-        self.schema_name = schema_name if schema_name else self.cmdb.user_name
+        self.schema_name = self.ticket.schema_name \
+            if self.ticket.schema_name else self.cmdb.user_name
         self.cmdb_connector = OracleCMDBConnector(self.cmdb)
         self.cmdb_connector.execute(f"alter session set current_schema={self.schema_name}")
 
@@ -82,4 +83,6 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             sql_text=single_sql_text,
             comments=single_sql["comments"]
         )
+        self.run_static(sub_result, sqls, single_sql)
+        self.run_dynamic(sub_result, single_sql)
         return sub_result

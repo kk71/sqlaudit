@@ -5,9 +5,8 @@ __all__ = [
 ]
 
 import re
-import uuid
+import abc
 
-import sqlparse
 from redis import StrictRedis
 from sqlalchemy import or_
 from mongoengine import QuerySet as mongoengine_qs
@@ -72,7 +71,7 @@ class TicketReq(PrivilegeReq):
         return q
 
 
-class SubTicketAnalysis:
+class SubTicketAnalysis(abc.ABC):
     """子工单分析模块，不指明纳管库类型"""
 
     # TODO 指明数据库类型，mysql还是oracle
@@ -86,6 +85,7 @@ class SubTicketAnalysis:
         self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
         return f"{submit_owner}-{current_date}-{current_num}"
 
+    @abc.abstractmethod
     def __init__(self,
                  static_rules_qs: mongoengine_qs,
                  dynamic_rules_qs: mongoengine_qs,
@@ -105,6 +105,7 @@ class SubTicketAnalysis:
         self.dynamic_rules = list(dynamic_rules_qs)
         self.cmdb = cmdb
         self.ticket = ticket
+        self.cmdb_connector = None
 
     @staticmethod
     def sql_filter_annotation(sql):
@@ -145,7 +146,6 @@ class SubTicketAnalysis:
         for sr in self.static_rules:
             sub_result_item = TicketSubResultItem()
             sub_result_item.as_sub_result_of(sr)
-            formatted_sql = sqlparse.format(single_sql, strip_whitespace=True).lower()
 
             # ===这里指明了静态审核的输入参数(kwargs)===
             ret = sr.analyse(
@@ -153,13 +153,6 @@ class SubTicketAnalysis:
                 sqls=sqls
             )
 
-            if not isinstance(ret, (list, tuple)):
-                raise RuleCodeInvalidException("The data ticket rule returned "
-                                               f"is not a list or tuple: {ret}")
-            if len(ret) != len(sr.output_params):
-                raise RuleCodeInvalidException(
-                    f"The length of the iterable ticket rule returned({len(ret)}) "
-                    f"is not equal with defined in rule({len(sr.output_params)})")
             for output, current_ret in zip(sr.output_params, ret):
                 sub_result_item.add_output(**{
                     **output,
@@ -168,10 +161,17 @@ class SubTicketAnalysis:
             sub_result_item.calc_score()
             sub_result.static.append(sub_result_item)
 
+    @abc.abstractmethod
     def run_dynamic(self, sub_result, single_sql: dict):
         """动态分析"""
-        raise NotImplementedError
+        pass
 
+    @abc.abstractmethod
+    def write_sql_plan(self, **kwargs):
+        """写入动态检测到的执行计划"""
+        pass
+
+    @abc.abstractmethod
     def run(
             self,
             sqls: [dict],
@@ -179,4 +179,4 @@ class SubTicketAnalysis:
             **kwargs
     ):
         """单条sql语句的分析"""
-        raise NotImplementedError
+        pass

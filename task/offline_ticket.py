@@ -23,9 +23,17 @@ def offline_ticket(work_list_id: int, session_id: str):
                             f"work_list_id={work_list_id} is not found.")
         elif ticket.work_list_status != OFFLINE_TICKET_ANALYSING:
             raise Exception("fatal: current ticket has wrong status.")
+
         cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
         if not cmdb:
             raise CMDBNotFoundException(ticket.cmdb_id)
+
+        if cmdb.database_type == DB_ORACLE:
+            _TicketSubResult = OracleTicketSubResult
+            _SubTicketAnalysis = OracleSubTicketAnalysis
+        else:
+            assert 0  # TODO add mysql support here
+
         qe = QueryEntity(
             WorkListAnalyseTemp.sql_text,
             WorkListAnalyseTemp.comments,
@@ -41,16 +49,17 @@ def offline_ticket(work_list_id: int, session_id: str):
               f"cmdb_id({ticket.cmdb_id}), schema({ticket.schema_name})")
         sqls: [dict] = qe.to_dict(sqls)
         sub_tickets = []
-        sub_ticket_analysis = OracleSubTicketAnalysis() \
-            if cmdb.database_type == DB_ORACLE else None  # TODO add mysql support here
+        sub_ticket_analysis = _SubTicketAnalysis(
+            cmdb=cmdb,
+            ticket=ticket
+        ) if cmdb.database_type == DB_ORACLE else None  # TODO add mysql support here
         for single_sql in sqls:
             sub_ticket = sub_ticket_analysis.run(
-                session, work_list_id, cmdb, ticket.schema_name,
                 sqls=sqls,
                 single_sql=single_sql
             )
             sub_tickets.append(sub_ticket)
-        ticket.calc_score()
         ticket.work_list_status = OFFLINE_TICKET_PENDING
-        TicketSubResult.objects.insert(sub_tickets)
+        _TicketSubResult.objects.insert(sub_tickets)
+        ticket.calc_score()
         session.add(ticket)

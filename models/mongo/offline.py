@@ -154,6 +154,11 @@ code_hole.append(code)
                 ),
                 Or([object], {scm_Optional(object): object})
             ]).validate(ret)
+            if len(ret) != len(self.output_params):
+                raise const.RuleCodeInvalidException(
+                    f"The length of the iterable ticket rule returned({len(ret)}) "
+                    f"is not equal with defined in rule({len(sr.output_params)})")
+
             if ret[0] is None:
                 ret[0] = 0
             elif ret[0] == RULE_MINUS_DEFAULT:

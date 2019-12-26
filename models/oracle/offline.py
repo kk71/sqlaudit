@@ -5,7 +5,7 @@ from typing import Union
 from collections import defaultdict
 from functools import reduce
 
-from sqlalchemy import Column, String, Integer, Boolean, Sequence, Float
+from sqlalchemy import Column, String, Integer, Sequence, Float
 from sqlalchemy.dialects.oracle import DATE, CLOB
 
 from .utils import BaseModel
@@ -50,14 +50,14 @@ class WorkList(BaseModel):
         :return:
         """
         from models.mongo import TicketRule
-        from models.mongo import OracleTicketSubResult as TicketSubResult
+        from models.mongo import OracleTicketSubResult as _TicketSubResult
         print("* calculating total score for offline ticket "
               f"with id: {self.work_list_id}...")
         # (3-key): (当前已扣, 最大扣分)
         rules_max_score = defaultdict(lambda: [0, 0])
         for rule in TicketRule.filter_enabled():
             rules_max_score[rule.unique_key()][1] = rule.max_score  # 赋值规则的最大扣分
-        for sub_result in TicketSubResult.objects(work_list_id=self.work_list_id):
+        for sub_result in _TicketSubResult.objects(work_list_id=self.work_list_id):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for item_of_sub_result in static_and_dynamic_results:
                 rule_3_key = item_of_sub_result.get_rule_3_key()
@@ -78,27 +78,6 @@ class WorkList(BaseModel):
         self.score = final_score  # 未更新库中数据，需要手动加入session并commit
 
 
-# TODO DEPRECATED!!!
-# class SubWorkList(BaseModel):
-#     __tablename__ = "T_SUB_WORK_LIST"
-#
-#     work_list_id = Column("WORK_LIST_ID", Integer)
-#     statement_id = Column("STATEMENT_ID", String)
-#     static_check_results = Column("STATIC_CHECK_RESULTS", CLOB)  # changed to CLOB
-#     dynamic_check_results = Column("DYNAMIC_CHECK_RESULTS", CLOB)  # changed to CLOB
-#     check_time = Column("CHECK_TIME", DATE, default=datetime.now)
-#     check_owner = Column("CHECK_OWNER", String, comment="实际审批人")
-#     check_status = Column("CHECK_STATUS", Boolean)
-#     online_date = Column("ONLINE_DATE", DATE, default=datetime.now)
-#     online_owner = Column("ONLINE_OWNER", String, comment="上线人")
-#     elapsed_seconds = Column("ELAPSED_SECONDS", Integer)
-#     status = Column("STATUS", Boolean)  # 上线是否成功
-#     error_msg = Column("ERROR_MSG", String)
-#     comments = Column("COMMENTS", String)
-#     sql_text = Column("SQL_TEXT", CLOB)
-#     id = Column("ID", Integer, Sequence("SEQ_T_SUB_WORK_LIST"), primary_key=True)
-
-
 class WorkListAnalyseTemp(BaseModel):
     __tablename__ = "T_WORKLIST_ANALYSE_TEMP"
 
@@ -111,6 +90,7 @@ class WorkListAnalyseTemp(BaseModel):
     num = Column("NUM", Integer)
 
 
+# TODO DEPRECATED
 class OSQLPlan(BaseModel):
     __tablename__ = "T_SQL_PLAN"
 
