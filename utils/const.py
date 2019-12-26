@@ -183,6 +183,11 @@ ALL_SQL_KEYWORDS = {j for i in SQL_KEYWORDS.values() for j in i}
 REMARK_PLACEHOLDER: str = "--REMARKREMARK"
 
 
+# 规则使用默认扣分
+
+RULE_MINUS_DEFAULT = "RULE_MINUS_DEFAULT"
+
+
 # 评分显示类型
 
 SCORE_BY_AVERAGE = 1  # 按照平均分展示

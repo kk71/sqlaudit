@@ -18,6 +18,7 @@ from tornado.log import enable_pretty_logging
 import settings
 from models import init_models
 
+
 # initiate database models/connections
 
 init_models()
@@ -28,7 +29,9 @@ def cli():
     pass
 
 
-@click.command()
+# === 基础服务相关 ===
+
+@cli.command()
 def runserver():
     """start a web server for sqlaudit restful_api"""
     print("Starting http server for restful api...")
@@ -44,7 +47,7 @@ def runserver():
     tornado.ioloop.IOLoop.instance().start()
 
 
-@click.command()
+@cli.command()
 def shell():
     """open an iPython shell to perform some tasks"""
     from IPython import embed
@@ -68,7 +71,60 @@ a session object with both autocommit and autoflush on is created named ss.
                  ''')
 
 
-@click.command()
+@cli.command()
+@click.option("--q", help="use queue to run", default=True, type=click.BOOL)
+@click.option("--no-prefetch", help="do not prefetch", default=False, type=click.BOOL)
+def clear_cache(q=True, no_prefetch=False):
+    """clear all cache"""
+    from task.clear_cache import clear_cache
+    if q:
+        to_run = clear_cache.delay
+    else:
+        to_run = clear_cache
+    to_run(no_prefetch=no_prefetch)
+
+
+@cli.command()
+def create_admin():
+    """create the admin user"""
+    from models.oracle import User, make_session
+    with make_session() as session:
+        default_password = "123456"
+        admin = User(
+            login_user=settings.ADMIN_LOGIN_USER,
+            user_name="系统管理员",
+            password=default_password)
+        session.add(admin)
+    print(f"admin user named {settings.ADMIN_LOGIN_USER} created "
+          f"with password {default_password}")
+    print("* DO NOT FORGET TO CHANGE THE DEFAULT PASSWORD!")
+
+
+@cli.command()
+def gen_license():
+    """generate license"""
+    from past.utils.product_license import gen_license
+    gen_license()
+
+
+@cli.command()
+def password_convert():
+    """warning: this should be run only once!!! For migration only."""
+    from hashlib import md5
+    from models.oracle import make_session, User
+    if input("make sure you're going to convert all users' password to md5.?(y) ") != "y":
+        print("aborted.")
+        exit()
+    with make_session() as session:
+        for user in session.query(User):
+            user.password = md5(user.password.encode("utf-8")).hexdigest()
+            session.add(user)
+    print("all changed.")
+
+
+# === 线上规则相关 ===
+
+@cli.command()
 @click.option(
     "--filename", help="the json filename", default="./files/rule.json", type=click.STRING)
 def export_rules(filename):
@@ -79,7 +135,7 @@ def export_rules(filename):
     print(f"Done({all_num}).")
 
 
-@click.command()
+@cli.command()
 @click.option(
     "--filename", help="the json filename", default="./files/rule.json", type=click.STRING)
 def import_rules(filename):
@@ -97,7 +153,7 @@ def import_rules(filename):
         print(f"Done({r})")
 
 
-@click.command()
+@cli.command()
 def delete_rules():
     """delete all rules and risk rules."""
     from models.oracle import make_session, RiskSQLRule
@@ -109,7 +165,7 @@ def delete_rules():
     print(f"deleted {n} rules.")
 
 
-@click.command()
+@cli.command()
 def update_risk_rules():
     """update risk rules with rules"""
     from models.oracle import make_session, RiskSQLRule
@@ -122,7 +178,9 @@ def update_risk_rules():
     print(f"Done({r})")
 
 
-@click.command()
+# === 采集分析相关 ===
+
+@cli.command()
 @click.argument("task_id", type=click.INT, required=True)
 @click.option("--schema", help="schema(s) to collect", default=None, type=click.STRING)
 @click.option("--q", help="use celery or not", default=True, type=click.BOOL)
@@ -137,36 +195,13 @@ def makedata(task_id, schema, q):
 
 
 @click.command()
-@click.argument("filename", required=True, type=click.STRING)
-def create_env(filename):
-    """create py.env file with default values"""
-    print(f"going to create a new env file to {filename}...")
-    with open(filename, "w") as z:
-        z.writelines([f"{i[0]}={i[1]}\n" for i in settings.ALL_ENV_VARS])
-    print("Done.")
-
-
-@click.command()
 def schedule():
     """start a task scheduler"""
     import task.schedule
     task.schedule.main()
 
 
-@click.command()
-@click.option("--q", help="use queue to run", default=True, type=click.BOOL)
-@click.option("--no-prefetch", help="do not prefetch", default=False, type=click.BOOL)
-def clear_cache(q=True, no_prefetch=False):
-    """clear all cache"""
-    from task.clear_cache import clear_cache
-    if q:
-        to_run = clear_cache.delay
-    else:
-        to_run = clear_cache
-    to_run(no_prefetch=no_prefetch)
-
-
-@click.command()
+@cli.command()
 @click.argument("job_id", type=click.INT, required=True)
 def export_task(job_id):
     """export html report"""
@@ -177,28 +212,7 @@ def export_task(job_id):
     export(job_id)
 
 
-@click.command()
-def create_admin():
-    """create an admin user"""
-    from models.oracle import User, make_session
-    with make_session() as session:
-        default_password = "123456"
-        admin = User(
-            login_user=settings.ADMIN_LOGIN_USER,
-            user_name="系统管理员",
-            password=default_password)
-        session.add(admin)
-    print(f"* admin user named {settings.ADMIN_LOGIN_USER} created with password {default_password}")
-
-
-@click.command()
-def gen_license():
-    """generate license"""
-    from past.utils.product_license import gen_license
-    gen_license()
-
-
-@click.command()
+@cli.command()
 @click.option("--q", type=click.STRING, help="specify a queue name")
 def flush_celery_q(q):
     """clear collection queue"""
@@ -210,35 +224,43 @@ def flush_celery_q(q):
     print('done')
 
 
-@click.command()
-def password_convert():
-    """warning: this should be run only once!!! For migration only."""
-    from hashlib import md5
-    from models.oracle import make_session, User
-    if input("make sure you're going to convert all users' password to md5.?(y) ") != "y":
-        print("aborted.")
-        exit()
-    with make_session() as session:
-        for user in session.query(User):
-            user.password = md5(user.password.encode("utf-8")).hexdigest()
-            session.add(user)
-    print("all changed.")
+# === 工单规则相关 ===
+
+@cli.command()
+@click.option(
+    "--filename",
+    help="the json filename",
+    default="./files/ticket-rule.json",
+    type=click.STRING)
+def ticket_rule_import(filename):
+    """import ticket rules, deduplicated."""
+    from utils.ticket_rule_utils import ticket_rule_import
+    print(f"going to import ticket rules from {filename} ...")
+    imported_num = ticket_rule_import(filename)
+    print(f"{imported_num} rule(s) imported.")
+
+
+@cli.command()
+@click.option(
+    "--filename",
+    help="the json filename",
+    default="./files/ticket-rule.json",
+    type=click.STRING)
+def ticket_rule_export(filename):
+    """export ticket rules, target json file will be overwritten if existed."""
+    from utils.ticket_rule_utils import ticket_rule_export
+    print(f"going to export ticket rules to {filename} ...")
+    exported_num = ticket_rule_export(filename)
+    print(f"{exported_num} rule(s) exported.")
+
+
+@cli.command()
+def ticket_rule_drop():
+    """delete all ticket rules, use with caution!"""
+    from utils.ticket_rule_utils import ticket_rule_drop
+    dropped_num = ticket_rule_drop()
+    print(f"{dropped_num} ticket rule(s) dropped.")
 
 
 if __name__ == "__main__":
-    cli.add_command(runserver)
-    cli.add_command(shell)
-    cli.add_command(export_rules)
-    cli.add_command(import_rules)
-    cli.add_command(update_risk_rules)
-    cli.add_command(makedata)
-    cli.add_command(create_env)
-    cli.add_command(schedule)
-    cli.add_command(clear_cache)
-    cli.add_command(export_task)
-    cli.add_command(create_admin)
-    cli.add_command(gen_license)
-    cli.add_command(delete_rules)
-    cli.add_command(flush_celery_q)
-    cli.add_command(password_convert)
     cli()

@@ -16,7 +16,6 @@ from sqlalchemy.orm.query import Query as sqlalchemy_qs
 import settings
 from models.mongo import *
 from models.oracle import CMDB, WorkList
-from plain_db.oracleob import *
 from utils.const import *
 from utils.datetime_utils import *
 from restful_api.views.base import PrivilegeReq
@@ -79,18 +78,19 @@ class SubTicketAnalysis:
     # TODO 指明数据库类型，mysql还是oracle
     db_type = None
 
-    def get_available_task_name(self, submit_owner: str, sql_type: int) -> str:
+    def get_available_task_name(self, submit_owner: str) -> str:
         """获取当前可用的线下审核任务名"""
         current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
         k = f"offline-ticket-task-num-{current_date}"
         current_num = "%03d" % self.redis_cli.incr(k, 1)
         self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
-        return f"{self.db_type}-{submit_owner}-{ALL_SQL_TYPE_NAME_MAPPING[sql_type]}-" \
-               f"{current_date}-{current_num}"
+        return f"{submit_owner}-{current_date}-{current_num}"
 
     def __init__(self,
                  static_rules_qs: mongoengine_qs,
-                 dynamic_rules_qs: mongoengine_qs):
+                 dynamic_rules_qs: mongoengine_qs,
+                 cmdb: CMDB,
+                 ticket: WorkList):
         # 缓存存放每日工单的子增流水号
         self.redis_cli = StrictRedis(
             host=settings.CACHE_REDIS_IP,
@@ -103,6 +103,8 @@ class SubTicketAnalysis:
         # TODO 重载初始化函数，指明是使用oracle还是mysql的规则
         self.static_rules = list(static_rules_qs)
         self.dynamic_rules = list(dynamic_rules_qs)
+        self.cmdb = cmdb
+        self.ticket = ticket
 
     @staticmethod
     def sql_filter_annotation(sql):
@@ -130,19 +132,27 @@ class SubTicketAnalysis:
 
     def run_static(
             self,
-            sub_result: TicketSubResult,
-            single_sql: str):
+            sub_result,
+            sqls: [dict],
+            single_sql: dict):
         """
         静态分析
         :param self:
         :param sub_result:
-        :param single_sql:
+        :param single_sql: {"sql_text":,"comments":,"num":}
+        :param sqls: [{single_sql},...]
         """
         for sr in self.static_rules:
             sub_result_item = TicketSubResultItem()
             sub_result_item.as_sub_result_of(sr)
             formatted_sql = sqlparse.format(single_sql, strip_whitespace=True).lower()
-            ret = sr.analyse(formatted_sql)
+
+            # ===这里指明了静态审核的输入参数(kwargs)===
+            ret = sr.analyse(
+                single_sql=single_sql,
+                sqls=sqls
+            )
+
             if not isinstance(ret, (list, tuple)):
                 raise RuleCodeInvalidException("The data ticket rule returned "
                                                f"is not a list or tuple: {ret}")
@@ -158,51 +168,15 @@ class SubTicketAnalysis:
             sub_result_item.calc_score()
             sub_result.static.append(sub_result_item)
 
-    def run_dynamic(self, sub_result: TicketSubResult, single_sql: str):
+    def run_dynamic(self, sub_result, single_sql: dict):
         """动态分析"""
         raise NotImplementedError
 
     def run(
             self,
-            session,
-            work_list_id: int,
-            cmdb: CMDB,
-            schema: str,
-            single_sql: str,
-            position: int) -> TicketSubResult:
-        """
-        单条sql的静态动态审核
-        :param session:
-        :param work_list_id:
-        :param cmdb:
-        :param schema:
-        :param single_sql:
-        :param position: 当前语句在整个工单里的位置，从0开始计
-        """
-        sub_result = TicketSubResult(
-            cmdb_id=cmdb.cmdb_id,
-            schema_name=schema,
-            position=position,
-            sql_text=single_sql
-        )
-        # 动态分析
-        for dr in self.dynamic_rules:
-            statement_id = uuid.uuid1().hex
-            sub_result_item = TicketSubResultItem()
-            sub_result_item.as_sub_result_of(dr)
-            cmdb_connector = OracleCMDBConnector(cmdb)
-            formatted_sql = self.sql_filter_annotation(single_sql)
-            cmdb_connector.execute(f"alter session set current_schema={schema}")
-            cmdb_connector.execute("EXPLAIN PLAN SET "
-                                   f"statement_id='{statement_id}' for {formatted_sql}")
-            sql_for_getting_plan = f"SELECT * FROM plan_table " \
-                                   f"WHERE statement_id = '{statement_id}'"
-            sql_plans = cmdb_connector.select_dict(sql_for_getting_plan, one=False)
-            cmdb_connector.close()
-            if not sql_plans:
-                raise Exception(f"fatal: No plans for "
-                                f"statement_id: {statement_id}, sql: {formatted_sql}")
-            OracleTicketSQLPlan.add_from_dict(
-                work_list_id, cmdb.cmdb_id, schema, sql_plans)
-
-        return sub_result
+            sqls: [dict],
+            single_sql: dict,
+            **kwargs
+    ):
+        """单条sql语句的分析"""
+        raise NotImplementedError

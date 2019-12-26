@@ -7,6 +7,7 @@ from models.oracle import *
 from models.mongo import *
 from task.base import *
 from utils.const import *
+from utils.offline_utils import *
 
 
 @celery.task
@@ -25,10 +26,12 @@ def offline_ticket(work_list_id: int, session_id: str):
         cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
         if not cmdb:
             raise CMDBNotFoundException(ticket.cmdb_id)
-        sqls = session.query(
-                WorkListAnalyseTemp.sql_text,
-                WorkListAnalyseTemp.comments,
-                WorkListAnalyseTemp.num).\
+        qe = QueryEntity(
+            WorkListAnalyseTemp.sql_text,
+            WorkListAnalyseTemp.comments,
+            WorkListAnalyseTemp.num
+        )
+        sqls = session.query(qe).\
             filter(WorkListAnalyseTemp.session_id == session_id).\
             order_by(WorkListAnalyseTemp.num.desc())
         if not sqls:
@@ -36,11 +39,16 @@ def offline_ticket(work_list_id: int, session_id: str):
         print(f"* going to analyse {len(sqls)} sqls "
               f"in ticket({ticket.task_name}, {ticket.work_list_id}), "
               f"cmdb_id({ticket.cmdb_id}), schema({ticket.schema_name})")
+        sqls: [dict] = qe.to_dict(sqls)
         sub_tickets = []
-        sub_ticket_analysis = SubTicketAnalysis()
-        for sql, comment, num in sqls:
+        sub_ticket_analysis = OracleSubTicketAnalysis() \
+            if cmdb.database_type == DB_ORACLE else None  # TODO add mysql support here
+        for single_sql in sqls:
             sub_ticket = sub_ticket_analysis.run(
-                session, cmdb, ticket.schema_name, sql, num)
+                session, work_list_id, cmdb, ticket.schema_name,
+                sqls=sqls,
+                single_sql=single_sql
+            )
             sub_tickets.append(sub_ticket)
         ticket.calc_score()
         ticket.work_list_status = OFFLINE_TICKET_PENDING

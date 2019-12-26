@@ -2,11 +2,23 @@
 
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
-from .offline import TicketSQLPlan
+from .offline import TicketSQLPlan, TicketSubResult
+
+
+class OracleTicketSubResult(TicketSubResult):
+    """oracle的子工单"""
+    schema_name = StringField()
+
+    meta = {
+        'indexes': [
+            "schema_name",
+        ]
+    }
 
 
 class OracleTicketSQLPlan(TicketSQLPlan):
-    """oracle工单动态审核产生的执行计划"""
+    """oracle的工单动态审核产生的执行计划"""
+    schema_name = StringField()
 
     # 以下都是oracle的plan_table返回的数据结构
     statement_id = StringField()
@@ -49,6 +61,7 @@ class OracleTicketSQLPlan(TicketSQLPlan):
     meta = {
         "collection": "oracle_ticket_sql_plan",
         'indexes': [
+            "schema_name",
             "statement_id",
             "timestamp"
         ]

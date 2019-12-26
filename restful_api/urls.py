@@ -62,17 +62,8 @@ urls += [
     (r"/api/task/flush_q", task.FlushCeleryQ),
 ]
 
-# offline audit
+# offline
 urls += [
-    # (r"/api/offline/ticket/outer", offline.TicketOuterHandler),
-    # (r"/api/offline/ticket", offline.TicketHandler),
-    # (r"/api/offline/ticket/export", offline.ExportTicketHandler),
-    # (r"/api/offline/sub_ticket", offline.SubTicketHandler),
-    # (r"/api/offline/sub_ticket/export", offline.ExportSubTicketHandler),
-    # (r"/api/offline/sql_upload", offline.SQLUploadHandler),
-    # (r"/api/offline/sub_ticket/sql_plan", offline.SubTicketSQLPlanHandler),
-
-    # new version of ticket
     (r"/api/offline2/rule", offline_rule.TicketRuleHandler),
     (r"/api/offline2/sql_upload", offline_ticket.SQLUploadHandler),
     (r"/api/offline2/ticket/outer", offline_ticket.TicketOuterHandler),
@@ -81,7 +72,6 @@ urls += [
     (r"/api/offline2/sub_ticket", offline_sub_ticket.SubTicketHandler),
     (r"/api/offline2/sub_ticket/sql_plan", offline.SubTicketSQLPlanHandler),
     (r"/api/offline2/sub_ticket/export", offline_sub_ticket.SubTicketExportHandler),
-
 ]
 
 # online audit

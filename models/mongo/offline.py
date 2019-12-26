@@ -7,7 +7,9 @@ from copy import deepcopy
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocument, EmbeddedDocumentListField, \
     DynamicField, ListField
+from schema import Schema, Or, Optional as scm_Optional, And
 
+from utils.schema_utils import *
 from .utils import BaseDoc
 from utils import const
 from utils.datetime_utils import *
@@ -29,7 +31,7 @@ class TicketRule(BaseDoc):
     desc = StringField(required=True)
     analysis_type = StringField(
         required=True, choices=const.ALL_TICKET_RULE_TYPE)  # 规则类型，静态还是动态
-    sql_type = StringField(choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
+    sql_type = IntField(choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
@@ -67,33 +69,59 @@ class TicketRule(BaseDoc):
         :return:
         """
         return '''# code template for offline ticket rule
-        
+
+
 def code(**kwargs):
     
     # kwargs存放当前规则类型下会给定的输入参数，
     # 可能包括纳管库连接对象，当前工单的全部语句，当前停留在的语句索引，执行计划等等。具体看业务。
     # 可通过self活得当前规则的参数信息，
-    # 输入参数可使用self.get_input_params()获取简化的{name: value}字典
+    # 输入参数可使用rule.gip()获取单个输入参数的值
 
-    minus_score = 0      # 扣分
-    outout_params = []   # 按照输出的顺序给出返回的数据(list),或者给出{name: value}这样的结构(dict)
+    minus_score = RULE_MINUS_DEFAULT
+                           # 扣分，如果为DEFAULT，表示按照默认weight扣一次分数，
+                           #      为0或者为None表示不扣分,
+                           #      为负数则扣相应的分
+                           #      正数会报错
+    output_params = []     # 按照输出的顺序给出返回的数据(list),或者给出{name: value}这样的结构(dict)
     return minus_score, output_params
+code_hole.append(code)
         '''
 
     def unique_key(self) -> tuple:
         return self.db_type, self.name
 
-    def get_input_params(self) -> dict:
-        """获取简单的输入参数"""
-        return {i["name"]: i["value"] for i in self.to_dict()["input_params"]}
+    def gip(self, param_name: str) -> dict:
+        """
+        获取输入参数的值
+        函数名gip是get input parameter的缩写
+        :param param_name:
+        :return:
+        """
+        return {i["name"]: i["value"]
+                for i in self.to_dict()["input_params"]}[param_name]
 
-    def analyse(self, test_only=False, **kwargs) -> Optional[list, tuple]:
+    def _construct_code(self, code: str) -> Callable:
+        """构建code函数"""
+        from utils.const import RULE_MINUS_DEFAULT
+        code_hole = []
+        exec(code, {
+            "rule": self,
+            "code_hole": code_hole,
+            "RULE_MINUS_DEFAULT": RULE_MINUS_DEFAULT
+        })
+        if len(code_hole) != 1 or not callable(code_hole[0]):
+            raise const.RuleCodeInvalidException("code not put in to the hole!")
+        return code_hole.pop()
+
+    def analyse(self, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
         """
         在给定的sql文本上执行当前规则
         :param test_only: 仅测试生成code代码函数，并不执行。
         :param kwargs: 别的参数，根据业务不同传入不同的参数，具体看业务实现
         :return:
         """
+        from utils.const import RULE_MINUS_DEFAULT
         if test_only:
             # 仅生成code函数，并不缓存，也不执行。
             if getattr(self, "_code", None):
@@ -101,7 +129,7 @@ def code(**kwargs):
             print("generating code function for ticket rule "
                   f"{self.unique_key()}(for test only)...")
             try:
-                exec(self.code)
+                self._construct_code(self.code)
             except Exception as e:
                 trace = traceback.format_exc()
                 print("failed when generating ticket rule "
@@ -110,16 +138,27 @@ def code(**kwargs):
                 raise const.RuleCodeInvalidException(trace)
             return
         try:
-            if getattr(self, "_code", None):
-                code_func = self._code
-            else:
-                print("generating code function for ticket rule "
+            if not getattr(self, "_code", None):
+                print("* generating code function for ticket rule "
                       f"{self.unique_key()}...")
-                exec(self.code)
-                code_func = code  # 这个code是在代码里面的
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
-                self._code: Callable = code_func
-            return code_func(**kwargs)
+                self._code: Callable = self._construct_code(self.code)
+
+            ret = self._code(**kwargs)
+
+            # 校验函数返回的结构是否合乎预期
+            Schema([
+                Or(
+                    And(scm_num, lambda x: x <= 0),
+                    scm_one_of_choices([None, RULE_MINUS_DEFAULT])
+                ),
+                Or([object], {scm_Optional(object): object})
+            ]).validate(ret)
+            if ret[0] is None:
+                ret[0] = 0
+            elif ret[0] == RULE_MINUS_DEFAULT:
+                ret[0] = -self.weight
+            return ret
         except Exception as e:
             # 执行规则代码失败，需要报错
             trace = traceback.format_exc()
@@ -181,7 +220,6 @@ class TicketSubResult(BaseDoc):
     """子工单"""
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
-    schema_name = StringField()
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
@@ -195,10 +233,10 @@ class TicketSubResult(BaseDoc):
     check_time = DateTimeField(default=datetime.now)
 
     meta = {
+        'abstract': True,
         "collection": "ticket_sub_result",
         'indexes': [
             "work_list_id",
-            "cmdb_id",
             "statement_id",
             "position",
             "check_time",
@@ -211,7 +249,6 @@ class TicketSQLPlan(BaseDoc):
 
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
-    schema_name = StringField()
     create_date = DateTimeField(default=lambda: arrow.now().datetime)
 
     meta = {
@@ -219,7 +256,6 @@ class TicketSQLPlan(BaseDoc):
         'indexes': [
             "work_list_id",
             "cmdb_id",
-            "schema_name",
             "create_date",
         ]
     }
@@ -240,7 +276,6 @@ class TicketMeta(BaseDoc):
     session_id = StringField(required=True)
     work_list_id = IntField()
     cmdb_id = IntField()
-    schema_name = StringField()
     original_sql = StringField(required=True)  # 原始上传的sql脚本文本
     comment_striped_sql = StringField(required=True)  # 去掉注释的sql
 

@@ -23,11 +23,12 @@ __all__ = [
     "StatsCMDBSQLText",
     "StatsRiskSqlRule",
     "StatsRiskObjectsRule",
+    # 线下审核相关
     "TicketRule",
     "TicketRuleInputOutputParams",
-    "TicketSubResult",
     "TicketSubResultItem",
-    "TicketMeta",
+    "OracleTicketSubResult",
+    "OracleTicketSQLPlan",
 ]
 
 from .job import *
@@ -39,3 +40,4 @@ from .txt import *
 from .results import *
 from .statistics import *
 from .offline import *
+from .offline_oracle import *

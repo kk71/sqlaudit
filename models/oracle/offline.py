@@ -35,7 +35,7 @@ class WorkList(BaseModel):
     online_username = Column("ONLINE_USERNAME", String, comment="上线用户名")
     online_password = Column("ONLINE_PASSWORD", String, comment="上线密码")
     score = Column("SCORE", Float, comment="工单评分")
-    db_type = Column("db_type", String, comment="数据库类型")
+    db_type = Column("db_type", Integer, comment="数据库类型")
 
     def calc_score(self, at_least: Union[None, int, float] = 60):
         """
@@ -49,7 +49,8 @@ class WorkList(BaseModel):
         :param at_least: 遮羞分，为None或者0的时候表示不需要
         :return:
         """
-        from models.mongo import TicketRule, TicketSubResult
+        from models.mongo import TicketRule
+        from models.mongo import OracleTicketSubResult as TicketSubResult
         print("* calculating total score for offline ticket "
               f"with id: {self.work_list_id}...")
         # (3-key): (当前已扣, 最大扣分)
