@@ -37,7 +37,8 @@ def offline_ticket(work_list_id: int, session_id: str):
         qe = QueryEntity(
             WorkListAnalyseTemp.sql_text,
             WorkListAnalyseTemp.comments,
-            WorkListAnalyseTemp.num
+            WorkListAnalyseTemp.num,
+            WorkListAnalyseTemp.sql_type
         )
         sqls = session.query(qe).\
             filter(WorkListAnalyseTemp.session_id == session_id).\

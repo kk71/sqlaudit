@@ -83,7 +83,7 @@ def code(rule, **kwargs):
                            #      为0或者为None表示不扣分,
                            #      为负数则扣相应的分
                            #      正数报错
-    output_params = []     # 按照输出的顺序给出返回的数据(list),或者给出{name: value}这样的结构(dict)
+    output_params = []     # 按照输出的顺序给出返回的数据(list)
     return minus_score, output_params
 code_hole.append(code)
         '''
@@ -148,7 +148,7 @@ code_hole.append(code)
                     And(scm_num, lambda x: x <= 0),
                     None
                 ),
-                Or([object], {scm_Optional(object): object})
+                [object]
             ]).validate(ret)
             if len(ret) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
@@ -228,7 +228,9 @@ class TicketSubResult(BaseDoc):
     dynamic = EmbeddedDocumentListField(TicketSubResultItem)
     online_status = BooleanField()  # 上线是否成功
     elapsed_seconds = IntField()  # 执行时长
-    error_msg = StringField(null=True)  # 额外错误信息
+    # 额外错误信息
+    # 如果存在额外错误信息，则当前子工单未正确分析
+    error_msg = StringField(null=True)
     check_time = DateTimeField(default=datetime.now)
 
     meta = {

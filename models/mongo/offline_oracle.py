@@ -72,7 +72,7 @@ class OracleTicketSQLPlan(TicketSQLPlan):
                       work_list_id: int,
                       cmdb_id: int,
                       schema_name: str,
-                      list_of_plan_dicts: list) -> list:
+                      list_of_plan_dicts: list):
         docs = []
         for one_dict in list_of_plan_dicts:
             doc = cls(
@@ -84,5 +84,3 @@ class OracleTicketSQLPlan(TicketSQLPlan):
             doc.from_dict(one_dict)
             docs.append(doc)
         cls.objects.insert(docs)
-
-

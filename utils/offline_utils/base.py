@@ -136,7 +136,6 @@ class SubTicketAnalysis(abc.ABC):
                 single_sql=single_sql,
                 sqls=sqls
             )
-
             for output, current_ret in zip(sr.output_params, ret):
                 sub_result_item.add_output(**{
                     **output,
@@ -151,7 +150,7 @@ class SubTicketAnalysis(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def write_sql_plan(self, **kwargs):
+    def write_sql_plan(self, **kwargs) -> mongoengine_qs:
         """写入动态检测到的执行计划"""
         pass
 
