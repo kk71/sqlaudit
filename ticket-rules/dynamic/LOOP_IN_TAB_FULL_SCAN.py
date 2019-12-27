@@ -64,7 +64,7 @@ def code(rule, **kwargs):
                     table_name=i["object_name"],
                 ).first()
                 if tab:
-                    return rule.weight, [
+                    return -rule.weight, [
                         i["statement_id"],
                         i["plan_hash_value"],
                         i["object_name"],
