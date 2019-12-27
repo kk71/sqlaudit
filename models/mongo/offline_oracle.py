@@ -35,6 +35,7 @@ class OracleTicketSQLPlan(TicketSQLPlan):
     object_type = StringField()
     optimizer = StringField()
     search_columns = IntField()
+    # plan_table里的字段就叫做id，这里为了避免python冲突改名叫the_id
     the_id = IntField()
     parent_id = IntField()
     depth = IntField()
@@ -75,6 +76,9 @@ class OracleTicketSQLPlan(TicketSQLPlan):
                       list_of_plan_dicts: list):
         docs = []
         for one_dict in list_of_plan_dicts:
+            if "id" in one_dict.keys():
+                # oracle的plan_tab里字段叫id，为了避免混淆改名the_id
+                one_dict["the_id"] = one_dict.pop("id")
             doc = cls(
                 **one_dict,
                 work_list_id=work_list_id,

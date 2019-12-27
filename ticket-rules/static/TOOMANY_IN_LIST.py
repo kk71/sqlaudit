@@ -15,4 +15,5 @@ def code(rule, **kwargs):
             return -rule.weight, []
     return None, []
 
+
 code_hole.append(code)
