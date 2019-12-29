@@ -4,7 +4,6 @@ __all__ = [
     "TicketReq"
 ]
 
-import re
 import abc
 
 from redis import StrictRedis
@@ -13,6 +12,7 @@ from mongoengine import QuerySet as mongoengine_qs
 from sqlalchemy.orm.query import Query as sqlalchemy_qs
 
 import settings
+from plain_db.mongo_operat import MongoHelper
 from models.mongo import *
 from models.oracle import CMDB, WorkList
 from utils.const import *
@@ -106,6 +106,7 @@ class SubTicketAnalysis(abc.ABC):
         self.cmdb = cmdb
         self.ticket = ticket
         self.cmdb_connector = None
+        self.mongo_connector = MongoHelper.get_db()
 
     @staticmethod
     def sql_filter_annotation(sql):

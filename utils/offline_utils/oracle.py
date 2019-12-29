@@ -71,7 +71,9 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 ret = dr.analyse(
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,
-                    sql_plan_qs=sql_plan_qs
+                    mongo_connector=self.mongo_connector,
+                    sql_plan_qs=sql_plan_qs,
+                    schema_name=sub_result.schema_name
                 )
                 for output, current_ret in zip(dr.output_params, ret):
                     sub_result_item.add_output(**{

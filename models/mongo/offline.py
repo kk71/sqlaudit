@@ -7,7 +7,7 @@ from copy import deepcopy
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocument, EmbeddedDocumentListField, \
     DynamicField, ListField
-from schema import Schema, Or, Optional as scm_Optional, And
+from schema import Schema, Or, And
 
 from utils.schema_utils import *
 from .utils import BaseDoc
@@ -31,7 +31,7 @@ class TicketRule(BaseDoc):
     desc = StringField(required=True)
     analysis_type = StringField(
         required=True, choices=const.ALL_TICKET_RULE_TYPE)  # 规则类型，静态还是动态
-    sql_type = IntField(choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
+    sql_type = IntField(null=True, choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
@@ -85,6 +85,8 @@ def code(rule, **kwargs):
                            #      正数报错
     output_params = []     # 按照输出的顺序给出返回的数据(list)
     return minus_score, output_params
+
+
 code_hole.append(code)
         '''
 
@@ -170,6 +172,16 @@ code_hole.append(code)
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.objects.filter(status=True).filter(*args, **kwargs)
+
+    def code_from(self, filename: str, update_immediately: bool = False):
+        with open(filename, "r") as z:
+            self.code = z.read()
+        if update_immediately:
+            self.save()
+
+    def code_to(self, filename: str):
+        with open(filename, "w") as z:
+            z.write(self.code)
 
 
 class TicketSubResultItem(EmbeddedDocument):
