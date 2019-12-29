@@ -11,7 +11,6 @@ __all__ = [
     "CMDB",
     "RoleDataPrivilege",
     "WorkList",
-    "SubWorkList",
     "OSQLPlan",
     "RiskSQLRule",
     "WorkListAnalyseTemp",
@@ -43,4 +42,3 @@ from .config import *
 from .offline import *
 from .online import *
 from .optimize import *
-
