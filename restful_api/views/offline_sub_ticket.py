@@ -71,7 +71,7 @@ class SubTicketHandler(TicketReq):
             pass  # reserved but should be useless
         else:
             assert 0
-        # q = self.privilege_filter_ticket(q,session)  # TODO q:mongoe q:sqlalchemy
+        q = self.privilege_filter_sub_ticket(q,session)
         return q
 
     def get(self):
