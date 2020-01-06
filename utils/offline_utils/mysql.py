@@ -29,12 +29,12 @@ class MySQLSubTicketAnalysis(SubTicketAnalysis):
                  dynamic_rules_qs: mongoengine_qs = None):
         if static_rules_qs is None:
             static_rules_qs = TicketRule.filter_enabled(
-                analyse_type=TICKET_RULE_STATIC,
+                analyse_type=TICKET_ANALYSE_TYPE_STATIC,
                 db_type=DB_MYSQL
             )
         if dynamic_rules_qs is None:
             dynamic_rules_qs = TicketRule.filter_enabled(
-                type=TICKET_RULE_DYNAMIC,
+                type=TICKET_ANALYSE_TYPE_DYNAMIC,
                 db_type=DB_MYSQL
             )
         super(MySQLSubTicketAnalysis, self).__init__(static_rules_qs, dynamic_rules_qs)

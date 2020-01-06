@@ -135,7 +135,8 @@ class SubTicketAnalysis(abc.ABC):
             # ===这里指明了静态审核的输入参数(kwargs)===
             ret = sr.analyse(
                 single_sql=single_sql,
-                sqls=sqls
+                sqls=sqls,
+                cmdb=self.cmdb
             )
             for output, current_ret in zip(sr.output_params, ret):
                 sub_result_item.add_output(**{

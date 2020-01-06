@@ -30,7 +30,7 @@ class TicketRule(BaseDoc):
     name = StringField(required=True)
     desc = StringField(required=True)
     analysis_type = StringField(
-        required=True, choices=const.ALL_TICKET_RULE_TYPE)  # 规则类型，静态还是动态
+        required=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
     sql_type = IntField(null=True, choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
@@ -69,6 +69,7 @@ class TicketRule(BaseDoc):
         :return:
         """
         return '''# code template for offline ticket rule
+# 如果有任何import，请在此处导入，方便在规则执行前进行检查。
 
 
 def code(rule, **kwargs):

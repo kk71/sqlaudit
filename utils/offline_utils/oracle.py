@@ -23,12 +23,12 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
     def __init__(self, **kwargs):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=TICKET_RULE_STATIC,
+                analyse_type=TICKET_ANALYSE_TYPE_STATIC,
                 db_type=DB_ORACLE
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                type=TICKET_RULE_DYNAMIC,
+                type=TICKET_ANALYSE_TYPE_DYNAMIC,
                 db_type=DB_ORACLE
             )
         super(OracleSubTicketAnalysis, self).__init__(**kwargs)

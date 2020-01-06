@@ -367,6 +367,7 @@ class SQLUploadHandler(TicketReq):
 
         if not len(self.request.files) or not self.request.files.get("file"):
             return self.resp_bad_req(msg="未选择文件。")
+
         params = self.get_query_args(Schema({
             Optional("filter_sql_type", default=None):
                 And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
