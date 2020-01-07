@@ -125,7 +125,7 @@ class SubTicketAnalysis(abc.ABC):
         静态分析
         :param self:
         :param sub_result:
-        :param single_sql: {"sql_text":,"comments":,"num":}
+        :param single_sql: {"sql_text":,"comments":,"num":,"sql_type":}
         :param sqls: [{single_sql},...]
         """
         for sr in self.static_rules:
