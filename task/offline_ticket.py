@@ -28,7 +28,7 @@ def offline_ticket(work_list_id: int, session_id: str):
         if not cmdb:
             raise CMDBNotFoundException(ticket.cmdb_id)
 
-        if cmdb.database_type == DB_ORACLE:
+        if cmdb.database_type in (DB_ORACLE, 1):
             _TicketSubResult = OracleTicketSubResult
             _SubTicketAnalysis = OracleSubTicketAnalysis
         else:
