@@ -31,7 +31,9 @@ class TicketRule(BaseDoc):
     desc = StringField(required=True)
     analysis_type = StringField(
         null=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
-    sql_type = IntField(null=True, choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
+    sql_type = IntField(
+        null=True,
+        choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型,为None则表示规则不区分sql_type
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
