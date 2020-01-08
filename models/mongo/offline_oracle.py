@@ -19,6 +19,7 @@ class OracleTicketSubResult(TicketSubResult):
 class OracleTicketSQLPlan(TicketSQLPlan):
     """oracle的工单动态审核产生的执行计划"""
     schema_name = StringField()
+    operation_display = StringField()  # 带缩进用于展示的执行计划操作
 
     # 以下都是oracle的plan_table返回的数据结构
     statement_id = StringField()
@@ -79,11 +80,17 @@ class OracleTicketSQLPlan(TicketSQLPlan):
             if "id" in one_dict.keys():
                 # oracle的plan_tab里字段叫id，为了避免混淆改名the_id
                 one_dict["the_id"] = one_dict.pop("id")
+            one_dict["operation_display"] = \
+                " " * one_dict["depth"] + one_dict["operation"]
             doc = cls(
                 work_list_id=work_list_id,
                 cmdb_id=cmdb_id,
                 schema_name=schema_name,
             )
-            doc.from_dict(one_dict, iter_if=lambda k, v: k not in ("other_xml",))
+            doc.from_dict(
+                one_dict,
+                # 这个字段好像没啥用，这里就忽略了
+                iter_if=lambda k, v: k not in ("other_xml",)
+            )
             docs.append(doc)
         cls.objects.insert(docs)
