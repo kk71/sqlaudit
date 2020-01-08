@@ -258,6 +258,7 @@ def ticket_rule_import_code():
                 raise Exception(f"{code_file} is not a file.")
             with open(code_file, "r") as z:
                 tr.code = z.read()
+                tr.analyse(test_only=True)
                 tr.save()
         except Exception as e:
             print(e)

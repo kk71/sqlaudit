@@ -10,7 +10,7 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if re.search('create\s+database\s+link', sql_text, re.I):
+    if re.search(r'create\s+database\s+link', sql_text, re.I):
         return -rule.weight, []
     return None, []
 

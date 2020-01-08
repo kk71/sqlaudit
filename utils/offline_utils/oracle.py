@@ -80,7 +80,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                         **output,
                         "value": current_ret
                     })
-                sub_result_item.weight = ret[0]
+                sub_result_item.minus_score = ret[0]
                 sub_result.static.append(sub_result_item)
         except Exception as e:
             sub_result.error_msg = e

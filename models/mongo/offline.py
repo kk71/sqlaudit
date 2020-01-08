@@ -186,7 +186,7 @@ class TicketSubResultItem(EmbeddedDocument):
     input_params = EmbeddedDocumentListField(
         TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
-    weight = FloatField(default=0)
+    minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
@@ -194,7 +194,8 @@ class TicketSubResultItem(EmbeddedDocument):
     def get_rule(self) -> Union[TicketRule, None]:
         """获取当前的规则对象"""
         return TicketRule. \
-            filter_enabled(db_type=self.db_type, name=self.rule_name).first()
+            filter_enabled(db_type=self.db_type, name=self.rule_name).\
+            first()
 
     def as_sub_result_of(self, rule_object: TicketRule):
         """
@@ -245,14 +246,14 @@ class TicketSQLPlan(BaseDoc):
 
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
-    create_date = DateTimeField(default=lambda: arrow.now().datetime)
+    etl_date = DateTimeField(default=lambda: arrow.now().datetime)
 
     meta = {
         'abstract': True,
         'indexes': [
             "work_list_id",
             "cmdb_id",
-            "create_date",
+            "etl_date",
         ]
     }
 

@@ -143,7 +143,7 @@ class SubTicketAnalysis(abc.ABC):
                     **output,
                     "value": current_ret
                 })
-            sub_result_item.weight = ret[0]
+            sub_result_item.minus_score = ret[0]
             sub_result.static.append(sub_result_item)
 
     @abc.abstractmethod

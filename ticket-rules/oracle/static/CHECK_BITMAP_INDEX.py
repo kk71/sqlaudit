@@ -1,5 +1,5 @@
 import re
-from utils.const import SQL_DDL
+from utils.const import SQL_DDL, MODEL_OLTP
 
 
 def code(rule, **kwargs):
@@ -12,7 +12,8 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if db_model == "OLTP" and re.search("create\s+bitmap\s+index", sql_text, re.I):
+    if db_model == MODEL_OLTP and\
+            re.search(r"create\s+bitmap\s+index", sql_text, re.I):
         return -rule.weight, []
     return None, []
 
