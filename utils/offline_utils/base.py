@@ -138,12 +138,12 @@ class SubTicketAnalysis(abc.ABC):
                 sqls=sqls,
                 cmdb=self.cmdb
             )
-            for output, current_ret in zip(sr.output_params, ret):
+            for output, current_ret in zip(sr.output_params, ret[1]):
                 sub_result_item.add_output(**{
                     **output,
                     "value": current_ret
                 })
-            sub_result_item.calc_score()
+            sub_result_item.weight = ret[0]
             sub_result.static.append(sub_result_item)
 
     @abc.abstractmethod

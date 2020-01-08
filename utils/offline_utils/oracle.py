@@ -52,7 +52,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     single_sql: dict):
         """动态分析"""
         try:
-            statement_id = uuid.uuid1().hex
+            statement_id = uuid.uuid1().hex[30:]  # oracle的statement_id字段最长30位
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
             self.cmdb_connector.execute("EXPLAIN PLAN SET "
                                         f"statement_id='{statement_id}' for {formatted_sql}")
@@ -75,12 +75,12 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     sql_plan_qs=sql_plan_qs,
                     schema_name=sub_result.schema_name
                 )
-                for output, current_ret in zip(dr.output_params, ret):
+                for output, current_ret in zip(dr.output_params, ret[1]):
                     sub_result_item.add_output(**{
                         **output,
                         "value": current_ret
                     })
-                sub_result_item.calc_score()
+                sub_result_item.weight = ret[0]
                 sub_result.static.append(sub_result_item)
         except Exception as e:
             sub_result.error_msg = e
@@ -100,6 +100,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         """
         single_sql_text = single_sql["sql_text"]
         sub_result = OracleTicketSubResult(
+            work_list_id=self.ticket.work_list_id,
             cmdb_id=self.cmdb.cmdb_id,
             schema_name=self.schema_name,
             position=single_sql["num"],

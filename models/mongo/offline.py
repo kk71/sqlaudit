@@ -146,14 +146,14 @@ code_hole.append(code)
             ret = self._code(self, **kwargs)
 
             # 校验函数返回的结构是否合乎预期
-            Schema([
+            Schema((
                 Or(
                     And(scm_num, lambda x: x <= 0),
                     None
                 ),
-                [object]
-            ]).validate(ret)
-            if len(ret) != len(self.output_params):
+                Or([object], (object,))
+            )).validate(ret)
+            if len(ret[1]) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret)}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
@@ -215,18 +215,6 @@ class TicketSubResultItem(EmbeddedDocument):
     def add_output(self, **kwargs):
         self.output_params.append(TicketRuleInputOutputParams(**kwargs))
 
-    def calc_score(self, rule: Optional[TicketRule] = None):
-        """
-        计算这个当前子工单当前规则的分数
-        :param rule: 如果传一个rule对象进来，则优先用这个对象去计算
-                     不传也可，但是不传会手动查询新的规则对象，如果该对象已经禁用，则扣分计0
-        """
-        if not rule:
-            rule = self.get_rule()
-        if not rule:
-            self.weight = 0
-        self.weight = rule.weight
-
 
 class TicketSubResult(BaseDoc):
     """子工单"""
@@ -235,12 +223,12 @@ class TicketSubResult(BaseDoc):
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
-    comments = StringField()
+    comments = StringField(default="")
     position = IntField()  # 该语句在整个工单里的位置，从0开始
     static = EmbeddedDocumentListField(TicketSubResultItem)
     dynamic = EmbeddedDocumentListField(TicketSubResultItem)
-    online_status = BooleanField()  # 上线是否成功
-    elapsed_seconds = IntField()  # 执行时长
+    online_status = BooleanField(default=None)  # 上线是否成功
+    elapsed_seconds = IntField(default=None)  # 执行时长
     # 额外错误信息
     # 如果存在额外错误信息，则当前子工单未正确分析
     error_msg = StringField(null=True)

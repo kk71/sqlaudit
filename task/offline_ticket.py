@@ -40,20 +40,20 @@ def offline_ticket(work_list_id: int, session_id: str):
             WorkListAnalyseTemp.num,
             WorkListAnalyseTemp.sql_type
         )
-        sqls = session.query(qe).\
+        sqls = session.query(*qe).\
             filter(WorkListAnalyseTemp.session_id == session_id).\
             order_by(WorkListAnalyseTemp.num.desc())
+        sqls: [dict] = [qe.to_dict(a_sql) for a_sql in sqls]
         if not sqls:
             raise Exception("fatal: no SQL was given in session_id.")
         print(f"* going to analyse {len(sqls)} sqls "
               f"in ticket({ticket.task_name}, {ticket.work_list_id}), "
               f"cmdb_id({ticket.cmdb_id}), schema({ticket.schema_name})")
-        sqls: [dict] = qe.to_dict(sqls)
         sub_tickets = []
         sub_ticket_analysis = _SubTicketAnalysis(
             cmdb=cmdb,
             ticket=ticket
-        ) if cmdb.database_type == DB_ORACLE else None  # TODO add mysql support here
+        ) if cmdb.database_type in (DB_ORACLE, 1) else None  # TODO add mysql support here
         for single_sql in sqls:
             sub_ticket = sub_ticket_analysis.run(
                 sqls=sqls,

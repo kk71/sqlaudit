@@ -241,6 +241,12 @@ def ticket_rule_import(filename):
 
 
 @cli.command()
+def ticket_rule_import_code():
+    """import rule code from ticket_rules, only used for development!"""
+    return
+
+
+@cli.command()
 @click.option(
     "--filename",
     help="the json filename",

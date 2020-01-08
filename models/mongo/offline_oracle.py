@@ -80,11 +80,10 @@ class OracleTicketSQLPlan(TicketSQLPlan):
                 # oracle的plan_tab里字段叫id，为了避免混淆改名the_id
                 one_dict["the_id"] = one_dict.pop("id")
             doc = cls(
-                **one_dict,
                 work_list_id=work_list_id,
                 cmdb_id=cmdb_id,
                 schema_name=schema_name,
             )
-            doc.from_dict(one_dict)
+            doc.from_dict(one_dict, iter_if=lambda k, v: k not in ("other_xml",))
             docs.append(doc)
         cls.objects.insert(docs)
