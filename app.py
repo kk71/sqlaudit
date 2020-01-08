@@ -242,8 +242,27 @@ def ticket_rule_import(filename):
 
 @cli.command()
 def ticket_rule_import_code():
-    """import rule code from ticket_rules, only used for development!"""
-    return
+    """FOR DEVELOPMENT: import rule code from ticket_rules"""
+    from pathlib import Path
+    import settings
+    from models.mongo import TicketRule
+    not_imported_rules = []
+    for tr in TicketRule.objects().all():
+        try:
+            code_file = Path(settings.SETTINGS_FILE_DIR) /\
+                        f"ticket_rules/{tr.db_type}/" \
+                        f"{tr.analyse_type.lower()}/{tr.name}.py"
+            if not code_file.exists():
+                raise Exception(f"code file {code_file} not existed.")
+            if not code_file.is_file():
+                raise Exception(f"{code_file} is not a file.")
+            with open(code_file, "r") as z:
+                tr.code = z.read()
+                tr.save()
+        except Exception as e:
+            print(e)
+            not_imported_rules.append(str(tr))
+    print(f"the following rule were not updated: {not_imported_rules}")
 
 
 @cli.command()
@@ -258,6 +277,12 @@ def ticket_rule_export(filename):
     print(f"going to export ticket rules to {filename} ...")
     exported_num = ticket_rule_export(filename)
     print(f"{exported_num} rule(s) exported.")
+
+
+@cli.command()
+def ticket_rule_export_code():
+    """FOR DEVELOPMENT: export rule code to ticket_rules"""
+    return
 
 
 @cli.command()
