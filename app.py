@@ -250,7 +250,7 @@ def ticket_rule_import_code():
     for tr in TicketRule.objects().all():
         try:
             code_file = Path(settings.SETTINGS_FILE_DIR) /\
-                        f"ticket_rules/{tr.db_type}/" \
+                        f"ticket-rules/{tr.db_type}/" \
                         f"{tr.analyse_type.lower()}/{tr.name}.py"
             if not code_file.exists():
                 raise Exception(f"code file {code_file} not existed.")

@@ -30,7 +30,7 @@ class TicketRule(BaseDoc):
     name = StringField(required=True)
     desc = StringField(required=True)
     analysis_type = StringField(
-        required=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
+        null=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
     sql_type = IntField(null=True, choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
@@ -61,6 +61,10 @@ class TicketRule(BaseDoc):
     def __init__(self, *args, **kwargs):
         super(TicketRule, self).__init__(*args, **kwargs)
         self._code: Union[Callable, None] = None
+
+    def __str__(self):
+        return "TicketRule:" + "-".join([str(i) for i in self.unique_key()
+                                         if i is not None])
 
     @staticmethod
     def code_template():
@@ -173,16 +177,6 @@ code_hole.append(code)
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.objects.filter(status=True).filter(*args, **kwargs)
-
-    def code_from(self, filename: str, update_immediately: bool = False):
-        with open(filename, "r") as z:
-            self.code = z.read()
-        if update_immediately:
-            self.save()
-
-    def code_to(self, filename: str):
-        with open(filename, "w") as z:
-            z.write(self.code)
 
 
 class TicketSubResultItem(EmbeddedDocument):
