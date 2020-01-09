@@ -78,7 +78,7 @@ class WorkList(BaseModel):
             lambda x, y: [x[0] + y[0], x[1] + y[1]],
             rules_max_score.values()
         )
-        final_score = (total_minus_score_max - total_minus_score) / \
+        final_score = (total_minus_score_max + total_minus_score) / \
                       float(total_minus_score_max) * 100.0
         if at_least and final_score < at_least:
             final_score = at_least
