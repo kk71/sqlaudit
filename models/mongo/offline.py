@@ -163,7 +163,7 @@ code_hole.append(code)
                 raise const.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret)}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
-
+            ret = list(ret)
             if ret[0] is None:
                 ret[0] = 0
             return ret
