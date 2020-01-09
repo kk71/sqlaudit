@@ -282,6 +282,7 @@ class PRIVILEGE:
     PRIVILEGE_ROLE_USER_MANAGE = (20, TYPE_FE, "用户角色管理", "")
     PRIVILEGE_ROLE_DATA_PRIVILEGE = (21, TYPE_FE, "数据权限配置", "是否允许使用")
     PRIVILEGE_HEALTH_CENTER = (22, TYPE_FE, "健康中心", "")
+    PRIVILEGE_TICKET_RULE = (23, TYPE_BOTH, "工单规则", "")
 
     # 增加了权限之后，记得加入全列表
     ALL_PRIVILEGE = (
@@ -303,7 +304,8 @@ class PRIVILEGE:
         PRIVILEGE_ROLE_MANAGE,
         PRIVILEGE_ROLE_USER_MANAGE,
         PRIVILEGE_ROLE_DATA_PRIVILEGE,
-        PRIVILEGE_HEALTH_CENTER
+        PRIVILEGE_HEALTH_CENTER,
+        PRIVILEGE_TICKET_RULE
     )
 
     @classmethod
