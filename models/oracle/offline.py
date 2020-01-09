@@ -82,7 +82,7 @@ class WorkList(BaseModel):
                       float(total_minus_score_max) * 100.0
         if at_least and final_score < at_least:
             final_score = at_least
-        self.score = final_score  # 未更新库中数据，需要手动加入session并commit
+        self.score = round(final_score, 2)  # 未更新库中数据，需要手动加入session并commit
 
 
 class WorkListAnalyseTemp(BaseModel):
