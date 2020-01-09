@@ -3,18 +3,12 @@
 import uuid
 
 import chardet
-import arrow
 import settings
 from os import path
 from collections import defaultdict
-from schema import Schema, And, Or
 
-from utils.schema_utils import *
-from utils.datetime_utils import *
 from utils.offline_utils import *
 from utils.const import *
-from utils.parsed_sql import ParsedSQL
-from models.mongo import *
 from models.mongo.offline import *
 from models.oracle import *
 from utils import cmdb_utils

@@ -64,7 +64,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                                 f"sql: {formatted_sql}")
             sql_plan_qs = self.write_sql_plan(sql_plans, statement_id=statement_id)
             for dr in self.dynamic_rules:
-                if dr.sql_type is not None and\
+                if dr.sql_type is not SQL_ANY and\
                         dr.sql_type != single_sql["sql_type"]:
                     continue
                 sub_result_item = TicketSubResultItem()

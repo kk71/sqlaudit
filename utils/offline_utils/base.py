@@ -129,7 +129,7 @@ class SubTicketAnalysis(abc.ABC):
         :param sqls: [{single_sql},...]
         """
         for sr in self.static_rules:
-            if sr.sql_type is not None and \
+            if sr.sql_type is not SQL_ANY and \
                     sr.sql_type != single_sql["sql_type"]:
                 continue
             sub_result_item = TicketSubResultItem()

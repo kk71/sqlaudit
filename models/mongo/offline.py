@@ -232,7 +232,6 @@ class TicketSubResult(BaseDoc):
     check_time = DateTimeField(default=datetime.now)
 
     meta = {
-        'abstract': True,
         "collection": "ticket_sub_result",
         'indexes': [
             "work_list_id",
