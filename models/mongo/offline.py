@@ -232,6 +232,7 @@ class TicketSubResult(BaseDoc):
     check_time = DateTimeField(default=datetime.now)
 
     meta = {
+        "allow_inheritance": True,
         "collection": "ticket_sub_result",
         'indexes': [
             "work_list_id",
