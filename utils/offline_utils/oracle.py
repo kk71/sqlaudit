@@ -52,7 +52,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     single_sql: dict):
         """动态分析"""
         try:
-            statement_id = uuid.uuid1().hex[30:]  # oracle的statement_id字段最长30位
+            statement_id = uuid.uuid1().hex[-30:]  # oracle的statement_id字段最长30位
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
             self.cmdb_connector.execute("EXPLAIN PLAN SET "
                                         f"statement_id='{statement_id}' for {formatted_sql}")
