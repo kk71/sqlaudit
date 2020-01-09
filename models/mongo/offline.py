@@ -214,9 +214,14 @@ class TicketSubResultItem(EmbeddedDocument):
 
 
 class TicketSubResult(BaseDoc):
-    """子工单"""
+    """
+    子工单
+    请注意：这个子工单类是需要被不同的子类继承的，以兼顾oracle和mysql，
+    在子工单列表里读取的时候使用本类进行操作以达到兼容效果，写入数据的时候请使用子类
+    """
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
+    db_type = StringField()
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
@@ -232,7 +237,7 @@ class TicketSubResult(BaseDoc):
     check_time = DateTimeField(default=datetime.now)
 
     meta = {
-        "allow_inheritance": True,
+        "allow_inheritance": True,  # 子类继承本类，但是数据存在同一个collection里
         "collection": "ticket_sub_result",
         'indexes': [
             "work_list_id",

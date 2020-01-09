@@ -105,13 +105,12 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         sub_result = OracleTicketSubResult(
             work_list_id=self.ticket.work_list_id,
             cmdb_id=self.cmdb.cmdb_id,
+            db_type=DB_ORACLE,
             schema_name=self.schema_name,
             position=single_sql["num"],
             sql_text=single_sql_text,
             comments=single_sql["comments"]
         )
         self.run_static(sub_result, sqls, single_sql)
-        if single_sql["sql_type"] == SQL_DML:
-            # TODO 确认一下是否只有DML需要执行计划
-            self.run_dynamic(sub_result, single_sql)
+        self.run_dynamic(sub_result, single_sql)
         return sub_result

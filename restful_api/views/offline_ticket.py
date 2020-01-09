@@ -145,12 +145,14 @@ class TicketHandler(TicketReq):
         """提交工单"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            scm_optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
             scm_optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
             scm_optional("online_username", default=None): scm_str,
-            scm_optional("online_password", default=None): scm_str
+            scm_optional("online_password", default=None): scm_str,
+
+            # for oracle
+            scm_optional("schema_name", default=None): scm_unempty_str,
         }))
         params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")
