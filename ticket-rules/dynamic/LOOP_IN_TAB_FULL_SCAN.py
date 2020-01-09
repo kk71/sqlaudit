@@ -22,7 +22,7 @@ def code(rule, **kwargs):
             i.to_dict(
                 iter_if=lambda k, v: k in (
                     "statement_id",
-                    "plan_hash_value",
+                    "plan_id",
                     "object_name",
                     "the_id",
                     "parent_id",
@@ -38,7 +38,7 @@ def code(rule, **kwargs):
                     "_id": {
                         "parent_id": "$parent_id",
                         "statement_id": "$statement_id",
-                        "plan_hash_value": "$plan_hash_value"
+                        "plan_id": "$plan_id"
                     },
                     "max_id": {"$max": "$the_id"}
                 }
@@ -47,7 +47,7 @@ def code(rule, **kwargs):
         for ar in aggregate_result:
             each_ar_found = tmp.find({
                 "statement_id": ar["_id"]["statement_id"],
-                "plan_hash_value": ar["_id"]["plan_hash_value"],
+                "plan_id": ar["_id"]["plan_id"],
                 "$and": [
                     {"the_ud": ar["MAXID"]},
                     {"the_id": {"$ne": 2}}
@@ -57,16 +57,14 @@ def code(rule, **kwargs):
                 "options": "FULL"
             })
             for i in each_ar_found:
-                tab = ObjTabInfo.objects(
-                    Q(num_row__gt=rule.gip("table_row_num")) |
-                    Q(phy_size_mb__gt=rule.gip("table_phy_size")),
-                    owner=i["object_owner"],
-                    table_name=i["object_name"],
-                ).first()
+                tab = ObjTabInfo.objects(num_row__gt=rule.gip("table_row_num"),
+                                         owner=i["object_owner"],
+                                         table_name=i["object_name"],
+                                         ).first()
                 if tab:
                     return -rule.weight, [
                         i["statement_id"],
-                        i["plan_hash_value"],
+                        i["plan_id"],
                         i["object_name"],
                         i["the_id"],
                         i["cost"],
