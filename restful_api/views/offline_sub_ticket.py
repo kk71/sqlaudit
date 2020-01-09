@@ -7,6 +7,7 @@ from mongoengine import Q
 from schema import Schema, Optional
 
 import settings
+from utils.const import *
 from utils.offline_utils import *
 from utils.schema_utils import *
 from utils.datetime_utils import dt_to_str
@@ -188,3 +189,27 @@ class SubTicketExportHandler(SubTicketHandler):
                 ws.write(row_num, 8, sub_ticket.comments, format_text)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+
+class SQLPlanHandler(TicketReq):
+
+    def get(self):
+        """获取子工单单条sql语句的执行计划"""
+
+        # TODO 这个接口
+
+        params = self.get_query_args(Schema({
+            "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
+            "statement_id": scm_unempty_str,
+        }))
+        self.resp()
+
+
+class SubTicketRuleHandler(TicketReq):
+
+    def patch(self):
+        """修改子工单内的规则，修改后重新计算工单的分数"""
+        params = self.get_json_args(Schema({
+
+        }))
+        self.resp_created()

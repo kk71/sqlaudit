@@ -23,12 +23,12 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
     def __init__(self, **kwargs):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=TICKET_RULE_STATIC,
+                analyse_type=TICKET_ANALYSE_TYPE_STATIC,
                 db_type=DB_ORACLE
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                type=TICKET_RULE_DYNAMIC,
+                type=TICKET_ANALYSE_TYPE_DYNAMIC,
                 db_type=DB_ORACLE
             )
         super(OracleSubTicketAnalysis, self).__init__(**kwargs)
@@ -52,7 +52,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     single_sql: dict):
         """动态分析"""
         try:
-            statement_id = uuid.uuid1().hex
+            statement_id = uuid.uuid1().hex[30:]  # oracle的statement_id字段最长30位
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
             self.cmdb_connector.execute("EXPLAIN PLAN SET "
                                         f"statement_id='{statement_id}' for {formatted_sql}")
@@ -64,6 +64,9 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                                 f"sql: {formatted_sql}")
             sql_plan_qs = self.write_sql_plan(sql_plans, statement_id=statement_id)
             for dr in self.dynamic_rules:
+                if dr.sql_type is not SQL_ANY and\
+                        dr.sql_type != single_sql["sql_type"]:
+                    continue
                 sub_result_item = TicketSubResultItem()
                 sub_result_item.as_sub_result_of(dr)
 
@@ -75,12 +78,12 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     sql_plan_qs=sql_plan_qs,
                     schema_name=sub_result.schema_name
                 )
-                for output, current_ret in zip(dr.output_params, ret):
+                for output, current_ret in zip(dr.output_params, ret[1]):
                     sub_result_item.add_output(**{
                         **output,
                         "value": current_ret
                     })
-                sub_result_item.calc_score()
+                sub_result_item.minus_score = ret[0]
                 sub_result.static.append(sub_result_item)
         except Exception as e:
             sub_result.error_msg = e
@@ -100,14 +103,14 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         """
         single_sql_text = single_sql["sql_text"]
         sub_result = OracleTicketSubResult(
+            work_list_id=self.ticket.work_list_id,
             cmdb_id=self.cmdb.cmdb_id,
+            db_type=DB_ORACLE,
             schema_name=self.schema_name,
             position=single_sql["num"],
             sql_text=single_sql_text,
             comments=single_sql["comments"]
         )
         self.run_static(sub_result, sqls, single_sql)
-        if single_sql["sql_type"] == SQL_DML:
-            # TODO 确认一下是否只有DML需要执行计划
-            self.run_dynamic(sub_result, single_sql)
+        self.run_dynamic(sub_result, single_sql)
         return sub_result

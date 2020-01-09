@@ -12,7 +12,7 @@ import sqlparse
 from utils import const
 
 
-class ParsedSQL(tuple):
+class ParsedSQL(list):
     """存储一个格式化分解之后的sql脚本"""
 
     def __init__(self, sql: str):

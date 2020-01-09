@@ -10,9 +10,9 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if re.search('alter\s+table\s+.+\s+add', sql_text, re.I):
-        if not re.search(".+\s+default\s+.+", sql_text, re.I):
-            return -rule.weight, []
+    if re.search(r'alter\s+table\s+.+\s+drop\s+constraint', sql_text, re.I):
+        return -rule.weight, []
+
     return None, []
 
 

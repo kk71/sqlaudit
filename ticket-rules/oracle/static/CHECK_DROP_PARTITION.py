@@ -10,9 +10,8 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if re.search('drop\s+table', sql_text, re.I):
+    if re.search(r'alter\s+table\s+.+\s+drop\s+partition', sql_text, re.I):
         return -rule.weight, []
-
     return None, []
 
 

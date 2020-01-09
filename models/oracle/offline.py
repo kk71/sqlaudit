@@ -15,7 +15,8 @@ from utils import const
 class WorkList(BaseModel):
     __tablename__ = "T_WORK_LIST"
 
-    work_list_id = Column("WORK_LIST_ID", Integer, Sequence('SEQ_WORK_LIST'), primary_key=True)
+    work_list_id = Column("WORK_LIST_ID", Integer, Sequence('SEQ_WORK_LIST'),
+                          primary_key=True)
     # work_list_type = Column("WORK_LIST_TYPE", Integer)
     cmdb_id = Column("CMDB_ID", Integer)
     schema_name = Column("SCHEMA_NAME", String)
@@ -53,26 +54,29 @@ class WorkList(BaseModel):
         from models.mongo import OracleTicketSubResult as _TicketSubResult
         print("* calculating total score for offline ticket "
               f"with id: {self.work_list_id}...")
-        # (3-key): (当前已扣, 最大扣分)
+        # unique_key: (当前已扣, 最大扣分)
         rules_max_score = defaultdict(lambda: [0, 0])
         for rule in TicketRule.filter_enabled():
             rules_max_score[rule.unique_key()][1] = rule.max_score  # 赋值规则的最大扣分
         for sub_result in _TicketSubResult.objects(work_list_id=self.work_list_id):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for item_of_sub_result in static_and_dynamic_results:
-                rule_3_key = item_of_sub_result.get_rule_3_key()
-                if rules_max_score[rule_3_key][0] < rules_max_score[rule_3_key][1]:
+                rule_unique_key = item_of_sub_result.get_rule_unique_key()
+                if rules_max_score[rule_unique_key][0] <\
+                        rules_max_score[rule_unique_key][1]:
                     # 仅当已经扣掉的分数依然小于最大扣分的时候才继续扣分
-                    rules_max_score[rule_3_key][0] -= item_of_sub_result.score_to_minus
+                    rules_max_score[rule_unique_key][0] -=\
+                        item_of_sub_result.weight
                 else:
                     # 否则，直接将扣分置为最大扣分
-                    rules_max_score[rule_3_key][0] = rules_max_score[rule_3_key][1]
+                    rules_max_score[rule_unique_key][0] =\
+                        rules_max_score[rule_unique_key][1]
         total_minus_score, total_minus_score_max = reduce(
             lambda x, y: [x[0] + y[0], x[1] + y[1]],
             rules_max_score.values()
         )
         final_score = (total_minus_score_max - total_minus_score) / \
-                      float(total_minus_score_max)
+                      float(total_minus_score_max) * 100.0
         if at_least and final_score < at_least:
             final_score = at_least
         self.score = final_score  # 未更新库中数据，需要手动加入session并commit
@@ -81,7 +85,8 @@ class WorkList(BaseModel):
 class WorkListAnalyseTemp(BaseModel):
     __tablename__ = "T_WORKLIST_ANALYSE_TEMP"
 
-    id = Column("ID", Integer, Sequence("SEQ_T_WORKLIST_ANALYSE_TEMP"), primary_key=True)
+    id = Column("ID", Integer, Sequence("SEQ_T_WORKLIST_ANALYSE_TEMP"),
+                primary_key=True)
     session_id = Column("SESSION_ID", String, nullable=False)
     sql_text = Column("SQL_TEXT", CLOB)
     comments = Column("COMMENTS", String)

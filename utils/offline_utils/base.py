@@ -125,24 +125,28 @@ class SubTicketAnalysis(abc.ABC):
         静态分析
         :param self:
         :param sub_result:
-        :param single_sql: {"sql_text":,"comments":,"num":}
+        :param single_sql: {"sql_text":,"comments":,"num":,"sql_type":}
         :param sqls: [{single_sql},...]
         """
         for sr in self.static_rules:
+            if sr.sql_type is not SQL_ANY and \
+                    sr.sql_type != single_sql["sql_type"]:
+                continue
             sub_result_item = TicketSubResultItem()
             sub_result_item.as_sub_result_of(sr)
 
             # ===这里指明了静态审核的输入参数(kwargs)===
             ret = sr.analyse(
                 single_sql=single_sql,
-                sqls=sqls
+                sqls=sqls,
+                cmdb=self.cmdb
             )
-            for output, current_ret in zip(sr.output_params, ret):
+            for output, current_ret in zip(sr.output_params, ret[1]):
                 sub_result_item.add_output(**{
                     **output,
                     "value": current_ret
                 })
-            sub_result_item.calc_score()
+            sub_result_item.minus_score = ret[0]
             sub_result.static.append(sub_result_item)
 
     @abc.abstractmethod

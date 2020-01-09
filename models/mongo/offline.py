@@ -30,8 +30,10 @@ class TicketRule(BaseDoc):
     name = StringField(required=True)
     desc = StringField(required=True)
     analysis_type = StringField(
-        required=True, choices=const.ALL_TICKET_RULE_TYPE)  # 规则类型，静态还是动态
-    sql_type = IntField(null=True, choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型
+        null=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
+    sql_type = IntField(
+        null=True,
+        choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型,为None则表示规则不区分sql_type
     ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
@@ -62,6 +64,10 @@ class TicketRule(BaseDoc):
         super(TicketRule, self).__init__(*args, **kwargs)
         self._code: Union[Callable, None] = None
 
+    def __str__(self):
+        return "TicketRule:" + "-".join([str(i) for i in self.unique_key()
+                                         if i is not None])
+
     @staticmethod
     def code_template():
         """
@@ -69,6 +75,7 @@ class TicketRule(BaseDoc):
         :return:
         """
         return '''# code template for offline ticket rule
+# 如果有任何import，请在此处导入，方便在规则执行前进行检查。
 
 
 def code(rule, **kwargs):
@@ -145,14 +152,14 @@ code_hole.append(code)
             ret = self._code(self, **kwargs)
 
             # 校验函数返回的结构是否合乎预期
-            Schema([
+            Schema((
                 Or(
                     And(scm_num, lambda x: x <= 0),
                     None
                 ),
-                [object]
-            ]).validate(ret)
-            if len(ret) != len(self.output_params):
+                Or([object], (object,))
+            )).validate(ret)
+            if len(ret[1]) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret)}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
@@ -173,16 +180,6 @@ code_hole.append(code)
         """仅过滤出开启的规则"""
         return cls.objects.filter(status=True).filter(*args, **kwargs)
 
-    def code_from(self, filename: str, update_immediately: bool = False):
-        with open(filename, "r") as z:
-            self.code = z.read()
-        if update_immediately:
-            self.save()
-
-    def code_to(self, filename: str):
-        with open(filename, "w") as z:
-            z.write(self.code)
-
 
 class TicketSubResultItem(EmbeddedDocument):
     """子工单的一个规则的诊断"""
@@ -191,7 +188,7 @@ class TicketSubResultItem(EmbeddedDocument):
     input_params = EmbeddedDocumentListField(
         TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
-    weight = FloatField(default=0)
+    minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
@@ -199,7 +196,8 @@ class TicketSubResultItem(EmbeddedDocument):
     def get_rule(self) -> Union[TicketRule, None]:
         """获取当前的规则对象"""
         return TicketRule. \
-            filter_enabled(db_type=self.db_type, name=self.rule_name).first()
+            filter_enabled(db_type=self.db_type, name=self.rule_name).\
+            first()
 
     def as_sub_result_of(self, rule_object: TicketRule):
         """
@@ -214,39 +212,32 @@ class TicketSubResultItem(EmbeddedDocument):
     def add_output(self, **kwargs):
         self.output_params.append(TicketRuleInputOutputParams(**kwargs))
 
-    def calc_score(self, rule: Optional[TicketRule] = None):
-        """
-        计算这个当前子工单当前规则的分数
-        :param rule: 如果传一个rule对象进来，则优先用这个对象去计算
-                     不传也可，但是不传会手动查询新的规则对象，如果该对象已经禁用，则扣分计0
-        """
-        if not rule:
-            rule = self.get_rule()
-        if not rule:
-            self.weight = 0
-        self.weight = rule.weight
-
 
 class TicketSubResult(BaseDoc):
-    """子工单"""
+    """
+    子工单
+    请注意：这个子工单类是需要被不同的子类继承的，以兼顾oracle和mysql，
+    在子工单列表里读取的时候使用本类进行操作以达到兼容效果，写入数据的时候请使用子类
+    """
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
+    db_type = StringField()
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
-    comments = StringField()
+    comments = StringField(default="")
     position = IntField()  # 该语句在整个工单里的位置，从0开始
     static = EmbeddedDocumentListField(TicketSubResultItem)
     dynamic = EmbeddedDocumentListField(TicketSubResultItem)
-    online_status = BooleanField()  # 上线是否成功
-    elapsed_seconds = IntField()  # 执行时长
+    online_status = BooleanField(default=None)  # 上线是否成功
+    elapsed_seconds = IntField(default=None)  # 执行时长
     # 额外错误信息
     # 如果存在额外错误信息，则当前子工单未正确分析
     error_msg = StringField(null=True)
     check_time = DateTimeField(default=datetime.now)
 
     meta = {
-        'abstract': True,
+        "allow_inheritance": True,  # 子类继承本类，但是数据存在同一个collection里
         "collection": "ticket_sub_result",
         'indexes': [
             "work_list_id",
@@ -262,14 +253,14 @@ class TicketSQLPlan(BaseDoc):
 
     work_list_id = IntField(required=True)
     cmdb_id = IntField()
-    create_date = DateTimeField(default=lambda: arrow.now().datetime)
+    etl_date = DateTimeField(default=lambda: arrow.now().datetime)
 
     meta = {
         'abstract': True,
         'indexes': [
             "work_list_id",
             "cmdb_id",
-            "create_date",
+            "etl_date",
         ]
     }
 

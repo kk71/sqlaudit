@@ -10,13 +10,7 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if not re.search(r"create\s+table", sql_text, re.I):
-        return None, []
-
-    if 'parallel' not in sql_text:
-        return None, []
-    parallel = re.search("parallel\s+(\d)", sql_text, re.I)
-    if parallel and int(parallel.groups(1)) > 1:
+    if re.search(r'create\s+index', sql_text, re.I) and 'tablespace' not in sql_text:
         return -rule.weight, []
     return None, []
 

@@ -10,7 +10,13 @@ def code(rule, **kwargs):
     if sql_type != SQL_DDL:
         return None, []
 
-    if re.search('alter\s+table\s+.+\s+drop\s+partition', sql_text, re.I):
+    if not re.search(r"create\s+table", sql_text, re.I):
+        return None, []
+
+    if 'parallel' not in sql_text:
+        return None, []
+    parallel = re.search(r"parallel\s+(\d)", sql_text, re.I)
+    if parallel and int(parallel.groups(1)) > 1:
         return -rule.weight, []
     return None, []
 

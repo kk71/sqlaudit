@@ -3,18 +3,12 @@
 import uuid
 
 import chardet
-import arrow
 import settings
 from os import path
 from collections import defaultdict
-from schema import Schema, Optional, And, Or
 
-from utils.schema_utils import *
-from utils.datetime_utils import *
 from utils.offline_utils import *
 from utils.const import *
-from utils.parsed_sql import ParsedSQL
-from models.mongo import *
 from models.mongo.offline import *
 from models.oracle import *
 from utils import cmdb_utils
@@ -96,11 +90,11 @@ class TicketHandler(TicketReq):
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            Optional("work_list_status", default=None):
+            scm_optional("work_list_status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
-            Optional("keyword", default=None): scm_str,
-            Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date_end,
+            scm_optional("keyword", default=None): scm_str,
+            scm_optional("date_start", default=None): scm_date,
+            scm_optional("date_end", default=None): scm_date_end,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
@@ -151,12 +145,14 @@ class TicketHandler(TicketReq):
         """提交工单"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            Optional("schema_name", default=None): scm_unempty_str,
             "audit_role_id": scm_gt0_int,
-            Optional("task_name", default=None): scm_unempty_str,
+            scm_optional("task_name", default=None): scm_unempty_str,
             "session_id": scm_unempty_str,
-            Optional("online_username", default=None): scm_str,
-            Optional("online_password", default=None): scm_str
+            scm_optional("online_username", default=None): scm_str,
+            scm_optional("online_password", default=None): scm_str,
+
+            # for oracle
+            scm_optional("schema_name", default=None): scm_unempty_str,
         }))
         params["submit_owner"] = self.current_user
         session_id = params.pop("session_id")
@@ -164,9 +160,11 @@ class TicketHandler(TicketReq):
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
 
-            if cmdb.database_type == DB_ORACLE:
+            if cmdb.database_type in (DB_ORACLE, 1):
 
-                sub_ticket_analysis = OracleSubTicketAnalysis()
+                ticket = WorkList()
+                sub_ticket_analysis = OracleSubTicketAnalysis(
+                    cmdb=cmdb, ticket=ticket)
                 if not cmdb_utils.check_cmdb_privilege(cmdb):
                     return self.resp_forbidden(
                         msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
@@ -186,12 +184,12 @@ class TicketHandler(TicketReq):
                     params['task_name'] = sub_ticket_analysis.get_available_task_name(
                         submit_owner=params["submit_owner"]
                     )
-                ticket = WorkList(**params)
+                ticket.from_dict(params)
                 session.add(ticket)
                 session.commit()
                 session.refresh(ticket)
-                # TODO
-                # offline_ticket.delay(work_list_id=ticket.work_list_id, sqls=sqls)
+                offline_ticket(
+                    work_list_id=ticket.work_list_id, session_id=session_id)
 
             elif cmdb.database_type == DB_MYSQL:
 
@@ -205,7 +203,7 @@ class TicketHandler(TicketReq):
 
         params = self.get_json_args(Schema({
             "work_list_id": scm_int,
-            Optional("audit_comments"): scm_str,
+            scm_optional("audit_comments"): scm_str,
             "work_list_status": And(scm_int,
                                     scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS))
         }))
@@ -347,7 +345,7 @@ class SQLUploadHandler(TicketReq):
         """获取上传的临时sql数据"""
         params = self.get_query_args(Schema({
             "session_id": scm_str,
-            Optional("keyword", default=None): scm_str,
+            scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
@@ -367,8 +365,9 @@ class SQLUploadHandler(TicketReq):
 
         if not len(self.request.files) or not self.request.files.get("file"):
             return self.resp_bad_req(msg="未选择文件。")
+
         params = self.get_query_args(Schema({
-            Optional("filter_sql_type", default=None):
+            scm_optional("filter_sql_type", default=None):
                 And(scm_int, scm_one_of_choices(ALL_SQL_TYPE)),
         }))
         file_object = self.request.files.get("file")[0]
@@ -377,7 +376,7 @@ class SQLUploadHandler(TicketReq):
         # 现在仅支持SQL脚本文件，不再支持Excel文档
         body = file_object["body"]
         try:
-            body = body.decode(chardet.detect(body))
+            body = body.decode(chardet.detect(body)["encoding"])
         except UnicodeDecodeError:
             body = body.decode('utf-8')
         parsed_sql_obj = ParsedSQL(body)
@@ -399,16 +398,15 @@ class SQLUploadHandler(TicketReq):
             ).save()
             session.add_all(to_add)
             self.resp_created({"session_id": session_id})
-        self.resp()
 
     def patch(self):
         """编辑上传的临时sql数据"""
         params = self.get_json_args(Schema({
             "id": scm_str,
-            Optional("sql_text"): scm_unempty_str,
-            Optional("comments"): scm_str,
-            Optional("sql_type"): scm_one_of_choices(ALL_SQL_TYPE),
-            Optional("delete", default=False): scm_bool
+            scm_optional("sql_text"): scm_unempty_str,
+            scm_optional("comments"): scm_str,
+            scm_optional("sql_type"): scm_one_of_choices(ALL_SQL_TYPE),
+            scm_optional("delete", default=False): scm_bool
         }))
         wlat_id = params.pop("id")
         delete = params.pop("delete")

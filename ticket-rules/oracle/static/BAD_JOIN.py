@@ -1,16 +1,13 @@
 import re
-from utils.const import SQL_DDL
 
 
 def code(rule, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
     sql_text: str = single_sql["sql_text"]
-    sql_type: int = single_sql['sql_type']
 
-    if sql_type != SQL_DDL:
-        return None, []
+    cross_outer_join = re.compile(r"(cross join)|(outer join)")
 
-    if re.search('drop\s+sequence', sql_text, re.I):
+    if cross_outer_join.search(sql_text):
         return -rule.weight, []
     return None, []
 
