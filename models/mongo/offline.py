@@ -131,21 +131,18 @@ code_hole.append(code)
             # 仅生成code函数，并不缓存，也不执行。
             if getattr(self, "_code", None):
                 delattr(self, "_code")
-            print("generating code function for ticket rule "
-                  f"{self.unique_key()}(for test only)...")
+            print(f"* generating code for {str(self)} (test only)...")
             try:
                 self._construct_code(self.code)
             except Exception as e:
                 trace = traceback.format_exc()
-                print("failed when generating ticket rule "
-                      f"{self.unique_key()}: {e}")
+                print(f"* failed when generating {self.unique_key()}: {e}")
                 print(trace)
                 raise const.RuleCodeInvalidException(trace)
             return
         try:
             if not getattr(self, "_code", None):
-                print("* generating code function for ticket rule "
-                      f"{self.unique_key()}...")
+                print(f"* generating code for {str(self)} ...")
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = self._construct_code(self.code)
 

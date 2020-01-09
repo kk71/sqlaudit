@@ -86,7 +86,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 sub_result_item.minus_score = ret[0]
                 sub_result.static.append(sub_result_item)
         except Exception as e:
-            sub_result.error_msg = e
+            sub_result.error_msg = str(e)
             trace = traceback.format_exc()
             print(e)
             print(trace)
