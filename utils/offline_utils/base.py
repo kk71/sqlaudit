@@ -147,7 +147,8 @@ class SubTicketAnalysis(abc.ABC):
                     "value": current_ret
                 })
             sub_result_item.minus_score = ret[0]
-            sub_result.static.append(sub_result_item)
+            if sub_result_item.minus_score != 0:
+                sub_result.static.append(sub_result_item)
 
     @abc.abstractmethod
     def run_dynamic(self, sub_result, single_sql: dict):
