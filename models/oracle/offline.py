@@ -65,14 +65,14 @@ class WorkList(BaseModel):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for item_of_sub_result in static_and_dynamic_results:
                 rule_unique_key = item_of_sub_result.get_rule_unique_key()
-                if rules_max_score[rule_unique_key][0] <\
+                if rules_max_score[rule_unique_key][0] < \
                         rules_max_score[rule_unique_key][1]:
                     # 仅当已经扣掉的分数依然小于最大扣分的时候才继续扣分
-                    rules_max_score[rule_unique_key][0] +=\
+                    rules_max_score[rule_unique_key][0] += \
                         item_of_sub_result.minus_score  # 这个minus_score是负数或0！
                 else:
                     # 否则，直接将扣分置为最大扣分
-                    rules_max_score[rule_unique_key][0] =\
+                    rules_max_score[rule_unique_key][0] = \
                         rules_max_score[rule_unique_key][1]
         total_minus_score, total_minus_score_max = reduce(
             lambda x, y: [x[0] + y[0], x[1] + y[1]],
