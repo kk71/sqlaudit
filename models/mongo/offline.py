@@ -142,10 +142,11 @@ code_hole.append(code)
             return
         try:
             if not getattr(self, "_code", None):
-                print(f"* generating code for {str(self)} ...")
+                print(f"* generating and analysing code of {str(self)} ...")
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = self._construct_code(self.code)
-
+            else:
+                print(f"* analysing {str(self)} ...")
             ret = self._code(self, **kwargs)
 
             # 校验函数返回的结构是否合乎预期
