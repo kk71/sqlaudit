@@ -65,8 +65,10 @@ class TicketRule(BaseDoc):
         self._code: Union[Callable, None] = None
 
     def __str__(self):
-        return "TicketRule:" + "-".join([str(i) for i in self.unique_key()
-                                         if i is not None])
+        return "TicketRule:" + "-".join(
+            [self.analysis_type] +
+            [str(i) for i in self.unique_key() if i is not None]
+        )
 
     @staticmethod
     def code_template():

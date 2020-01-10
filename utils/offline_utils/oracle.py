@@ -102,8 +102,9 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         :param sqls: [{single_sql},...]
         :param kwargs:
         """
-        print(f"* {{k: v.strip()[:10] + '...' if isinstance(v, str) else v"
-              f" for k, v in single_sql.items()}} of {len(sqls)}")
+        _for_print = {k: v.strip()[:10] + '...' if isinstance(v, str) else v
+                      for k, v in single_sql.items()}
+        print(f"* {_for_print} of {len(sqls)}")
         single_sql_text = single_sql["sql_text"]
         sub_result = OracleTicketSubResult(
             work_list_id=self.ticket.work_list_id,
