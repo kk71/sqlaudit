@@ -5,7 +5,9 @@ def code(rule, **kwargs):
     sql_plan_qs = kwargs["sql_plan_qs"]
 
     plans = sql_plan_qs.filter(
-        operation="INDEX", options="FAST FULL SCAN")
+        operation="INDEX",
+        options="FAST FULL SCAN"
+    )
 
     for x in plans:
         tab = ObjIndColInfo.objects(index_name=x.object_name).first()

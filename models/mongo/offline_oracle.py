@@ -19,7 +19,7 @@ class OracleTicketSubResult(TicketSubResult):
 class OracleTicketSQLPlan(TicketSQLPlan):
     """oracle的工单动态审核产生的执行计划"""
     schema_name = StringField()
-    operation_display = StringField()  # 带缩进用于展示的执行计划操作
+    operation_display = StringField()  # 带缩进用于展示的执行计划
 
     # 以下都是oracle的plan_table返回的数据结构
     statement_id = StringField()
