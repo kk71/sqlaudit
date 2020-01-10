@@ -60,14 +60,14 @@ class SubTicketHandler(TicketReq):
             work_list_id_list = [i[0] for i in work_lisk_id_in_tuple]
             q = q.filer(work_list_id__in=work_list_id_list)
         if error_type == "static":
-            q = q.filter(static__ne=[])
+            q = q.filter(static__not__size=0)
         elif error_type == "dynamic":
-            q = q.filter(dynamic__ne=[])
+            q = q.filter(dynamic__not__size=0)
         elif error_type == "all_with_problems":
             # 前端写着叫问题子工单，但是页面其实能把没问题的子工单也搜索出来，
             # 这里就加一个过滤有问题的子工单的参数吧。
-            q = q.filter(Q(static__ne=[]) |
-                         Q(dynamic__ne=[]))
+            q = q.filter(Q(static__not__size=0) |
+                         Q(dynamic__not__size=0))
         elif error_type is None or error_type == "all":
             pass  # reserved but should be useless
         else:
