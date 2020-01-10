@@ -29,7 +29,7 @@ class TicketRule(BaseDoc):
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
-    analysis_type = StringField(
+    analyse_type = StringField(
         null=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
     sql_type = IntField(
         null=True,
@@ -53,7 +53,7 @@ class TicketRule(BaseDoc):
         'indexes': [
             {'fields': ("db_type", "name"), 'unique': True},
             "name",
-            "analysis_type",
+            "analyse_type",
             "sql_type",
             "db_type",
             "status"
@@ -66,7 +66,7 @@ class TicketRule(BaseDoc):
 
     def __str__(self):
         return "TicketRule:" + "-".join(
-            [self.analysis_type] +
+            [self.analyse_type] +
             [str(i) for i in self.unique_key() if i is not None]
         )
 
