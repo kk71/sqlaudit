@@ -15,7 +15,7 @@ from utils.cmdb_utils import get_current_cmdb, get_current_schema
 from utils import const, score_utils, task_utils
 from utils.conc_utils import async_thr
 from models.oracle.optimize import *
-from utils.offline_utils import TicketReq
+from utils.offline_utils import *
 
 
 class DashboardHandler(PrivilegeReq):
