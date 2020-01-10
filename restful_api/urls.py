@@ -64,16 +64,16 @@ urls += [
 
 # offline
 urls += [
-    (r"/api/offline/rule", offline_rule.TicketRuleHandler),
-    (r"/api/offline/rule/code", offline_rule.TicketRuleCodeHandler),
-    (r"/api/offline/sql_upload", offline_ticket.SQLUploadHandler),
-    (r"/api/offline/ticket/outer", offline_ticket.TicketOuterHandler),
-    (r"/api/offline/ticket", offline_ticket.TicketHandler),
-    (r"/api/offline/ticket/export", offline_ticket.TicketExportHandler),
-    (r"/api/offline/sub_ticket", offline_sub_ticket.SubTicketHandler),
-    (r"/api/offline/sub_ticket/sql_plan", offline_sub_ticket.SQLPlanHandler),
-    (r"/api/offline/sub_ticket/export", offline_sub_ticket.SubTicketExportHandler),
-    (r"/api/offline/sub_ticket/rule", offline_sub_ticket.SubTicketRuleHandler),
+    (r"/api/offline/rule", rule.TicketRuleHandler),
+    (r"/api/offline/rule/code", rule.TicketRuleCodeHandler),
+    (r"/api/offline/sql_upload", ticket.SQLUploadHandler),
+    (r"/api/offline/ticket/outer", ticket.TicketOuterHandler),
+    (r"/api/offline/ticket", ticket.TicketHandler),
+    (r"/api/offline/ticket/export", ticket.TicketExportHandler),
+    (r"/api/offline/sub_ticket", sub_ticket.SubTicketHandler),
+    (r"/api/offline/sub_ticket/sql_plan", sub_ticket.SQLPlanHandler),
+    (r"/api/offline/sub_ticket/export", sub_ticket.SubTicketExportHandler),
+    (r"/api/offline/sub_ticket/rule", sub_ticket.SubTicketRuleHandler),
 ]
 
 # online audit

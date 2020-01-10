@@ -7,6 +7,7 @@ import settings
 from os import path
 from collections import defaultdict
 
+from .base import *
 from utils.offline_utils import *
 from utils.const import *
 from models.mongo.offline import *

@@ -4,7 +4,7 @@ from schema import Optional, Schema
 
 from models.mongo import *
 from utils.schema_utils import *
-from .base import PrivilegeReq
+from restful_api.views.base import PrivilegeReq
 from utils.const import *
 
 
