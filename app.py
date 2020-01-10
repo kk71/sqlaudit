@@ -194,7 +194,7 @@ def makedata(task_id, schema, q):
     past.mkdata.run(task_id, schema, q, operator=path.split(__file__)[1])
 
 
-@click.command()
+@cli.command()
 def schedule():
     """start a task scheduler"""
     import task.schedule
