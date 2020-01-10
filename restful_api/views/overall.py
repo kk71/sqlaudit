@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from collections import defaultdict
-
 from schema import Schema, Optional, And
 from sqlalchemy import func
 from mongoengine import Q
@@ -16,9 +14,8 @@ from utils import cmdb_utils
 from utils.cmdb_utils import get_current_cmdb, get_current_schema
 from utils import const, score_utils, task_utils
 from utils.conc_utils import async_thr
-
 from models.oracle.optimize import *
-from restful_api.views.offline import OfflineTicketCommonHandler
+from utils.offline_utils import TicketReq
 
 
 class DashboardHandler(PrivilegeReq):
@@ -36,7 +33,8 @@ class DashboardHandler(PrivilegeReq):
                 stats_num_dict = StatsLoginUser().to_dict()
 
             # 维度的数据库
-            cmdb_ids = await async_thr(cmdb_utils.get_current_cmdb, session, self.current_user)
+            cmdb_ids = await async_thr(cmdb_utils.get_current_cmdb, session,
+                                       self.current_user)
             envs = session.query(CMDB.group_name, func.count(CMDB.cmdb_id)). \
                 filter(CMDB.cmdb_id.in_(cmdb_ids)). \
                 group_by(CMDB.group_name)
@@ -51,15 +49,8 @@ class DashboardHandler(PrivilegeReq):
             offline_tickets = session.query(
                 WorkList.work_list_status, func.count(WorkList.work_list_id)). \
                 group_by(WorkList.work_list_status)
-            offline_tickets = OfflineTicketCommonHandler.privilege_filter_ticket(
-                self=self, q=offline_tickets)
-            offline_status_desc = {
-                0: "待审核",
-                1: "审核通过",
-                2: "被驳回",
-                3: "已上线",
-                4: "上线失败"
-            }
+            offline_tickets = TicketReq.privilege_filter_ticket(
+                self=self, q=offline_tickets)  # 不是个特别好的操作，但不会出问题。
 
             # 线上审核的采集任务
             task_q = session.query(TaskManage).\
@@ -68,8 +59,9 @@ class DashboardHandler(PrivilegeReq):
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(cmdb_ids))
             tasks = await task_utils.get_task(
                 session, task_q, execution_status=None)
-            task_status = {k: 0
-                           for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()}
+            task_status = {
+                k: 0 for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()
+            }
             for t in tasks:
                 task_status[
                     const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
@@ -82,7 +74,8 @@ class DashboardHandler(PrivilegeReq):
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": len(cmdb_ids),
                 "ai_tune_num": optimized_execution_times,
-                "offline_ticket": {offline_status_desc[k]: v for k, v in dict(offline_tickets).items()},
+                "offline_ticket": {ALL_OFFLINE_TICKET_STATUS_CHINESE[k]: v
+                                   for k, v in dict(offline_tickets).items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
                 "all_capture_task_num": task_q.count(),
                 "notice": notice.contents if notice else "",
