@@ -72,7 +72,7 @@ class SubTicketHandler(TicketReq):
             pass  # reserved but should be useless
         else:
             assert 0
-        q = self.privilege_filter_sub_ticket(q,session)
+        q = self.privilege_filter_sub_ticket(q, session)
         return q
 
     def get(self):
@@ -103,7 +103,7 @@ class SubTicketHandler(TicketReq):
     def patch(self):
         """编辑单个子工单"""
         params = self.get_json_args(Schema({
-            "statement_id": scm_int,#TODO 前端要改哦
+            "statement_id": scm_int,  # TODO 前端要改哦
 
             Optional("sql_text"): scm_unempty_str,
             Optional("comments"): scm_str,
@@ -176,7 +176,7 @@ class SubTicketExportHandler(SubTicketHandler):
                 ws.write(row_num, 3, "\n".join(
                     [x['rule_name'] for x in sub_ticket.to_dict()['static']]),
                          format_text)
-                ws.write(row_num, 4,  "\n".join(
+                ws.write(row_num, 4, "\n".join(
                     [x["rule_name"] for x in sub_ticket.to_dict()['dynamic']]),
                          format_text)
                 ws.write(row_num, 5, dt_to_str(sub_ticket.check_time))

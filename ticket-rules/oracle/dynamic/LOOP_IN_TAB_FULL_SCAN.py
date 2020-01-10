@@ -1,5 +1,3 @@
-# Author: kk.Fang(fkfkbill@gmail.com)
-
 import re
 
 from mongoengine import Q
