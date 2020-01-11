@@ -111,3 +111,7 @@ class SubTicketAnalysis(abc.ABC):
     ):
         """单条sql语句的分析"""
         pass
+
+    @abc.abstractmethod
+    def sql_online(self, sql, **kwargs):
+        pass

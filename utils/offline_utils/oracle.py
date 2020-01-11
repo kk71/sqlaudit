@@ -118,3 +118,19 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         self.run_static(sub_result, sqls, single_sql)
         self.run_dynamic(sub_result, single_sql)
         return sub_result
+
+    def sql_online(self, sql: str, **kwargs):
+        """上线sql脚本"""
+        username = kwargs["username"]
+        password = kwargs["password"]
+        odb = OracleCMDBConnector(
+            self.cmdb, username=username, password=password)
+        try:
+            odb.execute(sql)
+            odb.conn.commit()
+            return ""
+        except Exception as e:
+            odb.conn.rollback()
+            return str(e)
+        finally:
+            odb.conn.close()

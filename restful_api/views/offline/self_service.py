@@ -3,13 +3,13 @@ from schema import Schema, And
 from sqlalchemy import func
 
 from utils.datetime_utils import *
-from .base import PrivilegeReq
+from utils.offline_utils import *
+from restful_api.views.base import PrivilegeReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
+from models.mongo import *
 from utils import cmdb_utils
-
-import past.utils.check
 
 
 class OverviewHandler(PrivilegeReq):
@@ -37,11 +37,11 @@ class OverviewHandler(PrivilegeReq):
                 func.count().label('work_list_status_count')
             )
             worklist_online = dict(session.query(*qe).
-                filter(WorkList.work_list_status.in_([
-                           OFFLINE_TICKET_FAILED, OFFLINE_TICKET_EXECUTED]),
-                       WorkList.cmdb_id.in_(cmdb_ids),
-                       WorkList.online_date > date_start).
-                group_by(WorkList.work_list_status))
+                                   filter(WorkList.work_list_status.in_([
+                OFFLINE_TICKET_FAILED, OFFLINE_TICKET_EXECUTED]),
+                WorkList.cmdb_id.in_(cmdb_ids),
+                WorkList.online_date > date_start).
+                                   group_by(WorkList.work_list_status))
             worklist_online = {
                 "ticket_succeed": worklist_online.get(OFFLINE_TICKET_EXECUTED, 0),
                 "ticket_fail": worklist_online.get(OFFLINE_TICKET_FAILED, 0)
@@ -53,7 +53,7 @@ class OverviewHandler(PrivilegeReq):
                 WorkList.system_name,
                 func.count().label('system_name_count')
             )
-            business = session.query(*qe).\
+            business = session.query(*qe). \
                 filter(WorkList.work_list_status == OFFLINE_TICKET_EXECUTED,
                        WorkList.cmdb_id.in_(cmdb_ids),
                        WorkList.online_date > date_start).group_by(WorkList.system_name)
@@ -65,11 +65,11 @@ class OverviewHandler(PrivilegeReq):
                 func.count().label('sub_worklist_online_count')
             )
             sub_worklist_online = dict(session.query(*qe).
-                join(WorkList, WorkList.work_list_id == SubWorkList.work_list_id).
-                filter(
+                                       join(WorkList, WorkList.work_list_id == SubWorkList.work_list_id).
+                                       filter(
                 SubWorkList.online_date > date_start,
                 WorkList.cmdb_id.in_(cmdb_ids)).
-                group_by(SubWorkList.status))
+                                       group_by(SubWorkList.status))
             sub_worklist_online = {
                 "sql_succeed": sub_worklist_online.get(True, 0),
                 "sql_fail": sub_worklist_online.get(False, 0),
@@ -107,27 +107,29 @@ class ExecuteHandler(PrivilegeReq):
         }))
         work_list_id = params.pop("work_list_id")
         with make_session() as session:
-            ticket = session.query(WorkList).\
+            ticket = session.query(WorkList). \
                 filter(WorkList.work_list_id == work_list_id).first()
-            sub_ticket_q = session.query(SubWorkList).\
-                filter(SubWorkList.work_list_id == work_list_id)
+            sub_ticket_q = OracleTicketSubResult. \
+                objects(work_list_id == ticket.work_list_id)
+
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
             if not cmdb.allow_online:
                 return self.resp_forbidden("当前库不允许自助上线")
+
+            cmdb_dict = cmdb.to_dict(iter_if=lambda k, v: k in (
+                "ip_address", "port", "service_name"))
+            cmdb_dict["host"] = cmdb_dict.pop("ip_address")
+            cmdb_dict["sid"] = cmdb_dict.pop("service_name")
+            # 注意，以下用户名密码需要使用用户自己在工单内指定的online_username, online_password
+            if not ticket.online_username or not ticket.online_password:
+                return self.resp_bad_req(msg="当前工单未指定上线用的username或者password.")
+            cmdb_dict["username"] = ticket.online_username
+            cmdb_dict["password"] = ticket.online_password
 
             last_online_err = None
             for sub_ticket in sub_ticket_q:
                 online_date = datetime.now()
                 start = time.time()
-                cmdb_dict = cmdb.to_dict(iter_if=lambda k, v: k in (
-                    "ip_address", "port", "service_name"))
-                cmdb_dict["host"] = cmdb_dict.pop("ip_address")
-                cmdb_dict["sid"] = cmdb_dict.pop("service_name")
-                # 注意，以下用户名密码需要使用用户自己在工单内指定的online_username, online_password
-                if not ticket.online_username or not ticket.online_password:
-                    return self.resp_bad_req(msg="当前工单未指定上线用的username或者password.")
-                cmdb_dict["username"] = ticket.online_username
-                cmdb_dict["password"] = ticket.online_password
                 err_msg = past.utils.check.Check.sql_online(
                     sub_ticket.sql_text, cmdb_dict, ticket.schema_name)
                 if not err_msg:

@@ -229,12 +229,20 @@ class OracleCMDBConnector(OracleOB):
     """
     用于快速连接oracle纳管库
     """
-    def __init__(self, cmdb: CMDB):
-        super(OracleCMDBConnector, self).__init__(
-            host=cmdb.ip_address,
-            port=cmdb.port,
-            username=cmdb.user_name,
-            password=cmdb.password,
-            sid=cmdb.service_name,  # TODO
-            service_name=cmdb.sid  # TODO
-        )
+    def __init__(self, cmdb: CMDB, **kwargs):
+        """
+        根据纳管库sqlalchemy对象，建立一个纳管库连接
+        :param cmdb:
+        :param kwargs:
+        """
+        init_dict = {
+            "host": cmdb.ip_address,
+            "port": cmdb.port,
+            "username": cmdb.user_name,
+            "password": cmdb.password,
+            "sid": cmdb.service_name,  # TODO
+            "service_name": cmdb.sid  # TODO
+        }
+        if kwargs:
+            init_dict.update(kwargs)
+        super(OracleCMDBConnector, self).__init__(**init_dict)
