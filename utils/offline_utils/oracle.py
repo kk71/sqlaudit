@@ -36,6 +36,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             if self.ticket.schema_name else self.cmdb.user_name
         self.cmdb_connector = OracleCMDBConnector(self.cmdb)
         self.cmdb_connector.execute(f"alter session set current_schema={self.schema_name}")
+        self.statement_id = uuid.uuid1().hex[-30:]  # oracle的statement_id字段最长30位
 
     def write_sql_plan(self, list_of_plan_dicts, **kwargs) -> mongoengine_qs:
         """写入执行计划"""
@@ -45,24 +46,23 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             self.schema_name,
             list_of_plan_dicts
         )
-        return OracleTicketSQLPlan.objects(statement_id=kwargs["statement_id"])
+        return OracleTicketSQLPlan.objects(statement_id=self.statement_id)
 
     def run_dynamic(self,
                     sub_result: OracleTicketSubResult,
                     single_sql: dict):
         """动态分析"""
         try:
-            statement_id = uuid.uuid1().hex[-30:]  # oracle的statement_id字段最长30位
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
             self.cmdb_connector.execute("EXPLAIN PLAN SET "
-                                        f"statement_id='{statement_id}' for {formatted_sql}")
+                                        f"statement_id='{self.statement_id}' for {formatted_sql}")
             sql_for_getting_plan = f"SELECT * FROM plan_table " \
-                                   f"WHERE statement_id = '{statement_id}'"
+                                   f"WHERE statement_id = '{self.statement_id}'"
             sql_plans = self.cmdb_connector.select_dict(sql_for_getting_plan, one=False)
             if not sql_plans:
-                raise Exception(f"fatal: No plans for statement_id: {statement_id}, "
+                raise Exception(f"fatal: No plans for statement_id: {self.statement_id}, "
                                 f"sql: {formatted_sql}")
-            sql_plan_qs = self.write_sql_plan(sql_plans, statement_id=statement_id)
+            sql_plan_qs = self.write_sql_plan(sql_plans)
             for dr in self.dynamic_rules:
                 if dr.sql_type is not SQL_ANY and\
                         dr.sql_type != single_sql["sql_type"]:
@@ -113,7 +113,8 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             schema_name=self.schema_name,
             position=single_sql["num"],
             sql_text=single_sql_text,
-            comments=single_sql["comments"]
+            comments=single_sql["comments"],
+            statement_id=self.statement_id
         )
         self.run_static(sub_result, sqls, single_sql)
         self.run_dynamic(sub_result, single_sql)

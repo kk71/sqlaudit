@@ -224,8 +224,10 @@ class SQLPlanHandler(TicketReq):
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
                 pt.add_row(sql_plan)
+
+            output_table = str(pt)
             self.resp({
-                'sql_plan_text': pt,
+                'sql_plan_text': output_table,
             })
         else:
             self.resp_bad_req(msg="数据库类型错误")
@@ -238,12 +240,38 @@ class SubTicketRuleHandler(TicketReq):
         db_type, params = self.alternative_args_db_type(
             func=self.get_json_args,
             oracle=Schema({
+                "work_list_id": scm_gt0_int,
                 "statement_id": scm_unempty_str,
-                "ticket_rule_name": scm_unempty_str
+                "ticket_rule_name": scm_unempty_str,
+                "analyse_type": scm_one_of_choices(ALL_TICKET_ANALYSE_TYPE),
+                scm_optional("action", default="delete"):
+                    scm_one_of_choices(["update", "delete"]),
+                scm_optional("update"): {
+                    "minus_score": scm_num
+                }
             })
         )
 
         if db_type == DB_ORACLE:
-            self.resp_created()
+            work_list_id = params.pop("work_list_id")
+            statement_id = params.pop("statement_id")
+            ticket_rule_name = params.pop("ticket_rule_name")
+            analyse_type = params.pop("analyse_type")
+            action = params.pop("action")
+            sub_ticket = OracleTicketSubResult.objects(
+                work_list_id=work_list_id, statement_id=statement_id).first()
+            embedded_list = getattr(sub_ticket, analyse_type)
+            for n, sub_ticket_item in enumerate(embedded_list):
+                if sub_ticket_item.rule_name == ticket_rule_name:
+                    if action == "delete":
+                        del embedded_list[n]  # 目前只支持删除子工单的规则结果
+                break
+            sub_ticket.save()
+            with make_session() as session:
+                ticket = session.query(WorkList).\
+                    filter(WorkList.work_list_id == work_list_id).first()
+                ticket.calc_score()  # 修改了之后重新计算整个工单的分数
+                session.add(ticket)
+            self.resp_created(sub_ticket.to_dict())
         else:
             self.resp_bad_req(msg="数据库类型错误")

@@ -182,7 +182,7 @@ code_hole.append(code)
 
 
 class TicketSubResultItem(EmbeddedDocument):
-    """子工单的一个规则的诊断"""
+    """子工单的一个规则结果"""
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
     input_params = EmbeddedDocumentListField(
