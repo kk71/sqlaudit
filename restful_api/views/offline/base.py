@@ -4,7 +4,7 @@ __all__ = [
     "TicketReq"
 ]
 
-from typing import Union
+from typing import Callable
 
 from schema import Schema
 from mongoengine import QuerySet as mongoengine_qs
@@ -19,14 +19,6 @@ from utils.schema_utils import *
 
 class TicketReq(PrivilegeReq):
     """工单通用请求，提供权限过滤"""
-
-    def __init__(self, *args, **kwargs):
-        super(TicketReq, self).__init__(*args, **kwargs)
-        self.db_type = None
-        self.db_type_schema = Schema({
-            "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
-            scm_optional(object): object
-        })
 
     def privilege_filter_ticket(self, q: sqlalchemy_qs) -> sqlalchemy_qs:
         """根据登录用户的权限过滤工单"""
@@ -75,16 +67,13 @@ class TicketReq(PrivilegeReq):
 
         return q
 
-    def get_query_args_according_to_db_type(
-            self, *args, **kwargs) -> Union[dict, None]:
-        """query args: 去除db_type字段，把db_type保存在self里"""
-        params = super(TicketReq, self).get_query_args(self.db_type_schema)
-        self.db_type = params.pop("db_type")
-        return super(TicketReq, self).get_query_args(kwargs[self.db_type])
-
-    def get_json_args_according_to_db_type(
-            self, *args, **kwargs) -> Union[dict, list, None]:
-        """body json: 去除db_type字段，把db_type保存在self里"""
-        params = super(TicketReq, self).get_json_args(self.db_type_schema)
-        self.db_type = params.pop("db_type")
-        return super(TicketReq, self).get_json_args(kwargs[self.db_type])
+    @classmethod
+    def alternative_args_db_type(cls, func: Callable, **kwargs):
+        return cls.alternative_args(
+            func,
+            schema_to_validate=Schema({
+                "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE)
+            }),
+            k="db_type",
+            **kwargs
+        )
