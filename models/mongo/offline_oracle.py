@@ -61,7 +61,7 @@ class OracleTicketSQLPlan(TicketSQLPlan):
     qblock_name = StringField()
 
     meta = {
-        "collection": "oracle_ticket_sql_plan",
+        "collection": "ticket_sql_plan_oracle",
         'indexes': [
             "schema_name",
             "statement_id",
