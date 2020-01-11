@@ -5,6 +5,7 @@ import xlsxwriter
 from os import path
 from mongoengine import Q
 from schema import Schema, Optional
+from prettytable import PrettyTable
 
 import settings
 from .base import *
@@ -196,20 +197,58 @@ class SQLPlanHandler(TicketReq):
     def get(self):
         """获取子工单单条sql语句的执行计划"""
 
-        # TODO 这个接口
+        # TODO 此接口需要支持oracle和mysql
 
-        params = self.get_query_args(Schema({
-            "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
-            "statement_id": scm_unempty_str,
-        }))
-        self.resp()
+        params = self.get_query_args_according_to_db_type(
+            oracle=Schema({
+                "statement_id": scm_unempty_str,
+                "plan_id": scm_gt0_int
+            })
+        )
+        if self.db_type == DB_ORACLE:
+            # 指明的表中列明以及对应列数据在mongo-engine里的字段名
+            sql_plan_head = {
+                'Id': "the_id",
+                'Operation': "operation_display",
+                'Name': "object_name",
+                'Rows': "cardinality",
+                'Bytes': "bytes",
+                'Cost (%CPU)': "cpu_cost",
+                'Time': "time"
+            }
+
+            pt = PrettyTable(sql_plan_head.keys())
+            pt.align = "l"  # 左对齐
+            sql_plans = OracleTicketSQLPlan.objects(
+                plan_hash_value=params["statement_id"],
+                sql_id=params["plan_id"]
+            ).values_list(*sql_plan_head.values())
+            for sql_plan in sql_plans:
+                pt.add_row(sql_plan)
+
+            output_table = f"""Plan hash value: {params['plan_id']} \n\n{pt}"""
+            self.resp({
+                'sql_plan_text': output_table,
+            })
+        else:
+            self.resp_bad_req(msg="数据库类型错误")
 
 
 class SubTicketRuleHandler(TicketReq):
 
     def patch(self):
         """修改子工单内的规则，修改后重新计算工单的分数"""
-        params = self.get_json_args(Schema({
 
-        }))
-        self.resp_created()
+        # TODO 此接口需要支持oracle和mysql
+
+        params = self.get_json_args_according_to_db_type(
+            oracle=Schema({
+                "statement_id": scm_unempty_str,
+                "ticket_rule_name": scm_unempty_str
+            })
+        )
+
+        if self.db_type == DB_ORACLE:
+            self.resp_created()
+        else:
+            self.resp_bad_req(msg="数据库类型错误")
