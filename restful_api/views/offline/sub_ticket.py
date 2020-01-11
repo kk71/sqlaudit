@@ -206,6 +206,7 @@ class SQLPlanHandler(TicketReq):
         if db_type == DB_ORACLE:
             # 指明的表中列明以及对应列数据在mongo-engine里的字段名
             sql_plan_head = {
+                "Plan Hash Value": "plan_id",
                 'Id': "the_id",
                 'Operation': "operation_display",
                 'Name': "object_name",
@@ -219,13 +220,12 @@ class SQLPlanHandler(TicketReq):
             pt.align = "l"  # 左对齐
             sql_plans = OracleTicketSQLPlan.\
                 objects(**params).\
+                order_by("plan_id", "the_id").\
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
                 pt.add_row(sql_plan)
-
-            output_table = f"""Plan hash value: {params['plan_id']} \n\n{pt}"""
             self.resp({
-                'sql_plan_text': output_table,
+                'sql_plan_text': pt,
             })
         else:
             self.resp_bad_req(msg="数据库类型错误")
