@@ -4,7 +4,8 @@ from mongoengine import Q
 def code(rule, **kwargs):
     sql_plan_qs = kwargs["sql_plan_qs"]
 
-    plans = sql_plan_qs.filter(operation="PARTITION RANGE"). \
+    plans = sql_plan_qs.\
+        filter(operation="PARTITION RANGE"). \
         filter(Q(options="INLIST") | Q(options="OR"))
 
     for x in plans:
