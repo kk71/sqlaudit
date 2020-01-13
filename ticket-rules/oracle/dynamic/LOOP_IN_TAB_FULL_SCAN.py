@@ -51,7 +51,7 @@ def code(rule, **kwargs):
                 "statement_id": ar["_id"]["statement_id"],
                 "plan_id": ar["_id"]["plan_id"],
                 "$and": [
-                    {"the_ud": ar["MAXID"]},
+                    {"the_ud": ar["max_id"]},
                     {"the_id": {"$ne": 2}}
                 ],
                 "username": schema_name,
