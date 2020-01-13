@@ -78,17 +78,17 @@ class SubTicketAnalysis(abc.ABC):
             sub_result_item.as_sub_result_of(sr)
 
             # ===这里指明了静态审核的输入参数(kwargs)===
-            ret = sr.analyse(
+            score_to_minus, output_params = sr.analyse(
                 single_sql=single_sql,
                 sqls=sqls,
                 cmdb=self.cmdb
             )
-            for output, current_ret in zip(sr.output_params, ret[1]):
+            for output, current_ret in zip(sr.output_params, output_params):
                 sub_result_item.add_output(**{
                     **output,
                     "value": current_ret
                 })
-            sub_result_item.minus_score = ret[0]
+            sub_result_item.minus_score = score_to_minus
             if sub_result_item.minus_score != 0:
                 sub_result.static.append(sub_result_item)
 

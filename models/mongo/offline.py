@@ -159,7 +159,7 @@ code_hole.append(code)
                 ),
                 Or([object], (object,))
             )).validate(ret)
-            if len(ret[1]) != len(self.output_params):
+            if ret[0] and len(ret[1]) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret)}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
