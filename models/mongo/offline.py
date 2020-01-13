@@ -155,7 +155,7 @@ code_hole.append(code)
             Schema((
                 Or(
                     And(scm_num, lambda x: x <= 0),
-                    None
+                    lambda x: x is None
                 ),
                 Or([object], (object,))
             )).validate(ret)
