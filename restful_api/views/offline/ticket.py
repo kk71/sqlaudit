@@ -189,7 +189,7 @@ class TicketHandler(TicketReq):
                 session.add(ticket)
                 session.commit()
                 session.refresh(ticket)
-                offline_ticket(
+                offline_ticket.delay(
                     work_list_id=ticket.work_list_id, session_id=session_id)
 
             elif cmdb.database_type == DB_MYSQL:
@@ -234,8 +234,7 @@ class TicketHandler(TicketReq):
                 filter(WorkList.work_list_id == work_list_id).first()
             sub_delete_id = work_list.work_list_id
             session.delete(work_list)
-            self.resp(msg="已删除")
-
+        self.resp(msg="已删除")
         work_sub_list = TicketSubResult.objects(work_list_id=sub_delete_id).all()
         work_sub_list.delete()
 
@@ -254,30 +253,45 @@ class TicketExportHandler(TicketReq):
             work_list = session.query(WorkList). \
                 filter(WorkList.work_list_id == work_list_id).first()
             work_list = work_list.to_dict()
-            work_list['work_list_status'] = ALL_OFFLINE_TICKET_STATUS_CHINESE[work_list['work_list_status']]
-            work_list['submit_date'] = str(work_list['submit_date']) if work_list['submit_date'] else ''
-            work_list['audit_date'] = str(work_list['audit_date']) if work_list['audit_date'] else ''
-            work_list['online_date'] = str(work_list['online_date']) if work_list['online_date'] else ''
+            work_list['work_list_status'] = \
+                ALL_OFFLINE_TICKET_STATUS_CHINESE[work_list['work_list_status']]
+            work_list['submit_date'] = str(work_list['submit_date'])\
+                if work_list['submit_date'] else ''
+            work_list['audit_date'] = str(work_list['audit_date'])\
+                if work_list['audit_date'] else ''
+            work_list['online_date'] = str(work_list['online_date'])\
+                if work_list['online_date'] else ''
 
             # 主要信息
-            work_list_heads = ["工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
-                               "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-                               "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"]
+            work_list_heads = [
+                "工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
+                "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
+                "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"
+            ]
             work_list_data = list(work_list.values())
             params_dict = {
                 'work_list_heads': work_list_heads,
                 'work_list_data': work_list_data
             }
 
-            filename = '_'.join(['工单信息', work_list['task_name'], d_to_str(arrow.now())]) + '.xlsx'
+            filename = '_'.join([
+                '工单信息',
+                work_list['task_name'],
+                d_to_str(arrow.now())]) + '.xlsx'
 
             # 根据工单获得一些统计信息
-            work_sub_list = TicketSubResult.objects(work_list_id=work_list_id).all()
+            work_sub_list = TicketSubResult.\
+                objects(work_list_id=work_list_id).all()
             work_sub_list = [x.to_dict(
-                iter_by=lambda k, v: dt_to_str(v) if k == 'check_time' else v)
+                iter_by=lambda k, v: dt_to_str(v)
+                if k == 'check_time' else v)
                 for x in work_sub_list]
             sql_count = len(work_sub_list)
-            fail_count = len([x['static'] or x['dynamic'] for x in work_sub_list if x['static'] or x['dynamic']])
+            fail_count = len([
+                x['static'] or x['dynamic']
+                for x in work_sub_list
+                if x['static'] or x['dynamic']
+            ])
 
             # 静态错误的工单
             static_fail_works = [x for x in work_sub_list if x['static']]
@@ -311,8 +325,8 @@ class TicketExportHandler(TicketReq):
             # 获得动态错误的子工单
             dynamic_fail_heads = ['SQL_ID', 'SQL文本', '动态检测结果']
             dynamic_fail_data = [[dynamic_fail_work['statement_id'], dynamic_fail_work['sql_text'],
-                                 "\n".join([dynamic['rule_name'] for dynamic in dynamic_fail_work['dynamic']])]
-                                for dynamic_fail_work in dynamic_fail_works]
+                                  "\n".join([dynamic['rule_name'] for dynamic in dynamic_fail_work['dynamic']])]
+                                 for dynamic_fail_work in dynamic_fail_works]
 
             params_dict.update(
                 {
@@ -325,7 +339,7 @@ class TicketExportHandler(TicketReq):
             all_work_heads = ['SQL_ID', 'SQL文本', '静态检测结果', '动态检测结果']
             all_work_data = [[x['statement_id'], x['sql_text'],
                               "\n".join([y['rule_name'] for y in x['static']]),
-                             "\n".join([y['rule_name'] for y in x['dynamic']])]
+                              "\n".join([y['rule_name'] for y in x['dynamic']])]
                              for x in work_sub_list]
 
             params_dict.update(
@@ -391,6 +405,8 @@ class SQLUploadHandler(TicketReq):
                     sql_type=obj.sql_type,
                     num=i
                 ) for i, obj in enumerate(parsed_sql_obj)
+                if filter_sql_type is not None
+                and obj.sql_type == filter_sql_type
             ]
             TicketMeta(
                 session_id=session_id,
