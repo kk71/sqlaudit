@@ -17,8 +17,7 @@ def code(rule, **kwargs):
                 y.plan_id,
                 y.object_name,
                 y.the_id,
-                y.cost,
-                y.count
+                y.cost
             ]
     return None, []
 

@@ -9,7 +9,7 @@ def code(rule, **kwargs):
             x.plan_id,
             x.object_name,
             x.the_id,
-            x.cost,
+            x.cost
         ]
     return None, []
 

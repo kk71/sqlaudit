@@ -69,8 +69,7 @@ def code(rule, **kwargs):
                         i["plan_id"],
                         i["object_name"],
                         i["the_id"],
-                        i["cost"],
-                        i["count"]
+                        i["cost"]
                     ]
     return None, []
 
