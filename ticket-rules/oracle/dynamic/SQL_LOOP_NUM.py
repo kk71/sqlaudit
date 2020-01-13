@@ -41,6 +41,7 @@ def code(rule, **kwargs):
     for r in agg_ret:
         if r["count"] > rule.gip("loop_num"):
             return -rule.weight, [
+                statement_id,
                 r["_id"],
                 r["count"]
             ]
