@@ -10,7 +10,6 @@ def code(rule, **kwargs):
             x.object_name,
             x.the_id,
             x.cost,
-            x.count
         ]
     return None, []
 

@@ -24,8 +24,8 @@ def temp_collection(mongo_client, collection_prefix):
     try:
         collection_name = get_random_collection_name(collection_prefix)
         yield mongo_client.get_collection(collection_name)
-        mongo_client.drop(collection_name)
+        mongo_client.get_collection(collection_name).drop()
     except Exception as e:
         print(f"exception occurs when operating temporary collection {collection_name}, going to drop it.")
-        mongo_client.drop(collection_name)
+        mongo_client.get_collection(collection_name).drop()
         raise e

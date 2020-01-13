@@ -16,7 +16,7 @@ def code(rule, **kwargs):
         Q(operation=re.compile(r"FILTER"))
     )
     with temp_collection(mongo_connector, rule.name) as tmp:
-        tmp.insert_many([
+        to_insert = [
             i.to_dict(
                 iter_if=lambda k, v: k in (
                     "statement_id",
@@ -29,7 +29,11 @@ def code(rule, **kwargs):
                     "username"
                 )
             ) for i in plans
-        ])
+        ]
+        if to_insert:
+            tmp.insert_many(to_insert)
+        else:
+            return None, []
         aggregate_result = tmp.aggregate([
             {
                 "$group": {
