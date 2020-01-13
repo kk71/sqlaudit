@@ -17,6 +17,7 @@ def code(rule, **kwargs):
                 x.cost,
                 x.count
             ]
+    return None, []
 
 
 code_hole.append(code)
