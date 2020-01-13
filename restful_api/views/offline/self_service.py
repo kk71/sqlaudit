@@ -9,6 +9,7 @@ from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
 from models.mongo import *
+from models.mongo.offline import TicketSubResult
 from utils import cmdb_utils
 
 
@@ -60,19 +61,25 @@ class OverviewHandler(PrivilegeReq):
             business = [qe.to_dict(x) for x in business]
 
             # 上线成功的语句数
-            qe = QueryEntity(
-                SubWorkList.status,
-                func.count().label('sub_worklist_online_count')
-            )
-            sub_worklist_online = dict(session.query(*qe).
-                                       join(WorkList, WorkList.work_list_id == SubWorkList.work_list_id).
-                                       filter(
-                SubWorkList.online_date > date_start,
-                WorkList.cmdb_id.in_(cmdb_ids)).
-                                       group_by(SubWorkList.status))
+            work_list = session.query(WorkList).filter(WorkList.cmdb_id.in_(cmdb_ids))
+            work_list = [x.to_dict()['work_list_id'] for x in work_list]
+
+            to_collection = [{
+                "$group": {'_id': "$online_status",
+                           "count": {"$sum": 1}
+                           }
+            }]
+            sub_worklist_online = TicketSubResult.objects(work_list_id__in=work_list,
+                                                          online_date__gt=date_start). \
+                aggregate(*to_collection)
+            sub_worklist_online = list(sub_worklist_online)
+
+            sub_worklist_online_count = {}
+            for x in sub_worklist_online:
+                sub_worklist_online_count[x['_id']] = x['count']
             sub_worklist_online = {
-                "sql_succeed": sub_worklist_online.get(True, 0),
-                "sql_fail": sub_worklist_online.get(False, 0),
+                "sql_succeed": sub_worklist_online_count.get(True, 0),
+                "sql_fail": sub_worklist_online_count.get(False, 0),
             }
 
             # 展示待上线的脚本
