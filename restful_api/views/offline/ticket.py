@@ -36,21 +36,24 @@ class TicketOuterHandler(TicketReq):
         date_end = params.pop("date_end")
 
         with make_session() as session:
-            q = session.query(WorkList).filter(WorkList.submit_date >= date_start,
+            filtered_tickets = session.query(WorkList).filter(WorkList.submit_date >= date_start,
                                                WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
-            q = self.privilege_filter_ticket(q)
+            filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
             tickets: list = []
-            for ticket in q:
-                r = TicketSubResult.objects(work_list_id=ticket.work_list_id)
+            for ticket in filtered_tickets:
+                sub_tickets = TicketSubResult.objects(
+                    work_list_id=ticket.work_list_id)
                 ret_item = {
                     **ticket.to_dict(
                         iter_by=lambda k, v:
                         arrow.get(v).format(const.COMMON_DATE_FORMAT)
                         if k == "submit_date" else v),
                     "result_stats": {
-                        "static_problem_num": len([x.static for x in r if x]),
-                        "dynamic_problem_num": len([x.dynamic for x in r if x])
+                        "static_problem_num": sum([
+                            len(x.static) for x in sub_tickets if x]),
+                        "dynamic_problem_num": sum([
+                            len(x.dynamic) for x in sub_tickets if x])
                     }
                 }
                 tickets.append(ret_item)
@@ -78,7 +81,11 @@ class TicketOuterHandler(TicketReq):
                         stats["result_stats"]["dynamic_problem_num"] += \
                             ticket["result_stats"]["dynamic_problem_num"]
                     rst.append(stats)
-            rr = sorted(rst, key=lambda x: arrow.get(x['submit_date']).date(), reverse=True)
+            rr = sorted(
+                rst,
+                key=lambda x: arrow.get(x['submit_date']).date(),
+                reverse=True
+            )
             items, p = self.paginate(rr, **p)
             self.resp(items, **p)
 
@@ -127,15 +134,18 @@ class TicketHandler(TicketReq):
             if date_end:
                 q = q.filter(WorkList.submit_date < date_end)
             q = self.privilege_filter_ticket(q)
-            items, p = self.paginate(q, **p)
+            filtered_tickets, p = self.paginate(q, **p)
             ret = []
-            for ticket in items:
-                r = TicketSubResult.objects(work_list_id=ticket.work_list_id)
+            for ticket in filtered_tickets:
+                sub_tickets_to_current_ticket = TicketSubResult.objects(
+                    work_list_id=ticket.work_list_id)
                 ret_item = {
                     **ticket.to_dict(),
                     "result_stats": {
-                        "static_problem_num": len([x.static for x in r if x]),
-                        "dynamic_problem_num": len([x.dynamic for x in r if x])
+                        "static_problem_num": sum([
+                            len(x.static) for x in sub_tickets_to_current_ticket if x]),
+                        "dynamic_problem_num": sum([
+                            len(x.dynamic) for x in sub_tickets_to_current_ticket if x])
                     }
                 }
                 ret.append(ret_item)
