@@ -28,7 +28,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                analyses_type=TICKET_ANALYSE_TYPE_DYNAMIC,
+                analyse_type=TICKET_ANALYSE_TYPE_DYNAMIC,
                 db_type=DB_ORACLE
             )
         super(OracleSubTicketAnalysis, self).__init__(**kwargs)
