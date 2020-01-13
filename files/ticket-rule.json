@@ -1,0 +1,1485 @@
+[
+    {
+        "name": "TOOMANY_IN_LIST",
+        "desc": "IN List元素过多",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "in_list_num",
+                "desc": "inlist元素个数",
+                "unit": "",
+                "value": 20
+            }
+        ],
+        "output_params": [],
+        "max_score": 5,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\" in\\s*\\((.*?)\\)\", sql_text, re.I)\n        if 'select' not in x\n    ]\n    for value in sql_content:\n        if value.count(\",\") > rule.gip(\"in_list_num\") - 1:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "IN List元素过多",
+        "solution": [
+            "改用临时表存入变量"
+        ],
+        "weight": 1.0,
+        "id": "5e05a8c4a648b60f6d278280"
+    },
+    {
+        "name": "DML_DDL_MIXED",
+        "desc": "DML和DDL语句混写",
+        "analyse_type": "STATIC",
+        "sql_type": null,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "\n\ndef code(rule, **kwargs):\n    \"\"\"判断同一个工单的sql语句是否存在ddl和dml混写的情况\"\"\"\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if len(sql_types) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "DML、DDL语句混写会导致上线失败回滚时，DDL无法回滚",
+        "solution": [
+            "建议拆分DDL和DML语句"
+        ],
+        "weight": 1.0,
+        "id": "5e05b54ea648b60f6d279c2e"
+    },
+    {
+        "name": "BAD_JOIN",
+        "desc": "存在全连接或外连接",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\")\n\n    if cross_outer_join.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存在全连接或外连接,cross join或outer join情况",
+        "solution": [
+            "改写为innerjoin"
+        ],
+        "weight": 2.0,
+        "id": "5e13f5e0a648b60f6d7e5005"
+    },
+    {
+        "name": "RULE_FOR_TESTING",
+        "desc": "测试规则",
+        "analyse_type": "STATIC",
+        "sql_type": null,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 5,
+        "code": "def code(rule, **kwargs):\n    print(\"code ran!\")\n    return 0, []\ncode_hole.append(code)\nprint(\"code generated!\")\n",
+        "status": false,
+        "summary": "",
+        "solution": [],
+        "weight": 1.0,
+        "id": "5e13f684a648b60f6d7e5109"
+    },
+    {
+        "name": "CHECK_ADD_COLUMN",
+        "desc": "添加字段有默认值",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\nfrom utils.const import SQL_DDL\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I):\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e141efea648b60f6d80f7ef"
+    },
+    {
+        "name": "CHECK_BITMAP_INDEX",
+        "desc": "位图索引",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\nfrom utils.const import MODEL_OLTP\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e141fd5a648b60f6d80f918"
+    },
+    {
+        "name": "CHECK_COLUMN_NUMBER",
+        "desc": "列数",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        # if len(sql.split(',')) > rule.gip(\"\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142035a648b60f6d80f99d"
+    },
+    {
+        "name": "CHECK_CONCURRENCY_LEVEL",
+        "desc": "并行度",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    if 'parallel' not in sql_text:\n        return None, []\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.groups(1)) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142098a648b60f6d80fa22"
+    },
+    {
+        "name": "CHECK_CREATE_TABLE_NOT_DEFINE_TABLE_SPACE",
+        "desc": "创建表未指定表空间",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e14211aa648b60f6d80fadc"
+    },
+    {
+        "name": "CHECK_DB_LINK_CREATED",
+        "desc": "创建数据库链接",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e14217ca648b60f6d80fb61"
+    },
+    {
+        "name": "CHECK_DB_LINK_OFFLINE",
+        "desc": "存在DBLINK",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search('@', sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e1421e2a648b60f6d80fbf0"
+    },
+    {
+        "name": "CHECK_DELETE_SEQUENCE",
+        "desc": "删除序列",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'drop\\s+sequence', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142231a648b60f6d80fc5f"
+    },
+    {
+        "name": "CHECK_DROP_COLUMN",
+        "desc": "删除字段",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142290a648b60f6d80fce5"
+    },
+    {
+        "name": "CHECK_DROP_INDEX",
+        "desc": "删除索引",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'drop\\s+index', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142591a648b60f6d8100f5"
+    },
+    {
+        "name": "CHECK_DROP_PARTITION",
+        "desc": "删除分区",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+partition', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e1425e6a648b60f6d81016c"
+    },
+    {
+        "name": "CHECK_DROP_PRIMARY_KEY",
+        "desc": "删除主键",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+constraint', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e14263aa648b60f6d8101de"
+    },
+    {
+        "name": "CHECK_DROP_TABLE",
+        "desc": "删除表",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'drop\\s+table', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e14269ca648b60f6d810264"
+    },
+    {
+        "name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
+        "desc": "索引未定义表空间",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I) and 'tablespace' not in sql_text:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e1426d2a648b60f6d8102b4"
+    },
+    {
+        "name": "CHECK_INDEX_ONLINE",
+        "desc": "创建索引的时候加上online,否则索引创建期间会锁表",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I):\n        if not re.search(r\"\\s+online\", sql_text, re.I):\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142730a648b60f6d810338"
+    },
+    {
+        "name": "CHECK_LOB_USING",
+        "desc": "LOB使用",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I) \\\n            and not re.search(r\"alter\\s+table\", sql_text, re.I):\n        return None, []\n\n    if any([x in sql_text.lower() for x in ['blob', 'clob', 'bfile', 'xmltype']]):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142778a648b60f6d81039c"
+    },
+    {
+        "name": "CHECK_MODIFY_COLUMN",
+        "desc": "修改字段类型",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+modify', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e1427b1a648b60f6d8103ee"
+    },
+    {
+        "name": "CHECK_SEQUENCE",
+        "desc": "序列",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I):\n        return None, []\n\n    if 'order' in sql_text:\n        return -rule.weight, []\n    if 'cache' not in sql_text:\n        return -rule.weight, []\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if res and int(res.group(1)) < 2000:  # TODO 这不应写死\n        # if res and int(res.group(1)) < rule.gip(\"\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e1427faa648b60f6d810455"
+    },
+    {
+        "name": "CHECK_TRUNCATE_TABLE",
+        "desc": "截取表",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'truncate\\s+table\\s+', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142842a648b60f6d8104b5"
+    },
+    {
+        "name": "CHECK_USING_REVOKE",
+        "desc": "撤回权限",
+        "analyse_type": "STATIC",
+        "sql_type": 1,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 1,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if re.search(r'revoke\\s+', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142888a648b60f6d810516"
+    },
+    {
+        "name": "DML_ALLDATA",
+        "desc": "delete或update中缺少where条件",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))')\n    pat1 = re.compile(' where ')\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142900a648b60f6d8105ba"
+    },
+    {
+        "name": "DML_SORT",
+        "desc": "delete或update中出现order by子句",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    dml_sort = re.compile(\"(\\\\s)?((update )|(delete )).*order by\")\n\n    if dml_sort.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            ""
+        ],
+        "weight": 2.0,
+        "id": "5e142969a648b60f6d810653"
+    },
+    {
+        "name": "LIKE_UNINDEX",
+        "desc": "谓词条件使用like %xxx,无法使用索引",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    like_unindex = re.compile(\"like .\\\\%\")\n\n    if like_unindex.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "谓词条件使用like %xxx,无法使用索引",
+        "solution": [
+            "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
+        ],
+        "weight": 2.0,
+        "id": "5e1429f4a648b60f6d81070d"
+    },
+    {
+        "name": "LONG_TEXT",
+        "desc": "SQL文本过长",
+        "analyse_type": "STATIC",
+        "sql_type": null,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "char_num",
+                "desc": "SQL字符数量",
+                "unit": "",
+                "value": 1000
+            }
+        ],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "SQL文本过长",
+        "solution": [
+            "sql改写为精简语句"
+        ],
+        "weight": 2.0,
+        "id": "5e142a6fa648b60f6d8107ba"
+    },
+    {
+        "name": "SELECT_ANY",
+        "desc": "使用select *",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "禁止使用select *,必须明确选择所需的列",
+        "solution": [
+            "使用明确的列"
+        ],
+        "weight": 2.0,
+        "id": "5e142ae5a648b60f6d810858"
+    },
+    {
+        "name": "SUBQUERY_FROM",
+        "desc": "from段出现子查询",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n    str_len = len(sql_text)\n    m = 0\n    n = 0\n    sqlbegin = 0\n    sql_content = []\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 4] == \"from\" and m == 0:\n            sqlbegin = k + 5\n            n = n + 1\n        if sql_text[k: k + 5] == \"where\" or sql_text[k: k + 6] == \"having\" and m == 0:\n            sqlend = k - 1\n            n = n - 1\n            sql_content.append(sql_text[sqlbegin: sqlend])\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin: sqlend])\n    for value in sql_content:\n        if \"select \" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "from段出现子查询",
+        "solution": [
+            "改写为表关联"
+        ],
+        "weight": 2.0,
+        "id": "5e142b35a648b60f6d8108cd"
+    },
+    {
+        "name": "SUBQUERY_HAVING",
+        "desc": "having段出现子查询",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    sqlend = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"having\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "having段出现子查询",
+        "solution": [
+            "改写为表关联"
+        ],
+        "weight": 2.0,
+        "id": "5e142b91a648b60f6d81094b"
+    },
+    {
+        "name": "SUBQUERY_REP",
+        "desc": "重复查询子句",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value and value in subquery:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "禁止使用重复的查询子句,应使用with as替换子句(仅限Oracle)来提升SQL执行效率",
+        "solution": [
+            "1.withas",
+            "2.改写sql避免重复查询"
+        ],
+        "weight": 2.0,
+        "id": "5e142c0aa648b60f6d8109f1"
+    },
+    {
+        "name": "SUBQUERY_SELECT",
+        "desc": "select段出现子查询",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"select\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if sql_text[k: k + 4] == \"from\" and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "select段出现子查询",
+        "solution": [
+            "改写为表关联"
+        ],
+        "weight": 2.0,
+        "id": "5e142c67a648b60f6d810a72"
+    },
+    {
+        "name": "SUBQUERY_WHERE",
+        "desc": "where段出现子查询",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    str_len = len(sql_text)\n    sql_content = []\n    sqlbegin = 0\n    m = 0\n    n = 0\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 5] == \"where\" and m == 0:\n            sqlbegin = k + 6\n            n = n + 1\n        if sql_text[k: k + 6] == \"having\" and n != 0 and m == 0:\n            sqlend = k - 1\n            n = n - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "where段出现子查询",
+        "solution": [
+            "改写为表关联"
+        ],
+        "weight": 2.0,
+        "id": "5e142cc1a648b60f6d810af3"
+    },
+    {
+        "name": "TOOMANY_BIND",
+        "desc": "绑定变量过多",
+        "analyse_type": "STATIC",
+        "sql_type": null,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "num_of_bound_var",
+                "desc": "绑定变量个数",
+                "unit": "",
+                "value": 50
+            }
+        ],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if sql_text.count(\":\") > rule.gip(\"num_of_bound_var\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "绑定变量过多",
+        "solution": [
+            "减少绑定变量"
+        ],
+        "weight": 2.0,
+        "id": "5e142d71a648b60f6d810be6"
+    },
+    {
+        "name": "TOOMANY_OR",
+        "desc": "多个过滤条件通过or连接",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "or_num",
+                "desc": "or个数",
+                "unit": "",
+                "value": 5
+            }
+        ],
+        "output_params": [],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if sql_text.count(\"or\") > rule.gip(\"or_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "多个过滤条件通过or连接,防止优化器出现选择异常",
+        "solution": [
+            "改用临时表存入变量"
+        ],
+        "weight": 2.0,
+        "id": "5e142e46a648b60f6d810d10"
+    },
+    {
+        "name": "UNION",
+        "desc": "SQL中出现union",
+        "analyse_type": "STATIC",
+        "sql_type": null,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    pat = re.compile(\"union\")\n    pat_all = re.compile(\"union all\")\n\n    if pat.search(sql_text) and not pat_all.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "出现union,防止出现不必要的排序动作",
+        "solution": [
+            "改写unionall和sql逻辑中去重"
+        ],
+        "weight": 2.0,
+        "id": "5e142ee1a648b60f6d810de1"
+    },
+    {
+        "name": "WHERE_FUNC",
+        "desc": "查询列上使用表达式",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    where_func = re.compile(\"\\\\)\\\\s?[<>=]{1,2}\")\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "禁止在查询字段中引用函数",
+        "solution": [
+            "1.函数写在表达式右边",
+            "2.应用程序实现函数功能"
+        ],
+        "weight": 2.0,
+        "id": "5e142f5ca648b60f6d810e8f"
+    },
+    {
+        "name": "WHERE_NOT",
+        "desc": "谓词中存在负向操作符!=等",
+        "analyse_type": "STATIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "谓词中存在负向操作符,!=,<>,!<,!>,not exists,not",
+        "solution": [
+            "1.如果列值是连续,可把否定操作,更改为两个区间",
+            "2.不建议使用不等值运算"
+        ],
+        "weight": 2.0,
+        "id": "5e142fe7a648b60f6d810f4f"
+    },
+    {
+        "name": "SQL_INDEX_FAST_FULL_SCAN",
+        "desc": "执行计划中索引快速全扫",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "ind_phy_size",
+                "desc": "索引物理大小",
+                "unit": "MB",
+                "value": 100.0
+            }
+        ],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 10,
+        "code": "from models.mongo import ObjIndColInfo\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"INDEX\",\n        options=\"FAST FULL SCAN\"\n    )\n\n    for x in plans:\n        tab = ObjIndColInfo.objects(index_name=x.object_name).first()\n        if tab:\n            return -rule.weight, [\n                x.statement_id,\n                x.plan_id,\n                x.object_name,\n                x.the_id,\n                x.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "大索引快速全扫描",
+        "solution": [
+            "SQL逻辑能否改写获取更少的数据"
+        ],
+        "weight": 0.5,
+        "id": "5e15aae4f1cbaa05c141519c"
+    },
+    {
+        "name": "SQL_INDEX_FULL_SCAN",
+        "desc": "执行计划中索引全扫",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "ind_phy_size",
+                "desc": "索引物理大小",
+                "unit": "MB",
+                "value": 1024.0
+            }
+        ],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "from models.mongo import ObjIndColInfo\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"FULL SCAN\")\n\n    for x in plans:\n        tab = ObjIndColInfo.objects(index_name=x.object_name).first()\n        if tab:\n            return -rule.weight, [\n                x.statement_id,\n                x.plan_id,\n                x.object_name,\n                x.the_id,\n                x.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "大索引全扫描",
+        "solution": [
+            "SQL逻辑能否改写获取更少的数据"
+        ],
+        "weight": 1.0,
+        "id": "5e16d2ddfbcc041f24c19fc7"
+    },
+    {
+        "name": "SQL_INDEX_SKIP_SCAN",
+        "desc": "执行计划中存在索引跳描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"SKIP SCAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "索引跳跃扫描",
+        "solution": [
+            "索引列的先后顺序是否合理"
+        ],
+        "weight": 0.1,
+        "id": "5e16d39cfbcc041f24c1a030"
+    },
+    {
+        "name": "SQL_MERGE_JOIN_CARTESIAN",
+        "desc": "笛卡尔积关联",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"MERGE JOIN\", options=\"CARTESIAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "笛卡尔积",
+        "solution": [
+            "1.表关联条件缺失,加上关联条件",
+            "2.统计信息不准确,手工收集统计信息"
+        ],
+        "weight": 0.1,
+        "id": "5e16d426fbcc041f24c1a084"
+    },
+    {
+        "name": "SQL_PARALLEL_FETCH",
+        "desc": "存在并行访问特征",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PX COORDINATOR\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存在并行访问特征",
+        "solution": [
+            "取消表、索引、sql中的并行设置"
+        ],
+        "weight": 1.0,
+        "id": "5e16d4d7fbcc041f24c1a0e1"
+    },
+    {
+        "name": "SQL_PARTITION_RANGE_ALL",
+        "desc": "分区全扫描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 20,
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PARTITION RANGE\", options=\"ALL\")\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "分区全扫描",
+        "solution": [
+            "分区键设计是否合理"
+        ],
+        "weight": 0.5,
+        "id": "5e16d5a7fbcc041f24c1a146"
+    },
+    {
+        "name": "SQL_PARTITION_RANGE_INLIST_OR",
+        "desc": "非连续分区扫描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "from mongoengine import Q\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PARTITION RANGE\"). \\\n        filter(Q(options=\"INLIST\") | Q(options=\"OR\"))\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "非连续分区扫描",
+        "solution": [
+            "分区键设计是否合理"
+        ],
+        "weight": 0.5,
+        "id": "5e16d624fbcc041f24c1a185"
+    },
+    {
+        "name": "SQL_PARTITION_RANGE_ITERATOR",
+        "desc": "跨分区扫描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PARTITION RANGE\", options=\"ITERATOR\")\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "跨分区扫描",
+        "solution": [
+            "分区键设计是否合理"
+        ],
+        "weight": 0.5,
+        "id": "5e16d6c0fbcc041f24c1a1d5"
+    },
+    {
+        "name": "SQL_TABLE_FULL_SCAN",
+        "desc": "全表扫描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "table_phy_size",
+                "desc": "表物理大小",
+                "unit": "MB",
+                "value": 2048
+            },
+            {
+                "name": "table_row_num",
+                "desc": "表行数",
+                "unit": "",
+                "value": 100000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 20,
+        "code": "from models.mongo import ObjTabInfo\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for x in plans:\n        tab = ObjTabInfo.objects(table_name=x.object_name,\n                                 num_rows__gt=rule.gip(\"table_row_num\")).first()\n        if tab:\n            return -rule.weight, [\n                x.statement_id,\n                x.plan_id,\n                x.object_name,\n                x.the_id,\n                x.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "全表扫描",
+        "solution": [
+            "1.缺索引评估创建索引",
+            "2.取max、min值评估创建索引",
+            "3.索引失效重建索引,分区表维护记得维护索引",
+            "4.对条件字段使用函数或表达式a.函数、表达式放到等于号的右边b.创建函数索引(下策)",
+            "5.出现隐式转换a.不同类型的谓词匹配先显式转换b.表定义根据数据选择正确的数据类型",
+            "6.使用isNULL做查询条件a.不建议使用null值b.null值较少的情况可创建组合索引或者伪列索引(createindexidx_1ontab1(col1,0)c.将null定义一个普通变量",
+            "7.使用不等运算符<>!=做查询条件a.尽量少用不等判断；b.如果列值是连续,可把否定操作更改为两个区间；c.如果列值不多,可用inlist枚举其他所有值",
+            "8.'％a％''％a'建议精确匹配",
+            "9.sql逻辑,比如最大值,改用窗口函数",
+            "10.弱选择sql,返回结果集较大建议a.添加更多的谓词减少数据的访问,比如时间b.改造分区表c.使用覆盖索引",
+            "11.hintfull禁用hint1",
+            "12.统计信息不准确数据批量加载程序触发收集统计信息"
+        ],
+        "weight": 0.5,
+        "id": "5e16d788fbcc041f24c1a23d"
+    },
+    {
+        "name": "SQL_TO_CHANGE_TYPE",
+        "desc": "隐式转换",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(filter_predicates=re.compile(r\"SYS_OP\"))\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "隐式转换",
+        "solution": [
+            "1.显式转换",
+            "2.选择合适的字段类型"
+        ],
+        "weight": 0.5,
+        "id": "5e16d801fbcc041f24c1a27e"
+    },
+    {
+        "name": "SQL_VIEW_SCAN",
+        "desc": "存在视图访问",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 20,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(object_type=\"VIEW\",\n                               object_owner__ne=None,\n                               object_name=re.compile(r\"^index$_join$\"))\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存在视图访问",
+        "solution": [
+            "视图不能展开,复杂视图拆解、改写"
+        ],
+        "weight": 0.5,
+        "id": "5e16d871fbcc041f24c1a2b6"
+    },
+    {
+        "name": "LOOP_IN_TAB_FULL_SCAN",
+        "desc": "嵌套循环内层表全扫",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "table_phy_size",
+                "desc": "表物理大小",
+                "unit": "MB",
+                "value": 1024.0
+            },
+            {
+                "name": "table_row_num",
+                "desc": "表行数",
+                "unit": "",
+                "value": 5000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "the_id",
+                "desc": "id",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "cost",
+                "desc": "cost",
+                "unit": "",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 20,
+        "code": "import re\n\nfrom mongoengine import Q\n\nfrom utils.mongo_utils import *\nfrom models.mongo import ObjTabInfo\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n    mongo_connector = kwargs[\"mongo_connector\"]\n    schema_name = kwargs[\"schema_name\"]\n\n    plans = sql_plan_qs.filter(\n        Q(operation=re.compile(r\"NESTED LOOP\")) |\n        Q(operation=re.compile(r\"FILTER\"))\n    )\n    with temp_collection(mongo_connector, rule.name) as tmp:\n        to_insert = [\n            i.to_dict(\n                iter_if=lambda k, v: k in (\n                    \"statement_id\",\n                    \"plan_id\",\n                    \"object_name\",\n                    \"the_id\",\n                    \"parent_id\",\n                    \"operation\",\n                    \"options\",\n                    \"username\"\n                )\n            ) for i in plans\n        ]\n        if to_insert:\n            tmp.insert_many(to_insert)\n        else:\n            return None, []\n        aggregate_result = tmp.aggregate([\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"parent_id\": \"$parent_id\",\n                        \"statement_id\": \"$statement_id\",\n                        \"plan_id\": \"$plan_id\"\n                    },\n                    \"max_id\": {\"$max\": \"$the_id\"}\n                }\n            }\n        ])\n        for ar in aggregate_result:\n            each_ar_found = tmp.find({\n                \"statement_id\": ar[\"_id\"][\"statement_id\"],\n                \"plan_id\": ar[\"_id\"][\"plan_id\"],\n                \"$and\": [\n                    {\"the_ud\": ar[\"max_id\"]},\n                    {\"the_id\": {\"$ne\": 2}}\n                ],\n                \"username\": schema_name,\n                \"operation\": \"TABLE ACCESS\",\n                \"options\": \"FULL\"\n            })\n            for i in each_ar_found:\n                tab = ObjTabInfo.objects(num_row__gt=rule.gip(\"table_row_num\"),\n                                         owner=i[\"object_owner\"],\n                                         table_name=i[\"object_name\"],\n                                         ).first()\n                if tab:\n                    return -rule.weight, [\n                        i[\"statement_id\"],\n                        i[\"plan_id\"],\n                        i[\"object_name\"],\n                        i[\"the_id\"],\n                        i[\"cost\"]\n                    ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "嵌套循环内层表访问方式为全表扫描",
+        "solution": [
+            "关联列创建索引"
+        ],
+        "weight": 1.0,
+        "id": "5e16f02c2b5f3cec992f27f8"
+    }
+]
