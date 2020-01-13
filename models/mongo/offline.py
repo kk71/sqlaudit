@@ -236,6 +236,7 @@ class TicketSubResult(BaseDoc):
     static = EmbeddedDocumentListField(TicketSubResultItem)
     dynamic = EmbeddedDocumentListField(TicketSubResultItem)
     online_date = DateTimeField(default=None)  # 上线日期
+    online_operator = StringField()  # 上线操作员
     online_status = BooleanField(default=None)  # 上线是否成功
     elapsed_seconds = IntField(default=None)  # 执行时长
     # 额外错误信息

@@ -245,4 +245,5 @@ class OracleCMDBConnector(OracleOB):
         }
         if kwargs:
             init_dict.update(kwargs)
+        print(f"going to make oracle connection to {init_dict} ...")
         super(OracleCMDBConnector, self).__init__(**init_dict)
