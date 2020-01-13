@@ -100,8 +100,11 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         :param sqls: [{single_sql},...]
         :param kwargs:
         """
-        _for_print = {k: v.strip()[:20] + '...' if isinstance(v, str) else v
-                      for k, v in single_sql.items()}
+        _for_print = {
+            k: v.strip()[:20] + '...'
+            if isinstance(v, str) and len(v.strip()) > 20 else v
+            for k, v in single_sql.items()
+        }
         print(f"* {_for_print} of {len(sqls)}")
         single_sql_text = single_sql["sql_text"]
         sub_result = OracleTicketSubResult(
