@@ -29,9 +29,7 @@ class SubTicketHandler(TicketReq):
             Optional("schema_name", default=None): scm_str,
             Optional("cmdb_id", default=None): scm_int,
             Optional("keyword", default=None): scm_str,
-
-            Optional(object): object
-        }))
+        }, ignore_extra_keys=True))
         error_type = params.pop("error_type")
         keyword = params.pop("keyword")
         start_time, end_time = params.pop("start_time"), params.pop("end_time")
@@ -80,8 +78,7 @@ class SubTicketHandler(TicketReq):
         """子工单列表"""
         params = self.get_query_args(Schema({
             **self.gen_p(),
-            Optional(object): object
-        }))
+        }, ignore_extra_keys=True))
         p = self.pop_p(params)
 
         with make_session() as session:

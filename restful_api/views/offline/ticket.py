@@ -395,8 +395,8 @@ class SQLUploadHandler(TicketReq):
         except UnicodeDecodeError:
             body = body.decode('utf-8')
         parsed_sql_obj = ParsedSQL(body)
+        session_id = uuid.uuid4().hex
         with make_session() as session:
-            session_id = uuid.uuid4().hex
             to_add = [
                 WorkListAnalyseTemp(
                     session_id=session_id,
@@ -405,16 +405,19 @@ class SQLUploadHandler(TicketReq):
                     sql_type=obj.sql_type,
                     num=i
                 ) for i, obj in enumerate(parsed_sql_obj)
-                if filter_sql_type is not None
-                and obj.sql_type == filter_sql_type
+                if filter_sql_type is None or (
+                        filter_sql_type is not None
+                        and obj.sql_type == filter_sql_type)
             ]
+            if not to_add:
+                return self.resp_bad_req(msg="所传SQL脚本不包含任何SQL")
             TicketMeta(
                 session_id=session_id,
                 original_sql=parsed_sql_obj.get_original_sql(),
                 comment_striped_sql=parsed_sql_obj.get_comment_striped_sql()
             ).save()
             session.add_all(to_add)
-            self.resp_created({"session_id": session_id})
+        self.resp_created({"session_id": session_id})
 
     def patch(self):
         """编辑上传的临时sql数据"""
