@@ -209,8 +209,14 @@ class TicketSubResultItem(EmbeddedDocument):
         self.rule_name = rule_object.name
         self.input_params = deepcopy(rule_object.input_params)
 
-    def add_output(self, **kwargs):
-        self.output_params.append(TicketRuleInputOutputParams(**kwargs))
+    def add_output(self, output_structure: TicketRuleInputOutputParams, value):
+        to_add = TicketRuleInputOutputParams(
+            name=output_structure.name,
+            desc=output_structure.desc,
+            unit=output_structure.unit,
+            value=value
+        )
+        self.output_params.append(to_add)
 
 
 class TicketSubResult(BaseDoc):

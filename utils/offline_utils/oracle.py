@@ -79,10 +79,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     schema_name=sub_result.schema_name
                 )
                 for output, current_ret in zip(dr.output_params, output_params):
-                    sub_result_item.add_output(**{
-                        **output,
-                        "value": current_ret
-                    })
+                    sub_result_item.add_output(output, current_ret)
                 sub_result_item.minus_score = score_to_minus
                 if sub_result_item.minus_score != 0:
                     sub_result.static.append(sub_result_item)
