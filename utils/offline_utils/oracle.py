@@ -28,7 +28,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                type=TICKET_ANALYSE_TYPE_DYNAMIC,
+                analyses_type=TICKET_ANALYSE_TYPE_DYNAMIC,
                 db_type=DB_ORACLE
             )
         super(OracleSubTicketAnalysis, self).__init__(**kwargs)
@@ -102,7 +102,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         :param sqls: [{single_sql},...]
         :param kwargs:
         """
-        _for_print = {k: v.strip()[:10] + '...' if isinstance(v, str) else v
+        _for_print = {k: v.strip()[:20] + '...' if isinstance(v, str) else v
                       for k, v in single_sql.items()}
         print(f"* {_for_print} of {len(sqls)}")
         single_sql_text = single_sql["sql_text"]
