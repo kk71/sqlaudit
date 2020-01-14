@@ -161,7 +161,7 @@ code_hole.append(code)
             )).validate(ret)
             if ret[0] and len(ret[1]) != len(self.output_params):
                 raise const.RuleCodeInvalidException(
-                    f"The length of the iterable ticket rule returned({len(ret)}) "
+                    f"The length of the iterable ticket rule returned({len(ret[1])}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
             ret = list(ret)
             if ret[0] is None:
