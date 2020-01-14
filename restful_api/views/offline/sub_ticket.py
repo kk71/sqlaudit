@@ -108,12 +108,12 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        statement_id = TicketSubResult.objects(statement_id=statement_id).first()
-        if not statement_id:
-            return self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql session")
-        statement_id = statement_id.from_dict(params)
-        TicketSubResult.objects(statement_id).insert()
-        self.resp_created(statement_id.to_dict())
+        sub_ticket = TicketSubResult.objects(statement_id=statement_id).first()
+        if not sub_ticket:
+            return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
+        sub_ticket.from_dict(params)
+        sub_ticket.save()
+        self.resp_created(sub_ticket.to_dict())
 
 
 class SubTicketExportHandler(SubTicketHandler):
@@ -257,7 +257,7 @@ class SubTicketRuleHandler(TicketReq):
             action = params.pop("action")
             sub_ticket = OracleTicketSubResult.objects(
                 work_list_id=work_list_id, statement_id=statement_id).first()
-            embedded_list = getattr(sub_ticket, analyse_type)
+            embedded_list = getattr(sub_ticket, analyse_type.lower())
             for n, sub_ticket_item in enumerate(embedded_list):
                 if sub_ticket_item.rule_name == ticket_rule_name:
                     if action == "delete":
