@@ -18,8 +18,6 @@ def code(rule, **kwargs):
      \"COST\":\"\",\"OBJECT_NAME\":\"\"})})",
     """
     statement_id: str = kwargs["statement_id"]
-    sql_plan_qs = kwargs["sql_plan_qs"]
-    mongo_connector = kwargs["mongo_connector"]
 
     agg_ret = OracleTicketSQLPlan.objects.aggregate(
         {
