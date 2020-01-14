@@ -31,7 +31,10 @@ def code(rule, **kwargs):
         },
         {
             "$group": {
-                "_id": "plan_id",
+                "_id": {
+                    "statement_id": "$statement_id",
+                    "plan_id": "$plan_id"
+                },
                 "count": {"$sum": 1}
             }
         }
@@ -40,7 +43,7 @@ def code(rule, **kwargs):
         if r["count"] > rule.gip("loop_num"):
             return -rule.weight, [
                 statement_id,
-                r["_id"],
+                r["_id"]["plan_id"],
                 r["count"]
             ]
     return None, []
