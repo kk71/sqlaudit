@@ -101,7 +101,7 @@ class SubTicketHandler(TicketReq):
     def patch(self):
         """编辑单个子工单"""
         params = self.get_json_args(Schema({
-            "statement_id": scm_int,  # TODO 前端要改哦
+            "statement_id": scm_unempty_str,
 
             Optional("sql_text"): scm_unempty_str,
             Optional("comments"): scm_str,

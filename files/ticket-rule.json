@@ -1501,7 +1501,7 @@
             }
         ],
         "max_score": 5,
-        "code": "import re\n\nfrom models.mongo import OracleTicketSQLPlan\n\n\ndef code(rule, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n    mongo_connector = kwargs[\"mongo_connector\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": \"plan_id\",\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
+        "code": "import re\n\nfrom models.mongo import OracleTicketSQLPlan\n\n\ndef code(rule, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": \"plan_id\",\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
         "status": true,
         "summary": "嵌套层次过深",
         "solution": [
@@ -1509,5 +1509,50 @@
         ],
         "weight": 1.0,
         "id": "5e1c2b71f9b533712c4175b4"
+    },
+    {
+        "name": "SQL_TAB_REL_NUM",
+        "desc": "过多的表关联",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [
+            {
+                "name": "tab_num",
+                "desc": "关联表的数量",
+                "unit": "",
+                "value": 5
+            }
+        ],
+        "output_params": [
+            {
+                "name": "statement_id",
+                "desc": "SQL ID",
+                "unit": "str",
+                "value": null
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划id",
+                "unit": "int",
+                "value": null
+            },
+            {
+                "name": "count",
+                "desc": "计数",
+                "unit": "",
+                "value": null
+            }
+        ],
+        "max_score": 5,
+        "code": "from models.mongo import OracleTicketSQLPlan\n\n\ndef code(rule, **kwargs):\n    \"db.@sql@.group( { key:{\\\"USERNAME\\\":1,\\\"record_id\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1,\\\"OBJECT_TYPE\\\":1},\" \\\n    \" cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\\\"OBJECT_TYPE\\\":\\\"TABLE\\\"},\" \\\n    \" reduce:function(curr,result){ result.count++; },\" \\\n    \" initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\" \\\n    \"\\\"SQL_ID\\\":x.SQL_ID,\\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"ID\\\":x.ID,\\\"COUNT\\\":x.count\" \\\n    \"})});\" \\\n    \"db.@tmp1@.find({\\\"COUNT\\\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\" \\\n    \"\\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":y.COUNT,\\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"\" \\\n    \"})})\"\n\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": \"plan_id\",\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"tab_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "过多的表关联,影响性能",
+        "solution": [
+            "建议减少表关联,业务逻辑sql改写"
+        ],
+        "weight": 0.5,
+        "id": "5e1d2ddd6e08015728f76efe"
     }
 ]
