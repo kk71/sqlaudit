@@ -70,6 +70,13 @@ class TicketRule(BaseDoc):
             [str(i) for i in self.unique_key() if i is not None]
         )
 
+    @classmethod
+    def calc_score_max_sum(cls, *args, **kwargs):
+        """
+        计算某个类型的数据库的规则总最大分
+        """
+        return sum(cls.filter_enabled(*args, **kwargs).values_list("max_score"))
+
     @staticmethod
     def code_template():
         """

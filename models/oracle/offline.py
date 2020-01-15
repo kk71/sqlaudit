@@ -74,12 +74,13 @@ class WorkList(BaseModel):
                     # 否则，直接将扣分置为最大扣分
                     rules_max_score[rule_unique_key][0] = \
                         rules_max_score[rule_unique_key][1]
-        total_minus_score, total_minus_score_max = reduce(
+        total_minus_score, _ = reduce(
             lambda x, y: [x[0] + y[0], x[1] + y[1]],
             rules_max_score.values()
         )
-        final_score = (total_minus_score_max + total_minus_score) / \
-                      float(total_minus_score_max) * 100.0
+        all_rule_max_score_sum = TicketRule.calc_score_max_sum(db_type=self.db_type)
+        final_score = (all_rule_max_score_sum + total_minus_score) / \
+                      float(all_rule_max_score_sum) * 100.0
         if at_least and final_score < at_least:
             final_score = at_least
         self.score = round(final_score, 2)  # 未更新库中数据，需要手动加入session并commit
