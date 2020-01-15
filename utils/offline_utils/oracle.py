@@ -56,7 +56,8 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
         try:
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
             self.cmdb_connector.execute("EXPLAIN PLAN SET "
-                                        f"statement_id='{self.statement_id}' for {formatted_sql}")
+                                        f"statement_id='{self.statement_id}' "
+                                        f"for {formatted_sql}")
             sql_for_getting_plan = f"SELECT * FROM plan_table " \
                                    f"WHERE statement_id = '{self.statement_id}'"
             sql_plans = self.cmdb_connector.select_dict(sql_for_getting_plan, one=False)

@@ -63,6 +63,7 @@ def offline_ticket(work_list_id: int, session_id: str):
             _TicketSubResult = OracleTicketSubResult
         else:
             assert 0  # TODO add mysql support here
+        print(f"finally we got {len(sub_tickets)} sub_tickets.")
         _TicketSubResult.objects.insert(sub_tickets)
         ticket.calc_score()
         session.add(ticket)
