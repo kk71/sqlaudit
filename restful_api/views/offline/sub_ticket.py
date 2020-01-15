@@ -258,11 +258,15 @@ class SubTicketRuleHandler(TicketReq):
             sub_ticket = OracleTicketSubResult.objects(
                 work_list_id=work_list_id, statement_id=statement_id).first()
             embedded_list = getattr(sub_ticket, analyse_type.lower())
+            operated = False
             for n, sub_ticket_item in enumerate(embedded_list):
                 if sub_ticket_item.rule_name == ticket_rule_name:
                     if action == "delete":
                         del embedded_list[n]  # 目前只支持删除子工单的规则结果
+                        operated = True
                 break
+            if not operated:
+                return self.resp_bad_req(msg="未找到对应需要操作的规则。")
             sub_ticket.save()
             with make_session() as session:
                 ticket = session.query(WorkList).\
