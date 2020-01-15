@@ -28,12 +28,6 @@ def offline_ticket(work_list_id: int, session_id: str):
         if not cmdb:
             raise CMDBNotFoundException(ticket.cmdb_id)
 
-        if cmdb.database_type in (DB_ORACLE, 1):
-            _TicketSubResult = OracleTicketSubResult
-            _SubTicketAnalysis = OracleSubTicketAnalysis
-        else:
-            assert 0  # TODO add mysql support here
-
         qe = QueryEntity(
             WorkListAnalyseTemp.sql_text,
             WorkListAnalyseTemp.comments,
@@ -50,17 +44,25 @@ def offline_ticket(work_list_id: int, session_id: str):
               f"in ticket({ticket.task_name}, {ticket.work_list_id}), "
               f"cmdb_id({ticket.cmdb_id}), schema({ticket.schema_name})")
         sub_tickets = []
-        sub_ticket_analysis = _SubTicketAnalysis(
-            cmdb=cmdb,
-            ticket=ticket
-        ) if cmdb.database_type in (DB_ORACLE, 1) else None  # TODO add mysql support here
         for single_sql in sqls:
+            if cmdb.database_type in (DB_ORACLE, 1):
+                sub_ticket_analysis = OracleSubTicketAnalysis(
+                    cmdb=cmdb,
+                    ticket=ticket
+                )
+            else:
+                assert 0  # TODO add mysql support here
             sub_ticket = sub_ticket_analysis.run(
                 sqls=sqls,
                 single_sql=single_sql
             )
             sub_tickets.append(sub_ticket)
         ticket.work_list_status = OFFLINE_TICKET_PENDING
+
+        if cmdb.database_type in (DB_ORACLE, 1):
+            _TicketSubResult = OracleTicketSubResult
+        else:
+            assert 0  # TODO add mysql support here
         _TicketSubResult.objects.insert(sub_tickets)
         ticket.calc_score()
         session.add(ticket)
