@@ -72,6 +72,7 @@ class SubTicketHandler(TicketReq):
         else:
             assert 0
         q = self.privilege_filter_sub_ticket(q, session)
+        q = q.order_by("position")
         return q
 
     def get(self):
