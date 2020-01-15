@@ -1,7 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import abc
+import traceback
 
+from prettytable import PrettyTable
 from redis import StrictRedis
 from mongoengine import QuerySet as mongoengine_qs
 
@@ -51,6 +53,24 @@ class SubTicketAnalysis(abc.ABC):
         self.mongo_connector = MongoHelper.get_db()
 
     @staticmethod
+    def update_error_message(error_type, msg, trace=None, old_msg="") -> str:
+        """
+        格式化更新报错信息
+        :param error_type: 错误类型中问提示
+        :param msg: 当前的报错信息
+        :param trace: 堆栈信息可选
+        :param old_msg: 原先的错误信息，用以拼接
+        :return:
+        """
+        pt = PrettyTable([error_type])
+        if trace:
+            msg += "\n\n" + trace
+        pt.add_row([msg])
+        if not old_msg:
+            old_msg = ""
+        return old_msg + "\n\n" + str(pt)
+
+    @staticmethod
     def sql_filter_annotation(sql):
         """用于去掉每句sql末尾的分号(目前仅oracle需要这么做)"""
         if not sql:
@@ -70,24 +90,32 @@ class SubTicketAnalysis(abc.ABC):
         :param single_sql: {"sql_text":,"comments":,"num":,"sql_type":}
         :param sqls: [{single_sql},...]
         """
-        for sr in self.static_rules:
-            if sr.sql_type is not SQL_ANY and \
-                    sr.sql_type != single_sql["sql_type"]:
-                continue
-            sub_result_item = TicketSubResultItem()
-            sub_result_item.as_sub_result_of(sr)
+        try:
+            for sr in self.static_rules:
+                if sr.sql_type is not SQL_ANY and \
+                        sr.sql_type != single_sql["sql_type"]:
+                    continue
+                sub_result_item = TicketSubResultItem()
+                sub_result_item.as_sub_result_of(sr)
 
-            # ===这里指明了静态审核的输入参数(kwargs)===
-            score_to_minus, output_params = sr.analyse(
-                single_sql=single_sql,
-                sqls=sqls,
-                cmdb=self.cmdb
-            )
-            for output, current_ret in zip(sr.output_params, output_params):
-                sub_result_item.add_output(output, current_ret)
-            sub_result_item.minus_score = score_to_minus
-            if sub_result_item.minus_score != 0:
-                sub_result.static.append(sub_result_item)
+                # ===这里指明了静态审核的输入参数(kwargs)===
+                score_to_minus, output_params = sr.analyse(
+                    single_sql=single_sql,
+                    sqls=sqls,
+                    cmdb=self.cmdb
+                )
+                for output, current_ret in zip(sr.output_params, output_params):
+                    sub_result_item.add_output(output, current_ret)
+                sub_result_item.minus_score = score_to_minus
+                if sub_result_item.minus_score != 0:
+                    sub_result.static.append(sub_result_item)
+        except Exception as e:
+            error_msg = str(e)
+            trace = traceback.format_exc()
+            sub_result.error_msg = self.update_error_message(
+                "静态审核", msg=error_msg, trace=trace, old_msg=sub_result.error_msg)
+            print(error_msg)
+            print(trace)
 
     @abc.abstractmethod
     def run_dynamic(self, sub_result, single_sql: dict):

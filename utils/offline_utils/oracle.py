@@ -86,9 +86,11 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 if sub_result_item.minus_score != 0:
                     sub_result.dynamic.append(sub_result_item)
         except Exception as e:
-            sub_result.error_msg = str(e)
+            error_msg = str(e)
             trace = traceback.format_exc()
-            print(e)
+            sub_result.error_msg = self.update_error_message(
+                "动态审核", msg=error_msg, trace=trace, old_msg=sub_result.error_msg)
+            print(error_msg)
             print(trace)
 
     def run(self,

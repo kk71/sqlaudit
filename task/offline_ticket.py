@@ -66,3 +66,4 @@ def offline_ticket(work_list_id: int, session_id: str):
         _TicketSubResult.objects.insert(sub_tickets)
         ticket.calc_score()
         session.add(ticket)
+    print(f"ticket with work_list_id = {work_list_id} is successfully analysed.")
