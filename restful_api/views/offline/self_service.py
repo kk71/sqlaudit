@@ -92,7 +92,8 @@ class OverviewHandler(PrivilegeReq):
             )
             scripts_ready = session.query(*qe).filter(
                 WorkList.work_list_status == OFFLINE_TICKET_PASSED,
-                WorkList.cmdb_id.in_(cmdb_ids))
+                WorkList.cmdb_id.in_(cmdb_ids)
+            ).order_by(WorkList.submit_date.desc())
             scripts_ready = [qe.to_dict(x) for x in scripts_ready]
 
             return self.resp({
