@@ -79,8 +79,11 @@ class WorkList(BaseModel):
             rules_max_score.values()
         )
         all_rule_max_score_sum = TicketRule.calc_score_max_sum(db_type=self.db_type)
-        final_score = (all_rule_max_score_sum + total_minus_score) / \
-                      float(all_rule_max_score_sum) * 100.0
+        if all_rule_max_score_sum:
+            final_score = (all_rule_max_score_sum + total_minus_score) / \
+                        float(all_rule_max_score_sum) * 100.0
+        else:
+            final_score = 100
         if at_least and final_score < at_least:
             final_score = at_least
         self.score = round(final_score, 2)  # 未更新库中数据，需要手动加入session并commit

@@ -177,7 +177,7 @@ class TicketHandler(TicketReq):
 
             if cmdb.database_type in (DB_ORACLE, 1):
 
-                ticket = WorkList()
+                ticket = WorkList(db_type=DB_ORACLE)
                 sub_ticket_analysis = OracleSubTicketAnalysis(
                     cmdb=cmdb, ticket=ticket)
                 if not cmdb_utils.check_cmdb_privilege(cmdb):
