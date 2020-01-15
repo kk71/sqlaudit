@@ -263,8 +263,10 @@ class SubTicketRuleHandler(TicketReq):
                 if sub_ticket_item.rule_name == ticket_rule_name:
                     if action == "delete":
                         del embedded_list[n]  # 目前只支持删除子工单的规则结果
-                        operated = True
-                break
+                    else:
+                        assert 0
+                    operated = True
+                    break
             if not operated:
                 return self.resp_bad_req(msg="未找到对应需要操作的规则。")
             sub_ticket.save()
