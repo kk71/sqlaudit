@@ -185,6 +185,7 @@ class TicketSubResultItem(EmbeddedDocument):
     """子工单的一个规则结果"""
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
+    rule_desc = StringField(required=True)
     input_params = EmbeddedDocumentListField(
         TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
     output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
@@ -207,6 +208,7 @@ class TicketSubResultItem(EmbeddedDocument):
         """
         self.db_type = rule_object.db_type
         self.rule_name = rule_object.name
+        self.rule_desc = rule_object.desc
         self.input_params = deepcopy(rule_object.input_params)
 
     def add_output(self, output_structure: TicketRuleInputOutputParams, value):

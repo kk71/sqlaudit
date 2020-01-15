@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 import uuid
+import hashlib
 import traceback
 
 from mongoengine import QuerySet as mongoengine_qs
@@ -36,7 +37,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             if self.ticket.schema_name else self.cmdb.user_name
         self.cmdb_connector = OracleCMDBConnector(self.cmdb)
         self.cmdb_connector.execute(f"alter session set current_schema={self.schema_name}")
-        self.statement_id = uuid.uuid1().hex[-30:]  # oracle的statement_id字段最长30位
+        self.statement_id = hashlib.md5(uuid.uuid1().hex)
 
     def write_sql_plan(self, list_of_plan_dicts, **kwargs) -> mongoengine_qs:
         """写入执行计划"""
