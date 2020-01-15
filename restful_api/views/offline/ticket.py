@@ -103,12 +103,14 @@ class TicketHandler(TicketReq):
             scm_optional("keyword", default=None): scm_str,
             scm_optional("date_start", default=None): scm_date,
             scm_optional("date_end", default=None): scm_date_end,
+            scm_optional("work_list_id", default=None): scm_int,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
         work_list_status: int = params.pop("work_list_status")
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        work_list_id = params.pop("work_list_id")
         p = self.pop_p(params)
 
         with make_session() as session:
@@ -133,6 +135,8 @@ class TicketHandler(TicketReq):
                 q = q.filter(WorkList.submit_date >= date_start)
             if date_end:
                 q = q.filter(WorkList.submit_date < date_end)
+            if work_list_id:
+                q = q.filter(WorkList.work_list_id == work_list_id)
             q = self.privilege_filter_ticket(q)
             filtered_tickets, p = self.paginate(q, **p)
             ret = []
