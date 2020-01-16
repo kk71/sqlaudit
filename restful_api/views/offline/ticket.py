@@ -37,7 +37,7 @@ class TicketOuterHandler(TicketReq):
 
         with make_session() as session:
             filtered_tickets = session.query(WorkList).filter(WorkList.submit_date >= date_start,
-                                               WorkList.submit_date < date_end). \
+                                                              WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
             filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
             tickets: list = []
@@ -269,11 +269,11 @@ class TicketExportHandler(TicketReq):
             work_list = work_list.to_dict()
             work_list['work_list_status'] = \
                 ALL_OFFLINE_TICKET_STATUS_CHINESE[work_list['work_list_status']]
-            work_list['submit_date'] = str(work_list['submit_date'])\
+            work_list['submit_date'] = str(work_list['submit_date']) \
                 if work_list['submit_date'] else ''
-            work_list['audit_date'] = str(work_list['audit_date'])\
+            work_list['audit_date'] = str(work_list['audit_date']) \
                 if work_list['audit_date'] else ''
-            work_list['online_date'] = str(work_list['online_date'])\
+            work_list['online_date'] = str(work_list['online_date']) \
                 if work_list['online_date'] else ''
 
             # 主要信息
@@ -294,7 +294,7 @@ class TicketExportHandler(TicketReq):
                 d_to_str(arrow.now())]) + '.xlsx'
 
             # 根据工单获得一些统计信息
-            work_sub_list = TicketSubResult.\
+            work_sub_list = TicketSubResult. \
                 objects(work_list_id=work_list_id).all()
             work_sub_list = [x.to_dict(
                 iter_by=lambda k, v: dt_to_str(v)
@@ -411,19 +411,22 @@ class SQLUploadHandler(TicketReq):
         parsed_sql_obj = ParsedSQL(body)
         session_id = uuid.uuid4().hex
         with make_session() as session:
-            to_add = [
-                WorkListAnalyseTemp(
+            to_add = []
+            for i, obj in enumerate(parsed_sql_obj):
+                if filter_sql_type is not None and \
+                        obj.sql_type == filter_sql_type:
+                    continue
+                if not obj.normalized or not obj.normalized_without_comment:
+                    continue
+                wlat = WorkListAnalyseTemp(
                     session_id=session_id,
                     sql_text=obj.normalized,
                     sql_text_no_comment=obj.normalized_without_comment,
                     comments="",
                     sql_type=obj.sql_type,
                     num=i
-                ) for i, obj in enumerate(parsed_sql_obj)
-                if filter_sql_type is None or (
-                        filter_sql_type is not None
-                        and obj.sql_type == filter_sql_type)
-            ]
+                )
+                to_add.append(wlat)
             if not to_add:
                 return self.resp_bad_req(msg="所传SQL脚本不包含任何SQL")
             TicketMeta(
