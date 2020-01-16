@@ -53,8 +53,8 @@ class ParsedSQLStatement:
         tmpl_replaced_remark = re.compile(rf"^\s*{const.REMARK_PLACEHOLDER}", re.I | re.M)
         self.normalized = tmpl_replaced_remark.sub("remark", sss.normalized)
 
-        # sql里面的remark是不能被sqlparse当作注释处理的，需要先替换掉
-        # 需要在后面把这个备注换回去
+        # sql里面的remark是不能被sqlparse当作注释处理的，
+        # 需要先替换成普通的注释，再用sqlparse去掉注释
         tmpl_replace_remark = re.compile(r"^\s*remark", re.I | re.M)
         sql_remark_replaced: str = tmpl_replace_remark.sub(
             const.REMARK_PLACEHOLDER, self.normalized)
@@ -68,8 +68,14 @@ class ParsedSQLStatement:
         # 语句的关键字名（select, alter，...）
         self.statement_type = sss.get_type()
         if self.statement_type == "UNKNOWN":
-            ft = self.tokens[0]
-            self.statement_type = ft.normalized
+            token_num = 0
+            while self.statement_type not in const.ALL_SQL_KEYWORDS and\
+                    self.tokens:
+                ft = self.tokens[token_num]
+                self.statement_type = ft.normalized
+                token_num += 1
+                if token_num > len(self.tokens) - 1:
+                    break
         if self.statement_type not in const.ALL_SQL_KEYWORDS:
             print(f"warning: statement type {self.statement_type} not in "
                   "predefined keywords list.")

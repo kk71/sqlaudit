@@ -415,6 +415,7 @@ class SQLUploadHandler(TicketReq):
                 WorkListAnalyseTemp(
                     session_id=session_id,
                     sql_text=obj.normalized,
+                    sql_text_no_comment=obj.normalized_without_comment,
                     comments="",
                     sql_type=obj.sql_type,
                     num=i
