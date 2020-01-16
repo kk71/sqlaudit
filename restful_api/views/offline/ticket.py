@@ -404,6 +404,8 @@ class SQLUploadHandler(TicketReq):
 
         # 现在仅支持SQL脚本文件，不再支持Excel文档
         body = file_object["body"]
+        if not body:
+            return self.resp_bad_req(msg="空脚本。")
         try:
             body = body.decode(chardet.detect(body)["encoding"])
         except UnicodeDecodeError:
