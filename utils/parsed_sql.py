@@ -51,7 +51,7 @@ class ParsedSQLStatement:
         # 处理过的语句
         # 这里把之前替换掉的remark替换回去
         tmpl_replaced_remark = re.compile(rf"^\s*{const.REMARK_PLACEHOLDER}", re.I | re.M)
-        self.normalized = tmpl_replaced_remark.sub("remark", sss.normalized)
+        self.normalized = tmpl_replaced_remark.sub("remark", sss.normalized).strip()
 
         # sql里面的remark是不能被sqlparse当作注释处理的，
         # 需要先替换成普通的注释，再用sqlparse去掉注释
