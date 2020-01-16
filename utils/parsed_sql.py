@@ -53,6 +53,15 @@ class ParsedSQLStatement:
         tmpl_replaced_remark = re.compile(rf"^\s*{const.REMARK_PLACEHOLDER}", re.I | re.M)
         self.normalized = tmpl_replaced_remark.sub("remark", sss.normalized)
 
+        # sql里面的remark是不能被sqlparse当作注释处理的，需要先替换掉
+        # 需要在后面把这个备注换回去
+        tmpl_replace_remark = re.compile(r"^\s*remark", re.I | re.M)
+        sql_remark_replaced: str = tmpl_replace_remark.sub(
+            const.REMARK_PLACEHOLDER, self.normalized)
+        # 去掉注释的sql只是暂存，后续可能有用
+        self.normalized_without_comment: str = sqlparse.format(
+            sql_remark_replaced, strip_comment=True)
+
         # 语句内的组成部分
         self.tokens = sss.tokens
 

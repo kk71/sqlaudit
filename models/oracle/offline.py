@@ -96,6 +96,7 @@ class WorkListAnalyseTemp(BaseModel):
                 primary_key=True)
     session_id = Column("SESSION_ID", String, nullable=False)
     sql_text = Column("SQL_TEXT", CLOB)
+    sql_text_no_comment = Column("SQL_TEXT_NO_COMMENT", CLOB)
     comments = Column("COMMENTS", String)
     sql_type = Column("SQL_TYPE", Integer)
     analyse_date = Column("ANALYSE_DATE", DATE, default=datetime.now)
