@@ -408,8 +408,15 @@ class SQLUploadHandler(TicketReq):
             return self.resp_bad_req(msg="空脚本。")
         try:
             body = body.decode(chardet.detect(body)["encoding"])
-        except UnicodeDecodeError:
-            body = body.decode('utf-8')
+        except:
+            try:
+                body = body.decode('utf-8')
+            except:
+                try:
+                    body = body.decode('gbk')
+                except Exception as e:
+                    return self.resp_bad_req(msg=f"文本解码失败: {e}")
+
         parsed_sql_obj = ParsedSQL(body)
         session_id = uuid.uuid4().hex
         with make_session() as session:
