@@ -1,6 +1,6 @@
 def code(rule, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
-    sql_text: str = single_sql["sql_text"]
+    sql_text: str = single_sql["sql_text_no_comment"]
 
     m = 0
     n = 0

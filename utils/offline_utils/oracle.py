@@ -100,7 +100,8 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             **kwargs) -> OracleTicketSubResult:
         """
         单条sql的静态动态审核
-        :param single_sql: {"sql_text":,"comments":,"num":,"sql_type"}
+        :param single_sql:
+                {"sql_text":,"sql_text_no_comment":"comments":,"num":,"sql_type"}
         :param sqls: [{single_sql},...]
         :param kwargs:
         """
@@ -110,16 +111,14 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             for k, v in single_sql.items()
         }
         print(f"* {_for_print} of {len(sqls)}")
-        single_sql_text = single_sql["sql_text"]
         sub_result = OracleTicketSubResult(
             work_list_id=self.ticket.work_list_id,
             cmdb_id=self.cmdb.cmdb_id,
             db_type=DB_ORACLE,
             schema_name=self.schema_name,
-            position=single_sql["num"],
-            sql_text=single_sql_text,
-            comments=single_sql["comments"],
-            statement_id=self.statement_id
+            statement_id=self.statement_id,
+            position=single_sql.pop("num"),
+            **single_sql
         )
         self.run_static(sub_result, sqls, single_sql)
         self.run_dynamic(sub_result, single_sql)

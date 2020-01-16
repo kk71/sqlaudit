@@ -240,6 +240,7 @@ class TicketSubResult(BaseDoc):
     statement_id = StringField()  # sql_id
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
+    sql_text_no_comment = StringField()
     comments = StringField(default="")
     position = IntField()  # 该语句在整个工单里的位置，从0开始
     static = EmbeddedDocumentListField(TicketSubResultItem)
@@ -257,10 +258,13 @@ class TicketSubResult(BaseDoc):
         "allow_inheritance": True,  # 子类继承本类，但是数据存在同一个collection里
         "collection": "ticket_sub_result",
         'indexes': [
+            "db_type",
+            "cmdb_id",
             "work_list_id",
             "statement_id",
             "position",
             "check_time",
+            "online_status"
         ]
     }
 

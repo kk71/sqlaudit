@@ -1,7 +1,7 @@
 def code(rule, **kwargs):
     """重复查询子句"""
     single_sql: dict = kwargs.get("single_sql")
-    sql_text: str = single_sql["sql_text"]
+    sql_text: str = single_sql["sql_text_no_comment"]
 
     str_len = len(sql_text)
     left_bracket = []

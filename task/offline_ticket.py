@@ -30,6 +30,7 @@ def offline_ticket(work_list_id: int, session_id: str):
 
         qe = QueryEntity(
             WorkListAnalyseTemp.sql_text,
+            WorkListAnalyseTemp.sql_text_no_comment,
             WorkListAnalyseTemp.comments,
             WorkListAnalyseTemp.num,
             WorkListAnalyseTemp.sql_type

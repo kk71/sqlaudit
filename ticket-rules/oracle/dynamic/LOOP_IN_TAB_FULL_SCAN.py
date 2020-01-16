@@ -52,7 +52,6 @@ def code(rule, **kwargs):
 
     sql_plan_qs = kwargs["sql_plan_qs"]
     mongo_connector = kwargs["mongo_connector"]
-    schema_name = kwargs["schema_name"]
 
     plans = sql_plan_qs.filter(
         Q(operation=re.compile(r"NESTED LOOP")) |
