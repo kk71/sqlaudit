@@ -34,7 +34,6 @@ urls += [
     (r"/api/rule/rules", rules.RuleRepoHandler),
     (r"/api/rule/risk_rules", rules.RiskRuleHandler),
     (r"/api/rule/white_list", rules.WhiteListHandler),
-
 ]
 
 # CMDB
@@ -63,15 +62,18 @@ urls += [
     (r"/api/task/flush_q", task.FlushCeleryQ),
 ]
 
-# offline audit
+# offline
 urls += [
-    (r"/api/offline/ticket/outer", offline.TicketOuterHandler),
-    (r"/api/offline/ticket", offline.TicketHandler),
-    (r"/api/offline/ticket/export", offline.ExportTicketHandler),
-    (r"/api/offline/sub_ticket", offline.SubTicketHandler),
-    (r"/api/offline/sub_ticket/sql_plan", offline.SubTicketSQLPlanHandler),
-    (r"/api/offline/sub_ticket/export", offline.ExportSubTicketHandler),
-    (r"/api/offline/sql_upload", offline.SQLUploadHandler),
+    (r"/api/offline/rule", rule.TicketRuleHandler),
+    (r"/api/offline/rule/code", rule.TicketRuleCodeHandler),
+    (r"/api/offline/sql_upload", ticket.SQLUploadHandler),
+    (r"/api/offline/ticket/outer", ticket.TicketOuterHandler),
+    (r"/api/offline/ticket", ticket.TicketHandler),
+    (r"/api/offline/ticket/export", ticket.TicketExportHandler),
+    (r"/api/offline/sub_ticket", sub_ticket.SubTicketHandler),
+    (r"/api/offline/sub_ticket/sql_plan", sub_ticket.SQLPlanHandler),
+    (r"/api/offline/sub_ticket/export", sub_ticket.SubTicketExportHandler),
+    (r"/api/offline/sub_ticket/rule", sub_ticket.SubTicketRuleHandler),
 ]
 
 # online audit

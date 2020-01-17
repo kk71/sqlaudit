@@ -48,7 +48,7 @@ class BaseModel(base):
         """update a record by given dict,
         with an iter function(mostly a lambda) to judge whether applies the change"""
         for k, v in d.items():
-            if k not in self.__dict__:
+            if k not in dir(self):
                 continue
             if isinstance(iter_if, FunctionType) and not iter_if(k, v):
                 continue

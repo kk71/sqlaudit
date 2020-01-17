@@ -475,10 +475,10 @@ def create_worklist_xlsx(filename, parame_dict):
         'color': 'red',
         # 'bg_color': 'yellow'
     })
-    works_heads = parame_dict['works_heads']
+    works_heads = parame_dict['work_list_heads']
     [ws.write(0, x, field.upper(), format_title) for x, field in enumerate(works_heads)]
 
-    works_data = parame_dict['works_data']
+    works_data = parame_dict['work_list_data']
     ws.write(1, 0, works_data[0], format_text)
     ws.write(1, 1, works_data[1], format_text)
     ws.write(1, 2, works_data[2], format_text)

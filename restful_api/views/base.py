@@ -82,7 +82,8 @@ class BaseReq(RequestHandler):
         return ja
 
     def get_query_args(self, schema_object: Schema = None) -> Union[dict, None]:
-        qa = {k: v[0].decode("utf-8") for k, v in self.request.query_arguments.items()}
+        qa = {k: v[0].decode("utf-8")
+              for k, v in self.request.query_arguments.items()}
         if schema_object:
             try:
                 qa = schema_object.validate(qa)
@@ -92,6 +93,25 @@ class BaseReq(RequestHandler):
                     raise e
                 return
         return qa
+
+    @staticmethod
+    def alternative_args(
+            func: Callable, schema_to_validate: Schema, k, **kwargs):
+        """
+        带条件的执行不同的schema检查
+        :param func: self.get_query_args或者self.get_json_args
+        :param schema_to_validate: 条件参数的schema
+        :param k: 该参数的字段名
+        :param kwargs: 枚举参数可能的值，并且给一个当前func的schema对象
+                        (注意，匹配的k的值是schema验证过之后的)
+        :return: (字段k的值（验证过的）, 对应验证后的params)
+        """
+        schema_to_validate._ignore_extra_keys = True
+        k_params = func(schema_to_validate)
+        k_value = k_params.pop(k)
+        current_schema_to_validate: Schema = kwargs[k_value]
+        current_schema_to_validate._ignore_extra_keys = True
+        return k_value, func(current_schema_to_validate)
 
     def resp(self,
         content: Union[dict, list] = None,

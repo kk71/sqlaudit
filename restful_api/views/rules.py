@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import sqlalchemy.exc
-from schema import Schema, Optional, Or, And
+from schema import Schema, Optional, And
 
 from utils.schema_utils import *
 from utils.const import *
@@ -12,9 +12,9 @@ from models.oracle import *
 
 
 class RuleRepoHandler(PrivilegeReq):
+
     def get(self):
         """规则库列表"""
-
         self.acquire(PRIVILEGE.PRIVILEGE_RULE)
 
         params = self.get_query_args(Schema({
@@ -36,6 +36,8 @@ class RuleRepoHandler(PrivilegeReq):
 
     def post(self):
         """新增规则"""
+        self.acquire(PRIVILEGE.PRIVILEGE_RULE)
+
         params = self.get_json_args(Schema({
             "db_type": scm_one_of_choices(ALL_SUPPORTED_DB_TYPE),
             "db_model": scm_one_of_choices(ALL_SUPPORTED_MODEL),
@@ -81,6 +83,8 @@ class RuleRepoHandler(PrivilegeReq):
 
     def patch(self):
         """修改规则"""
+        self.acquire(PRIVILEGE.PRIVILEGE_RULE)
+
         params = self.get_json_args(Schema({
             "_id": scm_unempty_str,
 

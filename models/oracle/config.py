@@ -18,7 +18,7 @@ class CMDB(BaseModel):
     group_name = Column("GROUP_NAME", String)
     business_name = Column("BUSINESS_NAME", String)
     machine_room = Column("MACHINE_ROOM", Integer)
-    database_type = Column("DATABASE_TYPE", Integer)
+    database_type = Column("DATABASE_TYPE", Integer)  # TODO 重构的时候把这个字段统一为str
     server_name = Column("SERVER_NAME", String)
     ip_address = Column("IP_ADDRESS", String)
     port = Column("PORT", Integer)

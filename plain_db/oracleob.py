@@ -1,10 +1,21 @@
-# -*- coding: utf-8 -*-
+# Author: kk.Fang(fkfkbill@gmail.com)
+
+__all__ = [
+    "DBError",
+    "OracleOB",
+    "OracleCMDBConnector"
+]
+
 
 import os
 from collections import OrderedDict
+
 import cx_Oracle
+
 import settings
 os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
+
+from models.oracle import CMDB
 
 
 class DBError(Exception):
@@ -150,6 +161,7 @@ class OracleHelper:
         cursor.close()
         cls.pool.release(conn)
 
+
 class OracleOB:
 
     def __init__(self, host, port, username, password, sid=None, service_name=None, charset="utf8"):
@@ -212,48 +224,26 @@ class OracleOB:
         self.cursor.close()
         self.conn.close()
 
-if __name__ == "__main__":
-    pass
 
-    odb = OracleOB("114.115.135.118", "1521", "isqlaudit", "v1g2m60id2499yz", "ora12c01")
-    # print(odb.select("SELECT * FROM T_USER WHERE login_user = 'admin'"))
-    # statement_id = 'jmte3qn0cdtckbg'
-    # sql = "Select 1 from dual"
-    # sql = f"EXPLAIN PLAN SET statement_id='{statement_id}' for {sql}"
-    # print(sql)
-    sql = """
-        INSERT INTO T_SQL_PLAN(work_list_id, statement_id, plan_id, timestamp, remarks, operation, options, object_node,
-                               object_owner, object_name, object_alias, object_instance, object_type, optimizer, search_columns,
-                               id, parent_id, depth, position, cost, cardinality, bytes, other_tag, partition_start,
-                               partition_stop, partition_id, distribution, cpu_cost, io_cost, temp_space, access_predicates, filter_predicates, projection, time, qblock_name) VALUES(:1, :2, :3, to_date(:4, 'yyyy-mm-dd hh24:mi:ss'), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35)
+class OracleCMDBConnector(OracleOB):
     """
-    b = """work_list_id, "statement_id", plan_id, "timestamp", remarks, operation, options, object_node,
-                               object_owner, object_name, object_alias, object_instance, object_type, optimizer, search_columns,
-                               "id", parent_id, depth, position, "cost", "cardinality", bytes, other_tag, partition_start,
-                               partition_stop, partition_id, distribution, cpu_cost, io_cost, temp_space, access_predicates, filter_predicates, projection, time, qblock_name"""
-    # print(len(b.split(',')))
-    # # zip(b.split(','), params)
-    # # a = datetime.datetime(2018, 5, 27, 4, 33, 2)
-    # params = [743, '0qz9qcfizickzj3', 283, '2018-05-12 00:00:00', '', 'SELECT STATEMENT', '', '',
-    #           '', '', '', '', '', 'ALL_ROWS', '', 0, '', 0, 1, 1, 2, 8, '', '', '', '', '', 7521, 1, '', '', '',
-    #           '', 1, '']
-    # for x in list(zip(b.split(','), params)):
-    #     print(x)
-    # print(list(zip(b.split(','), params)))
-    # print(len(params))
-    # print(odb.insert(sql, params))
-    # print(odb.select_dict("SELECT * FROM T_USER WHERE login_user = 'admin'"))
-    # sql = "INSERT INTO T_USER(login_user, user_name, password, email, mobile_phone, create_date) VALUES(:1, :2, :3, :4, :5, to_date(:6, 'yyyy-MM-dd HH24:mi:ss'))"
-    # sql = "SELECT SEQ_CMDB.NEXTVAL FROM T_CMDB "
-    # sql = "SELECT * FROM T_USER WHERE login_user = 'admin'"
-    # sql = "update t_user set create_date = to_date('2013-02-18 21:57:00','yyyy-mm-dd hh24:mi:ss');"
-
-    sql = "SELECT SEQ_MAIL_SERVER.nextval FROM MAIL_SERVER "
-    b = odb.select(sql)
-    print(b)
-    # current_time = datetime.now()
-
-    # sql = """UPDATE T_WORK_LIST SET work_list_status='{0}', audit_comments='{1}', audit_date='{2}'
-    #          WHERE work_list_id = '{3}'
-    # odb.update("UPDATE T_USER SET login_user = 'user_login' where login_user = 'login_user'")
-    # odb.delete("DELETE FROM T_USER WHERE login_user = 'aaa'")
+    用于快速连接oracle纳管库
+    """
+    def __init__(self, cmdb: CMDB, **kwargs):
+        """
+        根据纳管库sqlalchemy对象，建立一个纳管库连接
+        :param cmdb:
+        :param kwargs:
+        """
+        init_dict = {
+            "host": cmdb.ip_address,
+            "port": cmdb.port,
+            "username": cmdb.user_name,
+            "password": cmdb.password,
+            "sid": cmdb.service_name,  # TODO
+            "service_name": cmdb.sid  # TODO
+        }
+        if kwargs:
+            init_dict.update(kwargs)
+        print(f"going to make oracle connection to {init_dict} ...")
+        super(OracleCMDBConnector, self).__init__(**init_dict)

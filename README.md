@@ -7,4 +7,4 @@ sqlaudit
 
 * 若要使用，请运行app.py
 
-* 要测试restful api，请使用[postman](https://www.getpostman.com/)导入http://114.115.211.25:9090/downloads/pm.json
+* 要测试restful api，请使用[postman](https://www.getpostman.com/)导入http://139.9.227.172:9090/downloads/pm.json
