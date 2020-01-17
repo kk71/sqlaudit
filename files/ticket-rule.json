@@ -36,7 +36,7 @@
         "output_params": [],
         "max_score": 5,
         "code": "\n\ndef code(rule, **kwargs):\n    \"\"\"判断同一个工单的sql语句是否存在ddl和dml混写的情况\"\"\"\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if len(sql_types) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
+        "status": false,
         "summary": "DML、DDL语句混写会导致上线失败回滚时，DDL无法回滚",
         "solution": [
             "建议拆分DDL和DML语句"
