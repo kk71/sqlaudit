@@ -75,6 +75,22 @@
                 "tianlei.yan",
                 "kai.fang"
             ]
+        },
+        {
+            "create_time": "2020-01-17 10:06:46",
+            "version": [
+                1,
+                1,
+                0
+            ],
+            "version_name": "updated",
+            "client_name": "bsz",
+            "msg": "更新线下审核，重构线下审核，可调节审核扣分。",
+            "developers": [
+                "yj.han",
+                "tianlei.yan",
+                "kai.fang"
+            ]
         }
     ]
 }
