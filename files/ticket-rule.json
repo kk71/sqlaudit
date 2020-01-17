@@ -130,7 +130,7 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    if 'parallel' not in sql_text:\n        return None, []\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.groups(1)) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    if 'parallel' not in sql_text:\n        return None, []\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.group(1)) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
