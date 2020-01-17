@@ -331,7 +331,7 @@
     },
     {
         "name": "CHECK_INDEX_ONLINE",
-        "desc": "创建索引的时候加上online,否则索引创建期间会锁表",
+        "desc": "创建索引时未带上online关键字",
         "analyse_type": "STATIC",
         "sql_type": 1,
         "ddl_type": null,
@@ -341,9 +341,9 @@
         "max_score": 5,
         "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I):\n        if not re.search(r\"\\s+online\", sql_text, re.I):\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建索引的时候加上online,否则索引创建期间会锁表",
         "solution": [
-            ""
+            "创建索引的时候加上online"
         ],
         "weight": 1.0,
         "id": "5e142730a648b60f6d810338"
@@ -407,7 +407,7 @@
     },
     {
         "name": "CHECK_TRUNCATE_TABLE",
-        "desc": "截取表",
+        "desc": "清空表数据",
         "analyse_type": "STATIC",
         "sql_type": 1,
         "ddl_type": null,
