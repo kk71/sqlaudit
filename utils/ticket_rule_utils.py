@@ -12,7 +12,7 @@ def ticket_rule_import(filename) -> tuple:
     rules_to_import = []
     for rule in rules:
         the_rule = TicketRule()
-        the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", ))
+        the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", "id"))
         if TicketRule.objects(**the_rule.to_dict(iter_if=lambda k, v: k in (
                 "db_type", "name"))).count():
             print(f"this ticket rule existed: {the_rule.unique_key()}")
