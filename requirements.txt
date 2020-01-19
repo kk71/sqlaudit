@@ -1,4 +1,4 @@
-mongoengine<0.18
+mongoengine<0.20
 cx-Oracle<8
 redis
 celery
