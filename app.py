@@ -86,13 +86,14 @@ def clear_cache(q=True, no_prefetch=False):
 @cli.command()
 def create_admin():
     """create the admin user"""
+    from hashlib import md5
     from models.oracle import User, make_session
     with make_session() as session:
         default_password = "123456"
         admin = User(
             login_user=settings.ADMIN_LOGIN_USER,
             user_name="系统管理员",
-            password=default_password)
+            password=md5(default_password.encode("utf-8")).hexdigest())
         session.add(admin)
     print(f"admin user named {settings.ADMIN_LOGIN_USER} created "
           f"with password {default_password}")
