@@ -83,8 +83,10 @@ class OracleTicketSQLPlan(TicketSQLPlan):
                 one_dict["the_id"] = one_dict.pop("id")
             one_dict["operation_display"] = \
                 " " * one_dict["depth"] + one_dict["operation"]
-            one_dict["operation_display_with_options"] = \
-                one_dict["operation_display"] + " " + one_dict["options"]
+            one_dict["operation_display_with_options"] = one_dict["operation_display"]
+            if one_dict["operation"] and one_dict["options"]:
+                one_dict["operation_display_with_options"] = \
+                    one_dict["operation_display"] + " " + one_dict["options"]
             doc = cls(
                 work_list_id=work_list_id,
                 cmdb_id=cmdb_id,
