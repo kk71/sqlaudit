@@ -20,6 +20,7 @@ class OracleTicketSQLPlan(TicketSQLPlan):
     """oracle的工单动态审核产生的执行计划"""
     schema_name = StringField()
     operation_display = StringField()  # 带缩进用于展示的执行计划
+    operation_display_with_options = StringField()  # operation_display 加上 options的值
 
     # 以下都是oracle的plan_table返回的数据结构
     statement_id = StringField()
@@ -82,6 +83,8 @@ class OracleTicketSQLPlan(TicketSQLPlan):
                 one_dict["the_id"] = one_dict.pop("id")
             one_dict["operation_display"] = \
                 " " * one_dict["depth"] + one_dict["operation"]
+            one_dict["operation_display_with_options"] = \
+                one_dict["operation_display"] + " " + one_dict["options"]
             doc = cls(
                 work_list_id=work_list_id,
                 cmdb_id=cmdb_id,

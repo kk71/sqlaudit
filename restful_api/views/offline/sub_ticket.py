@@ -204,13 +204,12 @@ class SQLPlanHandler(TicketReq):
         if db_type == DB_ORACLE:
             # 指明的表中列明以及对应列数据在mongo-engine里的字段名
             sql_plan_head = {
-                "Plan Hash Value": "plan_id",
                 'Id': "the_id",
-                'Operation': "operation_display",
+                'Operation': "operation_display_with_options",
                 'Name': "object_name",
                 'Rows': "cardinality",
                 'Bytes': "bytes",
-                'Cost (%CPU)': "cpu_cost",
+                'Cost (%CPU)': "cost",
                 'Time': "time"
             }
 
@@ -221,7 +220,9 @@ class SQLPlanHandler(TicketReq):
                 order_by("plan_id", "the_id").\
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
-                pt.add_row(sql_plan)
+                to_add = [i if i else " " for i in sql_plan]
+                to_add[-1] = arrow.get(to_add[-1]).time().strftime("%H:%M:%S")
+                pt.add_row(to_add)
 
             output_table = str(pt)
             self.resp({
