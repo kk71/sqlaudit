@@ -87,7 +87,7 @@ SELECT
     p.depth,
     p.parent_id,
     p.operation,
-    lpad(p.operation, ' ', 1 * p.depth) operation_display,
+    lpad(' ', p.depth) || p.operation operation_display,
     p.options,
     p.object_node,
     p.object_owner,
