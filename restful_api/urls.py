@@ -96,7 +96,8 @@ urls += [
 
 # health status report
 urls += [
-    (r"/api/report/online/tasks", report.OnlineReportTaskListHandler),
+    (r"/api/report/online/task_outer",report.OnlineReportTaskOuterHandler),
+    (r'/api/report/online/dimension',report.OnlineReportDimensionHandler),
     (r"/api/report/online/task", report.OnlineReportTaskHandler),
     (r"/api/report/online/rule_detail", report.OnlineReportRuleDetailHandler),
     (r"/api/report/online/plan_detail", report.OnlineReportSQLPlanHandler),

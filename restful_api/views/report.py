@@ -2,9 +2,11 @@
 
 from os import path
 
+import arrow
 import xlsxwriter
 from schema import Optional, Schema, And
 from functools import reduce
+from collections import defaultdict
 
 import os
 import re
@@ -23,10 +25,10 @@ from task.mail_report import zip_file_path
 import html_report.export
 
 
-class OnlineReportTaskListHandler(PrivilegeReq):
+class OnlineReportTaskOuterHandler(PrivilegeReq):
 
     async def get(self):
-        """在线查看报告任务列表"""
+        """在线查看报告任务外层列表"""
 
         self.acquire(const.PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
 
@@ -35,33 +37,61 @@ class OnlineReportTaskListHandler(PrivilegeReq):
             Optional("connect_name"): scm_unempty_str,
             Optional("schema_name", default=None): scm_unempty_str,
             "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
-            Optional("date_start", default=None): scm_date,
-            Optional("date_end", default=None): scm_date_end,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
             **self.gen_p(),
         }))
         p = self.pop_p(params)
         schema_name = params.pop("schema_name")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
+
         with make_session() as session:
             cmdb_ids = await async_thr(
                 cmdb_utils.get_current_cmdb, session, self.current_user)
-        job_q = Job.objects(
-            score__nin=[None, 0],
-            cmdb_id__in=cmdb_ids,
-            **params).order_by("-create_time")
+
+        job_q = Job.objects(score__nin=[None, 0],
+                            cmdb_id__in=cmdb_ids,
+                            **params).order_by("-create_time")
         if schema_name:
             job_q = job_q.filter(desc__owner=schema_name)
         if date_start:
             job_q = job_q.filter(create_time__gte=date_start)
         if date_end:
             job_q = job_q.filter(create_time__lte=date_end)
-        jobs_to_ret, p = self.paginate(job_q, **p)
+
+        ds = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict())))
+        for j in job_q:
+            doc = ds[j.connect_name][j.desc.owner][j.record_id]
+            doc['connect_name'] = j.connect_name
+            doc['schema_name'] = j.desc.owner
+            doc['record_id'] = j.record_id
+            doc['create_time'] = arrow.get(j.create_time).format(COMMON_DATE_FORMAT)
+            doc['status'] = j.status
         ret = []
-        for j in jobs_to_ret:
-            ret.append({
-                **j.to_dict()
-            })
-        self.resp(ret, **p)
+        for x in ds.values():
+            for y in x.values():
+                for z in y.values():
+                    ret.append(dict(z))
+        rets, p = self.paginate(ret, **p)
+        rets = sorted(rets, key=lambda x: x['create_time'], reverse=True)
+        self.resp(rets, **p)
+
+
+class OnlineReportDimensionHandler(AuthReq):
+
+    def get(self):
+        """在线查看报告 库用户时间下四个维度"""
+        params = self.get_query_args(Schema({
+            "connect_name": scm_unempty_str,
+            "schema_name": scm_unempty_str,
+            "record_id": scm_unempty_str,  # ##需传递%23%23十六进制值
+
+        }))
+        schema_name = params.pop("schema_name")
+        job_q = Job.objects(score__nin=[None, 0],
+                            desc__owner=schema_name, **params)
+        job = [x.to_dict() for x in job_q]
+        self.resp(job)
 
 
 class OnlineReportTaskHandler(AuthReq):
@@ -183,7 +213,7 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 "columns": ret["columns"],
                 "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + ret['records']),
                 "rule": ret["rule"].to_dict(iter_if=lambda k, v: k in (
-                    "rule_desc", "rule_name", "rule_type", "solution"))if ret["rule"] else {},
+                    "rule_desc", "rule_name", "rule_type", "solution")) if ret["rule"] else {},
             })
 
 
@@ -244,12 +274,12 @@ class ExportReportXLSXHandler(AuthReq):
         job_ids = params.pop("job_id")
         del params
 
-        #The path to the generated file
-        path = "/tmp/" +str(int(time.time()))
+        # The path to the generated file
+        path = "/tmp/" + str(int(time.time()))
         if not os.path.exists(path):
             os.makedirs(path)
 
-        a = 1#防止类型一样导出错误
+        a = 1  # 防止类型一样导出错误
         for job_id in job_ids:
             result = Results.objects(task_uuid=job_id).first()
             job_info = Job.objects(id=job_id).first()
@@ -284,7 +314,7 @@ class ExportReportXLSXHandler(AuthReq):
 
                 for rule_data in rule_data_lists:
                     rule_name = rule_data[0]
-                    rule_detail_data = OnlineReportRuleDetailHandler.\
+                    rule_detail_data = OnlineReportRuleDetailHandler. \
                         get_report_rule_detail(session, job_id, rule_name)
                     rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model,
                                              db_type=const.DB_ORACLE).first()
@@ -309,8 +339,8 @@ class ExportReportXLSXHandler(AuthReq):
                     )
 
                 filename = f"export_sqlhealth_details_{job_info.name.split('#')[1]}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}-{a}.xlsx"
-                a+=1
-                full_filename=path + "/" + filename
+                a += 1
+                full_filename = path + "/" + filename
                 wb = xlsxwriter.Workbook(full_filename)
                 format_title = wb.add_format({
                     'bold': 1,
@@ -333,7 +363,7 @@ class ExportReportXLSXHandler(AuthReq):
                     records = rule_value['records']
                     table_title = rule_value['table_title']
 
-                    rule_ws = wb.add_worksheet(re.sub('[*%]','',rule_key[:20]))
+                    rule_ws = wb.add_worksheet(re.sub('[*%]', '', rule_key[:20]))
 
                     rule_ws.set_column(0, 0, 40)
                     rule_ws.set_column(1, 1, 110)
@@ -369,7 +399,7 @@ class ExportReportXLSXHandler(AuthReq):
             datetime.now().strftime("%Y%m%d%H%M%S") + ".zip"
         ]
         zipPath = zip_file_path(
-            path, settings.HEALTH_DIR,''.join(file_path_list))
+            path, settings.HEALTH_DIR, ''.join(file_path_list))
         self.resp({"url": zipPath})
 
 
@@ -383,7 +413,7 @@ class ExportReportHTMLHandler(AuthReq):
         }))
         job_ids = params.pop("job_id")
 
-        zipPath=await AsyncTimeout(60).async_thr(
+        zipPath = await AsyncTimeout(60).async_thr(
             html_report.export.export_task, job_ids)
 
         self.resp({
