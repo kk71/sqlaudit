@@ -2,6 +2,7 @@
 
 from os import path
 from collections import defaultdict
+from prettytable import PrettyTable
 
 import re
 import sqlparse
@@ -609,24 +610,28 @@ class SQLPlanHandler(AuthReq):
         plans = MSQLPlan.objects(**params).order_by("-etl_date")
         latest_plan = plans.first()  # 取出最后一次采集出来的record_id
         record_id = latest_plan.record_id
-        plans = plans.filter(record_id=record_id)
-        filtered_plans = []
+        filtered_plans = {
+            "ID": "index",
+            "Operation": "operation_display",
+            "Object owner": "object_owner",
+            "Object name": "object_name",
+            "Rows": "position",
+            "Cost": "cost",
+            "Time": "time",
+            "Acess Pred": "access_predicates",
+            "Filter Pred": "filter_predicates"
+        }
+        plans = plans.filter(record_id=record_id).\
+            values_list(*filtered_plans.values())
+
+        pt=PrettyTable(filtered_plans.keys())
+        pt.align="l"
         for p in plans:
-            filtered_plans.append(p.to_dict(iter_if=lambda k, v: k in (
-                "index",
-                "depth",
-                "operation",
-                "operation_display",
-                "object_owner",
-                "object_name",
-                "position",
-                "cost",
-                "time",
-                "access_predicates",
-                "filter_predicates"
-            )))
-        filtered_plans = sorted(filtered_plans, key=lambda x: x["index"])
-        self.resp(filtered_plans)
+            to_add = [i if i is not None else " " for i in p]
+            pt.add_row(to_add)
+        output_table = str(pt)
+
+        self.resp(output_table)
 
 
 class TableInfoHandler(AuthReq):
