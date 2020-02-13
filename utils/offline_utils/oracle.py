@@ -9,6 +9,7 @@ import base64
 import traceback
 
 from mongoengine import QuerySet as mongoengine_qs
+from cx_Oracle import DatabaseError
 
 from models.mongo import *
 from plain_db.oracleob import *
@@ -88,11 +89,15 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                     sub_result.dynamic.append(sub_result_item)
         except Exception as e:
             error_msg = str(e)
-            trace = traceback.format_exc()
-            sub_result.error_msg = self.update_error_message(
-                "动态审核", msg=error_msg, trace=trace, old_msg=sub_result.error_msg)
+            if isinstance(e, DatabaseError):
+                sub_result.error_msg = self.update_error_message(
+                    "动态审核", msg=error_msg, trace="", old_msg=sub_result.error_msg)
+            else:
+                trace = traceback.format_exc()
+                sub_result.error_msg = self.update_error_message(
+                    "动态审核", msg=error_msg, trace=trace, old_msg=sub_result.error_msg)
+                print(trace)
             print(error_msg)
-            print(trace)
 
     def run(self,
             sqls: [dict],
