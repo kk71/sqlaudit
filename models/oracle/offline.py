@@ -61,6 +61,9 @@ class WorkList(BaseModel):
         rules_max_score = defaultdict(lambda: [0, 0])
         for rule in TicketRule.filter_enabled():
             rules_max_score[rule.unique_key()][1] = rule.max_score  # 赋值规则的最大扣分
+        if not rules_max_score:
+            print("no enabled ticket rules.")
+            return  # 没有可用的规则。
         for sub_result in _TicketSubResult.objects(work_list_id=self.work_list_id):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for item_of_sub_result in static_and_dynamic_results:
