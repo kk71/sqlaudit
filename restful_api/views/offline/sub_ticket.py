@@ -221,7 +221,8 @@ class SQLPlanHandler(TicketReq):
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
                 to_add = [i if i else " " for i in sql_plan]
-                to_add[-1] = arrow.get(to_add[-1]).time().strftime("%H:%M:%S")
+                if to_add[-1].strip():
+                    to_add[-1] = arrow.get(to_add[-1]).time().strftime("%H:%M:%S")
                 pt.add_row(to_add)
 
             output_table = str(pt)
