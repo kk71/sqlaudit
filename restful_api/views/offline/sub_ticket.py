@@ -220,7 +220,7 @@ class SQLPlanHandler(TicketReq):
                 order_by("plan_id", "the_id").\
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
-                to_add = [i if i is None else " " for i in sql_plan]
+                to_add = [i if i is not None else " " for i in sql_plan]
                 if isinstance(to_add[-1], str) and to_add[-1].strip():
                     # 排除time可能为None（经过前面处理之后为" "）的情况
                     to_add[-1] = arrow.get(to_add[-1]).time().strftime("%H:%M:%S")
