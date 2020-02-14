@@ -521,9 +521,9 @@ class SQLRiskDetailHandler(AuthReq):
                     sql_stat_objects = sql_stat_objects.filter(etl_date__gte=date_start)
                 if date_end:
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
-                sql_stats["elapsed_time_delta"] +=\
+                sql_stats["elapsed_time_delta"] += \
                     list(sql_stat_objects.values_list("elapsed_time_delta"))
-                sql_stats["executions_delta"] +=\
+                sql_stats["executions_delta"] += \
                     list(sql_stat_objects.values_list("executions_delta"))
                 gp = graphs[plan_hash_value]
                 for sql_stat_obj in sql_stat_objects:
@@ -547,7 +547,7 @@ class SQLRiskDetailHandler(AuthReq):
                     })
 
                     get_delta_average = lambda x: x / sql_stat_obj.executions_delta \
-                        if x > 0 and sql_stat_obj.executions_delta>0 else 0
+                        if x > 0 and sql_stat_obj.executions_delta > 0 else 0
                     # 平均数
                     gp['cpu_time_average'][str(sql_stat_obj.plan_hash_value)].append({
                         "date": etl_date,
@@ -577,9 +577,9 @@ class SQLRiskDetailHandler(AuthReq):
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0
                          for k, v in sql_stats.items()}
 
-            the_first_appearance_time = sql_text_stats.get(sql_id, {})\
+            the_first_appearance_time = sql_text_stats.get(sql_id, {}) \
                 .get("first_appearance", None)
-            the_last_appearance_time = sql_text_stats.get(sql_id, {})\
+            the_last_appearance_time = sql_text_stats.get(sql_id, {}) \
                 .get("last_appearance", None)
             if not the_first_appearance_time or not the_last_appearance_time:
                 print(f"* warning: this sql with sql_id({sql_id}) may currently "
@@ -610,21 +610,22 @@ class SQLPlanHandler(AuthReq):
         plans = MSQLPlan.objects(**params).order_by("-etl_date")
         latest_plan = plans.first()  # 取出最后一次采集出来的record_id
         record_id = latest_plan.record_id
-        filtered_plans=["index","operation_display","options",
-                        "object_owner","object_name","position",
-                        "cost","time","access_predicates","filter_predicates"]
-        page_plans=["ID","Operation","Object owner","Object name",
-                    "Rows","Cost","Time","Acess Pred","Filter Pred"]
 
-        plans = plans.filter(record_id=record_id).\
+        filtered_plans = ["index", "operation_display", "options",
+                          "object_owner", "object_name", "position",
+                          "cost", "time", "access_predicates",
+                          "filter_predicates"]
+        page_plans = ["ID", "Operation", "Object owner", "Object name",
+                      "Rows", "Cost", "Time", "Acess Pred", "Filter Pred"]
+        plans = plans.filter(record_id=record_id). \
             values_list(*filtered_plans)
 
-        pt=PrettyTable(page_plans)
-        pt.align="l"
+        pt = PrettyTable(page_plans)
+        pt.align = "l"
         for p in plans:
-            to_add=list(p)
-            to_add[-3] = arrow.get(to_add[-3] if to_add[-3] else 0 ).time().strftime("%H:%M:%S")
-            to_add[1]=to_add[1]+" "+to_add[2] if to_add[2] else to_add[1]
+            to_add = list(p)
+            to_add[-3] = arrow.get(to_add[-3] if to_add[-3] else 0).time().strftime("%H:%M:%S")
+            to_add[1] = to_add[1] + " " + to_add[2] if to_add[2] else to_add[1]
             to_add.pop(2)
             to_add = [i if i is not None else " " for i in to_add]
             pt.add_row(to_add)
