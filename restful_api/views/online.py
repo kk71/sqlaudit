@@ -610,24 +610,23 @@ class SQLPlanHandler(AuthReq):
         plans = MSQLPlan.objects(**params).order_by("-etl_date")
         latest_plan = plans.first()  # 取出最后一次采集出来的record_id
         record_id = latest_plan.record_id
-        filtered_plans = {
-            "ID": "index",
-            "Operation": "operation_display",
-            "Object owner": "object_owner",
-            "Object name": "object_name",
-            "Rows": "position",
-            "Cost": "cost",
-            "Time": "time",
-            "Acess Pred": "access_predicates",
-            "Filter Pred": "filter_predicates"
-        }
-        plans = plans.filter(record_id=record_id).\
-            values_list(*filtered_plans.values())
+        filtered_plans=["index","operation_display","options",
+                        "object_owner","object_name","position",
+                        "cost","time","access_predicates","filter_predicates"]
+        page_plans=["ID","Operation","Object owner","Object name",
+                    "Rows","Cost","Time","Acess Pred","Filter Pred"]
 
-        pt=PrettyTable(filtered_plans.keys())
+        plans = plans.filter(record_id=record_id).\
+            values_list(*filtered_plans)
+
+        pt=PrettyTable(page_plans)
         pt.align="l"
         for p in plans:
-            to_add = [i if i is not None else " " for i in p]
+            to_add=list(p)
+            to_add[-3] = arrow.get(to_add[-3] if to_add[-3] else 0 ).time().strftime("%H:%M:%S")
+            to_add[1]=to_add[1]+" "+to_add[2] if to_add[2] else to_add[1]
+            to_add.pop(2)
+            to_add = [i if i is not None else " " for i in to_add]
             pt.add_row(to_add)
         output_table = str(pt)
 
