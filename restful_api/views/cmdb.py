@@ -116,7 +116,8 @@ class CMDBHandler(AuthReq):
             for i in ret:
                 i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
                 i["stats"]["etl_date"] = the_etl_date
-            #TODO 这里给ret加上纳管它的角色信息（角色名，角色id）以及纳管它的用户(login_user, user_name)
+                # TODO 这里给ret加上纳管它的角色信息（角色名，角色id）
+                #  以及纳管它的用户(login_user, user_name)
                 qe = QueryEntity(CMDB.connect_name,
                                  CMDB.cmdb_id,
                                  RoleDataPrivilege.schema_name,
@@ -129,7 +130,7 @@ class CMDBHandler(AuthReq):
                     join(Role, Role.role_id == RoleDataPrivilege.role_id)
 
                 cmdb_role = [list(x) for x in cmdb_role]
-                cmdb_role=[x for x in cmdb_role  if i['cmdb_id']  in x]
+                cmdb_role = [x for x in cmdb_role if i['cmdb_id'] in x]
 
                 i['role'] = reduce(lambda x, y: x if y in x else x + [y],
                                    [[], ] + [{'role_id': a[6], 'role_name': a[5]} for a in cmdb_role])
@@ -144,11 +145,12 @@ class CMDBHandler(AuthReq):
                     join(Role, UserRole.role_id == Role.role_id). \
                     join(User, UserRole.login_user == User.login_user)
 
-                role_user=[list(x) for x in role_user]
-                role_user=[y for y in role_user for d in i['role'] if d['role_id'] in y]
+                role_user = [list(x) for x in role_user]
+                role_user = [y for y in role_user for d in i['role'] if d['role_id'] in y]
 
-                i['combined_user']=reduce(lambda x, y: x if y in x else x + [y],
-                                          [[],]+[{'combined_login_user':c[2],'combined_user_name':c[3]} for c in role_user])
+                i['combined_user'] = reduce(lambda x, y: x if y in x else x + [y],
+                                            [[], ] + [{'combined_login_user': c[2], 'combined_user_name': c[3]} for c in
+                                                      role_user])
 
             self.resp(ret, **p)
 
@@ -250,7 +252,7 @@ class CMDBHandler(AuthReq):
             the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
 
             if not self.is_admin() \
-                    and "allow_online" in params.keys()\
+                    and "allow_online" in params.keys() \
                     and params["allow_online"] != the_cmdb.allow_online:
                 return self.resp_forbidden("只有管理员可以操作自助上线开关")
 

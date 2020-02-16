@@ -53,21 +53,29 @@ class StatsLoginUser(BaseStatisticsDoc):
 
     login_user = StringField(help_text="仅对某个用户有效")
 
-    sql_num = LongField(default=0)
-    sql_problem_num = LongField(default=0)
-    sql_problem_rate = FloatField(default=0.0)
+    # SQL
+    sql_num = LongField(default=0)                   # 采集到的sql总数（按照sql_id去重）
+    sql_problem_num = LongField(default=0)           # 包含问题的sql数（去重）
+    sql_problem_rate = FloatField(default=0.0)       # sql_problem_num/sql_num
+    problem_num_of_sql = LongField(default=0)        # sql的问题数
 
-    table_num = IntField(default=0)
-    table_problem_num = IntField(default=0)
-    table_problem_rate = FloatField(default=0.0)
+    # TABLE
+    table_num = IntField(default=0)                  # 采集到的表数
+    table_problem_num = IntField(default=0)          # 包含问题的表数目
+    table_problem_rate = FloatField(default=0.0)     # table_problem_num/table_num
+    problem_num_of_table = LongField(default=0)      # table的问题数
 
-    index_num = LongField(default=0)
-    index_problem_num = LongField(default=0)
-    index_problem_rate = FloatField(default=0.0)
+    # INDEX
+    index_num = LongField(default=0)                 # 采集到的索引数
+    index_problem_num = LongField(default=0)         # 包含问题的索引数
+    index_problem_rate = FloatField(default=0.0)     # index_problem_num/index_num
+    problem_num_of_index = LongField(default=0)      # index的问题数
 
-    sequence_num = IntField(default=0)
-    sequence_problem_num = IntField(default=0)
-    sequence_problem_rate = FloatField(default=0.0)
+    # SEQUENCE
+    sequence_num = IntField(default=0)               # 采集到的序列数
+    sequence_problem_num = IntField(default=0)       # 包含问题的序列数
+    sequence_problem_rate = FloatField(default=0.0)  # sequence_problem_num/sequence_num
+    problem_num_of_sequence = LongField(default=0)   # sequence的问题数
 
     schema_rank = EmbeddedDocumentListField(StatsLoginUser_SchemaRank, default=list)
     tablespace_rank = EmbeddedDocumentListField(StatsLoginUser_TablespaceRank, default=list)
@@ -113,7 +121,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_ids,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                     )
-                    # doc.sql_problem_num = calc_problem_num(sql_r_q)
                     doc.sql_problem_num = calc_problem_sql_id_num(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
@@ -123,7 +130,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_TABLE
                     )
-                    doc.table_problem_num = calc_problem_num(
+                    doc.problem_num_of_table = calc_problem_num(
                         table_r_q, rule_name=rule_names_to_tab)
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
@@ -133,7 +140,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_INDEX
                     )
-                    doc.index_problem_num = calc_problem_num(
+                    doc.problem_num_of_index = calc_problem_num(
                         index_r_q, rule_name=rule_names_to_ind)
                     if doc.index_num:
                         doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
@@ -146,7 +153,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ
                     )
                     print(f"rule names to sequence: {rule_names_to_seq}")
-                    doc.sequence_problem_num = calc_problem_num(
+                    doc.problem_num_of_sequence = calc_problem_num(
                         sequence_r_q, rule_name=rule_names_to_seq)
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
