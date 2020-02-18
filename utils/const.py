@@ -166,6 +166,10 @@ SQL_KEYWORDS = {
 }
 ALL_SQL_KEYWORDS = {j for i in SQL_KEYWORDS.values() for j in i}
 
+# 不需要做动态审核的语句类型
+
+SQL_KEYWORDS_NO_DYNAMIC_ANALYSE = ("COMMIT", "ROLLBACK", "GRANT")
+
 # SQL里面的remark是不能被sqlparse当作注释处理的，需要用一个占位符先替换
 
 REMARK_PLACEHOLDER: str = "--REMARKREMARK"

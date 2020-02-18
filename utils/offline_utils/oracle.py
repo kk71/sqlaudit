@@ -126,7 +126,8 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             **single_sql
         )
         self.run_static(sub_result, sqls, single_sql)
-        self.run_dynamic(sub_result, single_sql)
+        if single_sql["sql_type"] not in SQL_KEYWORDS_NO_DYNAMIC_ANALYSE:
+            self.run_dynamic(sub_result, single_sql)
         return sub_result
 
     def sql_online(self, sql: str, **kwargs):
