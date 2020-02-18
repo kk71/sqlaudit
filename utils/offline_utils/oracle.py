@@ -15,6 +15,7 @@ from models.mongo import *
 from plain_db.oracleob import *
 from utils.const import *
 from .base import SubTicketAnalysis
+from utils.parsed_sql import ParsedSQL
 
 
 class OracleSubTicketAnalysis(SubTicketAnalysis):
@@ -116,6 +117,10 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             for k, v in single_sql.items()
         }
         print(f"* {_for_print} of {len(sqls)}")
+        ps = ParsedSQL(single_sql["sql_text"])
+        if len(ps) != 1:
+            raise TicketAnalyseException(
+                f"sub ticket with more than one sql sentence: {ps}")
         sub_result = OracleTicketSubResult(
             work_list_id=self.ticket.work_list_id,
             cmdb_id=self.cmdb.cmdb_id,
@@ -126,7 +131,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
             **single_sql
         )
         self.run_static(sub_result, sqls, single_sql)
-        if single_sql["sql_type"] not in SQL_KEYWORDS_NO_DYNAMIC_ANALYSE:
+        if ps[0].statement_type not in SQL_KEYWORDS_NO_DYNAMIC_ANALYSE:
             self.run_dynamic(sub_result, single_sql)
         return sub_result
 

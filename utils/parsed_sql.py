@@ -89,3 +89,12 @@ class ParsedSQLStatement:
             self.sql_type = "UNKNOWN"
             print(f"warning: statement '{self.normalized}' cannot "
                   "be recognized whether DDL or DML.")
+
+    def __repr__(self):
+        sql_thumbnail = self.normalized_without_comment[:20]
+        if sql_thumbnail != self.normalized_without_comment:
+            sql_thumbnail += "..."
+        return "<ParsedSQLStatement-" \
+               f"{const.ALL_SQL_TYPE_NAME_MAPPING[self.sql_type]}-" \
+               f"{self.statement_type}-" \
+               f"{sql_thumbnail}>"

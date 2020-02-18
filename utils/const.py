@@ -379,4 +379,9 @@ class RuleCodeInvalidException(Exception):
     pass
 
 
+class TicketAnalyseException(Exception):
+    """线下工单分析的时候出错，导致部分子工单不能生成"""
+    pass
+
+
 del Union
