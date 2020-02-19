@@ -336,7 +336,7 @@ def get_object_unique_labels(
             # 尝试获取OBJ类型
             records = result_rule_dict.get("records", [])
             for record in records:
-                object_name = the_rule.get_obeject_name(record, the_rule.obj_info_type)
+                object_name = the_rule.get_object_name(record, the_rule.obj_info_type)
                 if object_name:
                     object_names.add(object_name)
     return list(object_names)
