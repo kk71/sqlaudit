@@ -40,7 +40,7 @@ def format_rule_result_detail(rule_object, record: list):
 
 def export_rule_to_json_file(filename: str):
     """导出rule"""
-    rules = [i.to_dict() for i in Rule.objects()]
+    rules = [i.to_dict(iter_if=lambda k, v: k not in ("_id",)) for i in Rule.objects()]
     with open(filename, "w") as z:
         z.write(json.dumps(rules, indent=4, ensure_ascii=False))
     return len(rules)
