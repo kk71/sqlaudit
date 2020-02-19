@@ -168,7 +168,8 @@ def get_risk_object_list(session,
                     "schema": result.schema_name,
                     "object_name": record[0],
                     "rule_desc": risky_rule_object.rule_desc,
-                    "table_name": risky_rule_object.get_table_name(record),
+                    "table_name": risky_rule_object.get_object_name(
+                        record, const.OBJ_RULE_TYPE_TABLE),
                     "risk_detail": rule_utils.format_rule_result_detail(
                         risky_rule_object, record),
                     "optimized_advice": risk_rule_object.optimized_advice,

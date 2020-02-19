@@ -43,15 +43,24 @@ class Rule(BaseDoc):
     def get_3_key(self) -> tuple:
         return self.db_type, self.db_model, self.rule_name
 
-    def get_table_name(self, record) -> Union[str, None]:
-        """获取一条record数据的表名"""
-        table_name_key_index = None
+    def get_object_name(self, record, obj_info_type) -> Union[str, None]:
+        """获取一条record数据的对象名"""
+        key_index = None
         for i, parm in enumerate(self.output_parms):
-            if "表名" in parm["parm_desc"]:
-                table_name_key_index = i
+            if obj_info_type == const.OBJ_RULE_TYPE_TABLE \
+                    and "表名" in parm["parm_desc"]:
+                key_index = i
                 break
-        if table_name_key_index is not None:
-            return record[table_name_key_index]
+            elif obj_info_type == const.OBJ_RULE_TYPE_INDEX \
+                    and "索引名" in parm["parm_desc"]:
+                key_index = i
+                break
+            elif obj_info_type == const.OBJ_RULE_TYPE_SEQ \
+                    and "序列名" in parm["parm_desc"]:
+                key_index = i
+                break
+        if key_index is not None:
+            return record[key_index]
 
     @classmethod
     def filter_enabled(cls, *args, **kwargs):

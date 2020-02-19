@@ -91,7 +91,8 @@ class StatsLoginUser(BaseStatisticsDoc):
         from models.oracle import make_session, CMDB, User
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
-            get_latest_task_record_id, calc_score_by, calc_problem_sql_id_num
+            get_latest_task_record_id, calc_score_by, calc_distinct_sql_id, \
+            get_object_unique_labels
         from utils.cmdb_utils import get_current_schema, get_current_cmdb
         from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo, ObjTabSpace
         from models.mongo import SQLText
@@ -121,9 +122,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_ids,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                     )
-                    doc.sql_problem_num = calc_problem_sql_id_num(sql_r_q)
+                    doc.problem_num_of_sql = calc_problem_num(sql_r_q)
+                    doc.sql_problem_num = calc_distinct_sql_id(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
+
                     # TABLE ============
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
@@ -132,8 +135,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                     )
                     doc.problem_num_of_table = calc_problem_num(
                         table_r_q, rule_name=rule_names_to_tab)
+                    doc.table_problem_num = len(get_object_unique_labels(
+                        table_r_q, rule_names_to_tab))
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
+
                     # INDEX =============
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
@@ -142,8 +148,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                     )
                     doc.problem_num_of_index = calc_problem_num(
                         index_r_q, rule_name=rule_names_to_ind)
+                    doc.index_problem_num = len(get_object_unique_labels(
+                        index_r_q, rule_names_to_ind))
                     if doc.index_num:
                         doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
+
                     # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
                         cmdb_id__in=cmdb_ids,
@@ -155,8 +164,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                     print(f"rule names to sequence: {rule_names_to_seq}")
                     doc.problem_num_of_sequence = calc_problem_num(
                         sequence_r_q, rule_name=rule_names_to_seq)
+                    doc.sequence_problem_num = len(get_object_unique_labels(
+                        sequence_r_q, rule_names_to_seq))
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
+
                     # schema排名
                     tab_space = ObjTabSpace.objects(task_record_id__in=latest_task_record_ids). \
                                     order_by("-usage_ratio")[:10]

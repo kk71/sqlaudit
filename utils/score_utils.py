@@ -107,8 +107,8 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
     ret = {}
 
-    last_exec_hist = TaskExecHistory.\
-        filter_succeed(session, TaskExecHistory.connect_name == cmdb.connect_name).\
+    last_exec_hist = TaskExecHistory. \
+        filter_succeed(session, TaskExecHistory.connect_name == cmdb.connect_name). \
         order_by(TaskExecHistory.task_end_date.desc()).first()
     if not last_exec_hist:
         calc_score_by.tik("no last exec hist")
@@ -147,9 +147,9 @@ def get_latest_task_record_id(
         cmdb_id: Union[list, int, None] = None,
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
-                                lambda: arrow.now().shift(days=-7).datetime,
+        lambda: arrow.now().shift(days=-7).datetime,
         task_record_id_to_replace: [dict, None] = None
-        ) -> dict:
+) -> dict:
     """
     获取每个库最后一次采集分析的task_record_id
     :param session:
@@ -207,8 +207,8 @@ def get_result_queryset_by(
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
-        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type).\
-            values_list("rule_name")))
+        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type). \
+                                        values_list("rule_name")))
     result_q = Results.filter_by_exec_hist_id(task_record_id)
     if rule_type:
         result_q = result_q.filter(rule_type__in=rule_type)
@@ -216,11 +216,11 @@ def get_result_queryset_by(
         Qs = None
         for rn in rule_names_to_filter:
             if not Qs:
-                Qs = Q(**{f"{rn}__sqls__nin": [None, []]}) |\
+                Qs = Q(**{f"{rn}__sqls__nin": [None, []]}) | \
                      Q(**{f"{rn}__records__nin": [None, []]})
             else:
-                Qs = Qs |\
-                     Q(**{f"{rn}__sqls__nin": [None, []]}) |\
+                Qs = Qs | \
+                     Q(**{f"{rn}__sqls__nin": [None, []]}) | \
                      Q(**{f"{rn}__records__nin": [None, []]})
         if Qs:
             result_q = result_q.filter(Qs)
@@ -259,27 +259,27 @@ def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) ->
     return len(sql_id_set)
 
 
-def calc_problem_sql_id_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
-    """计算result的query set得出哪些sql有问题 sqlplan sqlstat text三个维度"""
-    ret=[]
-    if isinstance(rule_name, str):
-        rule_name = [rule_name]
-    for result in result_q:
-        if not rule_name:
-            rule_name_to_loop = dir(result)
-        else:
-            rule_name_to_loop = rule_name
-        for rn in rule_name_to_loop:
-            result_rule_dict = getattr(result, rn, None)
-            if not result_rule_dict or not isinstance(result_rule_dict, dict):
-                continue
-            # SQL类型获取sql_id
-            records = [x["sql_id"] for x in result_rule_dict.get("sqls", [])]
-            if not records:
-                continue
-            ret.append(records)
-    count = len(list(set([y for x in ret for y in x])))
-    return count
+# def calc_problem_sql_id_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
+#     """计算result的query set得出哪些sql有问题 sqlplan sqlstat text三个维度"""
+#     ret = []
+#     if isinstance(rule_name, str):
+#         rule_name = [rule_name]
+#     for result in result_q:
+#         if not rule_name:
+#             rule_name_to_loop = dir(result)
+#         else:
+#             rule_name_to_loop = rule_name
+#         for rn in rule_name_to_loop:
+#             result_rule_dict = getattr(result, rn, None)
+#             if not result_rule_dict or not isinstance(result_rule_dict, dict):
+#                 continue
+#             # SQL类型获取sql_id
+#             records = [x["sql_id"] for x in result_rule_dict.get("sqls", [])]
+#             if not records:
+#                 continue
+#             ret.append(records)
+#     count = len(list(set([y for x in ret for y in x])))
+#     return count
 
 
 def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
@@ -310,3 +310,33 @@ def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int
                     continue
             count += len(records)
     return count
+
+
+def get_object_unique_labels(
+        result_q, rule_name: Union[str, list, tuple] = None) -> list:
+    """
+    活得某个result queryset内全部的对象唯一标识（表名，索引名，序列名）
+    :param result_q:
+    :param rule_name:
+    :return:
+    """
+    object_names: set = set()
+    if isinstance(rule_name, str):
+        rule_name = [rule_name]
+    for result in result_q:
+        if not rule_name:
+            rule_name_to_loop = dir(result)
+        else:
+            rule_name_to_loop = rule_name
+        for rn in rule_name_to_loop:
+            the_rule = Rule.filter_enabled(rule_name=rn).first()
+            result_rule_dict = getattr(result, rn, None)
+            if not result_rule_dict or not isinstance(result_rule_dict, dict):
+                continue
+            # 尝试获取OBJ类型
+            records = result_rule_dict.get("records", [])
+            for record in records:
+                object_name = the_rule.get_obeject_name(record, the_rule.obj_info_type)
+                if object_name:
+                    object_names.add(object_name)
+    return list(object_names)
