@@ -116,8 +116,9 @@ class StatsLoginUser(BaseStatisticsDoc):
                       f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
                     # SQL ==============
-                    doc.sql_num = len(SQLText.filter_by_exec_hist_id(
-                        latest_task_record_ids).distinct("sql_id"))
+                    for ltri in latest_task_record_ids:
+                        doc.sql_num += len(SQLText.filter_by_exec_hist_id(ltri).
+                                           distinct("sql_id"))
                     sql_r_q, _ = get_result_queryset_by(
                         latest_task_record_ids,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
