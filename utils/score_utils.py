@@ -338,5 +338,5 @@ def get_object_unique_labels(
             for record in records:
                 object_name = the_rule.get_object_name(record, the_rule.obj_info_type)
                 if object_name:
-                    object_names.add(object_name)
+                    object_names.add((result.cmdb_id, object_name))
     return list(object_names)
