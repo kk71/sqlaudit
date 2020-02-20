@@ -151,7 +151,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.index_problem_num = len(get_object_unique_labels(
                         index_r_q, rule_names_to_ind))
                     if doc.index_num:
-                        doc.table_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
+                        doc.index_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
                     # SEQUENCE ===========
                     doc.sequence_num = ObjSeqInfo.objects(
