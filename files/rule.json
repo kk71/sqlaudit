@@ -34,7 +34,7 @@
             "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -82,7 +82,7 @@
             "按需定义字段长度"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -151,7 +151,7 @@
             "添加时间字段(比如插入、更新的时间戳)"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -262,7 +262,7 @@
             "删除不必要的索引"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -322,7 +322,7 @@
             "合理定义字段类型"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -683,7 +683,7 @@
             "OLTP在线交易系统禁用位图索引"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -720,7 +720,7 @@
             "建议在数据库外部进行存储大字段"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -769,7 +769,7 @@
             "2.注意列在所有的顺序"
         ],
         "weight": 0.1,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1797,7 +1797,7 @@
             "应用程序实现外键约束,不建议在数据库里面使用外键约束"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2171,7 +2171,7 @@
             "2.重建索引"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2561,7 +2561,7 @@
             "根据业务特点,有目的的添加相关索引"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2590,7 +2590,7 @@
             "必须定义主键"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3037,7 +3037,7 @@
             "关闭索引并行度alter index INDEXNAME noparallel;"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3313,7 +3313,7 @@
             "2.无法去除外键,必须添加外键索引"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3647,7 +3647,7 @@
             "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3695,7 +3695,7 @@
             "按需定义字段长度"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3724,7 +3724,7 @@
             "添加时间字段(比如插入、更新的时间戳)"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3753,7 +3753,7 @@
             "必须定义主键"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3787,7 +3787,7 @@
             "2.无法去除外键,必须添加外键索引"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3906,7 +3906,7 @@
             "建议在数据库外部进行存储大字段"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4073,7 +4073,7 @@
             "应用程序实现外键约束,不建议在数据库里面使用外键约束"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4106,7 +4106,7 @@
             "根据业务特点,有目的的添加相关索引"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4184,7 +4184,7 @@
             "关闭索引并行度alter index INDEXNAME noparallel;"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4355,7 +4355,7 @@
             "删除不必要的索引"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4404,7 +4404,7 @@
             "2.注意列在所有的顺序"
         ],
         "weight": 0.1,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4534,7 +4534,7 @@
             "2.重建索引"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4714,7 +4714,7 @@
             "合理定义字段类型"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4788,7 +4788,7 @@
             "OLTP在线交易系统禁用位图索引"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7250,7 +7250,7 @@
             "需要考虑建索引"
         ],
         "weight": 0.1,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7279,7 +7279,7 @@
             "需要考虑建索引"
         ],
         "weight": 0.1,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
