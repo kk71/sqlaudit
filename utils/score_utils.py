@@ -187,7 +187,8 @@ def get_result_queryset_by(
         rule_type: Union[str, list, tuple] = None,
         obj_info_type=None,
         schema_name: Union[str, list, tuple] = None,
-        cmdb_id: Union[int, list, tuple] = None
+        cmdb_id: Union[int, list, tuple] = None,
+        cmdb_id_schema_name_pairs: [tuple] = None
 ):
     """
     复杂查询results
@@ -196,6 +197,7 @@ def get_result_queryset_by(
     :param obj_info_type:
     :param schema_name: 过滤schema_name
     :param cmdb_id:
+    :param cmdb_id_schema_name_pairs: [(981, "APEX"), ...] or [(981, ("APEX", "ABC"))]
     :return: (results_queryset, rule_names_to_filter)
     """
     if isinstance(rule_type, str):
@@ -207,7 +209,7 @@ def get_result_queryset_by(
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
-        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type). \
+        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type).
                                         values_list("rule_name")))
     result_q = Results.filter_by_exec_hist_id(task_record_id)
     if rule_type:
@@ -228,6 +230,21 @@ def get_result_queryset_by(
         result_q = result_q.filter(schema_name__in=schema_name)
     if cmdb_id:
         result_q = result_q.filter(cmdb_id__in=cmdb_id)
+    if cmdb_id_schema_name_pairs:
+        Qs = None
+        for the_cmdb_id, the_schema_name in cmdb_id_schema_name_pairs:
+            if isinstance(the_schema_name, str):
+                current_q = Q(cmdb_id=the_cmdb_id, schema_name=the_schema_name)
+            elif isinstance(the_schema_name, (tuple, list)):
+                current_q = Q(cmdb_id=the_cmdb_id, schema_name__in=the_schema_name)
+            else:
+                assert 0
+            if not Qs:
+                Qs = current_q
+            else:
+                Qs = Qs | current_q
+        if Qs:
+            result_q = result_q.filter(Qs)
     return result_q, rule_names_to_filter
 
 

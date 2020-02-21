@@ -7,6 +7,7 @@
 """
 
 from typing import Union
+from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, \
     DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField, \
@@ -54,28 +55,28 @@ class StatsLoginUser(BaseStatisticsDoc):
     login_user = StringField(help_text="仅对某个用户有效")
 
     # SQL
-    sql_num = LongField(default=0)                   # 采集到的sql总数（按照sql_id去重）
-    sql_problem_num = LongField(default=0)           # 包含问题的sql数（去重）
-    sql_problem_rate = FloatField(default=0.0)       # sql_problem_num/sql_num
-    problem_num_of_sql = LongField(default=0)        # sql的问题数
+    sql_num = LongField(default=0)  # 采集到的sql总数（按照sql_id去重）
+    sql_problem_num = LongField(default=0)  # 包含问题的sql数（去重）
+    sql_problem_rate = FloatField(default=0.0)  # sql_problem_num/sql_num
+    problem_num_of_sql = LongField(default=0)  # sql的问题数
 
     # TABLE
-    table_num = IntField(default=0)                  # 采集到的表数
-    table_problem_num = IntField(default=0)          # 包含问题的表数目
-    table_problem_rate = FloatField(default=0.0)     # table_problem_num/table_num
-    problem_num_of_table = LongField(default=0)      # table的问题数
+    table_num = IntField(default=0)  # 采集到的表数
+    table_problem_num = IntField(default=0)  # 包含问题的表数目
+    table_problem_rate = FloatField(default=0.0)  # table_problem_num/table_num
+    problem_num_of_table = LongField(default=0)  # table的问题数
 
     # INDEX
-    index_num = LongField(default=0)                 # 采集到的索引数
-    index_problem_num = LongField(default=0)         # 包含问题的索引数
-    index_problem_rate = FloatField(default=0.0)     # index_problem_num/index_num
-    problem_num_of_index = LongField(default=0)      # index的问题数
+    index_num = LongField(default=0)  # 采集到的索引数
+    index_problem_num = LongField(default=0)  # 包含问题的索引数
+    index_problem_rate = FloatField(default=0.0)  # index_problem_num/index_num
+    problem_num_of_index = LongField(default=0)  # index的问题数
 
     # SEQUENCE
-    sequence_num = IntField(default=0)               # 采集到的序列数
-    sequence_problem_num = IntField(default=0)       # 包含问题的序列数
+    sequence_num = IntField(default=0)  # 采集到的序列数
+    sequence_problem_num = IntField(default=0)  # 包含问题的序列数
     sequence_problem_rate = FloatField(default=0.0)  # sequence_problem_num/sequence_num
-    problem_num_of_sequence = LongField(default=0)   # sequence的问题数
+    problem_num_of_sequence = LongField(default=0)  # sequence的问题数
 
     schema_rank = EmbeddedDocumentListField(StatsLoginUser_SchemaRank, default=list)
     tablespace_rank = EmbeddedDocumentListField(StatsLoginUser_TablespaceRank, default=list)
@@ -103,6 +104,10 @@ class StatsLoginUser(BaseStatisticsDoc):
 
                 # 计算当前用户绑定的全部库的统计数据
                 cmdb_ids = get_current_cmdb(session, login_user)
+                cmdb_ids_schemas_dict = {
+                    cmdb_id: get_current_schema(session, login_user, cmdb_id)
+                    for cmdb_id in cmdb_ids
+                }
                 cmdb_id_connect_names_pair: dict = dict(session.query(
                     CMDB.cmdb_id, CMDB.connect_name))
                 latest_task_record_ids = list(
@@ -115,13 +120,25 @@ class StatsLoginUser(BaseStatisticsDoc):
                 print("latest task record ids(current included) of the user "
                       f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
+
+                    # TODO SQL_ID仅根据cmdb_id去重，但是对象要根据cmdb_id, schema_name去去重
+
                     # SQL ==============
-                    for ltri in latest_task_record_ids:
-                        doc.sql_num += len(SQLText.filter_by_exec_hist_id(ltri).
-                                           distinct("sql_id"))
+                    sql_id_dict = defaultdict(set)
+                    for sql_text_object in SQLText.filter_by_exec_hist_id(
+                            latest_task_record_ids):
+                        sql_id_dict[(sql_text_object.cmdb_id,
+                                     sql_text_object.schema)].add(sql_text_object.sql_id)
+                    for cmdb_id, schema_list in cmdb_ids_schemas_dict.items():
+                        if not schema_list:
+                            continue
+                        for schema_name in schema_list:
+                            doc.sql_num += len(sql_id_dict.get((cmdb_id, schema_name)))
+
                     sql_r_q, _ = get_result_queryset_by(
                         latest_task_record_ids,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
+                        cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
                     )
                     doc.problem_num_of_sql = calc_problem_num(sql_r_q)
                     doc.sql_problem_num = calc_distinct_sql_id(sql_r_q)
@@ -132,7 +149,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
                         latest_task_record_ids,
-                        obj_info_type=const.OBJ_RULE_TYPE_TABLE
+                        obj_info_type=const.OBJ_RULE_TYPE_TABLE,
+                        cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
                     )
                     doc.problem_num_of_table = calc_problem_num(
                         table_r_q, rule_name=rule_names_to_tab)
@@ -145,7 +163,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
                         latest_task_record_ids,
-                        obj_info_type=const.OBJ_RULE_TYPE_INDEX
+                        obj_info_type=const.OBJ_RULE_TYPE_INDEX,
+                        cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
                     )
                     doc.problem_num_of_index = calc_problem_num(
                         index_r_q, rule_name=rule_names_to_ind)
@@ -160,7 +179,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                         task_record_id__in=latest_task_record_ids).count()
                     sequence_r_q, rule_names_to_seq = get_result_queryset_by(
                         latest_task_record_ids,
-                        obj_info_type=const.OBJ_RULE_TYPE_SEQ
+                        obj_info_type=const.OBJ_RULE_TYPE_SEQ,
+                        cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
                     )
                     print(f"rule names to sequence: {rule_names_to_seq}")
                     doc.problem_num_of_sequence = calc_problem_num(
