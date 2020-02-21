@@ -133,7 +133,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         if not schema_list:
                             continue
                         for schema_name in schema_list:
-                            doc.sql_num += len(sql_id_dict.get((cmdb_id, schema_name)))
+                            doc.sql_num += len(sql_id_dict.get((cmdb_id, schema_name), []))
 
                     sql_r_q, _ = get_result_queryset_by(
                         latest_task_record_ids,
