@@ -187,7 +187,8 @@ def get_result_queryset_by(
         rule_type: Union[str, list, tuple] = None,
         obj_info_type=None,
         schema_name: Union[str, list, tuple] = None,
-        cmdb_id: Union[int, list, tuple] = None
+        cmdb_id: Union[int, list, tuple] = None,
+        cmdb_id_schema_name_pairs: [tuple] = None
 ):
     """
     复杂查询results
@@ -196,6 +197,7 @@ def get_result_queryset_by(
     :param obj_info_type:
     :param schema_name: 过滤schema_name
     :param cmdb_id:
+    :param cmdb_id_schema_name_pairs: [(981, "APEX"), ...] or [(981, ("APEX", "ABC"))]
     :return: (results_queryset, rule_names_to_filter)
     """
     if isinstance(rule_type, str):
@@ -207,7 +209,7 @@ def get_result_queryset_by(
     rule_names_to_filter = []
     if obj_info_type:
         # 默认规则只过滤已经启用的
-        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type). \
+        rule_names_to_filter = list(set(Rule.filter_enabled(obj_info_type=obj_info_type).
                                         values_list("rule_name")))
     result_q = Results.filter_by_exec_hist_id(task_record_id)
     if rule_type:
@@ -228,6 +230,21 @@ def get_result_queryset_by(
         result_q = result_q.filter(schema_name__in=schema_name)
     if cmdb_id:
         result_q = result_q.filter(cmdb_id__in=cmdb_id)
+    if cmdb_id_schema_name_pairs:
+        Qs = None
+        for the_cmdb_id, the_schema_name in cmdb_id_schema_name_pairs:
+            if isinstance(the_schema_name, str):
+                current_q = Q(cmdb_id=the_cmdb_id, schema_name=the_schema_name)
+            elif isinstance(the_schema_name, (tuple, list)):
+                current_q = Q(cmdb_id=the_cmdb_id, schema_name__in=the_schema_name)
+            else:
+                assert 0
+            if not Qs:
+                Qs = current_q
+            else:
+                Qs = Qs | current_q
+        if Qs:
+            result_q = result_q.filter(Qs)
     return result_q, rule_names_to_filter
 
 
@@ -255,31 +272,8 @@ def calc_distinct_sql_id(result_q, rule_name: Union[str, list, tuple] = None) ->
             if not sqls:
                 continue
             for sql in sqls:
-                sql_id_set.add(sql["sql_id"])
+                sql_id_set.add((result.cmdb_id, sql["sql_id"]))
     return len(sql_id_set)
-
-
-# def calc_problem_sql_id_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
-#     """计算result的query set得出哪些sql有问题 sqlplan sqlstat text三个维度"""
-#     ret = []
-#     if isinstance(rule_name, str):
-#         rule_name = [rule_name]
-#     for result in result_q:
-#         if not rule_name:
-#             rule_name_to_loop = dir(result)
-#         else:
-#             rule_name_to_loop = rule_name
-#         for rn in rule_name_to_loop:
-#             result_rule_dict = getattr(result, rn, None)
-#             if not result_rule_dict or not isinstance(result_rule_dict, dict):
-#                 continue
-#             # SQL类型获取sql_id
-#             records = [x["sql_id"] for x in result_rule_dict.get("sqls", [])]
-#             if not records:
-#                 continue
-#             ret.append(records)
-#     count = len(list(set([y for x in ret for y in x])))
-#     return count
 
 
 def calc_problem_num(result_q, rule_name: Union[str, list, tuple] = None) -> int:
@@ -338,5 +332,5 @@ def get_object_unique_labels(
             for record in records:
                 object_name = the_rule.get_object_name(record, the_rule.obj_info_type)
                 if object_name:
-                    object_names.add(object_name)
+                    object_names.add((result.cmdb_id, object_name))
     return list(object_names)
