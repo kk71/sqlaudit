@@ -8,13 +8,13 @@ from utils import const
 from utils.datetime_utils import *
 
 
-def print_html_script():
+def print_html_script(title):
     """
     加载离线页面的各种js和css脚本
     """
 
     # < linkhref = "http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel = "stylesheet" >
-    page = PyH('sqlreview report')
+    page = PyH(title)
     page << """
             <!-- ================== BEGIN BASE CSS STYLE ================== -->
 
@@ -65,7 +65,7 @@ def print_html_script():
             <script src="assets/plugins/gritter/js/jquery.gritter.js"></script>
             <script src="js/lib/jquery.dataTables.js") }}"></script>
             <script src="js/lib/dataTables.bootstrap.js")}}"></script>
-            <script src="js/lib/echarts-all.js"></script>
+            <script src="js/lib/echarts.min.js"></script>
             <script src="js/lib/jquery.treegrid.js"></script>
             <script src="js/lib/jquery.treegrid.bootstrap3.js"></script>
             <script src="assets/js/apps.min.js"></script>
@@ -73,6 +73,105 @@ def print_html_script():
             <!-- ================== END PAGE LEVEL JS ================== -->
             """
     return page
+def cmdb_print_html_body(page, cmdb):
+    page << """<body>
+        <!-- begin #page-loader -->
+        <div id="page-loader" class="fade in"><span class="spinner"></span></div>
+        <!-- end #page-loader -->
+
+        <!-- begin #page-container -->
+        <div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
+            <!-- begin #header -->
+            <div id="header" class="header navbar navbar-default navbar-fixed-top">
+                <!-- begin container-fluid -->
+                <div class="container-fluid">
+                    <!-- begin mobile sidebar expand / collapse button -->
+                    <div class="navbar-header">
+                        <a href="#"><h3 class="top-title">
+                        """+cmdb['connect_name']+"""
+                        </h3></a>
+                    </div>
+                    <!-- end mobile sidebar expand / collapse button -->
+                </div>
+                <!-- end container-fluid -->
+            </div>
+            <!-- end #header -->
+
+            <!-- begin #content -->
+            <div id="content" class="content" style="background-color:white">
+				<div class="row">
+					<div class="span12" id="baseInfo"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-8">
+						<div class="radio" style="float:right;font-size:16px">
+						
+						  <label class="radio-inline">
+							<input type="radio" name="sqlQuality" id="zhou" value="zhou" checked>
+							周
+						  </label>
+						  <label class="radio-inline">
+							<input type="radio" name="sqlQuality" id="yue" value="yue">
+							月
+						  </label>
+						</div>
+						<br/><br/>
+						<div id='sqlQualityZhou' class="col-md-12"></div>
+						<div id='sqlQualityYue'  class="col-md-12"></div>
+					</div>
+					
+					<div class="col-md-4">
+
+						<div class="radio" style="float:right;font-size:16px">
+						  <label class="radio-inline">
+							<input type="radio" name="sqlHealth" id="avg" value="avg" checked>
+							平均值
+						  </label>
+						  <label class="radio-inline">
+							<input type="radio" name="sqlHealth" id="min" value="min">
+							最小值
+						  </label>
+						</div>
+						
+						<div class="col-md-12" id="sqlHealthAvg">
+						</div>
+						
+						<div class="col-md-12" id="sqlHealthMin">
+						</div>
+					</div>
+				</div>
+				
+				<div class="row">
+					<div class="col-md-4" id="tableUseSpace"></div>
+					<div class="col-md-4" id="sqlBySum"></div>
+					<div class="col-md-4" id="riskType"></div>
+				</div>
+				
+				<div class="row">
+						<div class="radio" style="float:right;font-size:16px">
+						   <label class="radio-inline">
+							<input type="radio" class="radio" name="userHealthy" id="UAvg" value="UAvg" checked>
+							平均值
+						  </label>
+						  <label class="radio-inline">
+							<input type="radio" class="radio" name="userHealthy" id="UMin" value="UMin">
+							最小值
+						  </label>
+						</div>
+						
+						<br/><br/>
+						<div class="col-md-12" id='userHealthyAvg'></div>
+						<div class="col-md-12" id='userHealthyMin'></div>
+				</div>
+				
+
+
+            <!-- begin scroll to top btn -->
+<!--             <a href="javascript:;" class="btn btn-icon btn-circle btn-success btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a> -->
+            <!-- end scroll to top btn -->
+        </div>
+        <!-- end page container -->
+        </body>"""
 
 
 def print_html_body(page, ipaddress, port, schema):
@@ -135,6 +234,47 @@ def print_html_js(page):
             """
 
 
+def print_html_cmdb_js(page):
+
+    page << """
+            <script>
+            $("#sqlHealthMin").hide();
+			$("#sqlQualityYue").hide();
+			$("#userHealthyMin").hide();
+			
+			$(".radio-inline").on("click",function(e){
+				if(e.target.defaultValue == "yue"){
+					$("#sqlQualityYue").show();
+					$("#sqlQualityZhou").hide();
+
+				 }
+				 if(e.target.defaultValue == "zhou"){
+					$("#sqlQualityZhou").show();
+					$("#sqlQualityYue").hide();
+				 }
+				 if(e.target.defaultValue == "avg"){
+					$("#sqlHealthAvg").show();
+					$("#sqlHealthMin").hide();
+
+
+				 }
+				 if(e.target.defaultValue == "min"){
+					$("#sqlHealthMin").show();
+					$("#sqlHealthAvg").hide();
+
+				 }if(e.target.defaultValue == "UAvg"){
+					$("#userHealthyAvg").show();
+					$("#userHealthyMin").hide();
+				 }
+				 if(e.target.defaultValue == "UMin"){
+					$("#userHealthyMin").show();
+					$("#userHealthyAvg").hide();
+
+				 }
+				 //要执行的代码
+				 })</script>"""
+
+
 def print_html_chart(total_score, page, rules):
     """
     生成页面中的饼图，依赖于百度的echarts
@@ -154,7 +294,7 @@ def print_html_chart(total_score, page, rules):
     page << br()
 
 
-def print_html_rule_table(page, ipaddress, port, schema, rules,score):
+def print_html_rule_table(page, ipaddress, port, schema, rules, score):
     """
     生成离线页面中的规则表格
     """
@@ -291,9 +431,9 @@ def print_html_rule_detail_info(page, result, rules):
             plan_id = div_id + "-plan"
             plans = json.dumps(dt_to_str(sql_dict["plan"]))
 
-            page << "<script>genMultiTable('#base', '" + div_id + "', '" + obj_id +\
-            "', " + temp_obj_info + ", " + temp_obj_columns + ", '" + stat_id + "', " +\
-            temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " + sql_fulltext +\
+            page << "<script>genMultiTable('#base', '" + div_id + "', '" + obj_id + \
+            "', " + temp_obj_info + ", " + temp_obj_columns + ", '" + stat_id + "', " + \
+            temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " + sql_fulltext + \
             ", '" + plan_id + "', " + plans + ", '" + div_id + "')</script>"
             page << br()
 
@@ -325,8 +465,8 @@ def print_html_rule_text_detail_info(page, results, rules):
                     temp_stat_info.append(temp)
             temp_stat_info = json.dumps(temp_stat_info)
             temp_stat_columns = json.dumps(temp_stat_columns)
-            page << "<script>genMultiTextTable('#base', '" + div_id + "', '" + stat_id +\
-            "', " + temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " +\
+            page << "<script>genMultiTextTable('#base', '" + div_id + "', '" + stat_id + \
+            "', " + temp_stat_info + ", " + temp_stat_columns + ", '" + text_id + "', " + \
             sql_fulltext + ", '" + div_id + "')</script>"
             page << br()
 
@@ -347,8 +487,95 @@ def print_html_obj_detail_info(page, results, rules, rule_summary):
             table_title = json.dumps(table_title)
             records = json.dumps(records)
             page << "<script>genTable('#base', '" + rule[0] + "', '" + rule[
-                0] + "_table', " + records + ", " + table_title + ",'" + rule[0] +\
+                0] + "_table', " + records + ", " + table_title + ",'" + rule[0] + \
             "', '3', '" + rule[4] + "')</script>"
             page << br()
 
     page << br()
+
+
+def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum):
+
+    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+")</script>"
+    page << br()
+
+
+def print_html_cmdb_sql_quality(page,time_week,active_week_data,
+                                at_risk_week_data,time_mouth,
+                                active_mouth_data,at_risk_mouth_data):
+
+    legend=['活动sql', '风险sql']
+    series_mouth=[
+        {'name':'活动sql','type':'bar','stack':'数量',
+      'label': {
+          'show': 'true',
+          'position': 'insideRight'
+      },
+      'data': active_mouth_data
+      },
+        {'name': '风险sql', 'type': 'bar', 'stack': '数量',
+         'label': {
+             'show': 'true',
+             'position': 'insideRight'
+         },
+         'data': at_risk_mouth_data
+         }
+    ]
+    series_week = [
+        {'name': '活动sql', 'type': 'bar', 'stack': '数量',
+         'label': {
+             'show': 'true',
+             'position': 'insideRight'
+         },
+         'data': active_week_data
+         },
+        {'name': '风险sql', 'type': 'bar', 'stack': '数量',
+         'label': {
+             'show': 'true',
+             'position': 'insideRight'
+         },
+         'data': at_risk_week_data
+         }
+    ]
+    page << '<script>genStackedHistogramChart("#sqlQualityYue","sql质量",'+str(legend)+','+str(time_mouth)+','+str(series_mouth)+')</script>'
+    page << br()
+
+    page << '<script>genStackedHistogramChart("#sqlQualityZhou","sql质量",'+str(legend)+','+str(time_week)+','+str(series_week)+')</script>'
+    page << br()
+
+
+def print_html_cmdb_radar(page,radar_avg,radar_score_avg,
+                            radar_min,radar_score_min,):
+
+    page << '<script>genRadarChart("#sqlHealthAvg","sqlHealthAvgDiv","SQL健康度雷达图",' + str(radar_avg) + ',' + str(radar_score_avg) + ')</script>'
+    page << br()
+    page << '<script>genRadarChart("#sqlHealthMin","sqlHealthMinDiv","SQL健康度雷达图",' + str(radar_min) + ',' + str(radar_score_min) + ')</script>'
+    page << br()
+
+
+def print_html_cmdb_sql_time_num(page, x, y):
+
+    page << '<script>genSqlChart("#sqlBySum","sql语句总耗时",' + str(x) + ',' + str(y) + ')</script>'
+    page << br()
+
+
+def print_html_cmdb_tab_space_use_ration(page,ts_name,ts_usage_ratio,sort_ts_usage_ration):
+
+    page << '<script>genBarChart("#tableUseSpace","tableUseSpaceDiv","表空间使用率",' + str(ts_name) + ',' + str(ts_usage_ratio) + ','+str(sort_ts_usage_ration)+')</script>'
+    page << br()
+
+
+def print_html_cmdb_risk_rule_rank(page, risk_name, num,sort_num):
+
+    page << '<script>genBarChart("#riskType","riskTypeDiv","风险类型",'+ str(risk_name) + ',' + str(num) + ','+str(sort_num)+')</script>'
+    page << br()
+
+
+def print_html_cmdb_user_ranking(page, x_avg,y_avg,x_min,y_min):
+
+    page << "<script>genUserHealthyChart('#userHealthyMin','userHealthyMinDiv','用户健康度排名',''," + str(x_min) + "," + str(y_min) + ")</script>"
+    page << br()
+
+    page << "<script>genUserHealthyChart('#userHealthyAvg','userHealthyAvgDiv','用户健康度排名',''," + str(x_avg) + "," + str(y_avg) + ")</script>"
+    page << br()
+

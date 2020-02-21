@@ -12,6 +12,7 @@ import os
 import re
 import time
 import settings
+from utils.const import *
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from utils import score_utils, const
@@ -22,6 +23,7 @@ from utils import cmdb_utils
 from utils.conc_utils import *
 from task.mail_report import zip_file_path
 
+from html_report import cmdb_export
 import html_report.export
 
 
@@ -415,7 +417,83 @@ class ExportReportHTMLHandler(AuthReq):
 
         zipPath = await AsyncTimeout(60).async_thr(
             html_report.export.export_task, job_ids)
-
         self.resp({
             "url": zipPath
         })
+
+
+class ExportReportCmdbHTMLHandler(AuthReq):
+
+    def get(self):
+        """导出库的html报告"""
+        params=self.get_query_args(Schema({
+            "cmdb_id":scm_int
+        }))
+        cmdb_id=params.pop("cmdb_id")
+        del params
+
+        score_type_avg=SCORE_BY_AVERAGE
+        score_type_min=SCORE_BY_LOWEST
+        perspective_schema=OVERVIEW_ITEM_SCHEMA
+        perspective_radar=OVERVIEW_ITEM_RADAR
+        period_week=StatsCMDBLoginUser.DATE_PERIOD[0]
+        period_mouth = StatsCMDBLoginUser.DATE_PERIOD[1]
+
+        with make_session() as session:
+            cmdb_q=session.query(CMDB).filter_by(cmdb_id=cmdb_id).\
+                first()
+            cmdb=cmdb_q.to_dict()
+            latest_task_record_id=score_utils.get_latest_task_record_id(session,cmdb_id)\
+                .get(cmdb_id, None)
+
+            tablespace_sum=StatsCMDBPhySize.objects(task_record_id=latest_task_record_id,cmdb_id=cmdb_id).\
+                first().to_dict()
+
+            ret_radar_avg = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_avg)
+            radar_avg=[{"name":k,"max":100}for k in ret_radar_avg.keys()]
+            radar_score_avg=[round(x) for x in ret_radar_avg.values()]
+            ret_radar_min = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_min)
+            radar_min = [{"name": k, "max": 100} for k in ret_radar_min.keys()]
+            radar_score_min = [round(x) for x in ret_radar_min.values()]
+
+            tab_space_q = ObjTabSpace.objects(
+                cmdb_id=cmdb_id, task_record_id=latest_task_record_id). \
+                order_by("-usage_ratio")
+
+            rets=StatsCMDBLoginUser.objects(
+                login_user=self.current_user,
+                cmdb_id=cmdb_id,
+                task_record_id=latest_task_record_id)
+            ret_w=rets.filter(date_period=period_week).first().to_dict()
+            ret_m=rets.filter(date_period=period_mouth).first().to_dict()
+            active_week = ret_w['sql_num']['active']
+            at_risk_week = ret_w['sql_num']['at_risk']
+            active_mouth = ret_m['sql_num']['active']
+            at_risk_mouth = ret_m['sql_num']['at_risk']
+
+            sql_time_num = ret_w['sql_execution_cost_rank']['by_sum']
+
+            risk_rule_rank=ret_w['risk_rule_rank']
+
+            ret_schema_avg=score_utils.calc_score_by(session,cmdb_q,perspective_schema,score_type_avg)
+            ret_schema_min = score_utils.calc_score_by(session, cmdb_q, perspective_schema, score_type_min)
+            user_health_ranking_avg = sorted(
+                self.dict_to_verbose_dict_in_list(ret_schema_avg, "schema", "num"),
+                key=lambda k: k["num"])
+            user_health_ranking_min = sorted(
+                self.dict_to_verbose_dict_in_list(ret_schema_min, "schema", "num"),
+                key=lambda k: k["num"])
+
+            path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
+                                                        radar_avg,radar_score_avg,
+                                                        radar_min,radar_score_min,
+                                                        tab_space_q,
+                                                        active_week,at_risk_week,
+                                                        active_mouth,at_risk_mouth,
+                                                        sql_time_num,
+                                                        risk_rule_rank,
+                                                        user_health_ranking_avg,
+                                                        user_health_ranking_min)
+            self.resp({
+                "url": path
+            })

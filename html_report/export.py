@@ -130,7 +130,7 @@ def export_task(job_ids:list)-> str:
         result = MongoHelper.find_one("results", {"task_uuid": job_id})
         file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
                     "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
-        v_page = print_html_script()
+        v_page = print_html_script('sqlreview report')
         main_task(job_id, v_page)
         v_page.printOut(f"html_report/sqlreview.html")
         path = paths+"/" +file_name
