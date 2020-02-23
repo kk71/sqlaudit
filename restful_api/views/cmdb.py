@@ -465,7 +465,7 @@ class CMDBHealthTrendHandler(AuthReq):
             for cn in cmdb_connect_name_list:
                 dh_q = session.query(DataHealth).filter(
                     DataHealth.database_name == cn,
-                    DataHealth.collect_date > now.shift(weeks=-1).datetime
+                    DataHealth.collect_date > now.shift(weeks=-2).datetime
                 ).order_by(DataHealth.collect_date)
                 for dh in dh_q:
                     ret[dh.collect_date.date()][dh.database_name] = dh.health_score
