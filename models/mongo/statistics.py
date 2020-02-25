@@ -127,15 +127,15 @@ class StatsLoginUser(BaseStatisticsDoc):
                       f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
 
-                    # SQL ==============
                     Qs = None
-                    doc.sql_num = 0
                     for cmdb_id, schema_list in cmdb_ids_schemas_dict.items():
                         a_q = Q(cmdb_id=cmdb_id, schema_name__in=schema_list)
                         if not Qs:
                             Qs = a_q
                         else:
                             Qs = Qs | a_q
+
+                    # SQL ==============
                     if Qs:
                         stats_num_drill_down_q = StatsNumDrillDown.objects(
                             Qs,
@@ -156,7 +156,14 @@ class StatsLoginUser(BaseStatisticsDoc):
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
 
                     # TABLE ============
-                    doc.table_num = ObjTabInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    if Qs:
+                        stats_num_drill_down_q = StatsNumDrillDown.objects(
+                            Qs,
+                            drill_down_type=STATS_NUM_TAB,
+                            task_record_id__in=latest_task_record_ids
+                        )
+                        for a_drill_down in stats_num_drill_down_q:
+                            doc.table_num += a_drill_down.num
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_TABLE,
@@ -170,7 +177,14 @@ class StatsLoginUser(BaseStatisticsDoc):
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
 
                     # INDEX =============
-                    doc.index_num = ObjIndColInfo.filter_by_exec_hist_id(latest_task_record_ids).count()
+                    if Qs:
+                        stats_num_drill_down_q = StatsNumDrillDown.objects(
+                            Qs,
+                            drill_down_type=STATS_NUM_INDEX,
+                            task_record_id__in=latest_task_record_ids
+                        )
+                        for a_drill_down in stats_num_drill_down_q:
+                            doc.index_num += a_drill_down.num
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_INDEX,
@@ -184,9 +198,14 @@ class StatsLoginUser(BaseStatisticsDoc):
                         doc.index_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
                     # SEQUENCE ===========
-                    doc.sequence_num = ObjSeqInfo.objects(
-                        cmdb_id__in=cmdb_ids,
-                        task_record_id__in=latest_task_record_ids).count()
+                    if Qs:
+                        stats_num_drill_down_q = StatsNumDrillDown.objects(
+                            Qs,
+                            drill_down_type=STATS_NUM_SEQUENCE,
+                            task_record_id__in=latest_task_record_ids
+                        )
+                        for a_drill_down in stats_num_drill_down_q:
+                            doc.sequence_num += a_drill_down.num
                     sequence_r_q, rule_names_to_seq = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ,
