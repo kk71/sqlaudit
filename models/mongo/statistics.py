@@ -89,6 +89,13 @@ class StatsLoginUser(BaseStatisticsDoc):
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+
+        # =====================================
+        # === 这个统计依赖于 StatsNumDrillDown ===
+        # =====================================
+
+        from mongoengine import Q
+
         from models.oracle import make_session, CMDB, User
         from utils import const
         from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
@@ -96,7 +103,6 @@ class StatsLoginUser(BaseStatisticsDoc):
             get_object_unique_labels
         from utils.cmdb_utils import get_current_schema, get_current_cmdb
         from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo, ObjTabSpace
-        from models.mongo import SQLText
 
         with make_session() as session:
             for login_user, in session.query(User.login_user):
@@ -121,19 +127,20 @@ class StatsLoginUser(BaseStatisticsDoc):
                       f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
 
-                    # TODO SQL_ID仅根据cmdb_id去重，但是对象要根据cmdb_id, schema_name去去重
-
                     # SQL ==============
-                    sql_id_dict = defaultdict(set)
-                    for sql_text_object in SQLText.filter_by_exec_hist_id(
-                            latest_task_record_ids):
-                        sql_id_dict[(sql_text_object.cmdb_id,
-                                     sql_text_object.schema)].add(sql_text_object.sql_id)
+                    Qs = None
+                    doc.sql_num = 0
                     for cmdb_id, schema_list in cmdb_ids_schemas_dict.items():
-                        if not schema_list:
-                            continue
-                        for schema_name in schema_list:
-                            doc.sql_num += len(sql_id_dict.get((cmdb_id, schema_name), []))
+                        a_q = Q(cmdb_id=cmdb_id, schema_name__in=schema_list)
+                        if not Qs:
+                            Qs = a_q
+                        else:
+                            Qs = Qs | a_q
+                    if Qs:
+                        stats_num_drill_down_q = StatsNumDrillDown.objects(
+                            Qs, drill_down_type=STATS_NUM_SQL)
+                        for a_drill_down in stats_num_drill_down_q:
+                            doc.sql_num += a_drill_down.num
 
                     sql_r_q, _ = get_result_queryset_by(
                         latest_task_record_ids,
