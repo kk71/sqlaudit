@@ -164,7 +164,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         )
                         for a_drill_down in stats_num_drill_down_q:
                             doc.table_num += a_drill_down.num
-                            doc.table_problem_num += a_drill_down.num_with_risk
                     table_r_q, rule_names_to_tab = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_TABLE,
@@ -172,8 +171,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     )
                     doc.problem_num_of_table = calc_problem_num(
                         table_r_q, rule_name=rule_names_to_tab)
-                    # doc.table_problem_num = len(get_object_unique_labels(
-                    #     table_r_q, rule_names_to_tab))
+                    doc.table_problem_num = len(get_object_unique_labels(
+                        table_r_q, rule_names_to_tab))
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
 
@@ -186,7 +185,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         )
                         for a_drill_down in stats_num_drill_down_q:
                             doc.index_num += a_drill_down.num
-                            doc.index_problem_num += a_drill_down.num_with_risk
                     index_r_q, rule_names_to_ind = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_INDEX,
@@ -194,8 +192,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     )
                     doc.problem_num_of_index = calc_problem_num(
                         index_r_q, rule_name=rule_names_to_ind)
-                    # doc.index_problem_num = len(get_object_unique_labels(
-                    #     index_r_q, rule_names_to_ind))
+                    doc.index_problem_num = len(get_object_unique_labels(
+                        index_r_q, rule_names_to_ind))
                     if doc.index_num:
                         doc.index_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
@@ -208,7 +206,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         )
                         for a_drill_down in stats_num_drill_down_q:
                             doc.sequence_num += a_drill_down.num
-                            doc.sequence_problem_num += a_drill_down.num_with_risk
                     sequence_r_q, rule_names_to_seq = get_result_queryset_by(
                         latest_task_record_ids,
                         obj_info_type=const.OBJ_RULE_TYPE_SEQ,
@@ -217,8 +214,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     print(f"rule names to sequence: {rule_names_to_seq}")
                     doc.problem_num_of_sequence = calc_problem_num(
                         sequence_r_q, rule_name=rule_names_to_seq)
-                    # doc.sequence_problem_num = len(get_object_unique_labels(
-                    #     sequence_r_q, rule_names_to_seq))
+                    doc.sequence_problem_num = len(get_object_unique_labels(
+                        sequence_r_q, rule_names_to_seq))
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
 
