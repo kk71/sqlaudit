@@ -138,7 +138,10 @@ class StatsLoginUser(BaseStatisticsDoc):
                             Qs = Qs | a_q
                     if Qs:
                         stats_num_drill_down_q = StatsNumDrillDown.objects(
-                            Qs, drill_down_type=STATS_NUM_SQL)
+                            Qs,
+                            drill_down_type=STATS_NUM_SQL,
+                            task_record_id__in=latest_task_record_ids
+                        )
                         for a_drill_down in stats_num_drill_down_q:
                             doc.sql_num += a_drill_down.num
 
