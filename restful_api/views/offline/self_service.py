@@ -178,7 +178,9 @@ class ExecuteHandler(TicketReq):
                     assert 0
 
         except DatabaseError as e:
-            self.resp_bad_req(msg=str(e))
+            error_info = str(e)
+            print(f"failed when executing SQL script: {error_info}")
+            self.resp_bad_req(msg=error_info)
         except Exception as e:
             error_info = traceback.format_exc()
             self.resp_bad_req(msg=error_info)
