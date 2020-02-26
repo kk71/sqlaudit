@@ -169,7 +169,7 @@ class ExecuteHandler(TicketReq):
                 session.add(ticket)
                 self.resp_created({
                     "msg": last_online_err,
-                    "online_status": ticket.work_list_stautus
+                    "online_status": ticket.work_list_status
                 })
             else:
                 assert 0
