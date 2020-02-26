@@ -1,6 +1,8 @@
 import time
+import traceback
 from schema import Schema, And
 from sqlalchemy import func
+from cx_Oracle import DatabaseError
 
 from utils.datetime_utils import *
 from utils.offline_utils import *
@@ -119,57 +121,64 @@ class ExecuteHandler(TicketReq):
         )
         work_list_id = params.pop("work_list_id")
 
-        with make_session() as session:
-            ticket = session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id).first()
-            sub_ticket_q = TicketSubResult. \
-                objects(work_list_id=ticket.work_list_id)
-            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
-            if not cmdb.allow_online:
-                return self.resp_forbidden("当前库不允许自助上线")
+        try:
+            with make_session() as session:
+                ticket = session.query(WorkList). \
+                    filter(WorkList.work_list_id == work_list_id).first()
+                sub_ticket_q = TicketSubResult. \
+                    objects(work_list_id=ticket.work_list_id)
+                cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
+                if not cmdb.allow_online:
+                    return self.resp_forbidden("当前库不允许自助上线")
 
-            if db_type == DB_ORACLE:
+                if db_type == DB_ORACLE:
 
-                oracle_sub_ticket_analysis = OracleSubTicketAnalysis(
-                    cmdb=cmdb, ticket=ticket)
+                    oracle_sub_ticket_analysis = OracleSubTicketAnalysis(
+                        cmdb=cmdb, ticket=ticket)
 
-                last_online_err = None
-                for sub_ticket in sub_ticket_q:
-                    online_date = datetime.now()
-                    start = time.time()
-                    u_p = ticket.to_dict(
-                        iter_if=lambda k, v: k in ("online_username", "online_password"),
-                        iter_by=lambda k, v: getattr(cmdb, k) if not v else v
-                    )
-                    u_p["username"] = u_p.pop("online_username")
-                    u_p["password"] = u_p.pop("online_password")
-                    err_msg = oracle_sub_ticket_analysis.sql_online(
-                        sub_ticket.sql_text,
-                        **u_p
-                    )
-                    sub_ticket.online_operator = self.current_user
-                    sub_ticket.online_date = online_date
-                    if not err_msg:
-                        sub_ticket.elapsed_seconds = int((time.time() - start) * 1000)
-                        sub_ticket.online_status = True
+                    last_online_err = None
+                    for sub_ticket in sub_ticket_q:
+                        online_date = datetime.now()
+                        start = time.time()
+                        u_p = ticket.to_dict(
+                            iter_if=lambda k, v: k in ("online_username", "online_password"),
+                            iter_by=lambda k, v: getattr(cmdb, k) if not v else v
+                        )
+                        u_p["username"] = u_p.pop("online_username")
+                        u_p["password"] = u_p.pop("online_password")
+                        err_msg = oracle_sub_ticket_analysis.sql_online(
+                            sub_ticket.sql_text,
+                            **u_p
+                        )
+                        sub_ticket.online_operator = self.current_user
+                        sub_ticket.online_date = online_date
+                        if not err_msg:
+                            sub_ticket.elapsed_seconds = int((time.time() - start) * 1000)
+                            sub_ticket.online_status = True
 
+                        else:
+                            last_online_err = err_msg
+                            sub_ticket.online_status = False
+                            sub_ticket.error_msg = err_msg
+                        session.add(sub_ticket)
+
+                    if last_online_err:
+                        ticket.audit_comments = last_online_err
+                        ticket.work_list_status = OFFLINE_TICKET_FAILED
                     else:
-                        last_online_err = err_msg
-                        sub_ticket.online_status = False
-                        sub_ticket.error_msg = err_msg
-                    session.add(sub_ticket)
-
-                if last_online_err:
-                    ticket.audit_comments = last_online_err
-                    ticket.work_list_status = OFFLINE_TICKET_FAILED
+                        ticket.audit_comments = "上线成功"
+                        ticket.work_list_status = OFFLINE_TICKET_EXECUTED
+                    ticket.online_date = datetime.now()
+                    session.add(ticket)
+                    self.resp_created({
+                        "msg": last_online_err,
+                        "online_status": ticket.work_list_status
+                    })
                 else:
-                    ticket.audit_comments = "上线成功"
-                    ticket.work_list_status = OFFLINE_TICKET_EXECUTED
-                ticket.online_date = datetime.now()
-                session.add(ticket)
-                self.resp_created({
-                    "msg": last_online_err,
-                    "online_status": ticket.work_list_status
-                })
-            else:
-                assert 0
+                    assert 0
+
+        except DatabaseError as e:
+            self.resp_bad_req(msg=str(e))
+        except Exception as e:
+            error_info = traceback.format_exc()
+            self.resp_bad_req(msg=error_info)
