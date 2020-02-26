@@ -161,10 +161,10 @@ class ExecuteHandler(TicketReq):
 
                 if last_online_err:
                     ticket.audit_comments = last_online_err
-                    ticket.work_list_stautus = OFFLINE_TICKET_FAILED
+                    ticket.work_list_status = OFFLINE_TICKET_FAILED
                 else:
                     ticket.audit_comments = "上线成功"
-                    ticket.work_list_stautus = OFFLINE_TICKET_EXECUTED
+                    ticket.work_list_status = OFFLINE_TICKET_EXECUTED
                 ticket.online_date = datetime.now()
                 session.add(ticket)
                 self.resp_created({
