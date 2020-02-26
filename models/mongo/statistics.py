@@ -173,6 +173,9 @@ class StatsLoginUser(BaseStatisticsDoc):
                         table_r_q, rule_name=rule_names_to_tab)
                     doc.table_problem_num = len(get_object_unique_labels(
                         table_r_q, rule_names_to_tab))
+                    if doc.table_problem_num > doc.table_num:
+                        print("WARNING: doc.table_problem_num > doc.table_num")
+                        doc.table_problem_num = doc.table_num
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
 
@@ -194,6 +197,9 @@ class StatsLoginUser(BaseStatisticsDoc):
                         index_r_q, rule_name=rule_names_to_ind)
                     doc.index_problem_num = len(get_object_unique_labels(
                         index_r_q, rule_names_to_ind))
+                    if doc.index_problem_num > doc.index_num:
+                        print("WARNING: doc.index_problem_num > doc.index_num")
+                        doc.index_problem_num = doc.index_num
                     if doc.index_num:
                         doc.index_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
@@ -216,6 +222,9 @@ class StatsLoginUser(BaseStatisticsDoc):
                         sequence_r_q, rule_name=rule_names_to_seq)
                     doc.sequence_problem_num = len(get_object_unique_labels(
                         sequence_r_q, rule_names_to_seq))
+                    if doc.sequence_problem_num > doc.sequence_num:
+                        print("WARNING: doc.sequence_problem_num > doc.sequence_num")
+                        doc.sequence_problem_num = doc.sequence_num
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
 
