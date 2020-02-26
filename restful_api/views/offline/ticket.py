@@ -129,7 +129,6 @@ class TicketHandler(TicketReq):
                                        WorkList.database_name,
                                        WorkList.submit_owner,
                                        WorkList.audit_owner,
-                                       WorkList.audit_role_id,
                                        WorkList.audit_comments)
             if date_start:
                 q = q.filter(WorkList.submit_date >= date_start)
