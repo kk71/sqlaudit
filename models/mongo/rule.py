@@ -60,7 +60,13 @@ class Rule(BaseDoc):
                 key_index = i
                 break
         if key_index is not None:
-            return record[key_index]
+            the_obj_name = record[key_index]
+            if "." in the_obj_name:
+                # 排除可能存在schema_name.object_name的情况
+                splited_obj_name = [i for i in the_obj_name.split(".") if i]
+                if len(splited_obj_name) == 2:
+                    the_obj_name = splited_obj_name[-1]
+            return the_obj_name
 
     @classmethod
     def filter_enabled(cls, *args, **kwargs):
