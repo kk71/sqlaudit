@@ -123,7 +123,7 @@ class ExecuteHandler(TicketReq):
             ticket = session.query(WorkList). \
                 filter(WorkList.work_list_id == work_list_id).first()
             sub_ticket_q = TicketSubResult. \
-                objects(work_list_id == ticket.work_list_id)
+                objects(work_list_id=ticket.work_list_id)
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
             if not cmdb.allow_online:
                 return self.resp_forbidden("当前库不允许自助上线")
