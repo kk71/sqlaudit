@@ -74,8 +74,14 @@ class OnlineReportTaskOuterHandler(PrivilegeReq):
             for y in x.values():
                 for z in y.values():
                     ret.append(dict(z))
-        rets, p = self.paginate(ret, **p)
-        rets = sorted(rets, key=lambda x: x['create_time'], reverse=True)
+        for x in ret:
+            x['score_avg']=[]
+            for y in job_q:
+                if x['record_id']==y.record_id:
+                    x['score_avg'].append(y.score)
+            x['score_avg']=min(x['score_avg'])
+        rets = sorted(ret, key=lambda x: x['create_time'], reverse=True)
+        rets, p = self.paginate(rets, **p)
         self.resp(rets, **p)
 
 
