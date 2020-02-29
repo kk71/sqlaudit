@@ -219,7 +219,8 @@ class OnlineReportRuleDetailHandler(AuthReq):
                 self.get_report_rule_detail, session, job_id, rule_name)
             self.resp({
                 "columns": ret["columns"],
-                "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + ret['records']),
+                # "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + ret['records']),
+                "records": ret["records"],
                 "rule": ret["rule"].to_dict(iter_if=lambda k, v: k in (
                     "rule_desc", "rule_name", "rule_type", "solution")) if ret["rule"] else {},
             })
