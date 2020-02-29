@@ -75,11 +75,11 @@ class OnlineReportTaskOuterHandler(PrivilegeReq):
                 for z in y.values():
                     ret.append(dict(z))
         for x in ret:
-            x['score_min']=[]
+            x['score_min'] = []
             for y in job_q:
-                if x['record_id']==y.record_id:
+                if x['record_id'] == y.record_id:
                     x['score_min'].append(y.score)
-            x['score_min']=min(x['score_min'])
+            x['score_min'] = min(x['score_min'])
         rets = sorted(ret, key=lambda x: x['create_time'], reverse=True)
         rets, p = self.paginate(rets, **p)
         self.resp(rets, **p)
@@ -138,72 +138,6 @@ class OnlineReportTaskHandler(AuthReq):
 
 class OnlineReportRuleDetailHandler(AuthReq):
 
-    @staticmethod
-    def get_report_rule_detail(session, job_id: int, rule_name: str) -> dict:
-        job = Job.objects(id=job_id).first()
-        cmdb = session.query(CMDB).filter_by(cmdb_id=job.cmdb_id).first()
-        rule = Rule.filter_enabled(
-            rule_name=rule_name,
-            rule_type=job.desc.rule_type,
-            db_model=cmdb.db_model
-        ).first()
-        result = Results.objects(task_uuid=job_id).first()
-        rule_dict_in_rst = getattr(result, rule_name)
-        records = []
-        columns = []
-        try:
-            if rule.rule_type == const.RULE_TYPE_OBJ:
-                columns = [i["parm_desc"] for i in rule.output_parms]
-                for r in rule_dict_in_rst.get("records", []):
-                    # if data not in records:
-                    records.append(dict(zip(columns, r)))
-
-            elif rule.rule_type in [const.RULE_TYPE_SQLPLAN,
-                                    const.RULE_TYPE_SQLSTAT]:
-                for sql_dict in rule_dict_in_rst["sqls"]:
-                    if sql_dict.get("obj_name", None):
-                        obj_name = sql_dict["obj_name"]
-                    else:
-                        obj_name = "空"
-                    if sql_dict.get("cost", None):
-                        cost = sql_dict["cost"]
-                    else:
-                        cost = "空"
-                    if sql_dict.get("stat", None):
-                        count = sql_dict["stat"].get("ts_cnt", "空")
-                    else:
-                        count = "空"
-                    records.append({
-                        "SQL ID": sql_dict["sql_id"],
-                        "SQL文本": sql_dict["sql_text"],
-                        "执行计划哈希值": sql_dict["plan_hash_value"],
-                        # "pos": "v",
-                        "对象名": obj_name,
-                        "Cost": cost,
-                        "计数": count
-                    })
-                if records:
-                    columns = list(records[0].keys())
-
-            elif rule.rule_type == const.RULE_TYPE_TEXT:
-                records = [{
-                    "SQL ID": i["sql_id"],
-                    "SQL文本": i["sql_text"]
-                } for i in rule_dict_in_rst["sqls"]]
-                if records:
-                    columns = list(records[0].keys())
-        except:
-            print("Rule types are other")
-            pass
-
-        # TODO 汉化
-
-        return {
-            "columns": columns,
-            "records": records,
-            "rule": rule
-        }
-
     async def get(self):
         """在线查看报告的规则细节(obj返回一个列表，其余类型返回sql文本相关的几个列表)"""
         params = self.get_query_args(Schema({
@@ -215,14 +149,16 @@ class OnlineReportRuleDetailHandler(AuthReq):
         del params
 
         with make_session() as session:
-            ret = await async_thr(
-                self.get_report_rule_detail, session, job_id, rule_name)
+            rst = Results.objects(task_uuid=job_id).first()
+            if not rst:
+                return self.resp_not_found(msg=f"result not found: {job_id}")
+            ret = await async_thr(rst.deduplicate_output, session, job_id, rule_name)
             self.resp({
                 "columns": ret["columns"],
-                # "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + ret['records']),
                 "records": ret["records"],
                 "rule": ret["rule"].to_dict(iter_if=lambda k, v: k in (
-                    "rule_desc", "rule_name", "rule_type", "solution")) if ret["rule"] else {},
+                    "rule_desc", "rule_name", "rule_type", "solution"))
+                if ret["rule"] else {},
             })
 
 
@@ -433,32 +369,32 @@ class ExportReportCmdbHTMLHandler(AuthReq):
 
     def get(self):
         """导出库的html报告"""
-        params=self.get_query_args(Schema({
-            "cmdb_id":scm_int
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int
         }))
-        cmdb_id=params.pop("cmdb_id")
+        cmdb_id = params.pop("cmdb_id")
         del params
 
-        score_type_avg=SCORE_BY_AVERAGE
-        score_type_min=SCORE_BY_LOWEST
-        perspective_schema=OVERVIEW_ITEM_SCHEMA
-        perspective_radar=OVERVIEW_ITEM_RADAR
-        period_week=StatsCMDBLoginUser.DATE_PERIOD[0]
+        score_type_avg = SCORE_BY_AVERAGE
+        score_type_min = SCORE_BY_LOWEST
+        perspective_schema = OVERVIEW_ITEM_SCHEMA
+        perspective_radar = OVERVIEW_ITEM_RADAR
+        period_week = StatsCMDBLoginUser.DATE_PERIOD[0]
         period_mouth = StatsCMDBLoginUser.DATE_PERIOD[1]
 
         with make_session() as session:
-            cmdb_q=session.query(CMDB).filter_by(cmdb_id=cmdb_id).\
+            cmdb_q = session.query(CMDB).filter_by(cmdb_id=cmdb_id). \
                 first()
-            cmdb=cmdb_q.to_dict()
-            latest_task_record_id=score_utils.get_latest_task_record_id(session,cmdb_id)\
+            cmdb = cmdb_q.to_dict()
+            latest_task_record_id = score_utils.get_latest_task_record_id(session, cmdb_id) \
                 .get(cmdb_id, None)
 
-            tablespace_sum=StatsCMDBPhySize.objects(task_record_id=latest_task_record_id,cmdb_id=cmdb_id).\
+            tablespace_sum = StatsCMDBPhySize.objects(task_record_id=latest_task_record_id, cmdb_id=cmdb_id). \
                 first().to_dict()
 
             ret_radar_avg = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_avg)
-            radar_avg=[{"name":k,"max":100}for k in ret_radar_avg.keys()]
-            radar_score_avg=[round(x) for x in ret_radar_avg.values()]
+            radar_avg = [{"name": k, "max": 100} for k in ret_radar_avg.keys()]
+            radar_score_avg = [round(x) for x in ret_radar_avg.values()]
             ret_radar_min = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_min)
             radar_min = [{"name": k, "max": 100} for k in ret_radar_min.keys()]
             radar_score_min = [round(x) for x in ret_radar_min.values()]
@@ -467,12 +403,12 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 cmdb_id=cmdb_id, task_record_id=latest_task_record_id). \
                 order_by("-usage_ratio")
 
-            rets=StatsCMDBLoginUser.objects(
+            rets = StatsCMDBLoginUser.objects(
                 login_user=self.current_user,
                 cmdb_id=cmdb_id,
                 task_record_id=latest_task_record_id)
-            ret_w=rets.filter(date_period=period_week).first().to_dict()
-            ret_m=rets.filter(date_period=period_mouth).first().to_dict()
+            ret_w = rets.filter(date_period=period_week).first().to_dict()
+            ret_m = rets.filter(date_period=period_mouth).first().to_dict()
             active_week = ret_w['sql_num']['active']
             at_risk_week = ret_w['sql_num']['at_risk']
             active_mouth = ret_m['sql_num']['active']
@@ -480,9 +416,9 @@ class ExportReportCmdbHTMLHandler(AuthReq):
 
             sql_time_num = ret_w['sql_execution_cost_rank']['by_sum']
 
-            risk_rule_rank=ret_w['risk_rule_rank']
+            risk_rule_rank = ret_w['risk_rule_rank']
 
-            ret_schema_avg=score_utils.calc_score_by(session,cmdb_q,perspective_schema,score_type_avg)
+            ret_schema_avg = score_utils.calc_score_by(session, cmdb_q, perspective_schema, score_type_avg)
             ret_schema_min = score_utils.calc_score_by(session, cmdb_q, perspective_schema, score_type_min)
             user_health_ranking_avg = sorted(
                 self.dict_to_verbose_dict_in_list(ret_schema_avg, "schema", "num"),
@@ -491,16 +427,16 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 self.dict_to_verbose_dict_in_list(ret_schema_min, "schema", "num"),
                 key=lambda k: k["num"])
 
-            path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
-                                                        radar_avg,radar_score_avg,
-                                                        radar_min,radar_score_min,
-                                                        tab_space_q,
-                                                        active_week,at_risk_week,
-                                                        active_mouth,at_risk_mouth,
-                                                        sql_time_num,
-                                                        risk_rule_rank,
-                                                        user_health_ranking_avg,
-                                                        user_health_ranking_min)
+            path = cmdb_export.cmdb_report_export_html(cmdb, cmdb_q, tablespace_sum,
+                                                       radar_avg, radar_score_avg,
+                                                       radar_min, radar_score_min,
+                                                       tab_space_q,
+                                                       active_week, at_risk_week,
+                                                       active_mouth, at_risk_mouth,
+                                                       sql_time_num,
+                                                       risk_rule_rank,
+                                                       user_health_ranking_avg,
+                                                       user_health_ranking_min)
             self.resp({
                 "url": path
             })
