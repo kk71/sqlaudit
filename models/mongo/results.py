@@ -133,6 +133,7 @@ class Results(BaseDocRecordID):
             pass
         return {
             "columns": columns,
-            "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + records),
+            # "records": reduce(lambda x, y: x if y in x else x + [y], [[], ] + records),
+            "records": records,
             "rule": rule
         }

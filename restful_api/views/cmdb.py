@@ -188,8 +188,12 @@ class CMDBHandler(AuthReq):
 
             # 检测数据库是否有重复信息
             if session.query(CMDB).filter_by(connect_name=params["connect_name"]).first():
-                self.resp_bad_req(msg="连接名称已存在")
-                return
+                return self.resp_bad_req(msg="连接名称已存在")
+
+            if session.query(CMDB). \
+                    filter_by(ip_address=params["ip_address"], port=params["port"]). \
+                    first():
+                return self.resp_forbidden(msg="IP地址-端口与已有的纳管库重复。")
 
             session.add(new_cmdb)
             session.commit()
