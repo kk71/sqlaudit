@@ -259,8 +259,8 @@ class ExportReportXLSXHandler(AuthReq):
 
                 for rule_data in rule_data_lists:
                     rule_name = rule_data[0]
-                    rule_detail_data = OnlineReportRuleDetailHandler. \
-                        get_report_rule_detail(session, job_id, rule_name)
+                    rst = Results.objects(task_uuid=job_id).first()
+                    rule_detail_data = await async_thr(rst.deduplicate_output, session, job_id, rule_name)
                     rule_info = Rule.objects(rule_name=rule_name, db_model=cmdb.db_model,
                                              db_type=const.DB_ORACLE).first()
                     solution = ''.join(rule_info['solution'])
