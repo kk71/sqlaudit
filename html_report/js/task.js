@@ -548,7 +548,16 @@ function genSqlChart(domid,title, xData,yData){
 				{
 					name: '总耗时',
 					type: 'bar',
-					data: xData
+					data: xData,
+                    label: {
+					show: true,
+					position: 'inside',
+					formatter:function (val) {
+						return val.value+'%'
+
+
+                  }
+				},
 				}
 			]
 		};
@@ -556,6 +565,9 @@ function genSqlChart(domid,title, xData,yData){
 
         var myChart = echarts.init(document.getElementById("sql_time_by_sum"));
         myChart.setOption(option);
+        myChart.on('click', function (params) {
+			window.location.href = '#'+params.name
+		});
         // return myChart
         // });
         return myChart;
@@ -785,7 +797,7 @@ function genBarChart(domid,divid,title, list,data,dataY){
                   },
                   formatter: function (val) {
 					  if(bs==1){
-						return `${val*100}%`  
+						return (val*100).toFixed(2)+'%'
 					  }else{
 						  return `${val}`
 					  }
@@ -850,22 +862,19 @@ function genBarChart(domid,divid,title, list,data,dataY){
 }
 
 //基本信息 domid 写死为#base  title 名称  databaseInfo 数据库对象信息
-function genBaseInfo(domid,title,databaseInfo,tablespace_sum){
+function genBaseInfo(domid,title,databaseInfo,tablespace_sum,collect_date_score,sql_or_obj_scores){
  $(domid).append('<div class=\"container-fluid \" style="font-size:16px; background-color:white">\
                       <div class=\"row\"><div class=\"col-xs-6 col-sm-12\"><strong>' + title + '</strong></div></div>'+
-       '<div class=\"row\" style=\"margin-top: 8px;\">' + 
+       '<div class=\"row\" style=\"margin-top: 8px;\">' +
        '<div class=\"col-xs-6 col-sm-3\">'+'数据库名称：' +databaseInfo.connect_name+
        '</div><div class=\"col-xs-6 col-sm-3\" >' + '数据库类型：Oracle数据库' +
-       '</div><div class=\"col-xs-6 col-sm-3\">' + '系统名称：' +databaseInfo.business_name+
-       '</div><div class=\"col-xs-6 col-sm-3\">'+ '组名：' +databaseInfo.group_name+
+       '</div><div class=\"col-xs-6 col-sm-3\">' + '业务模型：' +databaseInfo.db_model+
+	   '</div><div class=\"col-xs-6 col-sm-3\">'+ '容量使用率(已使用/剩余)：' + bytesToSize(tablespace_sum.used)+'/' +bytesToSize(tablespace_sum.free)+
        '</div></div><div class=\"row\" style=\"margin-top: 8px;\">' +
-       '<div class=\"col-xs-6 col-sm-3\">'+'业务模型：'+databaseInfo.db_model+
-       '</div><div class=\"col-xs-6 col-sm-3\">' + '主机名：' +databaseInfo.server_name+
-       '</div><div class=\"col-xs-6 col-sm-3\">' + '主机地址：' +databaseInfo.ip_address+
-       '</div><div class=\"col-xs-6 col-sm-3\">'+ '服务名称：' +databaseInfo.service_name+
-       '</div></div><div class=\"row\" style=\"margin-top: 8px;\">' +
-       '<div class=\"col-xs-6 col-sm-3\">' + '版本：' +databaseInfo.version+
-	   '</div><div class=\"col-xs-6 col-sm-9\">' + '容量使用率(已使用/剩余)：' + bytesToSize(tablespace_sum.used)+'/' +bytesToSize(tablespace_sum.free)+ 
+       '<div class=\"col-xs-6 col-sm-3\">'+'评分日期：' +collect_date_score.collect_date+
+       '</div><div class=\"col-xs-6 col-sm-3\">' + '综合评分数：' +collect_date_score.health_score+
+       '</div><div class=\"col-xs-6 col-sm-3\">' + 'SQL评分数：' +sql_or_obj_scores.SQL+
+       '</div><div class=\"col-xs-6 col-sm-3\">'+ '对象评分数：' +sql_or_obj_scores.OBJ+
        '<br/><br/></div></div></div>'
                       )
 }
@@ -949,6 +958,65 @@ function genStackedHistogramChart(domid,title,legend, xData,series){
         return myChart;
     }
     return gen();
+}
+
+//基本信息 domid 写死为#base  title 名称  databaseInfo 数据库对象信息
+function genSqlDetail(domid,title,databaseInfo){
+$(domid).append();
+ $(domid).append('<font style="width:300px;font-size:16px;"><a name="'+databaseInfo.sql_id+'"/><br/> <b> SQL Details: </b></font>\
+				<table class=\"table\" cellspacing="0" style="width:400px;">'+
+				'<tr style="textAlign:left"><td colspan=\"2\"><font style="font-size:14px;"><br/> <b> 基本信息&nbsp: </b></font></td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">sql_id</td><td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.sql_id+'</td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">执行用户:</td><td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.schema+'</td></tr>'+
+				'<tr><td style="border-top:0px" class=\"sqlDetailTitle\">首次出现时间</td>\
+				<td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.first_appearance+'</td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">最后活动时间:</td>\
+				<td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.last_appearance+'</td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">执行次数:</td>\
+				<td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.stats.executions_delta.toFixed(0)+'</td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">执行时间:</td>\
+				<td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.stats.elapsed_time_delta.toFixed(2)+'</td></tr>\
+				<tr><td style="border-top:0px" class=\"sqlDetailTitle\">I/O:</td>\
+				<td style="border-top:0px" class=\"sqlDetailContent\">:&nbsp &nbsp'+databaseInfo.stats.io_cost+'</td></tr></table>\
+				<table class=\"table\" cellspacing="0" style="width:1200px;">'+
+				'<tr style="textAlign:left"><td colspan=\"5\"><font style="font-size:14px;"><br/> <b> 风险点&nbsp: </b></font></td></tr>\
+				<tr><td class=\"sqlDetailTitle\">风险</td><td class=\"sqlDetailTitle\">影响程度</td><td class=\"sqlDetailTitle\">风险说明</td>\
+				<td class=\"sqlDetailTitle\">违反数量</td><td class=\"sqlDetailTitle\">查看建议</td></tr>'+genSqlRiskPoint(databaseInfo.risk_rules)+
+				'</table>\
+				<table class=\"table\" cellspacing="0" style="width:1200px;">'+
+				'<tr style="textAlign:left"><td colspan=\"5\"><font style="font-size:14px;"><br/> <b> 执行计划&nbsp: </b></font></td></tr>\
+				<tr><td class=\"sqlDetailTitle\">Hash值</td><td class=\"sqlDetailTitle\">成本</td><td class=\"sqlDetailTitle\">首次出现</td>\
+				<td class=\"sqlDetailTitle\">最近执行</td><td class=\"sqlDetailTitle\">操作</td></tr>'+genSqlPlan(databaseInfo.plans)+
+				'</table>'
+
+                      )
+}
+//拼接行
+function genSqlRiskPoint(riskPoint){
+	var sb="";
+	for(var j = 0,len = riskPoint.length; j < len; j++){
+		sb=sb+'<tr><td>'+riskPoint[j].rule_name+'</td><td>'+riskPoint[j].severity+'</td><td>'+riskPoint[j].risk_name+'</td><td>1</td><td>'+riskPoint[j].optimized_advice+'</td></tr>';
+	}
+	return sb;
+}
+//拼接行
+function genSqlPlan(sqlPlan){
+	var sb="";
+	for(var j = 0,len = sqlPlan.length; j < len; j++){
+		sb=sb+'<tr><td>'+sqlPlan[j].plan_hash_value+'</td><td>'+sqlPlan[j].cost+'</td><td>'+sqlPlan[j].first_appearance+'</td><td>'+sqlPlan[j].last_appearance+
+		'</td><td><a id="a-plan'+j+'" data-toggle="modal" value="'+sqlPlan[j].sqlplan+'" onclick=\"roleupdate('+j+')\"  data-target=\"#myModal\">查看执行计划</a></td></tr>';
+	}
+	return sb;
+}
+function roleupdate(j){
+	var str = $("#a-plan"+j).attr('value');
+	console.info('str:'+str);
+
+	//$("#plana2").innerHTML = str;
+
+	document.getElementById("plana2").innerHTML=str;
+
+
 }
 
 

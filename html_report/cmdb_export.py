@@ -7,15 +7,18 @@ from .utils import *
 
 
 def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
+                            collect_date_score,
+                            sql_or_obj_scores,
                             radar_avg,radar_score_avg,
                             radar_min,radar_score_min,
                             tab_space_q,
                             active_week, at_risk_week,
                             active_mouth, at_risk_mouth,
-                            sql_time_num,
+                            sql_time_num_rank,
                             risk_rule_rank,
                             user_health_ranking_avg,
-                            user_health_ranking_min)->str:
+                            user_health_ranking_min,
+                            sqls)->str:
 
     """生成库html报告的离线压缩包"""
 
@@ -27,7 +30,7 @@ def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
     cmdb_print_html_body(v_page,cmdb)
     print_html_js(v_page)
 
-    print_html_cmdb_basic_information(v_page,cmdb_q,tablespace_sum)
+    print_html_cmdb_basic_information(v_page,cmdb_q,tablespace_sum,collect_date_score,sql_or_obj_scores)
 
     time_week = [arrow.get(x['date']).strftime('%Y-%m-%d') for x in active_week]
     active_week_data = [x['value'] for x in active_week]
@@ -51,8 +54,10 @@ def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
     sort_ts_usage_ration = sorted(ts_usage_ratio, reverse=False)
     print_html_cmdb_tab_space_use_ration(v_page, ts_name,ts_usage_ratio, sort_ts_usage_ration)
 
-    x=[x['time']for x in sql_time_num]
-    y=[y['sql_id']for y in sql_time_num]
+    x=[x['time']for x in sql_time_num_rank][:10]
+    x.reverse()
+    y=[y['sql_id']for y in sql_time_num_rank][:10]
+    y.reverse()
     print_html_cmdb_sql_time_num(v_page,x,y)
 
     risk_name=[x['risk_name']for x in risk_rule_rank][:10]
@@ -66,6 +71,8 @@ def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
     x_min = [x["schema"] for x in user_health_ranking_min]
     y_min = [round(y["num"]) for y in user_health_ranking_min]
     print_html_cmdb_user_ranking(v_page,x_avg,y_avg,x_min,y_min)
+
+    print_html_cmdb_sql_details(v_page,sqls)
 
     print_html_cmdb_js(v_page)
 

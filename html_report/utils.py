@@ -17,7 +17,28 @@ def print_html_script(title):
     page = PyH(title)
     page << """
             <!-- ================== BEGIN BASE CSS STYLE ================== -->
-
+            <style type="text/css">
+			body, table, input, select, textarea
+			{font:normal normal 8pt Verdana,Arial;text-decoration:none;color:#000000;}
+			.s8 {font-size:8pt;color:#006699}
+			.s9 {font-size:10pt;color:#006699}
+			.s10 {font-size:14pt;color:#FC1212;}
+			.s16 {border-width : 1px; border-color : #CCCC99;
+					border-style: solid;color:#006699;font-size:8pt;}
+			.s17 {border-width : 1px; border-color : #CCCC99;
+				   border-style: solid;font-size:8pt;}
+			.s27 {border-width : 1px; border-color : #CCCC99; border-style: solid;}
+			.sqlDetailTitle {
+				font-size:14px;
+				border-top:0px
+			}
+			.sqlDetailContent {
+				font-size:12px
+			}
+			.popover-content{
+				width:1000px
+			}
+			</style>
             <link href="assets/plugins/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
             <link href="assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
             <link href="assets/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
@@ -164,8 +185,33 @@ def cmdb_print_html_body(page, cmdb):
 						<div class="col-md-12" id='userHealthyMin'></div>
 				</div>
 				
-
-
+				<div class="row">
+					<div class="col-md-12" id='sqlDetail'>
+					<font class="s10">
+						<br/>Report Details
+					</font>
+					<hr size="3" width="650" align="left"/><font style="width:300px;font-size:16px;">
+					<!-- Modal -->
+				
+					<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+					  <div class="modal-dialog" role="document">
+						<div class="modal-content" style="width:800px">
+						  <div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" id="myModalLabel">执行计划</h4>
+						  </div>
+						  <div class="modal-body" >
+							<pre  id="plana2"></pre>
+						  </div>
+						  <div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						  </div>
+						</div>
+					  </div>
+					</div>
+					</div>
+				</div>
+				
             <!-- begin scroll to top btn -->
 <!--             <a href="javascript:;" class="btn btn-icon btn-circle btn-success btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a> -->
             <!-- end scroll to top btn -->
@@ -494,9 +540,9 @@ def print_html_obj_detail_info(page, results, rules, rule_summary):
     page << br()
 
 
-def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum):
+def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum,collect_date_score,sql_or_obj_scores):
 
-    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+")</script>"
+    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+","+str(collect_date_score)+","+str(sql_or_obj_scores)+")</script>"
     page << br()
 
 
@@ -578,4 +624,11 @@ def print_html_cmdb_user_ranking(page, x_avg,y_avg,x_min,y_min):
 
     page << "<script>genUserHealthyChart('#userHealthyAvg','userHealthyAvgDiv','用户健康度排名',''," + str(x_avg) + "," + str(y_avg) + ")</script>"
     page << br()
+
+def print_html_cmdb_sql_details(page,sqls):
+
+    for sql in sqls:
+        page << "<script>genSqlDetail('#sqlDetail','sql详情',"+str(sql)+")</script>"
+        page << br()
+
 
