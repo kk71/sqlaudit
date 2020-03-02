@@ -478,7 +478,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
-            get_result_queryset_by
+            get_result_queryset_by, get_object_unique_labels
         from models.oracle import make_session, CMDB, RoleDataPrivilege
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo, Job
@@ -579,6 +579,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_INDEX:
@@ -592,6 +594,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_SEQUENCE:
@@ -605,6 +609,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     elif t == STATS_NUM_OBJ:
@@ -629,6 +635,8 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             schema_name=schema_name,
                             cmdb_id=cmdb_id
                         )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
                     if new_doc.num:
