@@ -639,6 +639,9 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                             result_q, rule_names))
                         new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
 
+                    if new_doc.num_with_risk > new_doc.num:
+                        # 如果发现有问题的对象数大于实际数，则修正为实际数
+                        new_doc.num_with_risk = new_doc.num
                     if new_doc.num:
                         # 有问题个数/总个数
                         new_doc.num_with_risk_rate = new_doc.num_with_risk / new_doc.num
