@@ -22,8 +22,7 @@
         "solution": [
             "改用临时表存入变量"
         ],
-        "weight": 1.0,
-        "id": "5e05a8c4a648b60f6d278280"
+        "weight": 1.0
     },
     {
         "name": "DML_DDL_MIXED",
@@ -41,8 +40,7 @@
         "solution": [
             "建议拆分DDL和DML语句"
         ],
-        "weight": 1.0,
-        "id": "5e05b54ea648b60f6d279c2e"
+        "weight": 1.0
     },
     {
         "name": "BAD_JOIN",
@@ -60,8 +58,7 @@
         "solution": [
             "改写为innerjoin"
         ],
-        "weight": 1.0,
-        "id": "5e13f5e0a648b60f6d7e5005"
+        "weight": 1.0
     },
     {
         "name": "CHECK_ADD_COLUMN",
@@ -79,8 +76,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e141efea648b60f6d80f7ef"
+        "weight": 1.0
     },
     {
         "name": "CHECK_BITMAP_INDEX",
@@ -98,8 +94,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e141fd5a648b60f6d80f918"
+        "weight": 1.0
     },
     {
         "name": "CHECK_COLUMN_NUMBER",
@@ -117,8 +112,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142035a648b60f6d80f99d"
+        "weight": 1.0
     },
     {
         "name": "CHECK_CONCURRENCY_LEVEL",
@@ -136,8 +130,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142098a648b60f6d80fa22"
+        "weight": 1.0
     },
     {
         "name": "CHECK_CREATE_TABLE_NOT_DEFINE_TABLE_SPACE",
@@ -155,8 +148,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e14211aa648b60f6d80fadc"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DB_LINK_CREATED",
@@ -174,8 +166,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e14217ca648b60f6d80fb61"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DB_LINK_OFFLINE",
@@ -193,8 +184,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e1421e2a648b60f6d80fbf0"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DELETE_SEQUENCE",
@@ -212,8 +202,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142231a648b60f6d80fc5f"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DROP_COLUMN",
@@ -231,8 +220,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142290a648b60f6d80fce5"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DROP_INDEX",
@@ -250,8 +238,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142591a648b60f6d8100f5"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DROP_PARTITION",
@@ -269,8 +256,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e1425e6a648b60f6d81016c"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DROP_PRIMARY_KEY",
@@ -288,8 +274,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e14263aa648b60f6d8101de"
+        "weight": 1.0
     },
     {
         "name": "CHECK_DROP_TABLE",
@@ -307,8 +292,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e14269ca648b60f6d810264"
+        "weight": 1.0
     },
     {
         "name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
@@ -326,8 +310,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e1426d2a648b60f6d8102b4"
+        "weight": 1.0
     },
     {
         "name": "CHECK_INDEX_ONLINE",
@@ -345,8 +328,7 @@
         "solution": [
             "创建索引的时候加上online"
         ],
-        "weight": 1.0,
-        "id": "5e142730a648b60f6d810338"
+        "weight": 1.0
     },
     {
         "name": "CHECK_LOB_USING",
@@ -364,8 +346,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142778a648b60f6d81039c"
+        "weight": 1.0
     },
     {
         "name": "CHECK_MODIFY_COLUMN",
@@ -383,8 +364,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e1427b1a648b60f6d8103ee"
+        "weight": 1.0
     },
     {
         "name": "CHECK_SEQUENCE",
@@ -402,8 +382,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e1427faa648b60f6d810455"
+        "weight": 1.0
     },
     {
         "name": "CHECK_TRUNCATE_TABLE",
@@ -421,8 +400,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142842a648b60f6d8104b5"
+        "weight": 1.0
     },
     {
         "name": "CHECK_USING_REVOKE",
@@ -440,8 +418,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142888a648b60f6d810516"
+        "weight": 1.0
     },
     {
         "name": "DML_ALLDATA",
@@ -459,8 +436,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142900a648b60f6d8105ba"
+        "weight": 1.0
     },
     {
         "name": "DML_SORT",
@@ -478,8 +454,7 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "id": "5e142969a648b60f6d810653"
+        "weight": 1.0
     },
     {
         "name": "LIKE_UNINDEX",
@@ -497,8 +472,7 @@
         "solution": [
             "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
         ],
-        "weight": 1.0,
-        "id": "5e1429f4a648b60f6d81070d"
+        "weight": 1.0
     },
     {
         "name": "LONG_TEXT",
@@ -523,8 +497,7 @@
         "solution": [
             "sql改写为精简语句"
         ],
-        "weight": 1.0,
-        "id": "5e142a6fa648b60f6d8107ba"
+        "weight": 1.0
     },
     {
         "name": "SELECT_ANY",
@@ -542,8 +515,7 @@
         "solution": [
             "使用明确的列"
         ],
-        "weight": 1.0,
-        "id": "5e142ae5a648b60f6d810858"
+        "weight": 1.0
     },
     {
         "name": "SUBQUERY_FROM",
@@ -561,8 +533,7 @@
         "solution": [
             "改写为表关联"
         ],
-        "weight": 1.0,
-        "id": "5e142b35a648b60f6d8108cd"
+        "weight": 1.0
     },
     {
         "name": "SUBQUERY_HAVING",
@@ -580,8 +551,7 @@
         "solution": [
             "改写为表关联"
         ],
-        "weight": 1.0,
-        "id": "5e142b91a648b60f6d81094b"
+        "weight": 1.0
     },
     {
         "name": "SUBQUERY_REP",
@@ -600,8 +570,7 @@
             "1.withas",
             "2.改写sql避免重复查询"
         ],
-        "weight": 1.0,
-        "id": "5e142c0aa648b60f6d8109f1"
+        "weight": 1.0
     },
     {
         "name": "SUBQUERY_SELECT",
@@ -619,8 +588,7 @@
         "solution": [
             "改写为表关联"
         ],
-        "weight": 1.0,
-        "id": "5e142c67a648b60f6d810a72"
+        "weight": 1.0
     },
     {
         "name": "SUBQUERY_WHERE",
@@ -638,8 +606,7 @@
         "solution": [
             "改写为表关联"
         ],
-        "weight": 1.0,
-        "id": "5e142cc1a648b60f6d810af3"
+        "weight": 1.0
     },
     {
         "name": "TOOMANY_BIND",
@@ -664,8 +631,7 @@
         "solution": [
             "减少绑定变量"
         ],
-        "weight": 1.0,
-        "id": "5e142d71a648b60f6d810be6"
+        "weight": 1.0
     },
     {
         "name": "TOOMANY_OR",
@@ -690,8 +656,7 @@
         "solution": [
             "改用临时表存入变量"
         ],
-        "weight": 1.0,
-        "id": "5e142e46a648b60f6d810d10"
+        "weight": 1.0
     },
     {
         "name": "UNION",
@@ -709,8 +674,7 @@
         "solution": [
             "改写unionall和sql逻辑中去重"
         ],
-        "weight": 1.0,
-        "id": "5e142ee1a648b60f6d810de1"
+        "weight": 1.0
     },
     {
         "name": "WHERE_FUNC",
@@ -722,15 +686,14 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(\"\\\\)\\\\s?[<>=]{1,2}\")\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"{\\+-\\*/\\(\\)}\\s?[<>=]{1,2}\")\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "禁止在查询字段中引用函数",
+        "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
         "solution": [
-            "1.函数写在表达式右边",
+            "1.运算、函数写在表达式右边",
             "2.应用程序实现函数功能"
         ],
-        "weight": 1.0,
-        "id": "5e142f5ca648b60f6d810e8f"
+        "weight": 1.0
     },
     {
         "name": "WHERE_NOT",
@@ -749,8 +712,7 @@
             "1.如果列值是连续,可把否定操作,更改为两个区间",
             "2.不建议使用不等值运算"
         ],
-        "weight": 1.0,
-        "id": "5e142fe7a648b60f6d810f4f"
+        "weight": 1.0
     },
     {
         "name": "SQL_INDEX_FAST_FULL_SCAN",
@@ -812,8 +774,7 @@
         "solution": [
             "SQL逻辑能否改写获取更少的数据"
         ],
-        "weight": 1.0,
-        "id": "5e15aae4f1cbaa05c141519c"
+        "weight": 1.0
     },
     {
         "name": "SQL_INDEX_FULL_SCAN",
@@ -869,8 +830,7 @@
         "solution": [
             "SQL逻辑能否改写获取更少的数据"
         ],
-        "weight": 1.0,
-        "id": "5e16d2ddfbcc041f24c19fc7"
+        "weight": 1.0
     },
     {
         "name": "SQL_INDEX_SKIP_SCAN",
@@ -919,8 +879,7 @@
         "solution": [
             "索引列的先后顺序是否合理"
         ],
-        "weight": 1.0,
-        "id": "5e16d39cfbcc041f24c1a030"
+        "weight": 1.0
     },
     {
         "name": "SQL_MERGE_JOIN_CARTESIAN",
@@ -970,8 +929,7 @@
             "1.表关联条件缺失,加上关联条件",
             "2.统计信息不准确,手工收集统计信息"
         ],
-        "weight": 1.0,
-        "id": "5e16d426fbcc041f24c1a084"
+        "weight": 1.0
     },
     {
         "name": "SQL_PARALLEL_FETCH",
@@ -1026,8 +984,7 @@
         "solution": [
             "取消表、索引、sql中的并行设置"
         ],
-        "weight": 1.0,
-        "id": "5e16d4d7fbcc041f24c1a0e1"
+        "weight": 1.0
     },
     {
         "name": "SQL_PARTITION_RANGE_ALL",
@@ -1082,8 +1039,7 @@
         "solution": [
             "分区键设计是否合理"
         ],
-        "weight": 1.0,
-        "id": "5e16d5a7fbcc041f24c1a146"
+        "weight": 1.0
     },
     {
         "name": "SQL_PARTITION_RANGE_INLIST_OR",
@@ -1138,8 +1094,7 @@
         "solution": [
             "分区键设计是否合理"
         ],
-        "weight": 1.0,
-        "id": "5e16d624fbcc041f24c1a185"
+        "weight": 1.0
     },
     {
         "name": "SQL_PARTITION_RANGE_ITERATOR",
@@ -1194,8 +1149,7 @@
         "solution": [
             "分区键设计是否合理"
         ],
-        "weight": 1.0,
-        "id": "5e16d6c0fbcc041f24c1a1d5"
+        "weight": 1.0
     },
     {
         "name": "SQL_TABLE_FULL_SCAN",
@@ -1268,8 +1222,7 @@
             "11.hintfull禁用hint1",
             "12.统计信息不准确数据批量加载程序触发收集统计信息"
         ],
-        "weight": 1.0,
-        "id": "5e16d788fbcc041f24c1a23d"
+        "weight": 1.0
     },
     {
         "name": "SQL_TO_CHANGE_TYPE",
@@ -1325,8 +1278,7 @@
             "1.显式转换",
             "2.选择合适的字段类型"
         ],
-        "weight": 1.0,
-        "id": "5e16d801fbcc041f24c1a27e"
+        "weight": 1.0
     },
     {
         "name": "SQL_VIEW_SCAN",
@@ -1381,8 +1333,7 @@
         "solution": [
             "视图不能展开,复杂视图拆解、改写"
         ],
-        "weight": 1.0,
-        "id": "5e16d871fbcc041f24c1a2b6"
+        "weight": 1.0
     },
     {
         "name": "LOOP_IN_TAB_FULL_SCAN",
@@ -1444,8 +1395,7 @@
         "solution": [
             "关联列创建索引"
         ],
-        "weight": 1.0,
-        "id": "5e16f02c2b5f3cec992f27f8"
+        "weight": 1.0
     },
     {
         "name": "SQL_LOOP_NUM",
@@ -1489,8 +1439,7 @@
         "solution": [
             "改写sql逻辑减少表关联的数量"
         ],
-        "weight": 1.0,
-        "id": "5e1c2b71f9b533712c4175b4"
+        "weight": 1.0
     },
     {
         "name": "SQL_TAB_REL_NUM",
@@ -1534,7 +1483,6 @@
         "solution": [
             "建议减少表关联,业务逻辑sql改写"
         ],
-        "weight": 1.0,
-        "id": "5e1d2ddd6e08015728f76efe"
+        "weight": 1.0
     }
 ]
