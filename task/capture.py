@@ -215,7 +215,7 @@ def task_run(host, port, sid, username, password,
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
-    msg = f"{host}, {port}, {sid}, {username}, {task_id}," \
+    msg = f"{host}, {port}, {sid}, {task_id}," \
           f" {connect_name}, {business_name}, {db_users}, {operator}"
     logger.info(msg)
 
