@@ -93,6 +93,8 @@ class Results(BaseDocRecordID):
             if rule.rule_type == const.RULE_TYPE_OBJ:
                 columns = [i["parm_desc"] for i in rule.output_parms]
                 for r in rule_dict_in_rst.get("records", []):
+                    if isinstance(r, (list, tuple)):
+                        r = ", ".join([str(aaa) for aaa in r])
                     records.append(dict(zip(columns, r)))
 
             elif rule.rule_type in [const.RULE_TYPE_SQLPLAN,
