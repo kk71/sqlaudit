@@ -116,6 +116,19 @@ class SubTicketHandler(TicketReq):
         sub_ticket.save()
         self.resp_created(sub_ticket.to_dict())
 
+    def delete(self):
+        """删除子工单"""
+        params = self.get_json_args(Schema({
+            "statement_id": scm_unempty_str
+        }))
+        statement_id = params.pop("statement_id")
+
+        sub_ticket = TicketSubResult.objects(statement_id=statement_id).first()
+        if not sub_ticket:
+            return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
+        sub_ticket.delete()
+        self.resp_created(msg="删除成功。")
+
 
 class SubTicketExportHandler(SubTicketHandler):
 

@@ -237,7 +237,7 @@ class TicketHandler(TicketReq):
 
     def delete(self):
         """删除工单"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "work_list_id": scm_int
         }))
         work_list_id = params.pop("work_list_id")
