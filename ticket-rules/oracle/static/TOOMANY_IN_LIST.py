@@ -7,7 +7,7 @@ def code(rule, **kwargs):
 
     sql_content = [
         x
-        for x in re.findall(r"\s+in\s+\((.*?)\)", sql_text, re.I+re.M)
+        for x in re.findall(r"\s+in\s+\((.*?)\)", sql_text, re.I+re.S)
         if 'select' not in x.lower()
     ]
     for value in sql_content:
