@@ -21,7 +21,11 @@ class SubTicketHandler(TicketReq):
     def filter_sub_ticket(self, session):
         params = self.get_query_args(Schema({
             Optional("error_type", default=None): scm_one_of_choices({
-                "static", "dynamic", "all_with_problems", "all"
+                "static",
+                "dynamic",
+                "all_with_problems",
+                "failure",
+                "all"
             }),
             Optional("start_time", default=None): scm_datetime,
             Optional("end_time", default=None): scm_datetime,
@@ -62,11 +66,14 @@ class SubTicketHandler(TicketReq):
             q = q.filter(static__not__size=0)
         elif error_type == "dynamic":
             q = q.filter(dynamic__not__size=0)
+        elif error_type == "failure":
+            # 仅返回分析失败的子工单，即error_msg不为空的子工单
+            q = q.filter(error_msg__nin=["", None])
         elif error_type == "all_with_problems":
-            # 前端写着叫问题子工单，但是页面其实能把没问题的子工单也搜索出来，
-            # 这里就加一个过滤有问题的子工单的参数吧。
+            # 这个类型包含上面三种情况
             q = q.filter(Q(static__not__size=0) |
-                         Q(dynamic__not__size=0))
+                         Q(dynamic__not__size=0) |
+                         Q(error_msg__nin=[None, ""]))
         elif error_type is None or error_type == "all":
             pass  # reserved but should be useless
         else:
