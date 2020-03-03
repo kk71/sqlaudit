@@ -92,13 +92,17 @@ class Results(BaseDocRecordID):
         try:
             if rule.rule_type == const.RULE_TYPE_OBJ:
                 columns = [i["parm_desc"] for i in rule.output_parms]
-                for r in rule_dict_in_rst.get("records", []):
-                    new_r = []
-                    for i in r:
-                        if isinstance(i, (list, tuple)):
-                            i = ", ".join([str(aaa) for aaa in r])
-                        new_r.append(i)
-                    records.append(dict(zip(columns, new_r)))
+                for original_record in rule_dict_in_rst.get("records", []):
+                    converted_record = []
+                    for i in original_record:
+                        if isinstance(i, (tuple, list)):
+                            converted_record.append(", ".join([
+                                str(aaa) if not isinstance(aaa, (str, int, float))
+                                else aaa
+                                for aaa in i]))
+                        else:
+                            converted_record.append(i)
+                    records.append(dict(zip(columns, converted_record)))
 
             elif rule.rule_type in [const.RULE_TYPE_SQLPLAN,
                                     const.RULE_TYPE_SQLSTAT]:
