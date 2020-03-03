@@ -196,7 +196,8 @@ class TicketHandler(TicketReq):
                 params["database_name"] = cmdb.connect_name
                 if not params["task_name"]:
                     params['task_name'] = sub_ticket_analysis.get_available_task_name(
-                        submit_owner=params["submit_owner"]
+                        submit_owner=params["submit_owner"],
+                        session=session
                     )
                 ticket.from_dict(params)
                 session.add(ticket)
