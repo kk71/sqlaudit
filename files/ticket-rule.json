@@ -686,7 +686,7 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"{\\+-\\*/\\(\\)}\\s?[<>=]{1,2}\")\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s?.*?[+\\-*/()].*[<>=]{1,2}\", re.I)\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
         "solution": [

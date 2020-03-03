@@ -5,7 +5,7 @@ def code(rule, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
     sql_text: str = single_sql["sql_text_no_comment"]
 
-    where_func = re.compile(r"{\+-\*/\(\)}\s?[<>=]{1,2}")
+    where_func = re.compile(r"where\s?.*?[+\-*/()].*[<>=]{1,2}", re.I)
 
     if where_func.search(sql_text):
         return -rule.weight, []
