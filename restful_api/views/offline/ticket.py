@@ -149,7 +149,9 @@ class TicketHandler(TicketReq):
                             len(x.static) for x in sub_tickets_to_current_ticket if x]),
                         "dynamic_problem_num": sum([
                             len(x.dynamic) for x in sub_tickets_to_current_ticket if x])
-                    }
+                    },
+                    "sql_counts": TicketSubResult.
+                        objects(work_list_id=ticket.work_list_id).count()
                 }
                 ret.append(ret_item)
 
