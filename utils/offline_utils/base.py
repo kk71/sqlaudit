@@ -21,13 +21,21 @@ class SubTicketAnalysis(abc.ABC):
     # TODO 指明数据库类型，mysql还是oracle
     db_type = None
 
-    def get_available_task_name(self, submit_owner: str) -> str:
+    def get_available_task_name(self, submit_owner: str, session) -> str:
         """获取当前可用的线下审核任务名"""
         current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
         k = f"offline-ticket-task-num-{current_date}"
-        current_num = "%03d" % self.redis_cli.incr(k, 1)
+        current_num_int = self.redis_cli.incr(k, 1)
+        current_num = "%03d" % current_num_int
         self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
-        return f"{submit_owner}-{current_date}-{current_num}"
+        ret = f"{submit_owner}-{current_date}-{current_num}"
+        if current_num_int == 1:
+            while session.query(WorkList).filter(WorkList.task_name == ret).count():
+                current_num_int = self.redis_cli.incr(k, 1)
+                current_num = "%03d" % current_num_int
+                self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
+                ret = f"{submit_owner}-{current_date}-{current_num}"
+        return ret
 
     @abc.abstractmethod
     def __init__(self,
