@@ -7,8 +7,8 @@ def code(rule, **kwargs):
 
     sql_content = [
         x
-        for x in re.findall(r" in\s*\((.*?)\)", sql_text, re.I)
-        if 'select' not in x
+        for x in re.findall(r"\s+in\s+\((.*?)\)", sql_text, re.I+re.M)
+        if 'select' not in x.lower()
     ]
     for value in sql_content:
         if value.count(",") > rule.gip("in_list_num") - 1:
