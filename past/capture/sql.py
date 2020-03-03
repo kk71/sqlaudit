@@ -450,7 +450,7 @@ select s.segment_name segment_name,
 
 # 获取某个schema下对象类型为partition table的相关信息，如：分区表的类型，分区键，分区的数量等信息。
 OBJ_PART_TAB_PARENT_SQL = """
-       select s.OWNER,
+       select /*+opt_param('_optimizer_push_pred_cost_based','FALSE')*/   s.OWNER,
        s.OBJECT_NAME as TABLE_NAME,
        s.OBJECT_ID,
        s.DATA_OBJECT_ID,
