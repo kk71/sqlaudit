@@ -42,7 +42,7 @@ class TicketOuterHandler(TicketReq):
             filtered_tickets = session.query(WorkList).filter(WorkList.submit_date >= date_start,
                                                               WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
-            if work_list_status:
+            if work_list_status is not None:
                 filtered_tickets = filtered_tickets.filter(
                     WorkList.work_list_status == work_list_status)
             filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
