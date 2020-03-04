@@ -123,6 +123,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 f"sub ticket with more than one sql sentence: {ps}")
         sub_result = OracleTicketSubResult(
             work_list_id=self.ticket.work_list_id,
+            task_name=self.ticket.task_name,
             cmdb_id=self.cmdb.cmdb_id,
             db_type=DB_ORACLE,
             schema_name=self.schema_name,

@@ -235,6 +235,7 @@ class TicketSubResult(BaseDoc):
     在子工单列表里读取的时候使用本类进行操作以达到兼容效果，写入数据的时候请使用子类
     """
     work_list_id = IntField(required=True)
+    task_name = StringField(default=None)
     cmdb_id = IntField()
     db_type = StringField()
     statement_id = StringField()  # sql_id
