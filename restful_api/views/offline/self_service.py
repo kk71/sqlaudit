@@ -160,7 +160,6 @@ class ExecuteHandler(TicketReq):
                             last_online_err = err_msg
                             sub_ticket.online_status = False
                             sub_ticket.error_msg = err_msg
-                        session.add(sub_ticket)
 
                     if last_online_err:
                         ticket.audit_comments = last_online_err
@@ -170,6 +169,8 @@ class ExecuteHandler(TicketReq):
                         ticket.work_list_status = OFFLINE_TICKET_EXECUTED
                     ticket.online_date = datetime.now()
                     session.add(ticket)
+                    session.commit()
+                    sub_ticket.save()
                     self.resp_created({
                         "msg": last_online_err,
                         "online_status": ticket.work_list_status
