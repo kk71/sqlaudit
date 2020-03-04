@@ -18,6 +18,9 @@ import utils.const
 from utils.datetime_utils import *
 import models.mongo
 
+from pymongo.errors import DocumentTooLarge
+from prettytable import PrettyTable
+
 
 class Command(object):
     """
@@ -157,14 +160,14 @@ class Command(object):
             instance_name = kwargs.get("db")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
                                 create_user=create_user, **kwargs)
-            job_record = sqlaudit.run()
+            job_record,rule_name_and_len = sqlaudit.run()
         elif db_type == utils.const.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
             instance_name = args.get("sid")
             capture_date = args.get("capture_date")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
                                 startdate=capture_date, create_user=create_user,
                                 **kwargs)
-            job_record = sqlaudit.run()
+            job_record,rule_name_and_len = sqlaudit.run()
         elif rule_type == "TEXT":
             startdate = args.get("startdate")
             stopdate = args.get("stopdate")
@@ -186,7 +189,7 @@ class Command(object):
                                 startdate=startdate, stopdate=stopdate,
                                 create_user=create_user, hostname=hostname,
                                 **kwargs)
-            job_record = sqlaudit.run()
+            job_record,rule_name_and_len = sqlaudit.run()
         # elif db_type == "mysql" and rule_type in ["SQLPLAN", "SQLSTAT"]:
         #     instance_name = "mysql"
         #     startdate = args.get("startdate")
@@ -225,7 +228,8 @@ class Command(object):
             connect_name,
             start_date,
             record_id,
-            rule_type
+            rule_type,
+            rule_name_and_len
         )
 
     def save_result(
@@ -241,7 +245,8 @@ class Command(object):
             connect_name,
             start_date,
             record_id,
-            rule_type
+            rule_type,
+            rule_name_and_len
     ):
         args = {
             'operator_user': create_user,
@@ -267,11 +272,19 @@ class Command(object):
             'rule_type': rule_type,
         }
         job_record.update(result_update_info)
-        sqlaudit.mongo_client.insert_one("results", job_record)
-        models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
-            set__status=utils.const.JOB_STATUS_FINISHED,
-            set__desc__capture_time_end=past.utils.utils.get_time()
-        )
+        try:
+            sqlaudit.mongo_client.insert_one("results", job_record)
+            models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
+                set__status=utils.const.JOB_STATUS_FINISHED,
+                set__desc__capture_time_end=past.utils.utils.get_time()
+            )
+
+        except DocumentTooLarge:
+            # print(e)
+            pt=PrettyTable(rule_name_and_len.keys())
+            pt.add_row(rule_name_and_len.values())
+            print(pt)
+
         # sql = {'_id': sqlaudit.review_result.task_id}
         # condition = {"$set": {"status": 1, "desc.capture_time_end": past.utils.utils.get_time()}}
         # sqlaudit.mongo_client.update_one("job", sql, condition)
