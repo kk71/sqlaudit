@@ -143,7 +143,7 @@ class ExecuteHandler(TicketReq):
                         u_p = ticket.to_dict(
                             iter_if=lambda k, v: k in ("online_username", "online_password"),
                             iter_by=lambda k, v: getattr(cmdb,
-                                                         {"online_username": "username",
+                                                         {"online_username": "user_name",
                                                           "online_password": "password"}[k])
                             if not v else v
                         )
