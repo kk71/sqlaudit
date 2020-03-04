@@ -142,7 +142,10 @@ class ExecuteHandler(TicketReq):
                         start = time.time()
                         u_p = ticket.to_dict(
                             iter_if=lambda k, v: k in ("online_username", "online_password"),
-                            iter_by=lambda k, v: getattr(cmdb, k) if not v else v
+                            iter_by=lambda k, v: getattr(cmdb,
+                                                         {"online_username": "username",
+                                                          "online_password": "password"}[k])
+                            if not v else v
                         )
                         u_p["username"] = u_p.pop("online_username")
                         u_p["password"] = u_p.pop("online_password")
