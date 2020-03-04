@@ -29,16 +29,22 @@ class TicketOuterHandler(TicketReq):
         params = self.get_query_args(Schema({
             "date_start": scm_date,
             "date_end": scm_date_end,
+            scm_optional("work_list_status", default=None): And(
+                scm_int, scm_one_of_choices(ALL_OFFLINE_TICKET_STATUS)),
             **self.gen_p()
         }))
         p = self.pop_p(params)
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
+        work_list_status = params.pop("work_list_status")
 
         with make_session() as session:
             filtered_tickets = session.query(WorkList).filter(WorkList.submit_date >= date_start,
                                                               WorkList.submit_date < date_end). \
                 order_by(WorkList.work_list_id.desc())
+            if work_list_status:
+                filtered_tickets = filtered_tickets.filter(
+                    WorkList.work_list_status == work_list_status)
             filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
             tickets: list = []
             for ticket in filtered_tickets:
