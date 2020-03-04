@@ -11,7 +11,6 @@ __all__ = [
     "CMDB",
     "RoleDataPrivilege",
     "WorkList",
-    "OSQLPlan",
     "RiskSQLRule",
     "WorkListAnalyseTemp",
     "DataHealth",
