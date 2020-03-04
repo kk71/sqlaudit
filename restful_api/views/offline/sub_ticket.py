@@ -61,7 +61,7 @@ class SubTicketHandler(TicketReq):
                 filter_by(schema_name=schema_name). \
                 with_entities(WorkList.work_list_id).all()
             work_list_id_list = [i[0] for i in work_lisk_id_in_tuple]
-            q = q.filer(work_list_id__in=work_list_id_list)
+            q = q.filter(work_list_id__in=work_list_id_list)
         if error_type == "static":
             q = q.filter(static__not__size=0)
         elif error_type == "dynamic":
