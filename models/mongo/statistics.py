@@ -144,14 +144,16 @@ class StatsLoginUser(BaseStatisticsDoc):
                         )
                         for a_drill_down in stats_num_drill_down_q:
                             doc.sql_num += a_drill_down.num
+                            doc.sql_problem_num += a_drill_down.num_with_risk
+                            doc.problem_num_of_sql += a_drill_down.problem_num
 
-                    sql_r_q, _ = get_result_queryset_by(
-                        latest_task_record_ids,
-                        rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
-                        cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
-                    )
-                    doc.problem_num_of_sql = calc_problem_num(sql_r_q)
-                    doc.sql_problem_num = calc_distinct_sql_id(sql_r_q)
+                    # sql_r_q, _ = get_result_queryset_by(
+                    #     latest_task_record_ids,
+                    #     rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
+                    #     cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
+                    # )
+                    # doc.problem_num_of_sql = calc_problem_num(sql_r_q)
+                    # doc.sql_problem_num = calc_distinct_sql_id(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
 
