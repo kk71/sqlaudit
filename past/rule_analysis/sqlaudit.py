@@ -294,7 +294,7 @@ class SqlAudit(object):
 
     def run(self, **kwargs):
         job_record = {}
-        rule_name_and_len={}
+        rule_name_and_len = {}
         if self.rule_type == "TEXT":
             sql_list = self.sql_text.get_text(self.db_type)
 
@@ -302,6 +302,7 @@ class SqlAudit(object):
             start = int(time.time() * 1000)
             # key: RULE_NAME, value: RULE_INFO
             job_record[key] = {}
+            rule_name_and_len[key] = {}
             input_parms = value["input_parms"]
             rule_complexity = value["rule_complexity"]
             rule_cmd = value["rule_cmd"]
