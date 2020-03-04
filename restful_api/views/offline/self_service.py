@@ -161,8 +161,10 @@ class ExecuteHandler(TicketReq):
 
                         else:
                             last_online_err = err_msg
+                            sub_ticket.error_msg = oracle_sub_ticket_analysis. \
+                                update_error_message(
+                                    "自助上线", err_msg, old_msg=sub_ticket.error_msg)
                             sub_ticket.online_status = False
-                            sub_ticket.error_msg = err_msg
 
                     if last_online_err:
                         ticket.audit_comments = last_online_err
