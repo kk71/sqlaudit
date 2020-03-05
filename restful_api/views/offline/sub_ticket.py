@@ -27,8 +27,8 @@ class SubTicketHandler(TicketReq):
                 "failure",
                 "all"
             }),
-            Optional("start_time", default=None): scm_datetime,
-            Optional("end_time", default=None): scm_datetime,
+            Optional("start_time", default=None): scm_date,
+            Optional("end_time", default=None): scm_date_end,
             Optional("work_list_id"): scm_int,
             Optional("schema_name", default=None): scm_str,
             Optional("cmdb_id", default=None): scm_int,
