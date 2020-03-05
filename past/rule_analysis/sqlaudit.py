@@ -294,6 +294,7 @@ class SqlAudit(object):
 
     def run(self, **kwargs):
         job_record = {}
+        rule_name_and_len = {}
         if self.rule_type == "TEXT":
             sql_list = self.sql_text.get_text(self.db_type)
 
@@ -301,6 +302,7 @@ class SqlAudit(object):
             start = int(time.time() * 1000)
             # key: RULE_NAME, value: RULE_INFO
             job_record[key] = {}
+            rule_name_and_len[key] = {}
             input_parms = value["input_parms"]
             rule_complexity = value["rule_complexity"]
             rule_cmd = value["rule_cmd"]
@@ -322,6 +324,9 @@ class SqlAudit(object):
                         "sqls": result,
                         "scores": score
                     })
+                    rule_name_and_len[key].update({
+                        "sqls":len(result)
+                    })
             # elif self.db_type == "mysql" and self.rule_type in ["SQLPLAN", "SQLSTAT"]:
             #     hostname = kwargs.get("hostname")
             #     user = kwargs.get("user")
@@ -342,15 +347,20 @@ class SqlAudit(object):
                         "scores": scores,
                         "sqls": result
                     })
+                    rule_name_and_len[key].update({
+                        "sqls":len(result)
+                    })
             elif self.db_type == utils.const.DB_ORACLE and self.rule_type == "OBJ":
                 results, scores = self.obj_parse(key, rule_complexity,
                                                  rule_cmd, weight,
                                                  max_score, input_parms)
                 job_record[key].update({"records": results, "scores": scores})
+                rule_name_and_len[key].update({"records":len(results)})
             # elif self.db_type == "mysql" and self.rule_type == "OBJ":
             #     results, scores = self.obj_parse(key, rule_complexity,
             #                                      rule_cmd, weight,
             #                                      max_score, input_parms)
             #     job_record[key].update({"records": results, "scores": scores})
             print(f"{key} -> {int(time.time() * 1000) - start}ms")
-        return job_record
+
+        return job_record,rule_name_and_len
