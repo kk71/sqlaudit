@@ -148,7 +148,7 @@ class UserHandler(AuthReq):
                 session.add(new_user)
                 session.commit()
             except IntegrityError:
-                self.resp_forbidden(msg="用户名已存在，请修改后重试")
+                self.resp_bad_req(msg="用户名已存在，请修改后重试")
             session.refresh(new_user)
             self.resp_created(new_user.to_dict())
 

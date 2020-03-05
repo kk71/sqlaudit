@@ -56,7 +56,7 @@ class RoleHandler(PrivilegeReq):
                       for i in params.pop("privileges") if PRIVILEGE.get_privilege_by_id(i)]
         with make_session() as session:
             if session.query(Role).filter_by(role_name=params["role_name"]).count():
-                self.resp_forbidden(msg="已经存在该角色")
+                self.resp_bad_req(msg="已经存在该角色")
                 return
             role = Role(**params)
             session.add(role)
