@@ -215,7 +215,7 @@ class ExportReportXLSXHandler(AuthReq):
     async def get(self):
         """导出报告为xlsx"""
         params = self.get_query_args(Schema({
-            "job_id": scm_str_to_list,
+            "job_id": scm_dot_split_str,
             Optional(object): object
 
         }))
@@ -356,7 +356,7 @@ class ExportReportHTMLHandler(AuthReq):
     async def get(self):
         """导出报告为html"""
         params = self.get_query_args(Schema({
-            "job_id": scm_str_to_list,
+            "job_id": scm_dot_split_str,
             Optional(object): object
         }))
         job_ids = params.pop("job_id")

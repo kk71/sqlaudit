@@ -22,7 +22,6 @@ __all__ = [
     "scm_date_end",
     "scm_datetime",
     "scm_bool",
-    "scm_str_to_list",
     "scm_optional"
 ]
 
@@ -63,6 +62,3 @@ scm_bool = Use(lambda x: x not in (0, "0", False))
 scm_datetime = Use(lambda x: arrow.get(x, const.COMMON_DATETIME_FORMAT).datetime)
 scm_date = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).date())
 scm_date_end = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).shift(days=+1).date())
-
-#for str to list
-scm_str_to_list=And(scm_str,Use(lambda x:x.split(',')))
