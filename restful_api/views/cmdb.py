@@ -149,9 +149,13 @@ class CMDBHandler(AuthReq):
                 role_user = [list(x) for x in role_user]
                 role_user = [y for y in role_user for d in i['role'] if d['role_id'] in y]
 
-                i['combined_user'] = reduce(lambda x, y: x if y in x else x + [y],
-                                            [[], ] + [{'combined_login_user': c[2], 'combined_user_name': c[3]} for c in
-                                                      role_user])
+                i['combined_user'] = reduce(
+                    lambda x, y: x if y in x else x + [y],
+                    [[]] + [
+                        {'combined_login_user': c[2], 'combined_user_name': c[3]}
+                        for c in role_user
+                    ]
+                )
 
             self.resp(ret, **p)
 
@@ -192,12 +196,12 @@ class CMDBHandler(AuthReq):
                 return self.resp_bad_req(msg="连接名称已存在")
 
             if session.query(CMDB).filter(
-                CMDB.ip_address == params["ip_address"],
-                CMDB.port == params["port"],
-                or_(  # TODO 记得改，目前sid和service_name的字段名和实际意义是反过来的
-                    CMDB.service_name == params["service_name"],
-                    CMDB.sid == params["sid"]
-                )
+                    CMDB.ip_address == params["ip_address"],
+                    CMDB.port == params["port"],
+                    or_(  # TODO 记得改，目前sid和service_name的字段名和实际意义是反过来的
+                        CMDB.service_name == params["service_name"],
+                        CMDB.sid == params["sid"]
+                    )
             ).first():
                 return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
 
@@ -574,6 +578,6 @@ class RankingConfigHandler(AuthReq):
             'username': scm_unempty_str
         }))
         with make_session() as session:
-            session.query(DataHealthUserConfig).\
+            session.query(DataHealthUserConfig). \
                 filter_by(**params).delete(synchronize_session=False)
         self.resp_created("删除评分schema成功")

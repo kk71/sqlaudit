@@ -89,8 +89,6 @@ class SubTicketHandler(TicketReq):
         }, ignore_extra_keys=True))
         p = self.pop_p(params)
 
-        return self.resp_forbidden(msg="test")
-
         with make_session() as session:
             q = self.filter_sub_ticket(session)
             items, p = self.paginate(q, **p)

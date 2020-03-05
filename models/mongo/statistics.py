@@ -147,13 +147,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                             doc.sql_problem_num += a_drill_down.num_with_risk
                             doc.problem_num_of_sql += a_drill_down.problem_num
 
-                    # sql_r_q, _ = get_result_queryset_by(
-                    #     latest_task_record_ids,
-                    #     rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
-                    #     cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
-                    # )
-                    # doc.problem_num_of_sql = calc_problem_num(sql_r_q)
-                    # doc.sql_problem_num = calc_distinct_sql_id(sql_r_q)
                     if doc.sql_num:
                         doc.sql_problem_rate = round(doc.sql_problem_num / float(doc.sql_num), 4)
 
@@ -168,11 +161,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                             doc.table_num += a_drill_down.num
                             doc.table_problem_num += a_drill_down.num_with_risk
                             doc.problem_num_of_table += a_drill_down.problem_num
-                    # table_r_q, rule_names_to_tab = get_result_queryset_by(
-                    #     latest_task_record_ids,
-                    #     obj_info_type=const.OBJ_RULE_TYPE_TABLE,
-                    #     cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
-                    # )
                     if doc.table_num:
                         doc.table_problem_rate = round(doc.table_problem_num / float(doc.table_num), 4)
 
@@ -187,11 +175,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                             doc.index_num += a_drill_down.num
                             doc.index_problem_num += a_drill_down.num_with_risk
                             doc.problem_num_of_index += a_drill_down.problem_num
-                    # index_r_q, rule_names_to_ind = get_result_queryset_by(
-                    #     latest_task_record_ids,
-                    #     obj_info_type=const.OBJ_RULE_TYPE_INDEX,
-                    #     cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
-                    # )
                     if doc.index_num:
                         doc.index_problem_rate = round(doc.index_problem_num / float(doc.index_num), 4)
 
@@ -206,12 +189,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                             doc.sequence_num += a_drill_down.num
                             doc.sequence_problem_num += a_drill_down.num_with_risk
                             doc.problem_num_of_sequence += a_drill_down.problem_num
-                    # sequence_r_q, rule_names_to_seq = get_result_queryset_by(
-                    #     latest_task_record_ids,
-                    #     obj_info_type=const.OBJ_RULE_TYPE_SEQ,
-                    #     cmdb_id_schema_name_pairs=list(cmdb_ids_schemas_dict.items())
-                    # )
-                    # print(f"rule names to sequence: {rule_names_to_seq}")
                     if doc.sequence_num:
                         doc.sequence_problem_rate = round(doc.sequence_problem_num / float(doc.sequence_num), 4)
 
