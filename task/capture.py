@@ -218,6 +218,13 @@ def task_run(host, port, sid, username, password,
     logger.info(msg)
 
     from models.oracle import make_session, TaskExecHistory
+    from utils.cmdb_utils import clean_unavailable_schema
+
+    print(f"* start cleaning unavailable schemas in current cmdb({cmdb_id})...")
+    with make_session() as session:
+        clean_unavailable_schema(session, cmdb_id)
+    print("done.\n\n")
+
     with make_session() as session:
         # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
         session.query(TaskExecHistory).filter(TaskExecHistory.status == None).delete()

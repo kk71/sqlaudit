@@ -232,13 +232,17 @@ def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
     return True
 
 
-def clean_unavailable_schema(session):
+def clean_unavailable_schema(session, cmdb_id: int = None):
     """
     从数据权限和数据库评分里面，删除纳管库中实际不存在的schema
     :param session:
+    :param cmdb_id:
     :return:
     """
-    for cmdb in session.query(CMDB):
+    q = session.query(CMDB)
+    if cmdb_id:
+        q = q.filter(CMDB.cmdb_id == cmdb_id)
+    for cmdb in q:
         available_schemas: [str] = get_cmdb_available_schemas(cmdb)
         session.query(DataHealthUserConfig.username).filter(
             DataHealthUserConfig.database_name == cmdb.connect_name,

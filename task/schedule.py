@@ -8,8 +8,6 @@ from .mail_report import timing_send_mail
 import plain_db.oracleob
 from utils import const
 from utils.datetime_utils import *
-from models.oracle import make_session
-from utils.cmdb_utils import clean_unavailable_schema
 
 
 def time2int(timestamp: str, process_start_time: arrow.arrow):  # 返回目标的ts
@@ -60,11 +58,6 @@ def run_capture(now, process_start_time):
                       task['cmdb_id'],
                       path.split(__file__)[1]
                       )
-            print("* start cleaning unavailable schemas in all cmdbs...")
-            with make_session() as session:
-                clean_unavailable_schema(session)
-            print("done.\n\n")
-
             task_run.delay(*params)
 
         elif task['script'] == const.DB_TASK_TUNE:
