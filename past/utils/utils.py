@@ -26,18 +26,6 @@ import utils.const
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
-def get_random_str_without_duplicate():
-    lib = string.digits + string.ascii_lowercase
-
-    while True:
-        random_str = ''.join([random.choice(lib) for _ in range(15)])
-        sql = "SELECT COUNT(*) FROM T_SQL_PLAN WHERE statement_id = :1"
-        if OracleHelper.select(sql, [random_str])[0] == 0:
-            break
-
-    return random_str
-
-
 def check_file_encoding(file_stream):
     encoding_check = chardet.detect(file_stream)
     if float(encoding_check['confidence']) >= 0.65:

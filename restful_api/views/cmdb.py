@@ -314,6 +314,7 @@ class CMDBHandler(AuthReq):
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
             session.query(TaskManage).filter_by(**params).delete()
+            session.query(RoleDataPrivilege).filter_by(**params).delete()
         clear_cache.delay()
         self.resp_created(msg="已删除。")
 
@@ -403,10 +404,6 @@ class SchemaHandler(AuthReq):
 
             elif role_id and divide_by == DATA_PRIVILEGE:
                 # 返回给出的角色所绑定的schema，以及未绑定的
-                # bound_q = session.query(RoleDataPrivilege.schema_name).\
-                #     filter(RoleDataPrivilege.role_id == role_id)
-                # if cmdb_id:
-                #     bound_q = bound_q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
                 bound_schema_info = await async_thr(
                     cmdb_utils.get_current_schema, session, cmdb_id=cmdb_id, verbose=True)
                 bound = list({schema_name for _, _, _, schema_name in bound_schema_info})
