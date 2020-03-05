@@ -18,7 +18,6 @@ __all__ = [
     "TaskExecHistory",
     "OverviewRate",
     "Notice",
-    "Param",
     "DataHealthUserConfig",
     "WhiteListRules",
     "AituneResultSummary",

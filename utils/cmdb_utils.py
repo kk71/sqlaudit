@@ -230,3 +230,19 @@ def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
             print(f"* fatal: this privilege required: {priv} for {cmdb.user_name.upper()}")
             return False
     return True
+
+
+def clean_unavailable_schema(session):
+    """
+    从数据权限和数据库评分里面，删除纳管库中实际不存在的schema
+    :param session:
+    :return:
+    """
+    for cmdb in session.query(CMDB):
+        available_schemas: [str] = get_cmdb_available_schemas(cmdb)
+        session.query(DataHealthUserConfig.username).filter(
+            DataHealthUserConfig.database_name == cmdb.connect_name,
+            DataHealthUserConfig.username.notin_(available_schemas)).delete()
+        session.query(RoleDataPrivilege.schema_name).filter(
+            RoleDataPrivilege.cmdb_id == cmdb.cmdb_id,
+            RoleDataPrivilege.schema_name.notin_(available_schemas)).delete()

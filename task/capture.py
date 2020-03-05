@@ -3,8 +3,8 @@ import signal
 import traceback
 
 from models import init_models
-init_models()
 
+init_models()
 
 import past.command
 import plain_db.oracleob
@@ -22,7 +22,6 @@ import utils.cmdb_utils
 from models.oracle import *
 from models.mongo.utils import *
 
-
 logger = past.utils.log.get_logger("capture")
 
 
@@ -31,7 +30,6 @@ def sigintHandler(signum, frame):
 
 
 def update_record(task_id, record_id, success, err_msg=""):
-
     if success is True:
         # task execute successful  把where的task_id 换成record_id
         sql = """UPDATE t_task_exec_history
@@ -52,7 +50,8 @@ def update_record(task_id, record_id, success, err_msg=""):
                  SET task_end_date = to_date(:1, 'yyyy-mm-dd hh24:mi:ss'), status = :2, error_msg = :3
                  WHERE id = :3
               """
-        plain_db.oracleob.OracleHelper.update(sql, [past.utils.utils.get_time(return_str=True), status, err_msg, record_id])
+        plain_db.oracleob.OracleHelper.update(sql,
+                                              [past.utils.utils.get_time(return_str=True), status, err_msg, record_id])
 
         sql = """UPDATE t_task_manage
                  SET task_exec_counts = task_exec_counts + 1
@@ -158,7 +157,6 @@ def analysis_obj(
 
 def run_old_capture(
         host, port, sid, username, password, cmdb_id, connect_name, record_id):
-
     com = past.command.Command()
 
     logger.info("old object capture start...")
@@ -215,17 +213,14 @@ def task_run(host, port, sid, username, password,
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
-    msg = f"{host}, {port}, {sid}, {task_id}," \
-          f" {connect_name}, {business_name}, {db_users}, {operator}"
+    msg = f"{host}, {port}, {sid}, {task_id}, {connect_name}, " \
+          f"{business_name}, {db_users}, {operator}"
     logger.info(msg)
 
     from models.oracle import make_session, TaskExecHistory
     with make_session() as session:
         # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
         session.query(TaskExecHistory).filter(TaskExecHistory.status == None).delete()
-
-    # 目前这个id已经废弃没有用了。
-    # task_uuid = celery.current_task.request.id
 
     with make_session() as session:
         # 写入任务

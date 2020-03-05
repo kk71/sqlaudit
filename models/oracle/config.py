@@ -75,15 +75,6 @@ class DataHealthUserConfig(BaseModel):
     weight = Column("WEIGHT", Integer, default=1)
 
 
-class Param(BaseModel):
-    """存放机房、环境、各种杂乱信息的表，程序逻辑只读不写"""
-    __tablename__ = "T_PARAM"
-
-    param_id = Column("PARAM_ID", Integer, primary_key=True)
-    param_value = Column("PARAM_VALUE", String)
-    param_type = Column("PARAM_TYPE", Integer)
-
-
 class Notice(BaseModel):
     """公告栏"""
     __tablename__ = "T_NOTICE"

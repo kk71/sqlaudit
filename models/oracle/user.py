@@ -47,16 +47,6 @@ class RolePrivilege(BaseModel):
     create_date = Column("CREATE_DATE", DATE, default=datetime.now)
 
 
-# class Privilege(BaseModel):
-#     __tablename__ = "T_PRIVILEGE"
-#
-#     privilege_id = Column("PRIVILEGE_ID", Integer, primary_key=True)
-#     privilege_name = Column("PRIVILEGE_NAME", String)
-#     operate_url = Column("OPERATE_URL", String)
-#     create_date = Column("CREATE_DATE", DATE, default=lambda: datetime.now())
-#     comments = Column("COMMENTS", String)
-
-
 class Role(BaseModel):
     __tablename__ = "T_ROLE"
 
