@@ -199,7 +199,7 @@ class CMDBHandler(AuthReq):
                     CMDB.sid == params["sid"]
                 )
             ).first():
-                return self.resp_forbidden(msg="IP地址-端口-service_name与已有的纳管库重复。")
+                return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
 
             session.add(new_cmdb)
             session.commit()
@@ -274,7 +274,7 @@ class CMDBHandler(AuthReq):
                         CMDB.sid == params["sid"]
                     )
             ).first():
-                return self.resp_forbidden(msg="IP地址-端口-service_name与已有的纳管库重复。")
+                return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
 
             the_cmdb.from_dict(params)
 
