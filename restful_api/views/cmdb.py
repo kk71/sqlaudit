@@ -313,8 +313,8 @@ class CMDBHandler(AuthReq):
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
-            session.query(TaskManage).filter_by(**params).delete()
-            session.query(RoleDataPrivilege).filter_by(**params).delete()
+            session.query(TaskManage).filter_by(**params).delete(synchronize_session=False)
+            session.query(RoleDataPrivilege).filter_by(**params).delete(synchronize_session=False)
         clear_cache.delay()
         self.resp_created(msg="已删除。")
 
@@ -574,5 +574,6 @@ class RankingConfigHandler(AuthReq):
             'username': scm_unempty_str
         }))
         with make_session() as session:
-            session.query(DataHealthUserConfig).filter_by(**params).delete()
+            session.query(DataHealthUserConfig).\
+                filter_by(**params).delete(synchronize_session=False)
         self.resp_created("删除评分schema成功")

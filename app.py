@@ -171,7 +171,7 @@ def update_risk_rules():
     from models.oracle import make_session, RiskSQLRule
     from utils import rule_utils
     with make_session() as session:
-        n = session.query(RiskSQLRule).delete()
+        n = session.query(RiskSQLRule).delete(synchronize_session=False)
     print(f"deleted {n} risk rules.")
     with make_session() as session:
         r = rule_utils.set_all_rules_as_risk_rule(session)

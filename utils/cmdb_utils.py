@@ -246,7 +246,9 @@ def clean_unavailable_schema(session, cmdb_id: int = None):
         available_schemas: [str] = get_cmdb_available_schemas(cmdb)
         session.query(DataHealthUserConfig.username).filter(
             DataHealthUserConfig.database_name == cmdb.connect_name,
-            DataHealthUserConfig.username.notin_(available_schemas)).delete()
+            DataHealthUserConfig.username.notin_(available_schemas)).\
+            delete(synchronize_session=False)
         session.query(RoleDataPrivilege.schema_name).filter(
             RoleDataPrivilege.cmdb_id == cmdb.cmdb_id,
-            RoleDataPrivilege.schema_name.notin_(available_schemas)).delete()
+            RoleDataPrivilege.schema_name.notin_(available_schemas)).\
+            delete(synchronize_session=False)

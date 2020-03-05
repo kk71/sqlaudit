@@ -80,7 +80,8 @@ class SendListHandler(PrivilegeReq):
         }))
         with make_session() as session:
             session.query(SendMailList).\
-                filter(SendMailList.send_mail_id == params['send_mail_id']).delete()
+                filter(SendMailList.send_mail_id == params['send_mail_id']).\
+                delete(synchronize_session=False)
         self.resp_created("删除列表成功")
 
 

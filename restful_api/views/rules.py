@@ -220,7 +220,8 @@ class RiskRuleHandler(PrivilegeReq):
             "risk_sql_rule_id": scm_int,
         }))
         with make_session() as session:
-            session.query(RiskSQLRule).filter_by(**params).delete()
+            session.query(RiskSQLRule).filter_by(**params).\
+                delete(synchronize_session=False)
         self.resp_created(msg="已删除")
 
 

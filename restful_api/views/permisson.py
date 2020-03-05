@@ -96,7 +96,9 @@ class RoleHandler(PrivilegeReq):
             session.commit()
             session.refresh(role)
             if privileges:
-                session.query(RolePrivilege).filter(RolePrivilege.role_id == role_id).delete()
+                session.query(RolePrivilege).\
+                    filter(RolePrivilege.role_id == role_id).\
+                    delete(synchronize_session=False)
                 session.commit()
                 session.add_all([RolePrivilege(
                     role_id=role.role_id,
@@ -112,9 +114,12 @@ class RoleHandler(PrivilegeReq):
             "role_id": scm_int,
         }))
         with make_session() as session:
-            session.query(RolePrivilege).filter_by(**params).delete()
-            session.query(UserRole).filter_by(**params).delete()
-            session.query(Role).filter_by(**params).delete()
+            session.query(RolePrivilege).filter_by(**params).\
+                delete(synchronize_session=False)
+            session.query(UserRole).filter_by(**params).\
+                delete(synchronize_session=False)
+            session.query(Role).filter_by(**params).\
+                delete(synchronize_session=False)
         self.resp_created(msg="删除成功")
 
 
@@ -174,7 +179,8 @@ class RoleUserHandler(PrivilegeReq):
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
-            session.query(UserRole).filter_by(**params).delete()
+            session.query(UserRole).filter_by(**params).\
+                delete(synchronize_session=False)
         self.resp_created(msg="deleted")
 
 
@@ -317,7 +323,8 @@ class CMDBPermissionHandler(PrivilegeReq):
         if not params["schema_name"]:
             params.pop("schema_name")
         with make_session() as session:
-            session.query(RoleDataPrivilege).filter_by(**params).delete()
+            session.query(RoleDataPrivilege).filter_by(**params).\
+                delete(synchronize_session=False)
 
         clear_cache.delay()
         self.resp_created(msg="删除成功")

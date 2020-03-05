@@ -227,7 +227,9 @@ def task_run(host, port, sid, username, password,
 
     with make_session() as session:
         # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
-        session.query(TaskExecHistory).filter(TaskExecHistory.status == None).delete()
+        session.query(TaskExecHistory).\
+            filter(TaskExecHistory.status == None).\
+            delete(synchronize_session=False)
 
     with make_session() as session:
         # 写入任务
