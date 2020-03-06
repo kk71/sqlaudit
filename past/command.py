@@ -278,12 +278,16 @@ class Command(object):
                 set__status=utils.const.JOB_STATUS_FINISHED,
                 set__desc__capture_time_end=past.utils.utils.get_time()
             )
-
-        except DocumentTooLarge:
-            # print(e)
-            pt=PrettyTable(rule_name_and_len.keys())
+            pt = PrettyTable(rule_name_and_len.keys())
             pt.add_row(rule_name_and_len.values())
-            print(pt)
+            raise DocumentTooLarge(pt)
+
+        # except DocumentTooLarge:
+        #     pt=PrettyTable(rule_name_and_len.keys())
+        #     pt.add_row(rule_name_and_len.values())
+        #     print(pt)
+        except DocumentTooLarge as e:
+            print(e)
 
         # sql = {'_id': sqlaudit.review_result.task_id}
         # condition = {"$set": {"status": 1, "desc.capture_time_end": past.utils.utils.get_time()}}
