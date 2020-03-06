@@ -446,11 +446,10 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             db_model=session.query(CMDB.db_model).filter(CMDB.cmdb_id==cmdb_id)[0][0]
             risk_rules_q=session.query(RiskSQLRule).filter(RiskSQLRule.db_model==db_model)
             sql_plan_stats = get_sql_plan_stats(session, cmdb_id)
-            filtered_plans = ["index", "operation_display", "options",
-                              "object_owner", "object_name", "position",
-                              "cost", "time"]
-            page_plans = ["ID", "Operation", "Object owner", "Object name",
-                          "Rows", "Cost", "Time"]
+            filtered_plans = ["index", "operation_display", "options", "object_name", "position",
+                              "bytes", "cost", "time"]
+            page_plans = ["ID", "Operation", "Object name",
+                          "Rows", "Bytes", "Cost", "Time"]
             for sql in sqls:
                 e_d = []
                 io_c = []
@@ -509,7 +508,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                     pt.align="l"
                     for p in plans:
                         to_add=list(p)
-                        to_add[-3]=arrow.get(to_add[-3] if to_add[-3] else 0).time().strftime("%H:%M:%S")
+                        to_add[-1] = arrow.get(to_add[-1] if to_add[-1] else 0).time().strftime("%H:%M:%S")
                         to_add[1]=to_add[1]+" "+to_add[2] if to_add[2] else to_add[1]
                         to_add.pop(2)
                         to_add=[i if i is not None else " " for i in to_add]
