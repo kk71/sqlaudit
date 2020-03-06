@@ -27,6 +27,7 @@ __all__ = [
     "TicketRule",
     "TicketRuleInputOutputParams",
     "TicketSubResultItem",
+    "TicketSubResult",
     "OracleTicketSubResult",
     "OracleTicketSQLPlan",
 ]

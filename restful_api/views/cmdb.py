@@ -319,6 +319,8 @@ class CMDBHandler(AuthReq):
             session.delete(the_cmdb)
             session.query(TaskManage).filter_by(**params).delete(synchronize_session=False)
             session.query(RoleDataPrivilege).filter_by(**params).delete(synchronize_session=False)
+            session.query(WorkList).filter_by(**params).delete(synchronize_session=False)
+            TicketSubResult.objects(**params).delete()
         clear_cache.delay()
         self.resp_created(msg="已删除。")
 
