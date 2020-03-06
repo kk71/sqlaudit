@@ -64,10 +64,6 @@ def calculate(task_exec_hist_id):
                        'INSTANCE_NAME': job["desc"].get("instance_name", "空")}
         rules, score = past.utils.utils.calculate_rules(result, search_temp)
 
-        if score < 100:
-            scores[instance_name][date].append(score)
-
-        # print(f" *** going to update {job['_id']}")
         past.rule_analysis.db.mongo_operat.MongoHelper.update_one('job', {'_id': job['_id']},
                                                                   {"$set": {'score': score}})
         save_scores(job, score)
