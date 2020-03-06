@@ -192,8 +192,7 @@ def analyse_rule_by_schema(
 
 
 @celery.task
-def task_run(host, port, sid, username, password,
-             task_id, connect_name, business_name, db_users, cmdb_id, operator=None):
+def task_run(task_id, db_users, cmdb_id, operator=None):
     """
     执行采集任务
     :param host:
@@ -210,6 +209,16 @@ def task_run(host, port, sid, username, password,
                      None表示代码定时任务创建，其余记录操作的login_user
     :return:
     """
+    from models.oracle import make_session, TaskExecHistory,CMDB
+    with make_session() as session:
+        cmdb=session.query(CMDB).filter(CMDB.cmdb_id==cmdb_id).first()
+        host=cmdb.ip_address
+        port=cmdb.port
+        sid=cmdb.service_name
+        username=cmdb.user_name
+        password=cmdb.password
+        connect_name=cmdb.connect_name
+        business_name=cmdb.business_name
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
@@ -217,7 +226,6 @@ def task_run(host, port, sid, username, password,
           f"{business_name}, {db_users}, {operator}"
     logger.info(msg)
 
-    from models.oracle import make_session, TaskExecHistory
     from utils.cmdb_utils import clean_unavailable_schema
 
     print(f"* start cleaning unavailable schemas in current cmdb({cmdb_id})...")

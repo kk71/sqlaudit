@@ -29,18 +29,10 @@ def run(task_id, schema=None, use_queue=False, operator=None):
         if schema and schema in users:
             users = [schema]
         print(users)
-        args = (
-            task['host'],
-            task['port'],
-            task['sid'],
-            task['user_name'],
-            task['password'],
-            task['task_id'],
-            task['connect_name'],
-            task['business_name'],
-            users,
-            task['cmdb_id'],
-            operator
+        args = (task['task_id'],
+                users,
+                task['cmdb_id'],
+                operator
         )
         if use_queue:
             task_uuid = task_capture.task_run.delay(*args)
