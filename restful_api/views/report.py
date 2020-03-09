@@ -193,15 +193,30 @@ class OnlineReportSQLPlanHandler(AuthReq):
                     break
         if plan_hash_value:
             plans = MSQLPlan.get_plans(plan_hash_value=plan_hash_value, sql_id=sql_id).items()
+            # plans = [i.to_dict(iter_if=lambda k, v: k in (
+            #     "operation",
+            #     "options",
+            #     "object_owner",
+            #     "object_name",
+            #     "cost",
+            #     "cardinality",
+            #     "operation_display"
+            # )) for i in dict(sorted(plans)).values()]
             plans = [i.to_dict(iter_if=lambda k, v: k in (
-                "operation",
+                "index",
+                "operation_display",
                 "options",
-                "object_owner",
                 "object_name",
+                "position",
+                "bytes",
                 "cost",
-                "cardinality",
-                "operation_display"
-            )) for i in dict(sorted(plans)).values()]
+                "time"
+            ),iter_by=lambda k,v:arrow.get(v if v else 0).time().strftime("%H:%M:%S")if k=="time" else v)
+                     for i in dict(sorted(plans)).values()]
+            for x in plans:
+                if x["options"] is not None:
+                    x["operation_display"]=x["operation_display"]+" "+x["options"]
+                x.pop("options")
 
         self.resp({
             "sql_text": sql.sql_text,
