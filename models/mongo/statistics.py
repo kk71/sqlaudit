@@ -912,7 +912,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
                 ]
                 current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
                     sum(drill_down_stats_sql_scores) / float(len(drill_down_stats_sql_scores)) \
-                    if drill_down_stats_sql_scores else 0
+                        if drill_down_stats_sql_scores else 0
 
                 current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
                 if current_stats_doc.rate_info:
@@ -935,24 +935,19 @@ class StatsCMDBRate(BaseStatisticsDoc):
         # =====================================
         # ==== 这个统计依赖于 StatsSchemaRate ====
         # =====================================
-        from models.oracle import make_session, CMDB
-
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id)
-            doc = cls(
-                task_record_id=task_record_id,
-                cmdb_id=cmdb_id,
-                connect_name=cmdb.connect_name
-            )
-            schema_rates = StatsSchemaRate.objects(
-                task_record_id=task_record_id,
-                add_to_rate=True
-            )
-            score_sum = 0.0
-            for schema_rate in schema_rates:
-                weight = float(dict(schema_rate.rate_info).get("weight", 1))
-                score_sum += schema_rate.score_average * weight
-            schema_num = schema_rates.count()
-            if schema_num:
-                doc.score = score_sum / float(schema_num)
-            yield doc
+        doc = cls(
+            task_record_id=task_record_id,
+            cmdb_id=cmdb_id,
+        )
+        schema_rates = StatsSchemaRate.objects(
+            task_record_id=task_record_id,
+            add_to_rate=True
+        )
+        score_sum = 0.0
+        for schema_rate in schema_rates:
+            weight = float(dict(schema_rate.rate_info).get("weight", 1))
+            score_sum += schema_rate.score_average * weight
+        schema_num = schema_rates.count()
+        if schema_num:
+            doc.score = score_sum / float(schema_num)
+        yield doc
