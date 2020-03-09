@@ -251,6 +251,20 @@ class StatsLoginUser(BaseStatisticsDoc):
                                                 for i in obj_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
+                    if sql_result_q.count():
+                        score_sql = round(sql_result_score_sum / sql_result_q.count(), 1)
+                        if not sql_result_score_sum:
+                            print("sql_result_score_sum  == 0")
+                    else:
+                        print("no sql result was found.")
+                        score_sql = 0
+                    if obj_result_q.count():
+                        score_obj = round(obj_result_score_sum / obj_result_q.count(), 1)
+                        if not obj_result_score_sum:
+                            print("obj_result_score_sum == 0")
+                    else:
+                        print("no obj result was found.")
+                        score_obj = 0
                     doc.cmdb.append(StatsLoginUser_CMDB(
                         cmdb_id=the_cmdb_id,
                         connect_name=the_connect_name,
@@ -261,10 +275,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
                         scores={
-                            const.STATS_NUM_SQL: round(sql_result_score_sum / sql_result_q.count(), 1)
-                            if sql_result_q.count() else 0,
-                            const.RULE_TYPE_OBJ: round(obj_result_score_sum / obj_result_q.count(), 1)
-                            if obj_result_q.count() else 0,
+                            const.STATS_NUM_SQL: score_sql,
+                            const.RULE_TYPE_OBJ: score_obj,
                         }
                     ))
                 yield doc
