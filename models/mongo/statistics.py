@@ -873,7 +873,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
         from utils.score_utils import calc_result
 
         with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id)
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             # schema_name: stats_doc
             schema_stats_pairs = defaultdict(
                 lambda: cls(
