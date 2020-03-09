@@ -235,6 +235,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                     if not latest_task_record_id:
                         print(f"current latest_task_record_id not exist. cmdb_id = {the_cmdb_id}")
                         continue
+                    print(f"for {login_user}, cmdb_id={the_cmdb_id} has"
+                          f" lastest_task_record_id={latest_task_record_id}")
                     sql_result_q, _ = get_result_queryset_by(
                         task_record_id=latest_task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
