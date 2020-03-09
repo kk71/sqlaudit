@@ -23,6 +23,8 @@ __all__ = [
     "StatsCMDBSQLText",
     "StatsRiskSqlRule",
     "StatsRiskObjectsRule",
+    "StatsSchemaRate",
+    "StatsCMDBRate",
     # 线下审核相关
     "TicketRule",
     "TicketRuleInputOutputParams",

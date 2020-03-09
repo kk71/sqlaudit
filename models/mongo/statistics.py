@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, \
     DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField, \
-    EmbeddedDocument, EmbeddedDocumentListField
+    EmbeddedDocument, EmbeddedDocumentListField, BooleanField
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
@@ -843,3 +843,116 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
                 sql_id=one.pop("_id"),
                 **one
             )
+
+
+class StatsSchemaRate(BaseStatisticsDoc):
+    """所有schema的评分"""
+    schema_name = StringField(required=True)
+    score_average = FloatField(required=True)
+    score_lowest = FloatField(required=True)
+    score_rule_type = DictField(default=lambda: {})
+    drill_down_type = DictField(default=lambda: {})
+    add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分？
+    rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
+
+    meta = {
+        "collection": "stats_schema_rate",
+        "indexes": [
+            "schema_name",
+            "score_average",
+            "score_lowest",
+            "add_to_rate"
+        ]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils import const
+        from models.mongo import Results
+        from models.oracle import make_session, CMDB, DataHealthUserConfig
+        from utils.score_utils import calc_result
+
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id)
+            # schema_name: stats_doc
+            schema_stats_pairs = defaultdict(
+                lambda: cls(
+                    task_record_id=task_record_id,
+                    cmdb_id=cmdb_id,
+                    connect_name=cmdb.connect_name
+                )
+            )
+
+            for result in Results.filter_by_exec_hist_id(task_record_id):
+                current_stats_doc = schema_stats_pairs[result.schema_name]
+                current_stats_doc.schema_name = result.schema_name
+                _, current_result_score = calc_result(
+                    result,
+                    db_model=cmdb.db_model
+                )
+                current_stats_doc.score_rule_type[result.rule_type] = \
+                    current_result_score
+            dhuc = session.query(DataHealthUserConfig). \
+                filter_by(database_name=cmdb.connect_name)
+            dhuc_dict = {a.username: a.to_dict() for a in dhuc}
+            for schema_name, current_stats_doc in schema_stats_pairs.items():
+                captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
+                current_stats_doc.score_average = \
+                    sum(dict(current_stats_doc.score_rule_type).values()) / \
+                    captured_rule_type_num if captured_rule_type_num else 0
+                current_stats_doc.score_lowest = \
+                    min(current_stats_doc.score_rule_type)
+
+                # 下钻评分，是个特殊处理的评分
+                drill_down_stats_sql_scores = [
+                    the_score
+                    for rule_type, the_score in dict(
+                        current_stats_doc.score_rule_type).items()
+                    if rule_type in const.ALL_RULE_TYPES_FOR_SQL_RULE
+                ]
+                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
+                    sum(drill_down_stats_sql_scores) / float(len(drill_down_stats_sql_scores)) \
+                    if drill_down_stats_sql_scores else 0
+
+                current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
+                if current_stats_doc.rate_info:
+                    current_stats_doc.add_to_rate = True
+                yield current_stats_doc
+
+
+class StatsCMDBRate(BaseStatisticsDoc):
+    """纳管库数据评分"""
+    score = FloatField(required=True, default=0)
+
+    meta = {
+        "collection": "stats_cmdb_rate",
+        "indexes": ["score"]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+
+        # =====================================
+        # ==== 这个统计依赖于 StatsSchemaRate ====
+        # =====================================
+        from models.oracle import make_session, CMDB
+
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id)
+            doc = cls(
+                task_record_id=task_record_id,
+                cmdb_id=cmdb_id,
+                connect_name=cmdb.connect_name
+            )
+            schema_rates = StatsSchemaRate.objects(
+                task_record_id=task_record_id,
+                add_to_rate=True
+            )
+            score_sum = 0.0
+            for schema_rate in schema_rates:
+                weight = float(dict(schema_rate.rate_info).get("weight", 1))
+                score_sum += schema_rate.score_average * weight
+            schema_num = schema_rates.count()
+            if schema_num:
+                doc.score = score_sum / float(schema_num)
+            yield doc
