@@ -30,7 +30,7 @@ def get_pending_task() -> set:
     for task in tasks:
         task = json.loads(task)
         args = eval(task["headers"]["argsrepr"])
-        ret.add(args[5])
+        ret.add(args[0])
     return ret
 
 
