@@ -128,8 +128,8 @@ class StatsLoginUser(BaseStatisticsDoc):
                 if latest_task_record_ids:
 
                     Qs = None
-                    for cmdb_id, schema_list in cmdb_ids_schemas_dict.items():
-                        a_q = Q(cmdb_id=cmdb_id, schema_name__in=schema_list)
+                    for the_cmdb_id, schema_list in cmdb_ids_schemas_dict.items():
+                        a_q = Q(cmdb_id=the_cmdb_id, schema_name__in=schema_list)
                         if not Qs:
                             Qs = a_q
                         else:
@@ -233,8 +233,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_id = get_latest_task_record_id(
                             session, the_cmdb_id).get(the_cmdb_id, None)
                     if not latest_task_record_id:
-                        print(f"current latest_task_record_id not exist. cmdb_id = {the_cmdb_id}")
+                        print(f"for {login_user}, "
+                              f"latest_task_record_id of cmdb({the_cmdb_id}) not exist.")
                         continue
+                    print(f"for {login_user}, cmdb({the_cmdb_id}) has"
+                          f" lastest_task_record_id={latest_task_record_id}")
                     sql_result_q, _ = get_result_queryset_by(
                         task_record_id=latest_task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
@@ -253,17 +256,11 @@ class StatsLoginUser(BaseStatisticsDoc):
                         session, login_user, the_cmdb_id))
                     if sql_result_q.count():
                         score_sql = round(sql_result_score_sum / sql_result_q.count(), 1)
-                        if not sql_result_score_sum:
-                            print("sql_result_score_sum  == 0")
                     else:
-                        print("no sql result was found.")
                         score_sql = 0
                     if obj_result_q.count():
                         score_obj = round(obj_result_score_sum / obj_result_q.count(), 1)
-                        if not obj_result_score_sum:
-                            print("obj_result_score_sum == 0")
                     else:
-                        print("no obj result was found.")
                         score_obj = 0
                     doc.cmdb.append(StatsLoginUser_CMDB(
                         cmdb_id=the_cmdb_id,

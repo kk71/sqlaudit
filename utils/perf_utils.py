@@ -14,15 +14,14 @@ from utils import const
 
 import redis
 
-
 import settings
-
 
 dict_keys = type(dict().keys())
 
 
 def func_info(method):
-    return f"{method.__name__} in {method.__code__.co_filename}:{method.__code__.co_firstlineno}"
+    return f"{method.__name__} in {method.__code__.co_filename}:" \
+           f"{method.__code__.co_firstlineno}"
 
 
 class RedisCache:
@@ -77,7 +76,8 @@ class RedisCache:
                 print(f"fetching {func_info(a_func)} ...")
                 ret = method()
             except Exception as e:
-                print(f"* failed when prefetch function {func_info(a_func)}.prefetch: {str(e)}")
+                print(f"* failed when prefetch function {func_info(a_func)}."
+                      f"prefetch: {str(e)}")
                 continue
             print(f"* prefetch {func_info(a_func)} returned with {ret}")
             prefetch_num += 1
@@ -105,7 +105,8 @@ class RedisCache:
         """获取一个key"""
         func_call_args = [self.prepare_to_serialize(i) for i in func_call_args
                           if not self.should_exclude(i)]
-        func_call_kwargs = {k: self.prepare_to_serialize(v) for k, v in func_call_kwargs.items()
+        func_call_kwargs = {k: self.prepare_to_serialize(v)
+                            for k, v in func_call_kwargs.items()
                             if not self.should_exclude(v)}
         args_dumped = self.key_serializer.dumps(func_call_args)
         func_call_kwargs = dict(sorted(func_call_kwargs.items()))
@@ -158,7 +159,11 @@ def timing(
                 s = f"{round(tt - ts, 3)}"
                 if msg:
                     s += " " + str(msg)
-                tiks.append(s)
+                if enabled:
+                    tiks.append(s)
+                else:
+                    # if the timing is disabled, the tik also should be printed.
+                    print(s)
 
             timed.tik = tik
 
@@ -199,7 +204,6 @@ r_cache = RedisCache(
     key_type_exclude=Session,
 )
 
-
 if __name__ == "__main__":
     @timing(cache=r_cache)
     def test(a=None):
@@ -214,6 +218,7 @@ if __name__ == "__main__":
         test.tik("bbb")
         time.sleep(1)
         return a
+
 
     test.prefetch = lambda: test("hahahahaha")
 
