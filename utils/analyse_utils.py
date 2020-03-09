@@ -18,6 +18,8 @@ STATS_MODELS = (
     StatsCMDBLoginUser,
     StatsCMDBSQLPlan,
     StatsCMDBSQLText,
+    StatsSchemaRate,
+    StatsCMDBRate,
     StatsLoginUser
 )
 

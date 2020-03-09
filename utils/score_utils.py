@@ -124,7 +124,7 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
                 scores_by_sth[rule_type][schema] += score
             elif perspective == OVERVIEW_ITEM_SCHEMA:
                 scores_by_sth[schema][rule_type] += score
-    calc_score_by.tik(scores_by_sth)
+    # calc_score_by.tik(scores_by_sth)
 
     for persp_1, persp_2_score_dict in scores_by_sth.items():
         ret[persp_1] = None

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer, Boolean, Sequence
+from sqlalchemy import Column, String, Integer, Boolean, Sequence, Float
 from sqlalchemy.dialects.oracle import DATE
 
 from .utils import BaseModel
@@ -69,10 +69,12 @@ class DataHealthUserConfig(BaseModel):
     """数据库评分配置"""
     __tablename__ = "T_DATA_HEALTH_USER_CONFIG"
 
-    database_name = Column("DATABASE_NAME", String, primary_key=True)  # connect_name
+    # database_name实际存放connect_name！
+    database_name = Column("DATABASE_NAME", String, primary_key=True)
     username = Column("USERNAME", String)
+    # 注意： needcalc字段无实际意义！只要加入这张表的schema都一定会评分。
     needcalc = Column("NEEDCALC", String, default=RANKING_CONFIG_NEED_CALC)
-    weight = Column("WEIGHT", Integer, default=1)
+    weight = Column("WEIGHT", Float, default=1)
 
 
 class Notice(BaseModel):
