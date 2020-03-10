@@ -617,7 +617,6 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 self.dict_to_verbose_dict_in_list(ret_schema_min, "schema", "num"),
                 key=lambda k: k["num"])
 
-<<<<<<< HEAD
             path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
                                                         cmdb_score,
                                                         radar_avg,radar_score_avg,
@@ -630,21 +629,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                                                         user_health_ranking_avg,
                                                         user_health_ranking_min,
                                                         sqls)
-=======
-            path = cmdb_export.cmdb_report_export_html(cmdb, cmdb_q, tablespace_sum,
-                                                       collect_date_score,
-                                                       sql_or_obj_scores,
-                                                       radar_avg, radar_score_avg,
-                                                       radar_min, radar_score_min,
-                                                       tab_space_q,
-                                                       active_week, at_risk_week,
-                                                       active_mouth, at_risk_mouth,
-                                                       sql_time_num_rank,
-                                                       risk_rule_rank,
-                                                       user_health_ranking_avg,
-                                                       user_health_ranking_min,
-                                                       sqls)
->>>>>>> b9ee774f681d319be41444332ad188f69211ca69
+
             self.resp({
                 "url": path
             })
