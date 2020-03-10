@@ -540,9 +540,9 @@ def print_html_obj_detail_info(page, results, rules, rule_summary):
     page << br()
 
 
-def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum,collect_date_score,sql_or_obj_scores):
+def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum,cmdb_score):
 
-    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+","+str(collect_date_score)+","+str(sql_or_obj_scores)+")</script>"
+    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+","+str(cmdb_score)+")</script>"
     page << br()
 
 

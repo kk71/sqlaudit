@@ -407,18 +407,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             tablespace_sum = StatsCMDBPhySize.objects(task_record_id=latest_task_record_id, cmdb_id=cmdb_id). \
                 first().to_dict()
 
-            collect_date_score=defaultdict()
-            all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
-            for data_health in all_db_data_health:
-                if data_health["collect_date"]:
-                    data_health["collect_date"] = d_to_str(data_health["collect_date"])
-                if data_health["connect_name"]  == cmdb["connect_name"]:
-                    collect_date_score=data_health
-                    break
-
-            login_stats=StatsLoginUser.objects(login_user=self.current_user).\
-                order_by("-etl_date").first().to_dict()
-            sql_or_obj_scores={c["cmdb_id"]:c['scores'] for c in login_stats["cmdb"]}.get(cmdb_id)
+            cmdb_score= cmdb_utils.get_latest_cmdb_score(session)[cmdb_id]
 
             ret_radar_avg = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_avg)
             radar_avg = [{"name": k, "max": 100} for k in ret_radar_avg.keys()]
@@ -599,8 +588,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 key=lambda k: k["num"])
 
             path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
-                                                        collect_date_score,
-                                                        sql_or_obj_scores,
+                                                        cmdb_score,
                                                         radar_avg,radar_score_avg,
                                                         radar_min,radar_score_min,
                                                         tab_space_q,

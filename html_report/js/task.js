@@ -862,7 +862,7 @@ function genBarChart(domid,divid,title, list,data,dataY){
 }
 
 //基本信息 domid 写死为#base  title 名称  databaseInfo 数据库对象信息
-function genBaseInfo(domid,title,databaseInfo,tablespace_sum,collect_date_score,sql_or_obj_scores){
+function genBaseInfo(domid,title,databaseInfo,tablespace_sum,cmdb_score){
  $(domid).append('<div class=\"container-fluid \" style="font-size:16px; background-color:white">\
                       <div class=\"row\"><div class=\"col-xs-6 col-sm-12\"><strong>' + title + '</strong></div></div>'+
        '<div class=\"row\" style=\"margin-top: 8px;\">' +
@@ -871,10 +871,10 @@ function genBaseInfo(domid,title,databaseInfo,tablespace_sum,collect_date_score,
        '</div><div class=\"col-xs-6 col-sm-3\">' + '业务模型：' +databaseInfo.db_model+
 	   '</div><div class=\"col-xs-6 col-sm-3\">'+ '容量使用率(已使用/剩余)：' + bytesToSize(tablespace_sum.used)+'/' +bytesToSize(tablespace_sum.free)+
        '</div></div><div class=\"row\" style=\"margin-top: 8px;\">' +
-       '<div class=\"col-xs-6 col-sm-3\">'+'评分日期：' +collect_date_score.collect_date+
-       '</div><div class=\"col-xs-6 col-sm-3\">' + '综合评分数：' +collect_date_score.health_score+
-       '</div><div class=\"col-xs-6 col-sm-3\">' + 'SQL评分数：' +sql_or_obj_scores.SQL+
-       '</div><div class=\"col-xs-6 col-sm-3\">'+ '对象评分数：' +sql_or_obj_scores.OBJ+
+       '<div class=\"col-xs-6 col-sm-3\">'+'评分日期：' +cmdb_score.etl_date+
+       '</div><div class=\"col-xs-6 col-sm-3\">' + '综合评分数：' +cmdb_score.score+
+       '</div><div class=\"col-xs-6 col-sm-3\">' + 'SQL评分数：' +cmdb_score.score_sql+
+       '</div><div class=\"col-xs-6 col-sm-3\">'+ '对象评分数：' +cmdb_score.score_obj+
        '<br/><br/></div></div></div>'
                       )
 }

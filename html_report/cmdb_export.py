@@ -7,8 +7,7 @@ from .utils import *
 
 
 def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
-                            collect_date_score,
-                            sql_or_obj_scores,
+                            cmdb_score,
                             radar_avg,radar_score_avg,
                             radar_min,radar_score_min,
                             tab_space_q,
@@ -30,7 +29,7 @@ def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
     cmdb_print_html_body(v_page,cmdb)
     print_html_js(v_page)
 
-    print_html_cmdb_basic_information(v_page,cmdb_q,tablespace_sum,collect_date_score,sql_or_obj_scores)
+    print_html_cmdb_basic_information(v_page,cmdb_q,tablespace_sum,cmdb_score)
 
     time_week = [arrow.get(x['date']).strftime('%Y-%m-%d') for x in active_week]
     active_week_data = [x['value'] for x in active_week]
