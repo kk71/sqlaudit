@@ -885,23 +885,21 @@ class StatsSchemaRate(BaseStatisticsDoc):
 
             for result in Results.filter_by_exec_hist_id(task_record_id):
                 current_stats_doc = schema_stats_pairs[result.schema_name]
-                current_stats_doc.score_rule_type = defaultdict(lambda: {
-                    "job_id": None,
-                    "score": None,
-                    "create_date": None,
-                    "rule_type": None
-                })
                 current_stats_doc.schema_name = result.schema_name
                 _, current_result_score = calc_result(
                     result,
                     db_model=cmdb.db_model
                 )
-                current_rule_type: dict = current_stats_doc.score_rule_type[
-                    result.rule_type]
-                current_rule_type["job_id"] = result.task_uuid
-                current_rule_type["score"] = current_result_score
-                current_rule_type["create_date"] = result.create_date
-                current_rule_type["rule_type"] = result.rule_type
+                if not current_stats_doc.score_rule_type.get(result.rule_type, {}):
+                    current_stats_doc.score_rule_type[result.rule_type] = {
+                        "job_id": result.task_uuid,
+                        "score": current_result_score,
+                        "create_date": result.create_date,
+                        "rule_type": result.rule_type
+                    }
+                else:
+                    raise Exception("duplicated results for "
+                                    f"{result.schema_name}-{result.rule_type}!!!")
             dhuc = session.query(DataHealthUserConfig). \
                 filter_by(database_name=cmdb.connect_name)
             dhuc_dict = {a.username: a.to_dict() for a in dhuc}
