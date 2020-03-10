@@ -129,7 +129,7 @@ class OnlineReportSchemaRate(PrivilegeReq):
             q = q.filter(etl_date__lte=date_end)
         ret, p = self.paginate(q, **p)
         self.resp([
-            i.to_dict(iter_by=lambda k, v: v.values()
+            i.to_dict(iter_by=lambda k, v: list(v.values())
             if k in ("score_rule_type",) else v)
             for i in ret
         ], **p)
