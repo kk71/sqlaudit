@@ -17,7 +17,7 @@ from utils.const import *
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from utils.rule_utils import get_all_risk_towards_a_sql
-from utils.sql_utils import get_risk_sql_list,get_sql_plan_stats
+from utils.sql_utils import get_risk_sql_list, get_sql_plan_stats
 from utils import score_utils, const
 from .base import AuthReq, PrivilegeReq
 from models.mongo import *
@@ -103,6 +103,36 @@ class OnlineReportDimensionHandler(AuthReq):
                             desc__owner=schema_name, **params)
         job = [x.to_dict() for x in job_q]
         self.resp(job)
+
+
+class OnlineReportSchemaRate(PrivilegeReq):
+
+    def get(self):
+        """schema维度的报告列表"""
+        self.acquire(const.PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
+
+        params = self.get_query_args(Schema({
+            Optional("cmdb_id"): scm_int,
+            Optional("connect_name"): scm_unempty_str,
+            Optional("schema_name"): scm_unempty_str,
+            Optional("add_to_rate", default=True): scm_bool,
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+            **self.gen_p(),
+        }))
+        p = self.pop_p(params)
+        date_start, date_end = params.pop("date_start"), params.pop("date_end")
+        q = StatsSchemaRate.objects(**params)
+        if date_start:
+            q = q.filter(etl_date__gt=date_start)
+        if date_end:
+            q = q.filter(etl_date__lte=date_end)
+        ret, p = self.paginate(q, **p)
+        self.resp([
+            i.to_dict(iter_by=lambda k, v: v.values()
+            if v in ("score_rule_type",) else v)
+            for i in ret
+        ], **p)
 
 
 class OnlineReportTaskHandler(AuthReq):
@@ -204,16 +234,16 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "bytes",
                 "cost",
                 "time"
-            ),iter_by=lambda k,v:arrow.get(v if v else 0).time().strftime("%H:%M:%S")if k == "time" else v)
+            ), iter_by=lambda k, v: arrow.get(v if v else 0).time().strftime("%H:%M:%S") if k == "time" else v)
                      for i in dict(sorted(plans)).values()]
-            pt=PrettyTable(page_plans)
+            pt = PrettyTable(page_plans)
             pt.align = "l"
             for x in plans:
                 if x["options"] is not None:
-                    x["operation_display"]=x["operation_display"]+" "+x["options"]
+                    x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
                 pt.add_row(["" if x is None else x for x in x.values()])
-            plans=str(pt)
+            plans = str(pt)
 
         self.resp({
             "sql_text": sql.sql_text,
@@ -407,18 +437,18 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             tablespace_sum = StatsCMDBPhySize.objects(task_record_id=latest_task_record_id, cmdb_id=cmdb_id). \
                 first().to_dict()
 
-            collect_date_score=defaultdict()
+            collect_date_score = defaultdict()
             all_db_data_health = cmdb_utils.get_latest_health_score_cmdb(session)
             for data_health in all_db_data_health:
                 if data_health["collect_date"]:
                     data_health["collect_date"] = d_to_str(data_health["collect_date"])
-                if data_health["connect_name"]  == cmdb["connect_name"]:
-                    collect_date_score=data_health
+                if data_health["connect_name"] == cmdb["connect_name"]:
+                    collect_date_score = data_health
                     break
 
-            login_stats=StatsLoginUser.objects(login_user=self.current_user).\
+            login_stats = StatsLoginUser.objects(login_user=self.current_user). \
                 order_by("-etl_date").first().to_dict()
-            sql_or_obj_scores={c["cmdb_id"]:c['scores'] for c in login_stats["cmdb"]}.get(cmdb_id)
+            sql_or_obj_scores = {c["cmdb_id"]: c['scores'] for c in login_stats["cmdb"]}.get(cmdb_id)
 
             ret_radar_avg = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_avg)
             radar_avg = [{"name": k, "max": 100} for k in ret_radar_avg.keys()]
@@ -442,21 +472,21 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             active_mouth = ret_m['sql_num']['active']
             at_risk_mouth = ret_m['sql_num']['at_risk']
 
-            risk_rule_rank=ret_w['risk_rule_rank']
+            risk_rule_rank = ret_w['risk_rule_rank']
 
-            date_start=arrow.now().shift(days=-period_week+1).date()
-            date_end=arrow.now().shift(days=1).date()
-            sqls=get_risk_sql_list(
+            date_start = arrow.now().shift(days=-period_week + 1).date()
+            date_end = arrow.now().shift(days=1).date()
+            sqls = get_risk_sql_list(
                 session=session,
                 cmdb_id=cmdb_id,
-                date_range=(date_start,date_end))[:30]
+                date_range=(date_start, date_end))[:30]
 
-            sql_time_num_rank=[{"sql_id":sql["sql_id"],
-              "time": sql["execution_time_cost_sum"]}
-             for sql in sqls]
+            sql_time_num_rank = [{"sql_id": sql["sql_id"],
+                                  "time": sql["execution_time_cost_sum"]}
+                                 for sql in sqls]
 
-            db_model=session.query(CMDB.db_model).filter(CMDB.cmdb_id==cmdb_id)[0][0]
-            risk_rules_q=session.query(RiskSQLRule).filter(RiskSQLRule.db_model==db_model)
+            db_model = session.query(CMDB.db_model).filter(CMDB.cmdb_id == cmdb_id)[0][0]
+            risk_rules_q = session.query(RiskSQLRule).filter(RiskSQLRule.db_model == db_model)
             sql_plan_stats = get_sql_plan_stats(session, cmdb_id)
             filtered_plans = ["index", "operation_display", "options", "object_name", "position",
                               "bytes", "cost", "time"]
@@ -468,15 +498,15 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 e_t_d = []
                 rule_names = get_all_risk_towards_a_sql(
                     session=session, sql_id=sql['sql_id'], date_range=(date_start, date_end))
-                risk_rules=risk_rules_q.filter(RiskSQLRule.rule_name.in_(rule_names))
+                risk_rules = risk_rules_q.filter(RiskSQLRule.rule_name.in_(rule_names))
                 sql['risk_rules'] = [rr.to_dict() for rr in risk_rules]
 
-                msqlplan_q=MSQLPlan.objects(sql_id=sql['sql_id'],cmdb_id=cmdb_id)
-                schemas=list(set(msqlplan_q.distinct("schema")))
+                msqlplan_q = MSQLPlan.objects(sql_id=sql['sql_id'], cmdb_id=cmdb_id)
+                schemas = list(set(msqlplan_q.distinct("schema")))
 
-                sql['schema']=schemas[0] if schemas else None
+                sql['schema'] = schemas[0] if schemas else None
 
-                hash_values=set(msqlplan_q.distinct("plan_hash_value"))
+                hash_values = set(msqlplan_q.distinct("plan_hash_value"))
 
                 # sql['graphs']={plan_hash_value:{
                 #     # 总数
@@ -496,16 +526,16 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 sql['plans'] = []
 
                 for plan_hash_value in hash_values:
-                    sql_plan_q=msqlplan_q.filter(plan_hash_value=plan_hash_value)
+                    sql_plan_q = msqlplan_q.filter(plan_hash_value=plan_hash_value)
 
-                    sql_plan_object=sql_plan_q.first()
+                    sql_plan_object = sql_plan_q.first()
 
-                    sql_stat_objects=SQLStat.objects(cmdb_id=cmdb_id,sql_id=sql['sql_id'],
-                                    plan_hash_value=plan_hash_value).\
-                        filter(etl_date__gte=date_start,etl_date__lte=date_end)
-                    e_d+=list(sql_stat_objects.values_list("executions_delta"))
-                    io_c+=list(sql_plan_object.io_cost) if sql_plan_object.io_cost else []
-                    e_t_d+=list(sql_stat_objects.values_list("elapsed_time_delta"))
+                    sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql['sql_id'],
+                                                       plan_hash_value=plan_hash_value). \
+                        filter(etl_date__gte=date_start, etl_date__lte=date_end)
+                    e_d += list(sql_stat_objects.values_list("executions_delta"))
+                    io_c += list(sql_plan_object.io_cost) if sql_plan_object.io_cost else []
+                    e_t_d += list(sql_stat_objects.values_list("elapsed_time_delta"))
 
                     first_appearance = sql_plan_stats.get((sql['sql_id'], plan_hash_value), {}). \
                         get("first_appearance", None)
@@ -514,25 +544,25 @@ class ExportReportCmdbHTMLHandler(AuthReq):
 
                     plans = sql_plan_q.order_by("-etl_date")
                     record_id = plans.first().record_id
-                    plans=plans.filter(record_id=record_id).values_list(*filtered_plans)
+                    plans = plans.filter(record_id=record_id).values_list(*filtered_plans)
 
-                    pt=PrettyTable(page_plans)
-                    pt.align="l"
+                    pt = PrettyTable(page_plans)
+                    pt.align = "l"
                     for p in plans:
-                        to_add=list(p)
+                        to_add = list(p)
                         to_add[-1] = arrow.get(to_add[-1] if to_add[-1] else 0).time().strftime("%H:%M:%S")
-                        to_add[1]=to_add[1]+" "+to_add[2] if to_add[2] else to_add[1]
+                        to_add[1] = to_add[1] + " " + to_add[2] if to_add[2] else to_add[1]
                         to_add.pop(2)
-                        to_add=[i if i is not None else " " for i in to_add]
+                        to_add = [i if i is not None else " " for i in to_add]
                         pt.add_row(to_add)
-                    sqlplan_table=str(pt)
+                    sqlplan_table = str(pt)
 
                     sql['plans'].append({
                         "plan_hash_value": plan_hash_value,
                         "cost": sql_plan_object.cost,
                         "first_appearance": dt_to_str(first_appearance),
                         "last_appearance": dt_to_str(last_appearance),
-                        "sqlplan":sqlplan_table
+                        "sqlplan": sqlplan_table
                     })
 
                     # gp=sql['graphs'][plan_hash_value]##{"p":[{},{}]}
@@ -583,13 +613,13 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                     #         j.clear()
                     #         j.extend(deduplicated_items)
 
-                sql['stats']={
-                    "executions_delta": sum(e_d)/len(e_d) if len(e_d) else 0,
-                    "io_cost": sum(io_c)/len(io_c) if len(io_c) else 0,
-                    "elapsed_time_delta": sum(e_t_d)/len(e_t_d) if len(e_t_d) else 0,
+                sql['stats'] = {
+                    "executions_delta": sum(e_d) / len(e_d) if len(e_d) else 0,
+                    "io_cost": sum(io_c) / len(io_c) if len(io_c) else 0,
+                    "elapsed_time_delta": sum(e_t_d) / len(e_t_d) if len(e_t_d) else 0,
                 }
 
-            ret_schema_avg=score_utils.calc_score_by(session,cmdb_q,perspective_schema,score_type_avg)
+            ret_schema_avg = score_utils.calc_score_by(session, cmdb_q, perspective_schema, score_type_avg)
             ret_schema_min = score_utils.calc_score_by(session, cmdb_q, perspective_schema, score_type_min)
             user_health_ranking_avg = sorted(
                 self.dict_to_verbose_dict_in_list(ret_schema_avg, "schema", "num"),
@@ -598,19 +628,19 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 self.dict_to_verbose_dict_in_list(ret_schema_min, "schema", "num"),
                 key=lambda k: k["num"])
 
-            path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
-                                                        collect_date_score,
-                                                        sql_or_obj_scores,
-                                                        radar_avg,radar_score_avg,
-                                                        radar_min,radar_score_min,
-                                                        tab_space_q,
-                                                        active_week,at_risk_week,
-                                                        active_mouth,at_risk_mouth,
-                                                        sql_time_num_rank,
-                                                        risk_rule_rank,
-                                                        user_health_ranking_avg,
-                                                        user_health_ranking_min,
-                                                        sqls)
+            path = cmdb_export.cmdb_report_export_html(cmdb, cmdb_q, tablespace_sum,
+                                                       collect_date_score,
+                                                       sql_or_obj_scores,
+                                                       radar_avg, radar_score_avg,
+                                                       radar_min, radar_score_min,
+                                                       tab_space_q,
+                                                       active_week, at_risk_week,
+                                                       active_mouth, at_risk_mouth,
+                                                       sql_time_num_rank,
+                                                       risk_rule_rank,
+                                                       user_health_ranking_avg,
+                                                       user_health_ranking_min,
+                                                       sqls)
             self.resp({
                 "url": path
             })
