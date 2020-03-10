@@ -613,8 +613,8 @@ class SQLPlanHandler(AuthReq):
 
         filtered_plans = ["index", "operation_display", "options","object_name", "position",
                           "bytes","cost", "time"]
-        page_plans = ["ID", "Operation", "Object name",
-                      "Rows","Bytes","Cost", "Time"]
+        page_plans = ["ID", "Operation", "Name",
+                      "Rows","Bytes","Cost (%CPU)", "Time"]
         plans = plans.filter(record_id=record_id). \
             values_list(*filtered_plans)
 

@@ -460,8 +460,8 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             sql_plan_stats = get_sql_plan_stats(session, cmdb_id)
             filtered_plans = ["index", "operation_display", "options", "object_name", "position",
                               "bytes", "cost", "time"]
-            page_plans = ["ID", "Operation", "Object name",
-                          "Rows", "Bytes", "Cost", "Time"]
+            page_plans = ["ID", "Operation", "Name",
+                          "Rows", "Bytes", "Cost (%CPU)", "Time"]
             for sql in sqls:
                 e_d = []
                 io_c = []
