@@ -850,12 +850,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
     schema_name = StringField(required=True)
     score_average = FloatField(required=True)
     score_lowest = FloatField(required=True)
-    score_rule_type = DictField(default=lambda: defaultdict(lambda: {
-        "job_id": None,
-        "score": None,
-        "create_date": None,
-        "rule_type": None
-    }))
+    score_rule_type = DictField(default=lambda: {})
     drill_down_type = DictField(default=lambda: {})
     add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分？
     rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
@@ -890,6 +885,12 @@ class StatsSchemaRate(BaseStatisticsDoc):
 
             for result in Results.filter_by_exec_hist_id(task_record_id):
                 current_stats_doc = schema_stats_pairs[result.schema_name]
+                current_stats_doc.score_rule_type = defaultdict(lambda: {
+                    "job_id": None,
+                    "score": None,
+                    "create_date": None,
+                    "rule_type": None
+                })
                 current_stats_doc.schema_name = result.schema_name
                 _, current_result_score = calc_result(
                     result,
@@ -910,7 +911,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
                               current_stats_doc.score_rule_type.values()]
                 current_stats_doc.score_average = \
                     sum(all_scores) / captured_rule_type_num \
-                    if captured_rule_type_num else 0
+                        if captured_rule_type_num else 0
                 current_stats_doc.score_lowest = min(all_scores)
 
                 # 下钻评分，是个特殊处理的评分
@@ -921,9 +922,9 @@ class StatsSchemaRate(BaseStatisticsDoc):
                     if rule_type in const.ALL_RULE_TYPES_FOR_SQL_RULE
                 ]
                 current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
-                    sum(drill_down_stats_sql_scores) /\
+                    sum(drill_down_stats_sql_scores) / \
                     float(len(drill_down_stats_sql_scores)) \
-                    if drill_down_stats_sql_scores else 0
+                        if drill_down_stats_sql_scores else 0
 
                 current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
                 if current_stats_doc.rate_info:
