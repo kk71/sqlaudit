@@ -897,7 +897,9 @@ class StatsSchemaRate(BaseStatisticsDoc):
                         "job_id": result.task_uuid,
                         "score": current_result_score,
                         "create_date": result.create_date,
-                        "rule_type": result.rule_type
+                        "rule_type": result.rule_type,
+                        "schema_name": current_stats_doc.schema_name,
+                        "connect_name": cmdb.connect_name
                     }
                 else:
                     raise Exception("duplicated results for "
