@@ -871,7 +871,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils import const
         from models.mongo import Results
-        from models.oracle import make_session, CMDB, DataHealthUserConfig
+        from models.oracle import make_session, CMDB, DataHealthUserConfig, QueryEntity
         from utils.score_utils import calc_result
 
         with make_session() as session:
@@ -902,9 +902,13 @@ class StatsSchemaRate(BaseStatisticsDoc):
                 else:
                     raise Exception("duplicated results for "
                                     f"{result.schema_name}-{result.rule_type}!!!")
-            dhuc = session.query(DataHealthUserConfig). \
-                filter_by(database_name=cmdb.connect_name)
-            dhuc_dict = {a.username: a.to_dict() for a in dhuc}
+            qe = QueryEntity(
+                DataHealthUserConfig.database_name,
+                DataHealthUserConfig.username,
+                DataHealthUserConfig.weight
+            )
+            dhuc = session.query(*qe).filter_by(database_name=cmdb.connect_name)
+            dhuc_dict = {qe.to_dict(a)["username"]: qe.to_dict(a) for a in dhuc}
             for schema_name, current_stats_doc in schema_stats_pairs.items():
                 captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
                 all_scores = [i["score"] for i in
