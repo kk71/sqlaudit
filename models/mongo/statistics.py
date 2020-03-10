@@ -916,6 +916,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
                 current_stats_doc.score_average = \
                     sum(all_scores) / captured_rule_type_num \
                         if captured_rule_type_num else 0
+                current_stats_doc.score_average = round(current_stats_doc.score_average, 2)
                 current_stats_doc.score_lowest = min(all_scores)
 
                 # 下钻评分，是个特殊处理的评分
@@ -929,6 +930,10 @@ class StatsSchemaRate(BaseStatisticsDoc):
                     sum(drill_down_stats_sql_scores) / \
                     float(len(drill_down_stats_sql_scores)) \
                         if drill_down_stats_sql_scores else 0
+                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = round(
+                    current_stats_doc.drill_down_type[const.STATS_NUM_SQL],
+                    2
+                )
 
                 current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
                 if current_stats_doc.rate_info:
@@ -981,8 +986,8 @@ class StatsCMDBRate(BaseStatisticsDoc):
             schema_num += 1
         if schema_num:
             schema_num = float(schema_num)
-            doc.score = doc.score / schema_num
-            doc.score_sql = doc.score_sql / schema_num
-            doc.score_obj = doc.score_obj / schema_num
+            doc.score = round(doc.score / schema_num, 2)
+            doc.score_sql = round(doc.score_sql / schema_num, 2)
+            doc.score_obj = round(doc.score_obj / schema_num, 2)
         yield doc
 
