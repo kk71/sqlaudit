@@ -84,19 +84,6 @@ class CMDBHandler(AuthReq):
 
             # 构建输出的纳管库信息（分页前）
             ret = []
-            # if "cmdb_id" in params.keys():
-            #     p = {}
-            #     cmdb_dict = q.first().to_dict()
-            #     for data_health in all_db_data_health:
-            #         if data_health["collect_date"]:
-            #             data_health["collect_date"] = d_to_str(data_health["collect_date"])
-            #         if data_health["connect_name"] == cmdb_dict["connect_name"]:
-            #             ret.append({
-            #                 **cmdb_dict,
-            #                 "data_health": data_health
-            #             })
-            #             break
-            # else:
             all_current_cmdb = {cmdb.cmdb_id: cmdb for cmdb in q}
             for data_health in all_db_data_health:
                 cmdb_obj_of_this_dh = all_current_cmdb.get(data_health.cmdb_id)
@@ -105,8 +92,7 @@ class CMDBHandler(AuthReq):
                     continue
                 ret.append({
                     **cmdb_obj_of_this_dh.to_dict(),
-                    "data_health": data_health.to_dict(
-                        iter_if=lambda k, v: k in ("score",))
+                    "data_health": data_health.to_dict()
                 })
             ret, p = self.paginate(ret, **p)
 
