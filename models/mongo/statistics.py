@@ -46,7 +46,7 @@ class StatsLoginUser_CMDB(EmbeddedDocument):
     schema_captured_num = FloatField()
     finally_schema_captured_num = FloatField()
     problem_num = DictField(default=lambda: {"SQL": 0, "OBJ": 0})
-    scores = DictField(default=lambda: {"OBJ": 0, "TEXT": 0})
+    # scores = DictField(default=lambda: {"OBJ": 0, "TEXT": 0})
 
 
 class StatsLoginUser(BaseStatisticsDoc):
@@ -243,25 +243,25 @@ class StatsLoginUser(BaseStatisticsDoc):
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                         cmdb_id=the_cmdb_id
                     )
-                    sql_result_score_sum = sum([calc_result(i, the_db_model)[1]
-                                                for i in sql_result_q])
+                    # sql_result_score_sum = sum([calc_result(i, the_db_model)[1]
+                    #                             for i in sql_result_q])
                     obj_result_q, _ = get_result_queryset_by(
                         task_record_id=latest_task_record_id,
                         rule_type=const.RULE_TYPE_OBJ,
                         cmdb_id=the_cmdb_id
                     )
-                    obj_result_score_sum = sum([calc_result(i, the_db_model)[1]
-                                                for i in obj_result_q])
+                    # obj_result_score_sum = sum([calc_result(i, the_db_model)[1]
+                    #                             for i in obj_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
-                    if sql_result_q.count():
-                        score_sql = round(sql_result_score_sum / sql_result_q.count(), 1)
-                    else:
-                        score_sql = 0
-                    if obj_result_q.count():
-                        score_obj = round(obj_result_score_sum / obj_result_q.count(), 1)
-                    else:
-                        score_obj = 0
+                    # if sql_result_q.count():
+                    #     score_sql = round(sql_result_score_sum / sql_result_q.count(), 1)
+                    # else:
+                    #     score_sql = 0
+                    # if obj_result_q.count():
+                    #     score_obj = round(obj_result_score_sum / obj_result_q.count(), 1)
+                    # else:
+                    #     score_obj = 0
                     doc.cmdb.append(StatsLoginUser_CMDB(
                         cmdb_id=the_cmdb_id,
                         connect_name=the_connect_name,
@@ -271,10 +271,10 @@ class StatsLoginUser(BaseStatisticsDoc):
                             const.STATS_NUM_SQL: calc_problem_num(sql_result_q),
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
-                        scores={
-                            const.STATS_NUM_SQL: score_sql,
-                            const.RULE_TYPE_OBJ: score_obj,
-                        }
+                        # scores={
+                        #     const.STATS_NUM_SQL: score_sql,
+                        #     const.RULE_TYPE_OBJ: score_obj,
+                        # }
                     ))
                 yield doc
 
@@ -850,7 +850,12 @@ class StatsSchemaRate(BaseStatisticsDoc):
     schema_name = StringField(required=True)
     score_average = FloatField(required=True)
     score_lowest = FloatField(required=True)
-    score_rule_type = DictField(default=lambda: {})
+    score_rule_type = DictField(default=lambda: defaultdict(lambda: {
+        "job_id": None,
+        "score": None,
+        "create_date": None,
+        "rule_type": None
+    }))
     drill_down_type = DictField(default=lambda: {})
     add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分？
     rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
@@ -890,29 +895,35 @@ class StatsSchemaRate(BaseStatisticsDoc):
                     result,
                     db_model=cmdb.db_model
                 )
-                current_stats_doc.score_rule_type[result.rule_type] = \
-                    current_result_score
+                current_rule_type: dict = current_stats_doc.score_rule_type[
+                    result.rule_type]
+                current_rule_type["job_id"] = result.task_uuid
+                current_rule_type["score"] = current_result_score
+                current_rule_type["create_date"] = result.create_date
+                current_rule_type["rule_type"] = result.rule_type
             dhuc = session.query(DataHealthUserConfig). \
                 filter_by(database_name=cmdb.connect_name)
             dhuc_dict = {a.username: a.to_dict() for a in dhuc}
             for schema_name, current_stats_doc in schema_stats_pairs.items():
                 captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
+                all_scores = [i["score"] for i in
+                              current_stats_doc.score_rule_type.values()]
                 current_stats_doc.score_average = \
-                    sum(dict(current_stats_doc.score_rule_type).values()) / \
-                    captured_rule_type_num if captured_rule_type_num else 0
-                current_stats_doc.score_lowest = \
-                    min(current_stats_doc.score_rule_type)
+                    sum(all_scores) / captured_rule_type_num \
+                    if captured_rule_type_num else 0
+                current_stats_doc.score_lowest = min(all_scores)
 
                 # 下钻评分，是个特殊处理的评分
                 drill_down_stats_sql_scores = [
-                    the_score
-                    for rule_type, the_score in dict(
-                        current_stats_doc.score_rule_type).items()
+                    the_score_dict["score"]
+                    for rule_type, the_score_dict in
+                    current_stats_doc.score_rule_type.items()
                     if rule_type in const.ALL_RULE_TYPES_FOR_SQL_RULE
                 ]
                 current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
-                    sum(drill_down_stats_sql_scores) / float(len(drill_down_stats_sql_scores)) \
-                        if drill_down_stats_sql_scores else 0
+                    sum(drill_down_stats_sql_scores) /\
+                    float(len(drill_down_stats_sql_scores)) \
+                    if drill_down_stats_sql_scores else 0
 
                 current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
                 if current_stats_doc.rate_info:
@@ -941,7 +952,7 @@ class StatsCMDBRate(BaseStatisticsDoc):
         )
         schema_rates = StatsSchemaRate.objects(
             task_record_id=task_record_id,
-            add_to_rate=True
+            add_to_rate=True  # 只计算纳入评分的schema
         )
         score_sum = 0.0
         for schema_rate in schema_rates:
