@@ -95,6 +95,7 @@ def calc_result(result, db_model, obj_info_type: Union[str, list, tuple] = None)
 def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     """
     获取某个纳管数据库最后一次的按照[规则类型/schema]分类的评分
+    评分仅包括配置过评分的schema
     :param session:
     :param cmdb:
     :param perspective:
@@ -114,7 +115,10 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
                           "or this task has never run.")
         return ret  # 无分析记录
 
-    q = StatsSchemaRate.objects(task_record_id=latest_task_record_id)
+    q = StatsSchemaRate.objects(
+        task_record_id=latest_task_record_id,
+        add_to_rate=True
+    )
     scores_by_sth = defaultdict(lambda: defaultdict(lambda: 0.0))
     for schema_rate in q:
         schema = schema_rate.schema_name
