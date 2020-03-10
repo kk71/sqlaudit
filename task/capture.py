@@ -270,7 +270,7 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
             analyse_rule_by_schema(
                 host, port, sid, username, password, user, cmdb_id,
                 connect_name, str(record_id) + "##" + user)
-            past.utils.health_data_gen.calculate(record_id)
+            # past.utils.health_data_gen.calculate(record_id)
         utils.capture_utils.capture(
             record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
         utils.analyse_utils.calc_statistics(
