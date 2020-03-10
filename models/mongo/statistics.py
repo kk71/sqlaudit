@@ -683,6 +683,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     last_appearance = DateTimeField()
     rule_num = IntField(default=0, help_text="该规则找到的触犯数")
     schema = StringField(null=False)
+    optimized_advice = StringField()
 
     meta = {
         "collection": "stats_risk_objects_rule"
