@@ -174,7 +174,7 @@ def get_latest_cmdb_score(session, collect_month=1) -> dict:
     :return: {cmdb_id: StatsCMDBRate, ...}
     """
     task_record_ids = list(score_utils.get_latest_task_record_id(session).values())
-    all_cmdb_ids = [the_cmdb_id for the_cmdb_id in session.query(CMDB.cmdb_id)]
+    all_cmdb_ids = QueryEntity.to_plain_list(session.query(CMDB.cmdb_id))
     q = StatsCMDBRate.objects(
         etl_date__gte=arrow.now().shift(months=-collect_month).datetime,
         task_record_id__in=task_record_ids

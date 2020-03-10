@@ -36,6 +36,11 @@ class QueryEntity(List):
             v = [dt_to_str(i) if isinstance(i, datetime) else i for i in v]
         return dict(zip(self.keys, v))
 
+    @classmethod
+    def to_plain_list(cls, v):
+        """如果只有单个查询参数，将其展开成为单个list"""
+        return [i[0] for i in v]
+
 
 class BaseModel(base):
     __abstract__ = True
