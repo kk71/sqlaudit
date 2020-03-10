@@ -683,6 +683,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     last_appearance = DateTimeField()
     rule_num = IntField(default=0, help_text="该规则找到的触犯数")
     schema = StringField(null=False)
+    optimized_advice = StringField()
 
     meta = {
         "collection": "stats_risk_objects_rule"
@@ -713,6 +714,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
             doc.severity = x["severity"]
             doc.last_appearance = arrow.get(x["last_appearance"]).datetime
             doc.schema = x['schema']
+            doc.optimized_advice = x['optimized_advice']
             doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
