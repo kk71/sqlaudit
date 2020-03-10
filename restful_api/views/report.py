@@ -193,8 +193,8 @@ class OnlineReportSQLPlanHandler(AuthReq):
                     break
         if plan_hash_value:
             plans = MSQLPlan.get_plans(plan_hash_value=plan_hash_value, sql_id=sql_id).items()
-            page_plans = ["ID", "Operation", "Object name",
-                          "Rows", "Bytes", "Cost", "Time"]
+            page_plans = ["ID", "Operation", "Name",
+                          "Rows", "Bytes", "Cost (%CPU)", "Time"]
             plans = [i.to_dict(iter_if=lambda k, v: k in (
                 "index",
                 "operation_display",
@@ -204,7 +204,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "bytes",
                 "cost",
                 "time"
-            ),iter_by=lambda k,v:arrow.get(v if v else 0).time().strftime("%H:%M:%S")if k=="time" else v)
+            ),iter_by=lambda k,v:arrow.get(v if v else 0).time().strftime("%H:%M:%S")if k == "time" else v)
                      for i in dict(sorted(plans)).values()]
             pt=PrettyTable(page_plans)
             pt.align = "l"
@@ -212,7 +212,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 if x["options"] is not None:
                     x["operation_display"]=x["operation_display"]+" "+x["options"]
                 x.pop("options")
-                pt.add_row(list(x.values()))
+                pt.add_row(["" if x is None else x for x in x.values()])
             plans=str(pt)
 
         self.resp({
