@@ -130,7 +130,7 @@ class OnlineReportSchemaRate(PrivilegeReq):
         ret, p = self.paginate(q, **p)
         self.resp([
             i.to_dict(iter_by=lambda k, v: list(v.values())
-            if k in ("score_rule_type",) else v)
+            if k in ("score_rule_type",) else dt_to_str(v))
             for i in ret
         ], **p)
 
