@@ -871,7 +871,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils import const
         from models.mongo import Results
-        from models.oracle import make_session, CMDB, DataHealthUserConfig
+        from models.oracle import make_session, CMDB, DataHealthUserConfig, QueryEntity
         from utils.score_utils import calc_result
 
         with make_session() as session:
@@ -902,9 +902,13 @@ class StatsSchemaRate(BaseStatisticsDoc):
                 else:
                     raise Exception("duplicated results for "
                                     f"{result.schema_name}-{result.rule_type}!!!")
-            dhuc = session.query(DataHealthUserConfig). \
-                filter_by(database_name=cmdb.connect_name)
-            dhuc_dict = {a.username: a.to_dict() for a in dhuc}
+            qe = QueryEntity(
+                DataHealthUserConfig.database_name,
+                DataHealthUserConfig.username,
+                DataHealthUserConfig.weight
+            )
+            dhuc = session.query(*qe).filter_by(database_name=cmdb.connect_name)
+            dhuc_dict = {qe.to_dict(a)["username"]: qe.to_dict(a) for a in dhuc}
             for schema_name, current_stats_doc in schema_stats_pairs.items():
                 captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
                 all_scores = [i["score"] for i in
@@ -912,6 +916,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
                 current_stats_doc.score_average = \
                     sum(all_scores) / captured_rule_type_num \
                         if captured_rule_type_num else 0
+                current_stats_doc.score_average = round(current_stats_doc.score_average, 2)
                 current_stats_doc.score_lowest = min(all_scores)
 
                 # 下钻评分，是个特殊处理的评分
@@ -925,6 +930,10 @@ class StatsSchemaRate(BaseStatisticsDoc):
                     sum(drill_down_stats_sql_scores) / \
                     float(len(drill_down_stats_sql_scores)) \
                         if drill_down_stats_sql_scores else 0
+                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = round(
+                    current_stats_doc.drill_down_type[const.STATS_NUM_SQL],
+                    2
+                )
 
                 current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
                 if current_stats_doc.rate_info:
@@ -977,8 +986,8 @@ class StatsCMDBRate(BaseStatisticsDoc):
             schema_num += 1
         if schema_num:
             schema_num = float(schema_num)
-            doc.score = doc.score / schema_num
-            doc.score_sql = doc.score_sql / schema_num
-            doc.score_obj = doc.score_obj / schema_num
+            doc.score = round(doc.score / schema_num, 2)
+            doc.score_sql = round(doc.score_sql / schema_num, 2)
+            doc.score_obj = round(doc.score_obj / schema_num, 2)
         yield doc
 
