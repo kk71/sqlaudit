@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from typing import Union
 from collections import defaultdict
 
 from sqlalchemy import func
