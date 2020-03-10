@@ -25,7 +25,8 @@ class CMDBHandler(AuthReq):
     async def get(self):
         """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
-            Optional("current", default=not self.is_admin()): scm_bool,  # 只返回当前登录用户可见的cmdb
+            # 只返回当前登录用户可见的cmdb
+            Optional("current", default=not self.is_admin()): scm_bool,
 
             # 精确匹配
             Optional("cmdb_id"): scm_int,
@@ -36,12 +37,10 @@ class CMDBHandler(AuthReq):
             # 模糊匹配多个字段
             Optional("keyword", default=None): scm_str,
 
-            # 分页
-            Optional("page", default=1): scm_int,
-            Optional("per_page", default=10): scm_int,
-
             # 排序
-            Optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS))
+            Optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS)),
+
+            **self.gen_p(),
         }))
         keyword = params.pop("keyword")
         current = params.pop("current")
@@ -56,55 +55,62 @@ class CMDBHandler(AuthReq):
                                        CMDB.connect_name,
                                        CMDB.group_name,
                                        CMDB.business_name,
-                                       CMDB.machine_room,
                                        CMDB.server_name,
                                        CMDB.ip_address
                                        )
+
+            # 获取纳管库的评分
+            all_db_data_health = cmdb_utils.get_latest_cmdb_score(session).values()
             if current:
                 current_cmdb_ids: list = await async_thr(
                     cmdb_utils.get_current_cmdb, session, self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = await async_thr(
-                    cmdb_utils.get_latest_health_score_cmdb, session, self.current_user)
-                if all_db_data_health:
-                    if sort == SORT_DESC:
-                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score']
-                        if da['health_score'] is not None else 0,
-                                                    reverse=True)
-                    elif sort == SORT_ASC:
-                        all_db_data_health = sorted(all_db_data_health, key=lambda da: da['health_score']
-                        if da['health_score'] is not None else 0,
-                                                    reverse=False)
-            else:
-                all_db_data_health = await async_thr(
-                    cmdb_utils.get_latest_health_score_cmdb, session)
+                all_db_data_health = [
+                    stats_cmdb_rate
+                    for stats_cmdb_rate in all_db_data_health
+                    if stats_cmdb_rate.cmdb_id in current_cmdb_ids
+                ]
+            if all_db_data_health:
+                all_db_data_health = sorted(
+                    all_db_data_health,
+                    key=lambda da: da.score if da.score is not None else 0,
+                    reverse=True)
+                if sort == SORT_DESC:
+                    pass
+                elif sort == SORT_ASC:
+                    all_db_data_health.reverse()
+                else:
+                    assert 0
+
+            # 构建输出的纳管库信息（分页前）
             ret = []
-            if "cmdb_id" in params.keys():
-                p = {}
-                cmdb_dict = q.first().to_dict()
-                for data_health in all_db_data_health:
-                    if data_health["collect_date"]:
-                        data_health["collect_date"] = d_to_str(data_health["collect_date"])
-                    if data_health["connect_name"] == cmdb_dict["connect_name"]:
-                        ret.append({
-                            **cmdb_dict,
-                            "data_health": data_health
-                        })
-                        break
-            else:
-                for data_health in all_db_data_health:
-                    cmdb_obj_of_this_dh = q. \
-                        filter(CMDB.connect_name == data_health["connect_name"]). \
-                        first()
-                    if not cmdb_obj_of_this_dh:
-                        continue
-                    if data_health["collect_date"]:
-                        data_health["collect_date"] = d_to_str(data_health["collect_date"])
-                    ret.append({
-                        **cmdb_obj_of_this_dh.to_dict(),
-                        "data_health": data_health
-                    })
-                ret, p = self.paginate(ret, **p)
+            # if "cmdb_id" in params.keys():
+            #     p = {}
+            #     cmdb_dict = q.first().to_dict()
+            #     for data_health in all_db_data_health:
+            #         if data_health["collect_date"]:
+            #             data_health["collect_date"] = d_to_str(data_health["collect_date"])
+            #         if data_health["connect_name"] == cmdb_dict["connect_name"]:
+            #             ret.append({
+            #                 **cmdb_dict,
+            #                 "data_health": data_health
+            #             })
+            #             break
+            # else:
+            all_current_cmdb = {cmdb.cmdb_id: cmdb for cmdb in q}
+            for data_health in all_db_data_health:
+                cmdb_obj_of_this_dh = all_current_cmdb.get(data_health.cmdb_id)
+                if not cmdb_obj_of_this_dh:
+                    print(f"{data_health.cmdb_id} not found")
+                    continue
+                ret.append({
+                    **cmdb_obj_of_this_dh.to_dict(),
+                    "data_health": data_health.to_dict(
+                        iter_if=lambda k, v: k in ("score",))
+                })
+            ret, p = self.paginate(ret, **p)
+
+            # 对分页之后的纳管库列表补充额外数据
             login_stats = StatsLoginUser.objects(login_user=self.current_user). \
                 order_by("-etl_date").first()
             if login_stats:

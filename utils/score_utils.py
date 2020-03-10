@@ -1,7 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from collections import defaultdict
-from typing import Union
 
 from sqlalchemy import func
 from mongoengine import Q

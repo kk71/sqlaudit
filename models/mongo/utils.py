@@ -226,11 +226,3 @@ class BaseStatisticsDoc(BaseDoc):
         :param cmdb_id: 如果cmdb_id为None，则表示是不针对任何一个库的统计
         """
         raise NotImplementedError
-
-    @classmethod
-    def empty_to_dict(cls):
-        """
-        产生一个空数据的字典
-        :return:
-        """
-        return cls().to_dict()

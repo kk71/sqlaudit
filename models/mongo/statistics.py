@@ -961,3 +961,4 @@ class StatsCMDBRate(BaseStatisticsDoc):
         if schema_num:
             doc.score = score_sum / float(schema_num)
         yield doc
+

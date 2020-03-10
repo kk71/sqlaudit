@@ -5,9 +5,10 @@ from typing import Union
 import cx_Oracle
 
 from models.oracle import *
+from models.mongo import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
-from utils import privilege_utils
+from utils import privilege_utils, score_utils
 from plain_db.oracleob import OracleOB
 
 import plain_db.oracleob
@@ -163,6 +164,26 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> l
                     "collect_date": None
                 })
     return ret
+
+
+def get_latest_cmdb_score(session, collect_month=1) -> dict:
+    """
+    查询纳管库最近一次评分信息
+    :param session:
+    :param collect_month: 评分时限(月内)
+    :return: {cmdb_id: StatsCMDBRate, ...}
+    """
+    task_record_ids = list(score_utils.get_latest_task_record_id(session).values())
+    all_cmdb_ids = list(session.query(CMDB.cmdb_id))
+    q = StatsCMDBRate.objects(
+        etl_date__gte=arrow.now().shift(months=-collect_month).datetime,
+        task_record_id__in=task_record_ids
+    )
+    cmdb_id_stats_cmdb_rate_pairs = {i.cmdb_id: i for i in q}
+    return {
+        cmdb_id: cmdb_id_stats_cmdb_rate_pairs.get(cmdb_id, StatsCMDBRate(cmdb_id=cmdb_id))
+        for cmdb_id in all_cmdb_ids  # 保证一定能取到
+    }
 
 
 def test_cmdb_connectivity(cmdb):
