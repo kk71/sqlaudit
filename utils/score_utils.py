@@ -118,8 +118,8 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
     scores_by_sth = defaultdict(lambda: defaultdict(lambda: 0.0))
     for schema_rate in q:
         schema = schema_rate.schema_name
-        for rule_type in schema_rate.score_rule_type.values():
-            score = rule_type["score"]
+        for rule_type, rule_type_dict in schema_rate.score_rule_type.items():
+            score = rule_type_dict["score"]
             if score:
                 if perspective == OVERVIEW_ITEM_RADAR:
                     scores_by_sth[rule_type][schema] += score
