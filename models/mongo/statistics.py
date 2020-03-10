@@ -713,6 +713,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
             doc.severity = x["severity"]
             doc.last_appearance = arrow.get(x["last_appearance"]).datetime
             doc.schema = x['schema']
+            doc.optimized_advice = x['optimized_advice']
             doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
