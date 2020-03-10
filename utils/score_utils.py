@@ -107,7 +107,8 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
     ret = {}
 
-    latest_task_record_id = get_latest_task_record_id(session, cmdb_id=cmdb.cmdb_id)
+    latest_task_record_id = get_latest_task_record_id(session, cmdb_id=cmdb.cmdb_id).\
+        get(cmdb.cmdb_id, None)
     if not latest_task_record_id:
         calc_score_by.tik("No latest task_record_id was found, "
                           "or this task has never run.")
