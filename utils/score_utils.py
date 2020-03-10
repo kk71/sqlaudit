@@ -107,24 +107,23 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
     ret = {}
 
-    last_exec_hist = TaskExecHistory. \
-        filter_succeed(session, TaskExecHistory.connect_name == cmdb.connect_name). \
-        order_by(TaskExecHistory.task_end_date.desc()).first()
-    if not last_exec_hist:
-        calc_score_by.tik("no last exec hist")
+    latest_task_record_id = get_latest_task_record_id(session, cmdb_id=cmdb.cmdb_id)
+    if not latest_task_record_id:
+        calc_score_by.tik("No latest task_record_id was found, "
+                          "or this task has never run.")
         return ret  # 无分析记录
-    calc_score_by.tik(f"last exec hist id {last_exec_hist.id}")
 
-    rule_type_schema_scores = Job.filter_by_exec_hist_id(last_exec_hist.id). \
-        values_list("desc__rule_type", "desc__owner", "score")
+    q = StatsSchemaRate.objects(task_record_id=latest_task_record_id)
     scores_by_sth = defaultdict(lambda: defaultdict(lambda: 0.0))
-    for rule_type, schema, score in rule_type_schema_scores:
-        if score:
-            if perspective == OVERVIEW_ITEM_RADAR:
-                scores_by_sth[rule_type][schema] += score
-            elif perspective == OVERVIEW_ITEM_SCHEMA:
-                scores_by_sth[schema][rule_type] += score
-    # calc_score_by.tik(scores_by_sth)
+    for schema_rate in q:
+        schema = schema_rate.schema_name
+        for rule_type in schema_rate.score_rule_type.values():
+            score = rule_type["score"]
+            if score:
+                if perspective == OVERVIEW_ITEM_RADAR:
+                    scores_by_sth[rule_type][schema] += score
+                elif perspective == OVERVIEW_ITEM_SCHEMA:
+                    scores_by_sth[schema][rule_type] += score
 
     for persp_1, persp_2_score_dict in scores_by_sth.items():
         ret[persp_1] = None
