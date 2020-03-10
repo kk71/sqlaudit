@@ -480,28 +480,34 @@ class CMDBHealthTrendHandler(AuthReq):
         }), default_body="{}")
         now = arrow.now()
         cmdb_id_list = params.pop("cmdb_id_list")
+
         with make_session() as session:
             if not cmdb_id_list:
-                # 如果没有给出cmdb_id，则去查找最近的健康度，把最差的前十个拿出来
-                worst_10 = cmdb_utils.get_latest_health_score_cmdb(
-                    session=session, user_login=self.current_user)[:10]
-                cmdb_connect_name_list = [i["connect_name"] for i in worst_10]
-            else:
-                cmdb_connect_name_list = [i[0] for i in session.query(CMDB.connect_name).
-                    filter(CMDB.cmdb_id.in_(cmdb_id_list))]
+                cmdb_id_list = cmdb_utils.get_current_cmdb(
+                    session, user_login=self.current_user)
+                # 如果没有给出cmdb_id，则把最差的前十个拿出来
+                cmdb_id_list = [
+                    i.cmdb_id
+                    for i in cmdb_utils.get_latest_cmdb_score(session=session)
+                    if i.cmdb_id in cmdb_id_list
+                ][:10]
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
-            for cn in cmdb_connect_name_list:
-                dh_q = session.query(DataHealth).filter(
-                    DataHealth.database_name == cn,
-                    DataHealth.collect_date > now.shift(weeks=-2).datetime
-                ).order_by(DataHealth.collect_date)
+            for cmdb_id in cmdb_id_list:
+                dh_q = StatsCMDBRate.objects(
+                    cmdb_id=cmdb_id,
+                    etl_date__gt=now.shift(weeks=-2).datetime
+                ).order_by("etl_date")
                 for dh in dh_q:
-                    ret[dh.collect_date.date()][dh.database_name] = dh.health_score
-                    fields.add(dh.database_name)
-            base_lines = [i[0] for i in session.query(CMDB.baseline).
-                filter(CMDB.connect_name.in_(cmdb_connect_name_list)).
-                order_by(CMDB.baseline)]
+                    ret[dh.etl_date.date()][dh.connect_name] = dh.score
+                    fields.add(dh.connect_name)
+            base_lines = [
+                i[0]
+                for i in session.
+                query(CMDB.baseline).
+                filter(CMDB.cmdb_id.in_(cmdb_id_list)).
+                order_by(CMDB.baseline)
+            ]
             if not base_lines or base_lines[0] == 0:
                 base_line = 80
             else:

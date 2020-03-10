@@ -7,6 +7,7 @@ from .utils import BaseModel
 from utils.datetime_utils import *
 
 
+# TODO DEPRECATED
 class DataHealth(BaseModel):
     __tablename__ = "T_DATA_HEALTH"
 

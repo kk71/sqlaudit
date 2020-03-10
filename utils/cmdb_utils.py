@@ -123,6 +123,7 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     return schemas
 
 
+# TODO DEPRECATED
 @timing()
 def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> list:
     """
@@ -166,6 +167,7 @@ def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> l
     return ret
 
 
+@timing()
 def get_latest_cmdb_score(session, collect_month=1) -> dict:
     """
     查询纳管库最近一次评分信息

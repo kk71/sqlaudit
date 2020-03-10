@@ -932,7 +932,9 @@ class StatsSchemaRate(BaseStatisticsDoc):
 
 class StatsCMDBRate(BaseStatisticsDoc):
     """纳管库数据评分"""
-    score = FloatField(required=True, default=0)
+    score = FloatField(default=0)
+    score_sql = FloatField(default=0)
+    score_obj = FloatField(default=0)
 
     meta = {
         "collection": "stats_cmdb_rate",
@@ -945,20 +947,36 @@ class StatsCMDBRate(BaseStatisticsDoc):
         # =====================================
         # ==== 这个统计依赖于 StatsSchemaRate ====
         # =====================================
+
+        from utils import const
+        from models.oracle import make_session, CMDB
+
         doc = cls(
             task_record_id=task_record_id,
-            cmdb_id=cmdb_id,
+            cmdb_id=cmdb_id
         )
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+            doc.connect_name = cmdb.connect_name
+
         schema_rates = StatsSchemaRate.objects(
             task_record_id=task_record_id,
             add_to_rate=True  # 只计算纳入评分的schema
         )
-        score_sum = 0.0
+        schema_num = 0
         for schema_rate in schema_rates:
             weight = float(dict(schema_rate.rate_info).get("weight", 1))
-            score_sum += schema_rate.score_average * weight
-        schema_num = schema_rates.count()
+            doc.score += schema_rate.score_average * weight
+            doc.score_sql += schema_rate.drill_down_type.\
+                get(const.STATS_NUM_SQL, 0) * weight
+            doc.score_obj += schema_rate.score_rule_type.\
+                get(const.RULE_TYPE_OBJ, {}).\
+                get("score", 0) * weight
+            schema_num += 1
         if schema_num:
-            doc.score = score_sum / float(schema_num)
+            schema_num = float(schema_num)
+            doc.score = doc.score / schema_num
+            doc.score_sql = doc.score_sql / schema_num
+            doc.score_obj = doc.score_obj / schema_num
         yield doc
 
