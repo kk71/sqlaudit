@@ -1,87 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import re
 from typing import Union
 from collections import Counter
 
-import sqlparse
 from mongoengine import Q
 
 from utils.perf_utils import *
 from models.mongo import *
 from models.oracle import *
-from utils.datetime_utils import *
 from utils import rule_utils, const
 from utils.datetime_utils import *
-from utils.conc_utils import *
-from past.utils.constant import SQLPLUS_SQL
 
 
-def parse_sql_file(sql_contents, sql_keyword: Union[None, str]):
-    """
-    读取sql文件
-    :param sql_contents:
-    :param sql_keyword:
-    """
-
-    def get_procedures_end_with_slash(sql_contents):
-        cate = ["declare",
-                "create\s+(?:or\s+replace\s+)?(?:EDITIONABLE|NONEDITIONABLE\s+)?(?:FUNCTION|PACKAGE|PACKAGE BODY|PROCEDURE|TRIGGER|TYPE BODY)"]
-        re_str = f"\n(\s*set\s+\w+\s+\w+)|\n\s*((?:{'|'.join(cate)})[\s\S]*?end;[\s\S]*?\/)|\n\s*((?:{'|'.join(SQLPLUS_SQL)})(?:\s+.*?)?)\n|\n\s*(@@?.*?)\n"
-        procedures = [''.join(x) for x in re.findall(re_str, sql_contents, re.I)]
-        return procedures
-
-    def is_annotation(sql):
-        multi_annotation = re.findall("\/\*[\s\S]*?\*\/", sql, re.I)
-        for anno in multi_annotation:
-            sql = sql.replace(anno, "")
-        return all([annotation_condition(x) for x in sql.split("\n")])
-
-    def annotation_condition(sql):
-        sql = sql.strip()
-        if not sql:
-            return True
-        if re.match("^\s*(remark|rem|--|\/\*)\s+", sql, re.I):
-            return True
-        if re.match('\s*--.*?', sql, re.I):
-            return True
-        if re.match('\/\* +.*?\*\/', sql, re.I):
-            return True
-        if re.match('\/\*[^+]{2}[\s\S]*?\*\/\n', sql, re.I):
-            return True
-        return False
-
-    procedures = get_procedures_end_with_slash(sql_contents)
-    print(f"procedures:   {procedures}")
-    for procedure in procedures:
-        sql_contents = sql_contents.replace(procedure, "|||||")
-    print(f"sql_contents:   {sql_contents}")
-
-    sql_contents = [x.strip(' ') for x in sql_contents.split("|||||")]
-
-    sql_list = []
-    for index, content in enumerate(sql_contents):
-        sql_list += [a for b in [sqlparse.split(x) for x in content.split(';')] for a in b]
-        if index < len(procedures) and procedures[index].strip():
-            sql_list.append(procedures[index].strip())
-
-    sql_list = [sql for sql in sql_list if sql]
-    print(f"sql_list:   {sql_list}")
-
-    new_sql_list = []
-    annotation_sql = ""
-    for sql in sql_list:
-        if is_annotation(sql):
-            annotation_sql += sql
-            continue
-        if not sql_keyword or re.match(sql_keyword, sql, re.I):
-            new_sql_list.append((annotation_sql + "\n" + sql).lstrip())
-            annotation_sql = ""
-
-    return new_sql_list
-
-
-# @timing(cache=r_cache)
 def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
     """
     计算sql文本的统计信息
@@ -100,7 +30,6 @@ def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
         return {}
 
 
-# @timing(cache=r_cache)
 def get_sql_plan_stats(session, cmdb_id) -> dict:
     """
     计算sql计划的统计信息
@@ -176,7 +105,7 @@ def get_risk_sql_list(session,
 
     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
     if task_record_id:
-        result_q = Results.filter_by_exec_hist_id(task_record_id).filter(cmdb_id=cmdb_id)
+        result_q = Results.objects(cmdb_id=cmdb_id, task_record_id=task_record_id)
     else:
         result_q = Results.objects(cmdb_id=cmdb_id)
     if schema_name:
