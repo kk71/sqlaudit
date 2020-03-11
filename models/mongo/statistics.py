@@ -1,9 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 """
-统计信息，用于接口快速获取数据
-
-编码注意：所有涉及sqlalchemy的import，必须在函数内！
+TODO 编码注意：所有与统计业务相关的导入，必须在generate内！不要全局导入！
 """
 
 from typing import Union
@@ -192,7 +190,6 @@ class StatsLoginUser_CMDB(EmbeddedDocument):
     schema_captured_num = FloatField()
     finally_schema_captured_num = FloatField()
     problem_num = DictField(default=lambda: {"SQL": 0, "OBJ": 0})
-    # scores = DictField(default=lambda: {"OBJ": 0, "TEXT": 0})
 
 
 class StatsNumDrillDown(BaseStatisticsDoc):
@@ -218,18 +215,22 @@ class StatsNumDrillDown(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
             get_result_queryset_by, get_object_unique_labels
-        from models.oracle import make_session, CMDB, RoleDataPrivilege
+        from models.oracle import make_session, CMDB, RoleDataPrivilege, \
+            DataHealthUserConfig, QueryEntity
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
             ObjIndColInfo
-        from utils.cmdb_utils import get_current_schema
         with make_session() as session:
-            verbose_schema_info = get_current_schema(
-                session,
-                cmdb_id=cmdb_id,
-                verbose=True,
-                query_entity=(CMDB.connect_name, RoleDataPrivilege.schema_name)
+            qe = QueryEntity(
+                DataHealthUserConfig.database_name,
+                DataHealthUserConfig.username,
+                DataHealthUserConfig.weight,
+                CMDB.cmdb_id
             )
-            for connect_name, schema_name in set(verbose_schema_info):
+            dhuc = session.query(*qe).filter(
+                DataHealthUserConfig.database_name == CMDB.connect_name,
+                CMDB.cmdb_id == cmdb_id
+            )
+            for connect_name, schema_name, _, _ in set(dhuc):
                 for t in ALL_STATS_NUM_TYPE:
                     # 因为results不同的类型结构不一样，需要分别处理
                     new_doc = cls(
@@ -437,11 +438,10 @@ class StatsLoginUser(BaseStatisticsDoc):
 
         from models.oracle import make_session, CMDB, User
         from utils import const
-        from utils.score_utils import calc_problem_num, get_result_queryset_by, calc_result, \
-            get_latest_task_record_id, calc_score_by, calc_distinct_sql_id, \
-            get_object_unique_labels
+        from utils.score_utils import calc_problem_num, get_result_queryset_by, \
+            get_latest_task_record_id, calc_score_by
         from utils.cmdb_utils import get_current_schema, get_current_cmdb
-        from models.mongo.obj import ObjTabInfo, ObjIndColInfo, ObjSeqInfo, ObjTabSpace
+        from models.mongo.obj import ObjTabSpace
 
         with make_session() as session:
             for login_user, in session.query(User.login_user):
@@ -582,25 +582,13 @@ class StatsLoginUser(BaseStatisticsDoc):
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
                         cmdb_id=the_cmdb_id
                     )
-                    # sql_result_score_sum = sum([calc_result(i, the_db_model)[1]
-                    #                             for i in sql_result_q])
                     obj_result_q, _ = get_result_queryset_by(
                         task_record_id=latest_task_record_id,
                         rule_type=const.RULE_TYPE_OBJ,
                         cmdb_id=the_cmdb_id
                     )
-                    # obj_result_score_sum = sum([calc_result(i, the_db_model)[1]
-                    #                             for i in obj_result_q])
                     schema_captured_num = len(get_current_schema(
                         session, login_user, the_cmdb_id))
-                    # if sql_result_q.count():
-                    #     score_sql = round(sql_result_score_sum / sql_result_q.count(), 1)
-                    # else:
-                    #     score_sql = 0
-                    # if obj_result_q.count():
-                    #     score_obj = round(obj_result_score_sum / obj_result_q.count(), 1)
-                    # else:
-                    #     score_obj = 0
                     doc.cmdb.append(StatsLoginUser_CMDB(
                         cmdb_id=the_cmdb_id,
                         connect_name=the_connect_name,
@@ -610,10 +598,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                             const.STATS_NUM_SQL: calc_problem_num(sql_result_q),
                             const.RULE_TYPE_OBJ: calc_problem_num(obj_result_q),
                         },
-                        # scores={
-                        #     const.STATS_NUM_SQL: score_sql,
-                        #     const.RULE_TYPE_OBJ: score_obj,
-                        # }
                     ))
                 yield doc
 
@@ -985,5 +969,4 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
                 sql_id=one.pop("_id"),
                 **one
             )
-
 

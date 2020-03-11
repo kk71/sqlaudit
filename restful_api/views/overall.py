@@ -203,11 +203,8 @@ class StatsNumDrillDownHandler(AuthReq):
             if not Qs:
                 return self.resp([])
             drill_down_q = StatsNumDrillDown.objects(
-                # Q(num_with_risk__ne=0) | Q(problem_num__ne=0),
                 drill_down_type__in=ddt_in,
-                # job_id__ne=None,
-                num__ne=0,
-                # score__nin=[None, 0, 100],
+                num__ne=0
             ).filter(Qs).order_by("-etl_date")
             items, p = self.paginate(drill_down_q, **p)
             self.resp([x.to_dict() for x in items], **p)
