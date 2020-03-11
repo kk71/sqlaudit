@@ -9,9 +9,8 @@
 from typing import Union
 from collections import defaultdict
 
-from mongoengine import IntField, StringField, DateTimeField, \
-    DynamicField, FloatField, LongField, ListField, DictField, EmbeddedDocumentField, \
-    EmbeddedDocument, EmbeddedDocumentListField, BooleanField
+from mongoengine import IntField, StringField, DateTimeField, FloatField, \
+    LongField, DictField, EmbeddedDocument, EmbeddedDocumentListField, BooleanField
 
 from utils.const import *
 from .utils import BaseStatisticsDoc
