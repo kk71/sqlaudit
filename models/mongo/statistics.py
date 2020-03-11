@@ -780,9 +780,9 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
             )
 
         # rule_name, schema:
-        rsts = defaultdict(lambda: defaultdict(lambda :defaultdict(cls)))
+        rsts = defaultdict(lambda: defaultdict(cls))
         for x in rst:
-            doc = rsts[x["rule"]["rule_name"]][x["schema"]][x["sql_id"]]
+            doc = rsts[x["rule"]["rule_name"]][x["schema"]]
             doc.task_record_id = task_record_id
             doc.cmdb_id = cmdb_id
             doc.rule = x["rule"]
@@ -792,8 +792,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
             doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
-                for k in j.values():
-                    yield k
+                    yield j
 
 
 class StatsRiskObjectsRule(BaseStatisticsDoc):
@@ -824,9 +823,9 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 task_record_id=task_record_id
             )
         # rule_name, schema:
-        rsts = defaultdict(lambda: defaultdict(lambda :defaultdict(cls)))
+        rsts = defaultdict(lambda: defaultdict(cls))
         for x in rst:
-            doc = rsts[x["rule"]["rule_name"]][x["schema"]][x["object_name"]]
+            doc = rsts[x["rule"]["rule_name"]][x["schema"]]
             doc.task_record_id = task_record_id
             doc.cmdb_id = cmdb_id
             doc.rule = x["rule"]
@@ -837,8 +836,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
             doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
-                for k in j.values():
-                    yield k
+                    yield j
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):

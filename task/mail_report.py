@@ -163,7 +163,7 @@ def create_excels(username, send_list_id):
 
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_files(cmdb,rst_d, dh_d, connect_name, wb)
+            create_sql_healthy_files(rst_d, dh_d, connect_name, wb)
             create_risk_obj_files(rr_obj, rst_obj, wb)
             create_risk_sql_files(rr_sql, rst_sql, wb)
             wb.close()

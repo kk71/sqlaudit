@@ -44,8 +44,12 @@ def main_task(task_uuid,cmdb, page):
     result = MongoHelper.find_one("results", {"task_uuid": task_uuid})
     record_id = result['record_id']
     rule_type = result['rule_type'].upper()
+    schema = result['score']['schema_name']
+    rule_type = result['score']['rule_type']
+    host = cmdb.ip_address
+    port = cmdb.port
 
-    result = {k: v for k, v in result.items() if v and isinstance(v, dict)}
+    result = {k: v for k, v in result.items() if v and k != "score" and isinstance(v, dict)}
     if rule_type == const.RULE_TYPE_OBJ:
         result = {k: v for k, v in result.items() if v.get("records")}
 
@@ -63,10 +67,6 @@ def main_task(task_uuid,cmdb, page):
                     sql_plans[key] = [x for x in MongoHelper.find('sqlplan', condition, {'_id': 0})]
                 sql_dict['plan'] = sql_plans[key]
 
-    schema=result['score']['schema_name']
-    rule_type=result['score']['rule_type']
-    host=cmdb.ip_address
-    port=cmdb.port
 
     db_type = const.DB_ORACLE
     mongo_rules = [x for x in MongoHelper.find("rule", {"rule_type": rule_type})]
