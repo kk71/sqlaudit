@@ -17,6 +17,153 @@ from utils.const import *
 from .utils import BaseStatisticsDoc
 
 
+class StatsSchemaRate(BaseStatisticsDoc):
+    """所有schema的评分"""
+    schema_name = StringField(required=True)
+    score_average = FloatField(required=True)
+    score_lowest = FloatField(required=True)
+    score_rule_type = DictField(default=lambda: {})
+    drill_down_type = DictField(default=lambda: {})
+    add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分？
+    rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
+
+    meta = {
+        "collection": "stats_schema_rate",
+        "indexes": [
+            "schema_name",
+            "score_average",
+            "score_lowest",
+            "add_to_rate"
+        ]
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils import const
+        from models.mongo import Results
+        from models.oracle import make_session, CMDB, DataHealthUserConfig, QueryEntity
+        from utils.score_utils import calc_result
+
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+            # schema_name: stats_doc
+            schema_stats_pairs = defaultdict(
+                lambda: cls(
+                    task_record_id=task_record_id,
+                    cmdb_id=cmdb_id,
+                    connect_name=cmdb.connect_name
+                )
+            )
+
+            for result in Results.filter_by_exec_hist_id(task_record_id):
+                current_stats_doc = schema_stats_pairs[result.schema_name]
+                current_stats_doc.schema_name = result.schema_name
+                _, current_result_score = calc_result(
+                    result,
+                    db_model=cmdb.db_model
+                )
+                if not current_stats_doc.score_rule_type.get(result.rule_type, {}):
+                    score_dict = {
+                        "job_id": result.task_uuid,
+                        "score": current_result_score,
+                        "create_date": result.create_date,
+                        "rule_type": result.rule_type,
+                        "schema_name": current_stats_doc.schema_name,
+                        "connect_name": cmdb.connect_name
+                    }
+                    current_stats_doc.score_rule_type[result.rule_type] = score_dict
+                    result.score = score_dict
+                    result.save()  # 在result里也保存一份score
+                else:
+                    raise Exception("duplicated results for "
+                                    f"{result.schema_name}-{result.rule_type}!!!")
+            qe = QueryEntity(
+                DataHealthUserConfig.database_name,
+                DataHealthUserConfig.username,
+                DataHealthUserConfig.weight
+            )
+            dhuc = session.query(*qe).filter_by(database_name=cmdb.connect_name)
+            dhuc_dict = {qe.to_dict(a)["username"]: qe.to_dict(a) for a in dhuc}
+            for schema_name, current_stats_doc in schema_stats_pairs.items():
+                captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
+                all_scores = [i["score"] for i in
+                              current_stats_doc.score_rule_type.values()]
+                current_stats_doc.score_average = \
+                    sum(all_scores) / captured_rule_type_num \
+                        if captured_rule_type_num else 0
+                current_stats_doc.score_average = round(current_stats_doc.score_average, 2)
+                current_stats_doc.score_lowest = min(all_scores)
+
+                # 下钻评分，是个特殊处理的评分
+                drill_down_stats_sql_scores = [
+                    the_score_dict["score"]
+                    for rule_type, the_score_dict in
+                    current_stats_doc.score_rule_type.items()
+                    if rule_type in const.ALL_RULE_TYPES_FOR_SQL_RULE
+                ]
+                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
+                    sum(drill_down_stats_sql_scores) / \
+                    float(len(drill_down_stats_sql_scores)) \
+                        if drill_down_stats_sql_scores else 0
+                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = round(
+                    current_stats_doc.drill_down_type[const.STATS_NUM_SQL],
+                    2
+                )
+
+                current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
+                if current_stats_doc.rate_info:
+                    current_stats_doc.add_to_rate = True
+                yield current_stats_doc
+
+
+class StatsCMDBRate(BaseStatisticsDoc):
+    """纳管库数据评分"""
+    score = FloatField(default=0)
+    score_sql = FloatField(default=0)
+    score_obj = FloatField(default=0)
+
+    meta = {
+        "collection": "stats_cmdb_rate",
+        "indexes": ["score"]
+    }
+
+    requires = (StatsSchemaRate,)
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils import const
+        from models.oracle import make_session, CMDB
+
+        doc = cls(
+            task_record_id=task_record_id,
+            cmdb_id=cmdb_id
+        )
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+            doc.connect_name = cmdb.connect_name
+
+        schema_rates = StatsSchemaRate.objects(
+            task_record_id=task_record_id,
+            add_to_rate=True  # 只计算纳入评分的schema
+        )
+        schema_num = 0
+        for schema_rate in schema_rates:
+            weight = float(dict(schema_rate.rate_info).get("weight", 1))
+            doc.score += schema_rate.score_average * weight
+            doc.score_sql += schema_rate.drill_down_type. \
+                                 get(const.STATS_NUM_SQL, 0) * weight
+            doc.score_obj += schema_rate.score_rule_type. \
+                                 get(const.RULE_TYPE_OBJ, {}). \
+                                 get("score", 0) * weight
+            schema_num += 1
+        if schema_num:
+            schema_num = float(schema_num)
+            doc.score = round(doc.score / schema_num, 2)
+            doc.score_sql = round(doc.score_sql / schema_num, 2)
+            doc.score_obj = round(doc.score_obj / schema_num, 2)
+        yield doc
+
+
 class StatsLoginUser_SchemaRank(EmbeddedDocument):
     """
     纳管库的schema分数排名
@@ -66,13 +213,15 @@ class StatsNumDrillDown(BaseStatisticsDoc):
         "collection": "stats_num_drill_down"
     }
 
+    requires = (StatsSchemaRate,)
+
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
             get_result_queryset_by, get_object_unique_labels
         from models.oracle import make_session, CMDB, RoleDataPrivilege
         from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
-            ObjIndColInfo, Job
+            ObjIndColInfo
         from utils.cmdb_utils import get_current_schema
         with make_session() as session:
             verbose_schema_info = get_current_schema(
@@ -239,10 +388,7 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         # 风险率
                         new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
                     if result_q:
-                        r = result_q.first()
-                        j = Job.objects(id=r.task_uuid).first()
-                        new_doc.job_id = str(j.id)
-                        new_doc.score = j.score
+                        new_doc.score = result_q.first().score["score"]
                     yield new_doc
 
 
@@ -839,147 +985,4 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
                 **one
             )
 
-
-class StatsSchemaRate(BaseStatisticsDoc):
-    """所有schema的评分"""
-    schema_name = StringField(required=True)
-    score_average = FloatField(required=True)
-    score_lowest = FloatField(required=True)
-    score_rule_type = DictField(default=lambda: {})
-    drill_down_type = DictField(default=lambda: {})
-    add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分？
-    rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
-
-    meta = {
-        "collection": "stats_schema_rate",
-        "indexes": [
-            "schema_name",
-            "score_average",
-            "score_lowest",
-            "add_to_rate"
-        ]
-    }
-
-    @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from utils import const
-        from models.mongo import Results
-        from models.oracle import make_session, CMDB, DataHealthUserConfig, QueryEntity
-        from utils.score_utils import calc_result
-
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            # schema_name: stats_doc
-            schema_stats_pairs = defaultdict(
-                lambda: cls(
-                    task_record_id=task_record_id,
-                    cmdb_id=cmdb_id,
-                    connect_name=cmdb.connect_name
-                )
-            )
-
-            for result in Results.filter_by_exec_hist_id(task_record_id):
-                current_stats_doc = schema_stats_pairs[result.schema_name]
-                current_stats_doc.schema_name = result.schema_name
-                _, current_result_score = calc_result(
-                    result,
-                    db_model=cmdb.db_model
-                )
-                if not current_stats_doc.score_rule_type.get(result.rule_type, {}):
-                    current_stats_doc.score_rule_type[result.rule_type] = {
-                        "job_id": result.task_uuid,
-                        "score": current_result_score,
-                        "create_date": result.create_date,
-                        "rule_type": result.rule_type,
-                        "schema_name": current_stats_doc.schema_name,
-                        "connect_name": cmdb.connect_name
-                    }
-                else:
-                    raise Exception("duplicated results for "
-                                    f"{result.schema_name}-{result.rule_type}!!!")
-            qe = QueryEntity(
-                DataHealthUserConfig.database_name,
-                DataHealthUserConfig.username,
-                DataHealthUserConfig.weight
-            )
-            dhuc = session.query(*qe).filter_by(database_name=cmdb.connect_name)
-            dhuc_dict = {qe.to_dict(a)["username"]: qe.to_dict(a) for a in dhuc}
-            for schema_name, current_stats_doc in schema_stats_pairs.items():
-                captured_rule_type_num = float(len(current_stats_doc.score_rule_type))
-                all_scores = [i["score"] for i in
-                              current_stats_doc.score_rule_type.values()]
-                current_stats_doc.score_average = \
-                    sum(all_scores) / captured_rule_type_num \
-                        if captured_rule_type_num else 0
-                current_stats_doc.score_average = round(current_stats_doc.score_average, 2)
-                current_stats_doc.score_lowest = min(all_scores)
-
-                # 下钻评分，是个特殊处理的评分
-                drill_down_stats_sql_scores = [
-                    the_score_dict["score"]
-                    for rule_type, the_score_dict in
-                    current_stats_doc.score_rule_type.items()
-                    if rule_type in const.ALL_RULE_TYPES_FOR_SQL_RULE
-                ]
-                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = \
-                    sum(drill_down_stats_sql_scores) / \
-                    float(len(drill_down_stats_sql_scores)) \
-                        if drill_down_stats_sql_scores else 0
-                current_stats_doc.drill_down_type[const.STATS_NUM_SQL] = round(
-                    current_stats_doc.drill_down_type[const.STATS_NUM_SQL],
-                    2
-                )
-
-                current_stats_doc.rate_info = dhuc_dict.get(schema_name, {})
-                if current_stats_doc.rate_info:
-                    current_stats_doc.add_to_rate = True
-                yield current_stats_doc
-
-
-class StatsCMDBRate(BaseStatisticsDoc):
-    """纳管库数据评分"""
-    score = FloatField(default=0)
-    score_sql = FloatField(default=0)
-    score_obj = FloatField(default=0)
-
-    meta = {
-        "collection": "stats_cmdb_rate",
-        "indexes": ["score"]
-    }
-
-    requires = (StatsSchemaRate,)
-
-    @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from utils import const
-        from models.oracle import make_session, CMDB
-
-        doc = cls(
-            task_record_id=task_record_id,
-            cmdb_id=cmdb_id
-        )
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-            doc.connect_name = cmdb.connect_name
-
-        schema_rates = StatsSchemaRate.objects(
-            task_record_id=task_record_id,
-            add_to_rate=True  # 只计算纳入评分的schema
-        )
-        schema_num = 0
-        for schema_rate in schema_rates:
-            weight = float(dict(schema_rate.rate_info).get("weight", 1))
-            doc.score += schema_rate.score_average * weight
-            doc.score_sql += schema_rate.drill_down_type.\
-                get(const.STATS_NUM_SQL, 0) * weight
-            doc.score_obj += schema_rate.score_rule_type.\
-                get(const.RULE_TYPE_OBJ, {}).\
-                get("score", 0) * weight
-            schema_num += 1
-        if schema_num:
-            schema_num = float(schema_num)
-            doc.score = round(doc.score / schema_num, 2)
-            doc.score_sql = round(doc.score_sql / schema_num, 2)
-            doc.score_obj = round(doc.score_obj / schema_num, 2)
-        yield doc
 

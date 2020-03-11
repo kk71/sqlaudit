@@ -1,5 +1,6 @@
 import sys
 import json
+import uuid
 import datetime
 import argparse
 
@@ -259,7 +260,8 @@ class Command(object):
             'connect_name': connect_name,
             'record_id': record_id,
         }
-        sqlaudit.review_result.job_init(**args)
+        # sqlaudit.review_result.job_init(**args)
+        sqlaudit.review_result.task_id = uuid.uuid4().hex
         result_update_info = {
             "task_uuid": sqlaudit.review_result.task_id,
             'cmdb_id': cmdb_id,
