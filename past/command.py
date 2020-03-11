@@ -276,10 +276,10 @@ class Command(object):
         job_record.update(result_update_info)
         try:
             sqlaudit.mongo_client.insert_one("results", job_record)
-            models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
-                set__status=utils.const.JOB_STATUS_FINISHED,
-                set__desc__capture_time_end=past.utils.utils.get_time()
-            )
+            # models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
+            #     set__status=utils.const.JOB_STATUS_FINISHED,
+            #     set__desc__capture_time_end=past.utils.utils.get_time()
+            # )
 
         except DocumentTooLarge:
             pt=PrettyTable(rule_name_and_len.keys())

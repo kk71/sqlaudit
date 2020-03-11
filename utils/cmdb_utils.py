@@ -123,50 +123,6 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     return schemas
 
 
-# TODO DEPRECATED
-@timing()
-def get_latest_health_score_cmdb(session, user_login=None, collect_month=6) -> list:
-    """
-    获取用户可见的cmdb最新的health score排名
-    :param session:
-    :param user_login: 当前登录用户名，如果不给，则表示返回全部数据库的排名
-    :param collect_month: 仅搜索当前起前n个月的数据，没有搜索到的，当作无分数对待
-    :return: [{"connect_name": str, "health_score": int, "collect_date": datetime}, ...]
-    """
-    if user_login:
-        all_connect_names: set = set(get_current_cmdb(session, user_login, id_name="connect_name"))
-    else:
-        all_connect_names: set = {i[0] for i in session.query(CMDB.connect_name)}
-    dh_objects = session.query(DataHealth).filter(
-        DataHealth.collect_date >= arrow.now().shift(months=-collect_month).datetime,
-        DataHealth.database_name.in_(all_connect_names)
-    ).order_by(DataHealth.collect_date.desc()).all()
-    ret = []
-    for dh in dh_objects:
-        dh_dict = dh.to_dict()
-        if dh.database_name not in {i["connect_name"] for i in ret}:
-            ret.append({
-                "connect_name": dh_dict.pop("database_name"),
-                **dh_dict
-            })
-        if all_connect_names.issubset({i["connect_name"] for i in ret}):
-            break
-    # sort
-    ret = sorted(ret, key=lambda x: x["health_score"])
-
-    # 当健康数据小于期望总数，说明有些纳管数据库其实还没做分析，但是仍要把列表补全
-    collected_connect_names: set = {i["connect_name"] for i in ret}
-    if not all_connect_names.issubset(collected_connect_names):
-        for cn in all_connect_names:
-            if cn not in collected_connect_names:
-                ret.append({
-                    "connect_name": cn,
-                    "health_score": None,
-                    "collect_date": None
-                })
-    return ret
-
-
 @timing()
 def get_latest_cmdb_score(session, collect_month=1) -> dict:
     """
