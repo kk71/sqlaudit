@@ -462,8 +462,6 @@ class StatsLoginUser(BaseStatisticsDoc):
                         task_record_id_to_replace={cmdb_id: task_record_id}
                     ).values()
                 )
-                print("latest task record ids(current included) of the user "
-                      f"{login_user}: {latest_task_record_ids}")
                 if latest_task_record_ids:
 
                     Qs = None
@@ -572,11 +570,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         latest_task_record_id = get_latest_task_record_id(
                             session, the_cmdb_id).get(the_cmdb_id, None)
                     if not latest_task_record_id:
-                        print(f"for {login_user}, "
-                              f"latest_task_record_id of cmdb({the_cmdb_id}) not exist.")
                         continue
-                    print(f"for {login_user}, cmdb({the_cmdb_id}) has"
-                          f" lastest_task_record_id={latest_task_record_id}")
                     sql_result_q, _ = get_result_queryset_by(
                         task_record_id=latest_task_record_id,
                         rule_type=const.ALL_RULE_TYPES_FOR_SQL_RULE,
