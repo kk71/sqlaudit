@@ -122,7 +122,7 @@ class OnlineReportSchemaRate(PrivilegeReq):
         }))
         p = self.pop_p(params)
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
-        q = StatsSchemaRate.objects(**params)
+        q = StatsSchemaRate.objects(**params).order_by("-etl_date")
         if date_start:
             q = q.filter(etl_date__gt=date_start)
         if date_end:
