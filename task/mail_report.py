@@ -20,7 +20,7 @@ from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
 from models.oracle import make_session, CMDB, DataHealth
-from models.mongo import Job
+from models.mongo import Results
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
 from utils import cmdb_utils
@@ -147,13 +147,10 @@ def create_excels(username, send_list_id):
             ).order_by(DataHealth.collect_date)
             dh_d = [x.to_dict() for x in dh_q]
 
-            job_q = Job.objects(
-                cmdb_id=cmdb_id,
-                score__nin=[None, 0],
-                create_time__gte=date_start,
-                create_time__lte=date_end,
-            ).order_by("-create_time")
-            job_d = [x.to_dict() for x in job_q]
+            rst_q=Results.objects(cmdb_id=cmdb_id,score__score__nin=[None,0],
+                            create_date__gte=date_start,
+                            create_date__lte=date_end).order_by("-create_date")
+            rst_d=[x.to_dict() for x in rst_q]
 
             rr_obj, rst_obj = risk_object_export_data(
                 cmdb_id=cmdb_id, date_start=date_start_today,
@@ -166,7 +163,7 @@ def create_excels(username, send_list_id):
 
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_files(job_d, dh_d, connect_name, wb)
+            create_sql_healthy_files(cmdb,rst_d, dh_d, connect_name, wb)
             create_risk_obj_files(rr_obj, rst_obj, wb)
             create_risk_sql_files(rr_sql, rst_sql, wb)
             wb.close()
@@ -242,7 +239,7 @@ def create_excel(username, send_list_id):
 
 
 # 创建sql健康度EXCEL
-def create_sql_healthy_files(job_d, dh_d, connect_name, wb):
+def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
     # excel 表格样式sheet1
     ws = wb.add_worksheet("1.整体健康度")
     ws.set_column(0, 7, 18)
@@ -344,27 +341,19 @@ def create_sql_healthy_files(job_d, dh_d, connect_name, wb):
     ws.set_row(27, 20)
     ws.merge_range('A27:H27', "2.健康度下钻", title_format)
     ws.set_row(28, 20)
-    titles = ['审计目标', '审计用户', '创建时间', '状态', '类型', '分数', '开始时间', '结束时间']
+    titles = ['审计目标', '审计用户', '创建时间', '类型', '分数', '开始时间', '结束时间']
     ws.write_row('A28', titles, titles_format)
-    status_map = {
-        "0": "失败",
-        "1": "成功",
-        "2": "正在运行"
-    }
 
     row = 28
     col = 0
-    for job in job_d:
-        ws.write(row, col, job['connect_name'], text_format)
-        ws.write(row, col + 1, job["name"].split("#")[0], text_format)
-        ws.write(row, col + 2, job["create_time"], text_format)
-        ws.write(row, col + 3, status_map[str(job['status'])], text_format)
-        ws.write(row, col + 4, job["name"].split("#")[1], text_format)
-        ws.write(row, col + 5, job.get("score", ""), text_format)
-        ws.write(row, col + 6, str(job["desc"]
-                                   ["capture_time_start"]), text_format)
-        ws.write(row, col + 7, str(job["desc"]
-                                   ["capture_time_end"]), text_format)
+    for rst in rst_d:
+        ws.write(row, col, rst["score"]["connect_name"], text_format)
+        ws.write(row, col + 1, rst["score"]["schema_name"], text_format)
+        ws.write(row, col + 2, rst["create_date"], text_format)
+        ws.write(row, col + 4, rst["score"]["rule_type"], text_format)
+        ws.write(row, col + 5, rst["score"]["score"], text_format)
+        ws.write(row, col + 6, str(rst["capture_time_start"]), text_format)
+        ws.write(row, col + 7, str(rst["capture_time_end"]), text_format)
         row += 1
 
 

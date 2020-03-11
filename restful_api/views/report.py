@@ -71,7 +71,6 @@ class OnlineReportTaskHandler(AuthReq):
             return self.resp_bad_req(msg="无报告。")
 
         with make_session() as session:
-            job = Job.objects(id=job_id).first()
             result = Results.objects(task_uuid=job_id).first()
             cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
             if not cmdb:
@@ -84,7 +83,7 @@ class OnlineReportTaskHandler(AuthReq):
                 "cmdb": cmdb.to_dict(),
                 "rules_violated": rules_violated,
                 "score_sum": score_sum,
-                "schema": job.desc["owner"],
+                "schema": result.to_dict()["score"]["schema_name"],
                 **result.to_dict(iter_if=lambda k, v: k in ("create_date",))
             })
 
@@ -192,18 +191,16 @@ class ExportReportXLSXHandler(AuthReq):
         a = 1  # 防止类型一样导出错误
         for job_id in job_ids:
             result = Results.objects(task_uuid=job_id).first()
-            job_info = Job.objects(id=job_id).first()
-
-            port = 1521 if str(job_info.desc.port) == "1521" else int(job_info.desc.port)
-            search_temp = {
-                "db_ip": job_info.desc.db_ip,
-                "owner": job_info.desc.owner
-            }
-            if port == 1521:
-                search_temp["instance_name"] = job_info.desc.instance_name or "空"
-
+            # job_info = Job.objects(id=job_id).first()
             with make_session() as session:
                 cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
+                port=cmdb.port
+                ip=cmdb.ip_address
+                schema_name=result.score.get("schema_name")
+                rule_type=result.score.get("rule_type")
+                # if port == 1521:
+                #     search_temp["instance_name"] = job_info.desc.instance_name or "空"
+
                 rules_violated, score_sum = await async_thr(
                     score_utils.calc_result, result, cmdb.db_model)
                 rules_violateds = []
@@ -215,8 +212,8 @@ class ExportReportXLSXHandler(AuthReq):
                                             x['weighted_deduction']])
 
                 heads = ['任务ID', 'IP地址', '端口号', 'SCHEMA用户', '规则类型', '最终得分']
-                heads_data = [job_id, search_temp["db_ip"], port,
-                              search_temp["owner"], job_info.name.split('#')[1], score_sum]
+                heads_data = [job_id, ip, port,
+                              schema_name, rule_type, score_sum]
 
                 rule_heads = ['规则名称', '规则描述', '违反次数', '扣分', '加权扣分']
                 rule_data_lists = rules_violateds
@@ -248,7 +245,7 @@ class ExportReportXLSXHandler(AuthReq):
                         }
                     )
 
-                filename = f"export_sqlhealth_details_{job_info.name.split('#')[1]}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}-{a}.xlsx"
+                filename = f"export_sqlhealth_details_{rule_type}_{arrow.now().format('YYYY-MM-DD-HH-mm-ss')}-{a}.xlsx"
                 a += 1
                 full_filename = path + "/" + filename
                 wb = xlsxwriter.Workbook(full_filename)
