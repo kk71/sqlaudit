@@ -236,8 +236,8 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
         session.add(task_record_object)
         session.commit()
         session.refresh(task_record_object)
-        record_id = task_record_object.id
-        print(f"* current task task_record_id: {record_id}")
+        task_record_id = task_record_object.id
+        print(f"* current task task_record_id: {task_record_id}")
 
     task.clear_cache.clear_cache.delay(no_prefetch=True)
 
@@ -249,29 +249,29 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
                     raise utils.const.CMDBHasNoSchemaBound
                 print(f"going to capture the following schema(s): {db_users}")
         run_old_capture(host, port, sid, username, password, cmdb_id,
-                        connect_name, record_id)
+                        connect_name, task_record_id)
         for user in db_users:
             utils.capture_utils.capture(
-                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
+                task_record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
             analyse_rule_by_schema(
                 host, port, sid, username, password, user, cmdb_id,
-                connect_name, str(record_id) + "##" + user)
+                connect_name, str(task_record_id) + "##" + user)
             # past.utils.health_data_gen.calculate(record_id)
         utils.capture_utils.capture(
-            record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
+            task_record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
         utils.analyse_utils.calc_statistics(
-            record_id, cmdb_id)  # 业务统计信息
+            task_record_id, cmdb_id)  # 业务统计信息
 
-        update_record(task_id, record_id, True)
+        update_record(task_id, task_record_id, True)
 
     except past.utils.utils.StopCeleryException:
         logger.error(f"Stoping task: {task_id}!")
-        update_record(task_id, record_id, None)
+        update_record(task_id, task_record_id, None)
 
     except Exception as e:
         stack = traceback.format_exc()
         logger.error("Exception", exc_info=True)
-        update_record(task_id, record_id, False, err_msg=stack)
+        update_record(task_id, task_record_id, False, err_msg=stack)
 
     task.clear_cache.clear_cache.delay(no_prefetch=False)
-    logger.warning(f"Task finished(task_record_id: {record_id})..........")
+    logger.warning(f"Task finished(task_record_id: {task_record_id})..........")

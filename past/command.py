@@ -238,6 +238,7 @@ class Command(object):
             'ip_address': task_ip,
             'sid': instance_name,
             'record_id': record_id,
+            "task_record_id": int(record_id.split("#")[0]),
             'rule_type': rule_type,
             "capture_time_start": start_date,
             "capture_time_end": past.utils.utils.get_time()
