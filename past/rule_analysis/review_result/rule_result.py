@@ -65,39 +65,39 @@ class ReviewResult(object):
             })
         return temp
 
-    def job_init(self, **kwargs):
-        """
-        初始化job信息，包括创建时间，创建用户，状态，任务id，以及一些描述信息等，返回任务id
-        """
-        task_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        capture_time_s = kwargs.get("startdate", "")
-        capture_time_e = kwargs.get("stopdate", capture_time_s)
-        operator_user = kwargs.get("operator_user")
-        job_record = {
-            "name": "#".join([self.task_owner, self.rule_type.lower()]),
-            "cmdb_id": kwargs.get("cmdb_id"),
-            # "id": self.task_id,
-            "status": 2,
-            "create_time": arrow.get(task_start_time).datetime,
-            "etl_date": arrow.get(task_start_time).datetime,
-            "end_time": "",
-            "operator_user": operator_user,
-            "connect_name": kwargs.get("connect_name"),
-            "record_id": kwargs['record_id'],
-            "exported": False,
-            "desc": {
-                "db_ip": kwargs.get("task_ip", "127.0.0.1"),
-                "port": kwargs.get("task_port", 1521),
-                "owner": self.task_owner,
-                "rule_type": self.rule_type.upper(),
-                "instance_name": kwargs.get("instance_name"),
-                "capture_time_start": capture_time_s,
-                "capture_time_end": capture_time_e
-            }
-        }
-        rst = self.mongo_client.insert_one("job", job_record)
-        self.task_id = str(rst.inserted_id)
-        return self.task_id
+    # def job_init(self, **kwargs):
+    #     """
+    #     初始化job信息，包括创建时间，创建用户，状态，任务id，以及一些描述信息等，返回任务id
+    #     """
+    #     task_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    #     capture_time_s = kwargs.get("startdate", "")
+    #     capture_time_e = kwargs.get("stopdate", capture_time_s)
+    #     operator_user = kwargs.get("operator_user")
+    #     job_record = {
+    #         "name": "#".join([self.task_owner, self.rule_type.lower()]),
+    #         "cmdb_id": kwargs.get("cmdb_id"),
+    #         "id": self.task_id,
+            # "status": 2,
+            # "create_time": arrow.get(task_start_time).datetime,
+            # "etl_date": arrow.get(task_start_time).datetime,
+            # "end_time": "",
+            # "operator_user": operator_user,
+            # "connect_name": kwargs.get("connect_name"),
+            # "record_id": kwargs['record_id'],
+            # "exported": False,
+            # "desc": {
+            #     "db_ip": kwargs.get("task_ip", "127.0.0.1"),
+            #     "port": kwargs.get("task_port", 1521),
+            #     "owner": self.task_owner,
+            #     "rule_type": self.rule_type.upper(),
+            #     "instance_name": kwargs.get("instance_name"),
+            #     "capture_time_start": capture_time_s,
+            #     "capture_time_end": capture_time_e
+            # }
+        # }
+        # rst = self.mongo_client.insert_one("job", job_record)
+        # self.task_id = str(rst.inserted_id)
+        # return self.task_id
 
     def obj_result(self, results):
         for rule_name in results.keys():
