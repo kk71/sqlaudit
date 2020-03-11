@@ -4,8 +4,6 @@ __all__ = [
     "Rule",
     "MSQLPlan",
     "Results",
-    "Job",
-    "EmbeddedJobDesc",
     "SQLStat",
     "SQLText",
     "ObjTabInfo",
@@ -34,7 +32,6 @@ __all__ = [
     "OracleTicketSQLPlan",
 ]
 
-from .job import *
 from .obj import *
 from .plan import *
 from .rule import *
