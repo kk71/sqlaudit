@@ -1,12 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from os import path
-
-import arrow
 import xlsxwriter
-from schema import Optional, Schema, And
-from functools import reduce
-from collections import defaultdict
+from schema import Optional, Schema
 from prettytable import PrettyTable
 
 import os
@@ -28,81 +23,6 @@ from task.mail_report import zip_file_path
 
 from html_report import cmdb_export
 import html_report.export
-
-
-class OnlineReportTaskOuterHandler(PrivilegeReq):
-
-    async def get(self):
-        """在线查看报告任务外层列表"""
-
-        self.acquire(const.PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
-
-        params = self.get_query_args(Schema({
-            Optional("cmdb_id"): scm_int,
-            Optional("connect_name"): scm_unempty_str,
-            Optional("schema_name", default=None): scm_unempty_str,
-            "status": And(scm_int, scm_one_of_choices(const.ALL_JOB_STATUS)),
-            "date_start": scm_date,
-            "date_end": scm_date_end,
-            **self.gen_p(),
-        }))
-        p = self.pop_p(params)
-        schema_name = params.pop("schema_name")
-        date_start, date_end = params.pop("date_start"), params.pop("date_end")
-
-        with make_session() as session:
-            cmdb_ids = await async_thr(
-                cmdb_utils.get_current_cmdb, session, self.current_user)
-
-        job_q = Job.objects(score__nin=[None, 0],
-                            cmdb_id__in=cmdb_ids,
-                            **params).order_by("-create_time")
-        if schema_name:
-            job_q = job_q.filter(desc__owner=schema_name)
-        if date_start:
-            job_q = job_q.filter(create_time__gte=date_start)
-        if date_end:
-            job_q = job_q.filter(create_time__lte=date_end)
-
-        ds = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict())))
-        for j in job_q:
-            doc = ds[j.connect_name][j.desc.owner][j.record_id]
-            doc['connect_name'] = j.connect_name
-            doc['schema_name'] = j.desc.owner
-            doc['record_id'] = j.record_id
-            doc['create_time'] = arrow.get(j.create_time).format(COMMON_DATE_FORMAT)
-            doc['status'] = j.status
-        ret = []
-        for x in ds.values():
-            for y in x.values():
-                for z in y.values():
-                    ret.append(dict(z))
-        for x in ret:
-            x['score_min'] = []
-            for y in job_q:
-                if x['record_id'] == y.record_id:
-                    x['score_min'].append(y.score)
-            x['score_min'] = min(x['score_min'])
-        rets = sorted(ret, key=lambda x: x['create_time'], reverse=True)
-        rets, p = self.paginate(rets, **p)
-        self.resp(rets, **p)
-
-
-class OnlineReportDimensionHandler(AuthReq):
-
-    def get(self):
-        """在线查看报告 库用户时间下四个维度"""
-        params = self.get_query_args(Schema({
-            "connect_name": scm_unempty_str,
-            "schema_name": scm_unempty_str,
-            "record_id": scm_unempty_str,  # ##需传递%23%23十六进制值
-
-        }))
-        schema_name = params.pop("schema_name")
-        job_q = Job.objects(score__nin=[None, 0],
-                            desc__owner=schema_name, **params)
-        job = [x.to_dict() for x in job_q]
-        self.resp(job)
 
 
 class OnlineReportSchemaRate(PrivilegeReq):
@@ -437,7 +357,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             tablespace_sum = StatsCMDBPhySize.objects(task_record_id=latest_task_record_id, cmdb_id=cmdb_id). \
                 first().to_dict()
 
-            cmdb_score= cmdb_utils.get_latest_cmdb_score(session)[cmdb_id]
+            cmdb_score = cmdb_utils.get_latest_cmdb_score(session)[cmdb_id]
 
             ret_radar_avg = score_utils.calc_score_by(session, cmdb_q, perspective_radar, score_type_avg)
             radar_avg = [{"name": k, "max": 100} for k in ret_radar_avg.keys()]
@@ -617,18 +537,18 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                 self.dict_to_verbose_dict_in_list(ret_schema_min, "schema", "num"),
                 key=lambda k: k["num"])
 
-            path=cmdb_export.cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
-                                                        cmdb_score,
-                                                        radar_avg,radar_score_avg,
-                                                        radar_min,radar_score_min,
-                                                        tab_space_q,
-                                                        active_week,at_risk_week,
-                                                        active_mouth,at_risk_mouth,
-                                                        sql_time_num_rank,
-                                                        risk_rule_rank,
-                                                        user_health_ranking_avg,
-                                                        user_health_ranking_min,
-                                                        sqls)
+            path = cmdb_export.cmdb_report_export_html(cmdb, cmdb_q, tablespace_sum,
+                                                       cmdb_score,
+                                                       radar_avg, radar_score_avg,
+                                                       radar_min, radar_score_min,
+                                                       tab_space_q,
+                                                       active_week, at_risk_week,
+                                                       active_mouth, at_risk_mouth,
+                                                       sql_time_num_rank,
+                                                       risk_rule_rank,
+                                                       user_health_ranking_avg,
+                                                       user_health_ranking_min,
+                                                       sqls)
 
             self.resp({
                 "url": path
