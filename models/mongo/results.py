@@ -13,6 +13,8 @@ class Results(BaseDocRecordID):
     schema_name = StringField()
     create_date = DateTimeField()
     etl_date = DateTimeField()
+    capture_time_start = DateTimeField()
+    capture_time_end = DateTimeField()
     ip_address = StringField()
     sid = StringField()
     record_id = StringField()
