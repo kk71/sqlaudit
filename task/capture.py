@@ -195,30 +195,23 @@ def analyse_rule_by_schema(
 def task_run(task_id, db_users, cmdb_id, operator=None):
     """
     执行采集任务
-    :param host:
-    :param port:
-    :param sid:
-    :param username:
-    :param password:
     :param task_id:
-    :param connect_name:
-    :param business_name:
     :param db_users:
     :param cmdb_id:
     :param operator: py表示app.py mkdata创建的任务，
                      None表示代码定时任务创建，其余记录操作的login_user
     :return:
     """
-    from models.oracle import make_session, TaskExecHistory,CMDB
+    from models.oracle import make_session, TaskExecHistory, CMDB
     with make_session() as session:
-        cmdb=session.query(CMDB).filter(CMDB.cmdb_id==cmdb_id).first()
-        host=cmdb.ip_address
-        port=cmdb.port
-        sid=cmdb.service_name
-        username=cmdb.user_name
-        password=cmdb.password
-        connect_name=cmdb.connect_name
-        business_name=cmdb.business_name
+        cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+        host = cmdb.ip_address
+        port = cmdb.port
+        sid = cmdb.service_name
+        username = cmdb.user_name
+        password = cmdb.password
+        connect_name = cmdb.connect_name
+        business_name = cmdb.business_name
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
@@ -226,18 +219,11 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
           f"{business_name}, {db_users}, {operator}"
     logger.info(msg)
 
-    from utils.cmdb_utils import clean_unavailable_schema
-
     print(f"* start cleaning unavailable schemas in current cmdb({cmdb_id})...")
+    from utils.cmdb_utils import clean_unavailable_schema
     with make_session() as session:
         clean_unavailable_schema(session, cmdb_id)
     print("done.\n\n")
-
-    with make_session() as session:
-        # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
-        session.query(TaskExecHistory).\
-            filter(TaskExecHistory.status == None).\
-            delete(synchronize_session=False)
 
     with make_session() as session:
         # 写入任务
@@ -250,8 +236,8 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
         session.add(task_record_object)
         session.commit()
         session.refresh(task_record_object)
-        record_id = task_record_object.id
-        print(f"* current task task_record_id: {record_id}")
+        task_record_id = task_record_object.id
+        print(f"* current task task_record_id: {task_record_id}")
 
     task.clear_cache.clear_cache.delay(no_prefetch=True)
 
@@ -263,29 +249,29 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
                     raise utils.const.CMDBHasNoSchemaBound
                 print(f"going to capture the following schema(s): {db_users}")
         run_old_capture(host, port, sid, username, password, cmdb_id,
-                        connect_name, record_id)
+                        connect_name, task_record_id)
         for user in db_users:
             utils.capture_utils.capture(
-                record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
+                task_record_id, cmdb_id, user, SchemaCapture)  # 新版采集per schema
             analyse_rule_by_schema(
                 host, port, sid, username, password, user, cmdb_id,
-                connect_name, str(record_id) + "##" + user)
+                connect_name, str(task_record_id) + "##" + user)
             # past.utils.health_data_gen.calculate(record_id)
         utils.capture_utils.capture(
-            record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
+            task_record_id, cmdb_id, None, CMDBCapture)  # 新版采集per CMDB
         utils.analyse_utils.calc_statistics(
-            record_id, cmdb_id)  # 业务统计信息
+            task_record_id, cmdb_id)  # 业务统计信息
 
-        update_record(task_id, record_id, True)
+        update_record(task_id, task_record_id, True)
 
     except past.utils.utils.StopCeleryException:
         logger.error(f"Stoping task: {task_id}!")
-        update_record(task_id, record_id, None)
+        update_record(task_id, task_record_id, None)
 
     except Exception as e:
         stack = traceback.format_exc()
         logger.error("Exception", exc_info=True)
-        update_record(task_id, record_id, False, err_msg=stack)
+        update_record(task_id, task_record_id, False, err_msg=stack)
 
     task.clear_cache.clear_cache.delay(no_prefetch=False)
-    logger.warning(f"Task finished(task_record_id: {record_id})..........")
+    logger.warning(f"Task finished(task_record_id: {task_record_id})..........")

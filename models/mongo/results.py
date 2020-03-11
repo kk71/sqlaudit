@@ -13,9 +13,12 @@ class Results(BaseDocRecordID):
     schema_name = StringField()
     create_date = DateTimeField()
     etl_date = DateTimeField()
+    capture_time_start = DateTimeField()
+    capture_time_end = DateTimeField()
     ip_address = StringField()
     sid = StringField()
     record_id = StringField()
+    task_record_id = IntField()
     rule_type = StringField()
     score = DictField()  # 内存放数据同StatsSchemaRate.score_rule_type[rule_type]
 
