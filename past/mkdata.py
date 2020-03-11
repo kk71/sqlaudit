@@ -1,5 +1,3 @@
-import sys
-
 import settings
 
 import past.capture.sql
@@ -9,7 +7,12 @@ from utils.const import *
 
 
 def run(task_id, schema=None, use_queue=False, operator=None):
-    odb = plain_db.oracleob.OracleOB(settings.ORACLE_IP, settings.ORACLE_PORT, settings.ORACLE_USERNAME, settings.ORACLE_PASSWORD, settings.ORACLE_SID)
+    odb = plain_db.oracleob.OracleOB(
+        settings.ORACLE_IP,
+        settings.ORACLE_PORT,
+        settings.ORACLE_USERNAME,
+        settings.ORACLE_PASSWORD,
+        settings.ORACLE_SID)
     sql = f"""SELECT tm.task_id, tm.connect_name, tm.group_name, tm.business_name, tm.machine_room,
                     tm.database_type, tm.ip_address AS host, tm.port AS port,
                     tm.task_schedule_date AS schedule, tm.task_exec_scripts AS script, c.service_name AS sid,
@@ -20,19 +23,20 @@ def run(task_id, schema=None, use_queue=False, operator=None):
     task = odb.select_dict(sql, one=True)
     if not task:
         print("No such task.... Please enter correct task id")
-        exit()
+        return
 
-    cmdb_odb = plain_db.oracleob.OracleOB(task['host'], task['port'], task['user_name'], task['password'], task['sid'])
-    # print(task)
+    cmdb_odb = plain_db.oracleob.OracleOB(
+        task['host'], task['port'], task['user_name'], task['password'], task['sid'])
     if task['script'] == DB_TASK_CAPTURE:
         users = [x[0] for x in cmdb_odb.select(past.capture.sql.GET_SCHEMA, one=False)]
         if schema and schema in users:
             users = [schema]
         print(users)
-        args = (task['task_id'],
-                users,
-                task['cmdb_id'],
-                operator
+        args = (
+            task['task_id'],
+            users,
+            task['cmdb_id'],
+            operator
         )
         if use_queue:
             task_uuid = task_capture.task_run.delay(*args)
@@ -41,20 +45,4 @@ def run(task_id, schema=None, use_queue=False, operator=None):
         print(task_uuid)
 
     elif task['script'] == DB_TASK_TUNE:
-        # args = (task['task_id'], task['connect_name'], task['business_name'])
-        # if use_queue:
-        #     sqlaitune_run.delay(*args)
-        # else:
-        #     sqlaitune_run(*args)
         pass
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("please enter the task_id")
-        exit()
-    if len(sys.argv) == 2:
-        run(sys.argv[1])
-    elif len(sys.argv) == 3:
-        run(sys.argv[1], sys.argv[2])
-

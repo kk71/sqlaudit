@@ -195,30 +195,23 @@ def analyse_rule_by_schema(
 def task_run(task_id, db_users, cmdb_id, operator=None):
     """
     执行采集任务
-    :param host:
-    :param port:
-    :param sid:
-    :param username:
-    :param password:
     :param task_id:
-    :param connect_name:
-    :param business_name:
     :param db_users:
     :param cmdb_id:
     :param operator: py表示app.py mkdata创建的任务，
                      None表示代码定时任务创建，其余记录操作的login_user
     :return:
     """
-    from models.oracle import make_session, TaskExecHistory,CMDB
+    from models.oracle import make_session, TaskExecHistory, CMDB
     with make_session() as session:
-        cmdb=session.query(CMDB).filter(CMDB.cmdb_id==cmdb_id).first()
-        host=cmdb.ip_address
-        port=cmdb.port
-        sid=cmdb.service_name
-        username=cmdb.user_name
-        password=cmdb.password
-        connect_name=cmdb.connect_name
-        business_name=cmdb.business_name
+        cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+        host = cmdb.ip_address
+        port = cmdb.port
+        sid = cmdb.service_name
+        username = cmdb.user_name
+        password = cmdb.password
+        connect_name = cmdb.connect_name
+        business_name = cmdb.business_name
 
     # task_id -> task_manage.id, record_id -> t_task_exec_history.id
     signal.signal(signal.SIGTERM, sigintHandler)
@@ -226,18 +219,11 @@ def task_run(task_id, db_users, cmdb_id, operator=None):
           f"{business_name}, {db_users}, {operator}"
     logger.info(msg)
 
-    from utils.cmdb_utils import clean_unavailable_schema
-
     print(f"* start cleaning unavailable schemas in current cmdb({cmdb_id})...")
+    from utils.cmdb_utils import clean_unavailable_schema
     with make_session() as session:
         clean_unavailable_schema(session, cmdb_id)
     print("done.\n\n")
-
-    with make_session() as session:
-        # 开始新任务之前，删除所有以前的pending任务，因为那些任务肯定已经挂了
-        session.query(TaskExecHistory).\
-            filter(TaskExecHistory.status == None).\
-            delete(synchronize_session=False)
 
     with make_session() as session:
         # 写入任务
