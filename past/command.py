@@ -261,8 +261,9 @@ class Command(object):
             'record_id': record_id,
         }
         # sqlaudit.review_result.job_init(**args)
+        sqlaudit.review_result.task_id = uuid.uuid4().hex
         result_update_info = {
-            "task_uuid": uuid.uuid4().hex,
+            "task_uuid": sqlaudit.review_result.task_id,
             'cmdb_id': cmdb_id,
             'schema_name': username,
             'create_date': past.utils.utils.get_time(),
