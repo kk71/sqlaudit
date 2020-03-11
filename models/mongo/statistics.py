@@ -801,10 +801,9 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
             )
 
         # rule_name, schema:
-        rsts = defaultdict(lambda: defaultdict(cls))
-
+        rsts = defaultdict(lambda: defaultdict(lambda :defaultdict(cls)))
         for x in rst:
-            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc = rsts[x["rule"]["rule_name"]][x["schema"]][x["sql_id"]]
             doc.task_record_id = task_record_id
             doc.cmdb_id = cmdb_id
             doc.rule = x["rule"]
@@ -845,10 +844,9 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
                 task_record_id=task_record_id
             )
         # rule_name, schema:
-        rsts = defaultdict(lambda: defaultdict(cls))
-
+        rsts = defaultdict(lambda: defaultdict(lambda :defaultdict(cls)))
         for x in rst:
-            doc = rsts[x["rule"]["rule_name"]][x['schema']]
+            doc = rsts[x["rule"]["rule_name"]][x["schema"]][x["object_name"]]
             doc.task_record_id = task_record_id
             doc.cmdb_id = cmdb_id
             doc.rule = x["rule"]
