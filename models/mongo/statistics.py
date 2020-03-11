@@ -49,6 +49,203 @@ class StatsLoginUser_CMDB(EmbeddedDocument):
     # scores = DictField(default=lambda: {"OBJ": 0, "TEXT": 0})
 
 
+class StatsNumDrillDown(BaseStatisticsDoc):
+    """results各个维度(rule_type以及obj_info_type)下钻的统计数据"""
+
+    drill_down_type = StringField(choices=ALL_STATS_NUM_TYPE)
+    schema_name = StringField()
+    job_id = StringField(null=True, help_text="对应的报告job_id")
+    num = LongField(default=0, help_text="采集到的总数")
+    num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
+    num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
+    problem_num = LongField(default=0, help_text="问题个数")
+    problem_num_rate = FloatField(help_text="问题个数rate(风险率)")
+    score = FloatField(default=0)
+
+    meta = {
+        "collection": "stats_num_drill_down"
+    }
+
+    @classmethod
+    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+        from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
+            get_result_queryset_by, get_object_unique_labels
+        from models.oracle import make_session, CMDB, RoleDataPrivilege
+        from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
+            ObjIndColInfo, Job
+        from utils.cmdb_utils import get_current_schema
+        with make_session() as session:
+            verbose_schema_info = get_current_schema(
+                session,
+                cmdb_id=cmdb_id,
+                verbose=True,
+                query_entity=(CMDB.connect_name, RoleDataPrivilege.schema_name)
+            )
+            for connect_name, schema_name in set(verbose_schema_info):
+                for t in ALL_STATS_NUM_TYPE:
+                    # 因为results不同的类型结构不一样，需要分别处理
+                    new_doc = cls(
+                        task_record_id=task_record_id,
+                        drill_down_type=t,
+                        cmdb_id=cmdb_id,
+                        connect_name=connect_name,
+                        schema_name=schema_name,
+                    )
+                    result_q = None
+                    if t == STATS_NUM_SQL_TEXT:
+                        new_doc.num = len(
+                            SQLText.filter_by_exec_hist_id(task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).
+                                distinct("sql_id")
+                        )
+                        result_q, rule_names_text = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_TEXT,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_text)
+
+                    elif t == STATS_NUM_SQL_PLAN:
+                        new_doc.num = len(
+                            MSQLPlan.filter_by_exec_hist_id(task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).
+                                distinct("plan_hash_value")
+                        )
+                        result_q, rule_names_sqlplan = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_SQLPLAN,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_sqlplan)
+
+                    elif t == STATS_NUM_SQL_STATS:
+                        new_doc.num = len(
+                            SQLText.filter_by_exec_hist_id(task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                        )
+                        result_q, rule_names_sqlstat = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_SQLSTAT,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q, rule_name=rule_names_sqlstat)
+
+                    elif t == STATS_NUM_SQL:
+                        new_doc.num = len(
+                            SQLText.filter_by_exec_hist_id(task_record_id).
+                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
+                        )
+                        result_q, rule_names_sql = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            rule_type=ALL_RULE_TYPES_FOR_SQL_RULE,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
+                        new_doc.problem_num = calc_problem_num(
+                            result_q,
+                            rule_name=rule_names_sql
+                        )
+
+                    elif t == STATS_NUM_TAB:
+                        # 统计个数的时候记得去重！
+                        new_doc.num = len(
+                            ObjTabInfo.filter_by_exec_hist_id(task_record_id).filter(
+                                cmdb_id=cmdb_id,
+                                schema_name=schema_name
+                            ).distinct("table_name")
+                        )
+                        result_q, rule_names = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            obj_info_type=OBJ_RULE_TYPE_TABLE,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
+
+                    elif t == STATS_NUM_INDEX:
+                        new_doc.num = ObjIndColInfo. \
+                            filter_by_exec_hist_id(task_record_id).filter(
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name).count()
+                        result_q, rule_names = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            obj_info_type=OBJ_RULE_TYPE_INDEX,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
+
+                    elif t == STATS_NUM_SEQUENCE:
+                        new_doc.num = ObjSeqInfo.objects(
+                            task_record_id=task_record_id,
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name).count()
+                        result_q, rule_names = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            obj_info_type=OBJ_RULE_TYPE_SEQ,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
+
+                    elif t == STATS_NUM_OBJ:
+                        new_doc.num = ObjSeqInfo.objects(
+                            task_record_id=task_record_id,
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name
+                        ).count()
+                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(task_record_id). \
+                            filter(
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name
+                        ).count()
+                        new_doc.num += ObjIndColInfo.filter_by_exec_hist_id(task_record_id). \
+                            filter(
+                            cmdb_id=cmdb_id,
+                            schema_name=schema_name
+                        ).count()
+                        result_q, rule_names = get_result_queryset_by(
+                            task_record_id=task_record_id,
+                            rule_type=RULE_TYPE_OBJ,
+                            schema_name=schema_name,
+                            cmdb_id=cmdb_id
+                        )
+                        new_doc.num_with_risk = len(get_object_unique_labels(
+                            result_q, rule_names))
+                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
+
+                    if new_doc.num_with_risk > new_doc.num:
+                        # 如果发现有问题的对象数大于实际数，则修正为实际数
+                        new_doc.num_with_risk = new_doc.num
+                    if new_doc.num:
+                        # 有问题个数/总个数
+                        new_doc.num_with_risk_rate = new_doc.num_with_risk / new_doc.num
+                        # 风险率
+                        new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
+                    if result_q:
+                        r = result_q.first()
+                        j = Job.objects(id=r.task_uuid).first()
+                        new_doc.job_id = str(j.id)
+                        new_doc.score = j.score
+                    yield new_doc
+
+
 class StatsLoginUser(BaseStatisticsDoc):
     """最后分析：登录用户层面的统计数据，该数据可能根据用户绑定的库以及schema的改变而需要更新。"""
 
@@ -87,13 +284,10 @@ class StatsLoginUser(BaseStatisticsDoc):
         "indexes": ["login_user"]
     }
 
+    requires = (StatsNumDrillDown,)
+
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-
-        # =====================================
-        # === 这个统计依赖于 StatsNumDrillDown ===
-        # =====================================
-
         from mongoengine import Q
 
         from models.oracle import make_session, CMDB, User
@@ -431,203 +625,6 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                     yield doc
 
 
-class StatsNumDrillDown(BaseStatisticsDoc):
-    """results各个维度(rule_type以及obj_info_type)下钻的统计数据"""
-
-    drill_down_type = StringField(choices=ALL_STATS_NUM_TYPE)
-    schema_name = StringField()
-    job_id = StringField(null=True, help_text="对应的报告job_id")
-    num = LongField(default=0, help_text="采集到的总数")
-    num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
-    num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
-    problem_num = LongField(default=0, help_text="问题个数")
-    problem_num_rate = FloatField(help_text="问题个数rate(风险率)")
-    score = FloatField(default=0)
-
-    meta = {
-        "collection": "stats_num_drill_down"
-    }
-
-    @classmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-        from utils.score_utils import calc_distinct_sql_id, calc_problem_num, \
-            get_result_queryset_by, get_object_unique_labels
-        from models.oracle import make_session, CMDB, RoleDataPrivilege
-        from models.mongo import SQLText, MSQLPlan, ObjSeqInfo, ObjTabInfo, \
-            ObjIndColInfo, Job
-        from utils.cmdb_utils import get_current_schema
-        with make_session() as session:
-            verbose_schema_info = get_current_schema(
-                session,
-                cmdb_id=cmdb_id,
-                verbose=True,
-                query_entity=(CMDB.connect_name, RoleDataPrivilege.schema_name)
-            )
-            for connect_name, schema_name in set(verbose_schema_info):
-                for t in ALL_STATS_NUM_TYPE:
-                    # 因为results不同的类型结构不一样，需要分别处理
-                    new_doc = cls(
-                        task_record_id=task_record_id,
-                        drill_down_type=t,
-                        cmdb_id=cmdb_id,
-                        connect_name=connect_name,
-                        schema_name=schema_name,
-                    )
-                    result_q = None
-                    if t == STATS_NUM_SQL_TEXT:
-                        new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(task_record_id).
-                                filter(cmdb_id=cmdb_id, schema=schema_name).
-                                distinct("sql_id")
-                        )
-                        result_q, rule_names_text = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_TEXT,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(
-                            result_q, rule_name=rule_names_text)
-
-                    elif t == STATS_NUM_SQL_PLAN:
-                        new_doc.num = len(
-                            MSQLPlan.filter_by_exec_hist_id(task_record_id).
-                                filter(cmdb_id=cmdb_id, schema=schema_name).
-                                distinct("plan_hash_value")
-                        )
-                        result_q, rule_names_sqlplan = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_SQLPLAN,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(
-                            result_q, rule_name=rule_names_sqlplan)
-
-                    elif t == STATS_NUM_SQL_STATS:
-                        new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(task_record_id).
-                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
-                        )
-                        result_q, rule_names_sqlstat = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_SQLSTAT,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(
-                            result_q, rule_name=rule_names_sqlstat)
-
-                    elif t == STATS_NUM_SQL:
-                        new_doc.num = len(
-                            SQLText.filter_by_exec_hist_id(task_record_id).
-                                filter(cmdb_id=cmdb_id, schema=schema_name).distinct("sql_id")
-                        )
-                        result_q, rule_names_sql = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            rule_type=ALL_RULE_TYPES_FOR_SQL_RULE,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = calc_distinct_sql_id(result_q)
-                        new_doc.problem_num = calc_problem_num(
-                            result_q,
-                            rule_name=rule_names_sql
-                        )
-
-                    elif t == STATS_NUM_TAB:
-                        # 统计个数的时候记得去重！
-                        new_doc.num = len(
-                            ObjTabInfo.filter_by_exec_hist_id(task_record_id).filter(
-                                cmdb_id=cmdb_id,
-                                schema_name=schema_name
-                            ).distinct("table_name")
-                        )
-                        result_q, rule_names = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            obj_info_type=OBJ_RULE_TYPE_TABLE,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = len(get_object_unique_labels(
-                            result_q, rule_names))
-                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
-
-                    elif t == STATS_NUM_INDEX:
-                        new_doc.num = ObjIndColInfo. \
-                            filter_by_exec_hist_id(task_record_id).filter(
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name).count()
-                        result_q, rule_names = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            obj_info_type=OBJ_RULE_TYPE_INDEX,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = len(get_object_unique_labels(
-                            result_q, rule_names))
-                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
-
-                    elif t == STATS_NUM_SEQUENCE:
-                        new_doc.num = ObjSeqInfo.objects(
-                            task_record_id=task_record_id,
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name).count()
-                        result_q, rule_names = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            obj_info_type=OBJ_RULE_TYPE_SEQ,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = len(get_object_unique_labels(
-                            result_q, rule_names))
-                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
-
-                    elif t == STATS_NUM_OBJ:
-                        new_doc.num = ObjSeqInfo.objects(
-                            task_record_id=task_record_id,
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name
-                        ).count()
-                        new_doc.num += ObjTabInfo.filter_by_exec_hist_id(task_record_id). \
-                            filter(
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name
-                        ).count()
-                        new_doc.num += ObjIndColInfo.filter_by_exec_hist_id(task_record_id). \
-                            filter(
-                            cmdb_id=cmdb_id,
-                            schema_name=schema_name
-                        ).count()
-                        result_q, rule_names = get_result_queryset_by(
-                            task_record_id=task_record_id,
-                            rule_type=RULE_TYPE_OBJ,
-                            schema_name=schema_name,
-                            cmdb_id=cmdb_id
-                        )
-                        new_doc.num_with_risk = len(get_object_unique_labels(
-                            result_q, rule_names))
-                        new_doc.problem_num = calc_problem_num(result_q, rule_name=rule_names)
-
-                    if new_doc.num_with_risk > new_doc.num:
-                        # 如果发现有问题的对象数大于实际数，则修正为实际数
-                        new_doc.num_with_risk = new_doc.num
-                    if new_doc.num:
-                        # 有问题个数/总个数
-                        new_doc.num_with_risk_rate = new_doc.num_with_risk / new_doc.num
-                        # 风险率
-                        new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
-                    if result_q:
-                        r = result_q.first()
-                        j = Job.objects(id=r.task_uuid).first()
-                        new_doc.job_id = str(j.id)
-                        new_doc.score = j.score
-                    yield new_doc
-
-
 class StatsRiskSqlRule(BaseStatisticsDoc):
     """风险sql外层规则"""
 
@@ -645,7 +642,6 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         import arrow
         from utils.sql_utils import get_risk_sql_list
-        from utils.cmdb_utils import get_current_schema
         from models.oracle import make_session
         from collections import defaultdict
 
@@ -693,7 +689,6 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         import arrow
         from utils.object_utils import get_risk_object_list
-        from utils.cmdb_utils import get_current_schema
         from models.oracle import make_session
         from collections import defaultdict
 
@@ -954,13 +949,10 @@ class StatsCMDBRate(BaseStatisticsDoc):
         "indexes": ["score"]
     }
 
+    requires = (StatsSchemaRate,)
+
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
-
-        # =====================================
-        # ==== 这个统计依赖于 StatsSchemaRate ====
-        # =====================================
-
         from utils import const
         from models.oracle import make_session, CMDB
 

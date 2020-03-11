@@ -218,6 +218,9 @@ class BaseStatisticsDoc(BaseDoc):
         ]
     }
 
+    # 依赖关系检查
+    requires = ()
+
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         """

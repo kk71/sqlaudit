@@ -5,6 +5,7 @@ __all__ = [
     "calc_statistics"
 ]
 
+from utils import const
 from utils.perf_utils import timing
 from models.mongo import *
 
@@ -30,17 +31,27 @@ def calc_statistics(*args, **kwargs):
     计算统计数据
     :return:
     """
+    processed_models = []
     for m in STATS_MODELS:
-        print(f"* gonna make statistics data for {m.__doc__} ...")
+        print(f"* Making statistics data for {m.__doc__} ...")
+        required_models_but_not_ready = [
+            required_model
+            for required_model in m.requires
+            if required_model not in processed_models
+        ]
+        if required_models_but_not_ready:
+            print(f"Failing: {m} requires {required_models_but_not_ready} to run first!")
+            raise const.RequiredModelNotRunException
         an_iterator = m.generate(*args, **kwargs)
         if an_iterator is None:
             print("Returned None, should be an iterator. Skipped.")
             continue
         docs = list(an_iterator)
         if not docs:
-            print("no statistics object to be saved.")
+            print("No statistics object to be saved.")
             continue
         m.objects.insert(docs)
+        processed_models.append(m)
 
 
 @timing()

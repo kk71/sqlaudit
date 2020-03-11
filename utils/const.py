@@ -384,4 +384,9 @@ class TicketAnalyseException(Exception):
     pass
 
 
+class RequiredModelNotRunException(Exception):
+    """相关的model未被先行执行"""
+    pass
+
+
 del Union

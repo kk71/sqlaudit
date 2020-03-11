@@ -1,8 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from functools import reduce
-
-from mongoengine import StringField, IntField, ObjectIdField, DateTimeField, Q
+from mongoengine import StringField, IntField, ObjectIdField, DateTimeField, DictField
 
 from utils import const
 from .utils import BaseDocRecordID
@@ -19,6 +17,7 @@ class Results(BaseDocRecordID):
     sid = StringField()
     record_id = StringField()
     rule_type = StringField()
+    score = DictField()  # 内存放数据同StatsSchemaRate.score_rule_type[rule_type]
 
     # dynamic collection, remain keys are rule_name(s)
     # for object rules are like:
