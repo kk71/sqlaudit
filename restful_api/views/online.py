@@ -35,6 +35,7 @@ class ObjectRiskListHandler(AuthReq):
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("rule_name", default=None): scm_str,
             Optional("severity", default=None): scm_dot_split_str,
+            scm_optional("task_record_id"): scm_int,
             "date_start": scm_date,
             "date_end": scm_date_end,
 
@@ -127,87 +128,6 @@ class ObjectRiskExportReportHandler(AuthReq):
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
-class ObjectRiskReportExportHandler(ObjectRiskListHandler):
-    # TODO: DEPRECATED
-
-    async def post(self):
-        """导出风险对象报告"""
-        params = self.get_json_args(Schema({
-            "export_type": scm_one_of_choices(["all_filtered", "selected"]),
-
-            Optional(object): object
-        }))
-        export_type = params.pop("export_type")
-        del params  # shouldn't use params anymore
-
-        with make_session() as session:
-            if export_type == "all_filtered":
-                params = self.get_json_args(Schema(self.parsing_schema_dict()))
-                object_list = await AsyncTimeout(60).async_thr(
-                    object_utils.get_risk_object_list, session=session, **params)
-
-            elif export_type == "selected":
-                params = self.get_json_args(Schema({
-                    "objects": [
-                        {
-                            "object_name": scm_unempty_str,
-                            "rule_desc": scm_unempty_str,
-                            "risk_detail": scm_unempty_str,
-                            "optimized_advice": scm_unempty_str,
-                            "first_appearance": scm_unempty_str,
-                            "last_appearance": scm_unempty_str,
-                            "severity": scm_unempty_str,
-                            Optional(object): object
-                        }
-                    ],
-
-                    Optional(object): object
-                }))
-                object_list = params.pop("objects")
-                del params  # shouldn't use params anymore
-
-            else:
-                assert 0
-
-            heads = ['对象名称', "风险等级", '风险点', '风险详情', '最早出现时间', '最后出现时间', '优化建议']
-            filename = f"export_obj_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
-            full_filename = path.join(settings.EXPORT_DIR, filename)
-            wb = xlsxwriter.Workbook(full_filename)
-            ws = wb.add_worksheet('风险对象报告')
-            title_format = wb.add_format({
-                'size': 14,
-                'bold': 1,
-                'align': 'center',
-                'valign': 'vcenter',
-            })
-            content_format = wb.add_format({
-                'align': 'left',
-                'valign': 'vcenter',
-                'text_wrap': True,
-            })
-            ws.set_row(0, 20, title_format)
-            ws.set_column(0, 0, 18)
-            ws.set_column(1, 1, 20)
-            ws.set_column(2, 2, 40)
-            ws.set_column(3, 4, 16)
-            ws.set_column(5, 5, 50)
-            [ws.write(0, x, field, title_format) for x, field in enumerate(heads)]
-            for row_num, row in enumerate(object_list):  # [[], ...]
-                row_num += 1
-                ws.write(row_num, 0, row["object_name"], content_format)
-                ws.write(row_num, 1, row["severity"], content_format)
-                ws.write(row_num, 2, row["rule_desc"], content_format)
-                ws.write(row_num, 3, row["risk_detail"], content_format)
-                ws.write(row_num, 4, row["first_appearance"], content_format)
-                ws.write(row_num, 5, row["last_appearance"], content_format)
-                ws.write(row_num, 6, row["optimized_advice"], content_format)
-            wb.close()
-            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
-
-    def get(self):
-        raise NotImplementedError
-
-
 class SQLRiskListHandler(PrivilegeReq):
 
     @classmethod
@@ -226,6 +146,7 @@ class SQLRiskListHandler(PrivilegeReq):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
             Optional("severity", default=None): scm_dot_split_str,
+            scm_optional("task_record_id"): scm_int
         }
 
     async def get(self):
@@ -321,104 +242,6 @@ class SQLRiskExportReportHandler(AuthReq):
         create_risk_sql_files(rr, rst, wb)
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
-
-
-class SQLRiskReportExportHandler(SQLRiskListHandler):
-    # TODO: DEPRECATED
-
-    async def post(self):
-        """导出风险SQL的报告"""
-        params = self.get_json_args(Schema({
-            "export_type": scm_one_of_choices(["all_filtered", "selected"]),
-
-            Optional(object): object
-        }))
-        export_type = params.pop("export_type")
-
-        with make_session() as session:
-            if export_type == "all_filtered":
-                params = self.get_json_args(Schema({
-                    **self.parsing_schema_dict(),
-
-                    Optional(object): object
-                }))
-                date_range = params.pop("date_start"), params.pop("date_end")
-                sql_list = await AsyncTimeout(60).async_thr(
-                    sql_utils.get_risk_sql_list,
-                    session=session,
-                    **params,
-                    date_range=date_range
-                )
-
-            elif export_type == "selected":
-                params = self.get_json_args(Schema({
-                    "objects": [
-                        {
-                            "schema": scm_unempty_str,
-                            "sql_id": scm_unempty_str,
-                            "rule_desc": scm_unempty_str,
-                            "first_appearance": scm_str,
-                            "last_appearance": scm_str,
-                            "similar_sql_num": scm_int,
-                            "execution_time_cost_sum": object,
-                            "execution_times": object,
-                            "execution_time_cost_on_average": object,
-                            "sql_text": scm_str,
-                            Optional(object): object
-                        }
-                    ],
-
-                    Optional(object): object
-                }))
-                sql_list = params.pop("objects")
-                del params  # shouldn't use params anymore
-
-            else:
-                assert 0
-
-            heads = ['执行用户', 'SQL_ID', '风险点', '最早出现时间', '最后出现时间', '相似SQL',
-                     '上次执行总时间', '上次执行次数', '上次平均时间', 'SQL文本']
-            filename = f"export_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
-            full_filename = path.join(settings.EXPORT_DIR, filename)
-            wb = xlsxwriter.Workbook(full_filename)
-            ws = wb.add_worksheet('风险SQL报告')
-            format_title = wb.add_format({
-                'bold': 1,
-                'size': 14,
-                'align': 'center',
-                'valign': 'vcenter',
-
-            })
-            format_text = wb.add_format({
-                'align': 'left',
-                'valign': 'vcenter',
-                'text_wrap': True,
-            })
-            ws.set_column(0, 2, 20)
-            ws.set_column(3, 4, 18)
-            ws.set_column(5, 5, 10)
-            ws.set_column(6, 8, 18)
-            ws.set_column(9, 9, 50)
-            ws.set_row(0, 30)
-            [ws.write(0, x, field.upper(), format_title) for x, field in enumerate(heads)]
-            for row_num, row in enumerate(sql_list):
-                sql_text = sqlparse.format(row["sql_text"], reindent=True, keyword_case='upper')
-                row_num += 1
-                ws.write(row_num, 0, row["schema"], format_text)
-                ws.write(row_num, 1, row["sql_id"], format_text)
-                ws.write(row_num, 2, row["rule_desc"], format_text)
-                ws.write(row_num, 3, row["first_appearance"], format_text)
-                ws.write(row_num, 4, row["last_appearance"], format_text)
-                ws.write(row_num, 5, row["similar_sql_num"], format_text)
-                ws.write(row_num, 6, row["execution_time_cost_sum"], format_text)
-                ws.write(row_num, 7, row["execution_times"], format_text)
-                ws.write(row_num, 8, row["execution_time_cost_on_average"], format_text)
-                ws.write(row_num, 9, sql_text, format_text)
-            wb.close()
-            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
-
-    def get(self):
-        raise NotImplementedError
 
 
 class SQLRiskDetailHandler(AuthReq):
