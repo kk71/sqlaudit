@@ -473,10 +473,10 @@ class CMDBHealthTrendHandler(AuthReq):
                     session, user_login=self.current_user)
                 # 如果没有给出cmdb_id，则把最差的前十个拿出来
                 cmdb_id_list = [
-                    i.cmdb_id
-                    for i in cmdb_utils.get_latest_cmdb_score(session=session)
-                    if i.cmdb_id in cmdb_id_list
-                ][:10]
+                                   i.cmdb_id
+                                   for i in cmdb_utils.get_latest_cmdb_score(session=session)
+                                   if i.cmdb_id in cmdb_id_list
+                               ][:10]
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cmdb_id in cmdb_id_list:
@@ -490,9 +490,9 @@ class CMDBHealthTrendHandler(AuthReq):
             base_lines = [
                 i[0]
                 for i in session.
-                query(CMDB.baseline).
-                filter(CMDB.cmdb_id.in_(cmdb_id_list)).
-                order_by(CMDB.baseline)
+                    query(CMDB.baseline).
+                    filter(CMDB.cmdb_id.in_(cmdb_id_list)).
+                    order_by(CMDB.baseline)
             ]
             if not base_lines or base_lines[0] == 0:
                 base_line = 80
@@ -539,11 +539,16 @@ class RankingConfigHandler(AuthReq):
             items, p = self.paginate(rankings, **p)
             self.resp(sorted([qe.to_dict(i) for i in items], key=lambda k: k["database_name"]), **p)
 
-    def patch(self):
-        """局部修改评分的数据库，schema"""
+    def post(self):
+        """以库为单位修改(增删)评分权重"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            "schema_names": [scm_unempty_str]
+            "schema_names": [
+                {
+                    "username": scm_unempty_str,
+                    scm_optional("weight", default=1): scm_float
+                }
+            ]
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_names = params.pop("schema_names")
@@ -551,8 +556,6 @@ class RankingConfigHandler(AuthReq):
 
         with make_session() as session:
             cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
-            if not cmdb:
-                return self.resp_bad_req(msg="cmdb不存在")
             try:
                 schemas = get_cmdb_available_schemas(cmdb)
             except cx_Oracle.DatabaseError as err:
@@ -567,9 +570,28 @@ class RankingConfigHandler(AuthReq):
                 delete(synchronize_session='fetch')
             session.add_all([DataHealthUserConfig(
                 database_name=cmdb.connect_name,
-                username=i
+                **i
             ) for i in schema_names])
         self.resp_created(msg="评分配置成功")
+
+    def patch(self):
+        """以cmdb-schema为单位修改评分权重"""
+        params = self.get_json_args(Schema({
+            "cmdb_id": scm_int,
+            "username": scm_unempty_str,
+            "weight": scm_float
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        schema_name = params.pop("username")
+
+        with make_session() as session:
+            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
+            session.query(DataHealthUserConfig).filter_by(
+                database_name=cmdb.connect_name,
+                username=schema_name,
+                **params
+            ).update(params)
+        self.resp_created(msg="评分配置更新成功")
 
     def delete(self):
         """删除需要评分的库"""
