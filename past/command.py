@@ -88,12 +88,14 @@ class Command(object):
             self.parser.print_help()
             sys.exit(0)
 
-    def run_capture(self, host, port, sid, username, password, capture_date, flag_type, connect_name, record_id, cmdb_id):
+    def run_capture(self, host, port, sid, username, password, capture_date, flag_type, connect_name, record_id,
+                    cmdb_id):
         """
             运行数据抓取模块，主要针对oracle，mysql依赖于pt-query-digest
             flag_type: OBJ, OTHER
         """
-        db_client = past.rule_analysis.db.db_operat.DbOperat(host=host, port=port, username=username, password=password, db=sid)
+        db_client = past.rule_analysis.db.db_operat.DbOperat(host=host, port=port, username=username, password=password,
+                                                             db=sid)
         print("After db_client initial.....")
         if flag_type == "OBJ":
             past.capture.sql_obj_info.CaptureObj(
@@ -160,15 +162,15 @@ class Command(object):
             })
             instance_name = kwargs.get("db")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
-                                create_user=create_user, **kwargs)
-            job_record,rule_name_and_len = sqlaudit.run()
+                                                            create_user=create_user, **kwargs)
+            job_record, rule_name_and_len = sqlaudit.run()
         elif db_type == utils.const.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
             instance_name = args.get("sid")
             capture_date = args.get("capture_date")
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
-                                startdate=capture_date, create_user=create_user,
-                                **kwargs)
-            job_record,rule_name_and_len = sqlaudit.run()
+                                                            startdate=capture_date, create_user=create_user,
+                                                            **kwargs)
+            job_record, rule_name_and_len = sqlaudit.run()
         elif rule_type == "TEXT":
             startdate = args.get("startdate")
             stopdate = args.get("stopdate")
@@ -187,34 +189,11 @@ class Command(object):
             #     }
             #     kwargs.update({"pt_server_args": temp})
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
-                                startdate=startdate, stopdate=stopdate,
-                                create_user=create_user, hostname=hostname,
-                                **kwargs)
-            job_record,rule_name_and_len = sqlaudit.run()
-        # elif db_type == "mysql" and rule_type in ["SQLPLAN", "SQLSTAT"]:
-        #     instance_name = "mysql"
-        #     startdate = args.get("startdate")
-        #     stopdate = args.get("stopdate")
-        #     temp = {
-        #         "db_server": settings.PT_QUERY_SERVER,
-        #         "db_port": settings.PT_QUERY_PORT,
-        #         "db_user": settings.PT_QUERY_USER,
-        #         "db_passwd": settings.PT_QUERY_PASSWD,
-        #         "db": settings.PT_QUERY_DB
-        #     }
-        #     kwargs.update({"pt_server_args": temp})
-        #     sqlaudit = SqlAudit(username, rule_type, rule_status, db_type,
-        #                         startdate=startdate, stopdate=stopdate,
-        #                         create_user=create_user, **kwargs)
-        #     db_server = args.get("db_server")
-        #     db_port = args.get("db_port")
-        #     hostname_max = ":".join([db_server, str(db_port)])
-        #     job_args = {
-        #         "user": settings.MYSQL_ACCOUNT[hostname_max][1],
-        #         "passwd": settings.MYSQL_ACCOUNT[hostname_max][2],
-        #         "hostname": hostname_max
-        #     }
-        #     job_record = sqlaudit.run(**job_args)
+                                                            startdate=startdate, stopdate=stopdate,
+                                                            create_user=create_user, hostname=hostname,
+                                                            **kwargs)
+            job_record, rule_name_and_len = sqlaudit.run()
+
         task_ip = args.get("task_ip")
         task_port = args.get("task_port")
         self.save_result(
@@ -249,18 +228,6 @@ class Command(object):
             rule_type,
             rule_name_and_len
     ):
-        args = {
-            'operator_user': create_user,
-            'startdate': start_date,
-            'stopdate': past.utils.utils.get_time(),
-            'instance_name': instance_name,
-            'task_ip': task_ip,
-            'task_port': task_port,
-            'cmdb_id': cmdb_id,
-            'connect_name': connect_name,
-            'record_id': record_id,
-        }
-        # sqlaudit.review_result.job_init(**args)
         sqlaudit.review_result.task_id = uuid.uuid4().hex
         result_update_info = {
             "task_uuid": sqlaudit.review_result.task_id,
@@ -272,23 +239,16 @@ class Command(object):
             'sid': instance_name,
             'record_id': record_id,
             'rule_type': rule_type,
+            "capture_time_start": start_date,
+            "capture_time_end": past.utils.utils.get_time()
         }
         job_record.update(result_update_info)
         try:
             sqlaudit.mongo_client.insert_one("results", job_record)
-            # models.mongo.Job.objects(id=sqlaudit.review_result.task_id).update(
-            #     set__status=utils.const.JOB_STATUS_FINISHED,
-            #     set__desc__capture_time_end=past.utils.utils.get_time()
-            # )
-
         except DocumentTooLarge:
-            pt=PrettyTable(rule_name_and_len.keys())
+            pt = PrettyTable(rule_name_and_len.keys())
             pt.add_row(rule_name_and_len.values())
             print(pt)
-
-        # sql = {'_id': sqlaudit.review_result.task_id}
-        # condition = {"$set": {"status": 1, "desc.capture_time_end": past.utils.utils.get_time()}}
-        # sqlaudit.mongo_client.update_one("job", sql, condition)
 
     def run(self):
         self.parse_init()
@@ -299,4 +259,3 @@ if __name__ == "__main__":
     com = Command()
     com.run()
     print("finish...")
-
