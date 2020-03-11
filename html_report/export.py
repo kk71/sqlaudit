@@ -18,6 +18,7 @@ from .utils import print_html_rule_text_detail_info
 from .utils import print_html_obj_detail_info
 from plain_db.mongo_operat import MongoHelper
 from task.mail_report import zip_file_path
+from models.oracle import make_session,CMDB
 
 
 def format_sqlplan_result(result):
@@ -36,7 +37,7 @@ def format_sqlplan_result(result):
     return result
 
 
-def main_task(task_uuid, page):
+def main_task(task_uuid,cmdb, page):
     """
     导出任务功能，获取任务id，匹配规则类型，生成离线页面等
     """
@@ -62,11 +63,11 @@ def main_task(task_uuid, page):
                     sql_plans[key] = [x for x in MongoHelper.find('sqlplan', condition, {'_id': 0})]
                 sql_dict['plan'] = sql_plans[key]
 
-    job_info = MongoHelper.find_one("job", {"_id": ObjectId(task_uuid)})
-    host = job_info["desc"]["db_ip"]
-    schema = job_info["desc"]["owner"]
-    rule_type = job_info["desc"]["rule_type"].upper()
-    port = int(job_info["desc"]["port"])
+    schema=result['score']['schema_name']
+    rule_type=result['score']['rule_type']
+    host=cmdb.ip_address
+    port=cmdb.port
+
     db_type = const.DB_ORACLE
     mongo_rules = [x for x in MongoHelper.find("rule", {"rule_type": rule_type})]
 
@@ -124,22 +125,23 @@ def export_task(job_ids:list)-> str:
     paths = "/tmp/" + str(int(time.time()))
     if not os.path.exists(paths):
         os.makedirs(paths)
-
     for job_id in job_ids:
-        result = MongoHelper.find_one("results", {"task_uuid": job_id})
-        file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
-                    "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
-        v_page = print_html_script('sqlreview report')
-        main_task(job_id, v_page)
-        v_page.printOut(f"html_report/sqlreview.html")
-        path = paths+"/" +file_name
-        tar = tarfile.open(str(path), "w:gz")
-        tar.add("html_report/css")
-        tar.add("html_report/assets")
-        tar.add("html_report/js")
-        tar.add("html_report/sqlreview.html")
-        tar.add("html_report/readme.txt")
-        tar.close()
+        with make_session() as session:
+            result = MongoHelper.find_one("results", {"task_uuid": job_id})
+            cmdb=session.query(CMDB).filter_by(cmdb_id=result['cmdb_id']).first()
+            file_name = result['sid'] + "_" + job_id + "_" + result['rule_type'] +\
+                        "_" + datetime.now().strftime("%Y%m%d") + ".tar.gz"
+            v_page = print_html_script('sqlreview report')
+            main_task(job_id,cmdb, v_page)
+            v_page.printOut(f"html_report/sqlreview.html")
+            path = paths+"/" +file_name
+            tar = tarfile.open(str(path), "w:gz")
+            tar.add("html_report/css")
+            tar.add("html_report/assets")
+            tar.add("html_report/js")
+            tar.add("html_report/sqlreview.html")
+            tar.add("html_report/readme.txt")
+            tar.close()
         # os.remove("task_export/sqlreview.html")
 
         # 文件生成完毕，状态export设置为True
