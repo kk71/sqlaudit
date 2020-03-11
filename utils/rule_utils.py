@@ -12,21 +12,6 @@ from utils.perf_utils import *
 from utils.const import *
 
 
-def text_parse(key, rule_complexity, rule_cmd, input_params, sql):
-    """sql文本规则的读取"""
-    args = {param["parm_name"]: param["parm_value"] for param in input_params}
-    violate = False
-    # 解析简单规则
-    if rule_complexity == "simple" and re.search(rule_cmd, sql):
-        violate = True
-    elif rule_complexity == "complex":
-        module_name = ".".join(["rule_analysis.rule.text", key.lower()])
-        module = __import__(module_name, globals(), locals(), "execute_rule")
-        if module.execute_rule(sql=sql, **args):
-            violate = True
-    return violate
-
-
 def format_rule_result_detail(rule_object, record: list):
     """
     格式化输出规则分析结果(即风险详情)的信息。信息来源与mongodb.results.(rule_name).records

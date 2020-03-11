@@ -98,7 +98,8 @@ def get_risk_object_list(session,
 
     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
     if task_record_id:
-        result_q = Results.filter_by_exec_hist_id(task_record_id).filter(
+        result_q = Results.objects(
+            task_record_id=task_record_id,
             cmdb_id=cmdb_id,
             rule_type=rule_utils.RULE_TYPE_OBJ
         )
