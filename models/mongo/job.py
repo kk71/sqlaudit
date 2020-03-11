@@ -4,9 +4,9 @@ from mongoengine import IntField, StringField, ObjectIdField, DateTimeField,\
     BooleanField, EmbeddedDocument, EmbeddedDocumentField, FloatField
 
 from .utils import BaseDocRecordID
-from utils import const
 
 
+# TODO DEPRECATED
 class EmbeddedJobDesc(EmbeddedDocument):
     db_ip = StringField()
     port = StringField()
@@ -17,6 +17,7 @@ class EmbeddedJobDesc(EmbeddedDocument):
     capture_time_end = DateTimeField()
 
 
+# TODO DEPRECATED
 class Job(BaseDocRecordID):
     id = ObjectIdField(db_field="_id", primary_key=True)
     name = StringField()
