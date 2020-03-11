@@ -35,6 +35,7 @@ class ObjectRiskListHandler(AuthReq):
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("rule_name", default=None): scm_str,
             Optional("severity", default=None): scm_dot_split_str,
+            scm_optional("task_record_id"): scm_int,
             "date_start": scm_date,
             "date_end": scm_date_end,
 
@@ -145,6 +146,7 @@ class SQLRiskListHandler(PrivilegeReq):
                 scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
             Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
             Optional("severity", default=None): scm_dot_split_str,
+            scm_optional("task_record_id"): scm_int
         }
 
     async def get(self):
