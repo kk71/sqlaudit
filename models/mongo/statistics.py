@@ -388,7 +388,9 @@ class StatsNumDrillDown(BaseStatisticsDoc):
                         # 风险率
                         new_doc.problem_num_rate = new_doc.problem_num / new_doc.num
                     if result_q:
-                        new_doc.score = result_q.first().score["score"]
+                        result = result_q.first()
+                        new_doc.score = result.score["score"]
+                        new_doc.job_id = result.task_uuid
                     yield new_doc
 
 
