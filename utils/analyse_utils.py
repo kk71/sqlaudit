@@ -25,15 +25,14 @@ STATS_MODELS = (
 )
 
 
-@timing()
-def calc_statistics(*args, **kwargs):
+def check_for_requirement():
     """
-    计算统计数据
+    检查统计模块的依赖关系和运行顺序是否正常
     :return:
     """
+    print("statistics models requirement checking ...")
     processed_models = []
     for m in STATS_MODELS:
-        print(f"* Making statistics data for {m.__doc__} ...")
         required_models_but_not_ready = [
             required_model
             for required_model in m.requires
@@ -42,6 +41,18 @@ def calc_statistics(*args, **kwargs):
         if required_models_but_not_ready:
             print(f"Failing: {m} requires {required_models_but_not_ready} to run first!")
             raise const.RequiredModelNotRunException
+        processed_models.append(m)
+
+
+@timing()
+def calc_statistics(*args, **kwargs):
+    """
+    计算统计数据
+    :return:
+    """
+    check_for_requirement()
+    for m in STATS_MODELS:
+        print(f"* Making statistics data for {m.__doc__} ...")
         an_iterator = m.generate(*args, **kwargs)
         if an_iterator is None:
             print("Returned None, should be an iterator. Skipped.")
@@ -51,7 +62,6 @@ def calc_statistics(*args, **kwargs):
             print("No statistics object to be saved.")
             continue
         m.objects.insert(docs)
-        processed_models.append(m)
 
 
 @timing()
