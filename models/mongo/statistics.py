@@ -773,9 +773,9 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
 
         with make_session() as session:
             all_bound_schemas = get_cmdb_bound_schema(session, cmdb_id)
-            all_rule_names = list(Rule.filter_enabled().values_list("rule_name"))
+            all_rules = Rule.filter_enabled()
             for schema in all_bound_schemas:
-                for rule_name in all_rule_names:
+                for rule in all_rules:
                     rsts = get_risk_sql_list(
                         session=session,
                         cmdb_id=cmdb_id,
@@ -783,13 +783,14 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                         task_record_id=task_record_id,
                         task_record_id_to_replace={cmdb_id: task_record_id},
                         schema_name=schema,
-                        rule_name=rule_name
+                        rule_name=rule.rule_name
                     )
                     doc = cls(
                         task_record_id=task_record_id,
                         cmdb_id=cmdb_id,
                         schema=schema,
-                        rule=rule_name,
+                        rule=rule.to_dict(
+                            iter_if=lambda k, v: k in ("rule_name", "rule_desc")),
                         severity="严重"
                     )
                     for rst in rsts:
@@ -797,6 +798,8 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                         if not doc.last_appearance or appearance_time > doc.last_appearance:
                             doc.last_appearance = appearance_time
                         doc.rule_num += 1
+                    if not doc.rule_num:
+                        continue
                     yield doc
 
 
