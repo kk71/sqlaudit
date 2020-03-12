@@ -794,7 +794,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                     )
                     for rst in rsts:
                         appearance_time = arrow.get(rst["last_appearance"]).datetime
-                        if appearance_time > doc.last_appearance:
+                        if not appearance_time or appearance_time > doc.last_appearance:
                             doc.last_appearance = appearance_time
                         doc.rule_num += 1
                     yield doc
