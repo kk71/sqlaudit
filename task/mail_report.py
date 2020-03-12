@@ -19,8 +19,8 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session, CMDB, DataHealth
-from models.mongo import Results
+from models.oracle import make_session,CMDB
+from models.mongo import Results,StatsCMDBRate
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
 from utils import cmdb_utils
@@ -140,12 +140,10 @@ def create_excels(username, send_list_id):
             wb.close()
         for cmdb_id in cmdb_ids:
             connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
-
-            dh_q = session.query(DataHealth).filter(
-                DataHealth.database_name == connect_name,
-                DataHealth.collect_date > now.shift(weeks=-1).datetime
-            ).order_by(DataHealth.collect_date)
-            dh_d = [x.to_dict() for x in dh_q]
+            cmdb_rate_q=StatsCMDBRate.objects().filter(connect_name=connect_name,
+                                           etl_date__gt=now.shift(weeks=-1).datetime).\
+                order_by("etl_date")
+            cmdb_rate=[x.to_dict() for x in cmdb_rate_q]
 
             rst_q=Results.objects(cmdb_id=cmdb_id,score__score__nin=[None,0],
                             create_date__gte=date_start,
@@ -163,7 +161,7 @@ def create_excels(username, send_list_id):
 
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_files(rst_d, dh_d, connect_name, wb)
+            create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb)
             create_risk_obj_files(rr_obj, rst_obj, wb)
             create_risk_sql_files(rr_sql, rst_sql, wb)
             wb.close()
@@ -179,67 +177,8 @@ def create_excels(username, send_list_id):
     return ret_url
 
 
-def create_excel(username, send_list_id):
-    # TODO DEPRECATED
-    """old"""
-    path = "/tmp/" + username + str(int(time.time()))
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    cmdb_ids = get_cmdb_ids()
-
-    if username != "admin":
-
-        # query = """SELECT cmdb_id, schema_name FROM T_DATA_PRIVILEGE WHERE login_user = :1"""
-        # res = OracleHelper.select_dict(query, [username], one=False)
-        with make_session() as session:
-            res = utils.cmdb_utils.get_current_schema(session, username, verbose_dict=True)
-
-        data = {}
-        for value in res:
-            if value['cmdb_id'] in data:
-                data[value['cmdb_id']].append(value['schema_name'])
-            else:
-                data[value['cmdb_id']] = [value['schema_name']]
-
-        for cmdb_id, value in data.items():
-            if cmdb_id not in cmdb_ids:
-                continue
-            query = """select connect_name from T_CMDB where cmdb_id = :1"""
-            connect_name = OracleHelper.select(query, [cmdb_id], one=True)
-            wb = xlsxwriter.Workbook(
-                path + "/" + connect_name[0] + datetime.now().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_file(cmdb_id, value, username, wb)
-            create_risk_obj_file(cmdb_id, value, username, wb)
-            create_risk_sql_file(cmdb_id, value, username, wb)
-            create_appendx(wb)
-            wb.close()
-    else:
-        for cmdb_id in cmdb_ids:
-            query = """select connect_name from T_CMDB where cmdb_id = :1"""
-            connect_name = OracleHelper.select(query, [cmdb_id], one=True)
-            wb = xlsxwriter.Workbook(
-                path + "/" + connect_name[0] + datetime.now().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_file(cmdb_id, [], username, wb)
-            create_risk_obj_file(cmdb_id, [], username, wb)
-            create_risk_sql_file(cmdb_id, [], username, wb)
-            create_appendx(wb)
-            wb.close()
-
-    file_path_list = [
-        settings.CLIENT_NAME,
-        str(send_list_id),
-        datetime.now().strftime("%Y%m%d%H%M") + ".zip"
-    ]
-    print(ROOT_PATH)
-    # print(ROOT_PATH + "/webui/static/files/mail_files/", ''.join(file_path_list))
-    zipPath = zip_file_path(
-        path, ROOT_PATH + "/downloads/mail_files/", ''.join(file_path_list))
-    return zipPath
-
-
 # 创建sql健康度EXCEL
-def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
+def create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb):
     # excel 表格样式sheet1
     ws = wb.add_worksheet("1.整体健康度")
     ws.set_column(0, 7, 18)
@@ -282,9 +221,9 @@ def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
     ws.write(4, 0, "采集日期", title_format)
     ws.write(5, 0, "得分")
     col = 1
-    for dh in dh_d:
-        ws.write(4, col, dh['collect_date'][:10], date_format)
-        ws.write(5, col, dh['health_score'], text_format)
+    for cr in cmdb_rate:
+        ws.write(4, col, cr['etl_date'][:10], date_format)
+        ws.write(5, col, cr['score'], text_format)
         col += 1
 
     # 根据健康度表格数据绘制折线图
@@ -356,176 +295,6 @@ def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
         ws.write(row, col + 7, str(rst["capture_time_end"]), text_format)
         row += 1
 
-
-# 创建sql健康度EXCEL
-def create_sql_healthy_file(cmdb_id, schemas, login_user, wb):
-    # TODO: DEPRECATED
-    ws = wb.add_worksheet("1.整体健康度")
-
-    query = """select connect_name from T_CMDB where cmdb_id = :1"""
-    connect_name = OracleHelper.select(query, [cmdb_id], one=True)
-
-    if not connect_name:
-        return
-    # excel 表格样式sheet1
-    ws.set_column(0, 7, 18)
-    head_merge_format = wb.add_format({
-        'size': 18,
-        'bold': 1,
-        'align': 'center',
-        'valign': 'vcenter',
-    })
-    ws.set_row(0, 30, head_merge_format)
-    ws.merge_range('A1:H1', settings.CLIENT_NAME +
-                   "“" + connect_name[0] + "”SQL风险评估报告")
-    # ws.write_rich_string('A1', red, head_merge_format)
-    # 1.最近7天的整体健康度
-    title_format = wb.add_format({
-        "size": 14,
-        'bold': 1,
-        'align': 'left',
-        'valign': 'vcenter',
-    })
-    titles_format = wb.add_format({
-        "size": 14,
-        'bold': 1,
-        'align': 'center',
-        'valign': 'vcenter',
-    })
-    text_format = wb.add_format({
-        'align': 'left',
-        'valign': 'vcenter',
-    })
-    date_format = wb.add_format({
-        'bold': 1,
-        'align': 'left',
-        'valign': 'vcenter',
-    })
-
-    ws.write(1, 6, "报告日期", text_format)
-    ws.write(1, 7, datetime.now().strftime("%Y/%m/%d"), text_format)
-    ws.set_row(3, 20)
-    ws.merge_range('A4:H4', "1.最近7天整体健康度", title_format)
-    content_format = wb.add_format({
-        'color': 'red',
-        'align': 'left',
-        'valign': 'vcenter',
-
-    })
-    ws.write(4, 0, "采集日期", title_format)
-    ws.write(5, 0, "得分")
-    start_time = datetime.now() - timedelta(days=7)
-    query = """select d.* from T_CMDB c join T_DATA_HEALTH  d on c.connect_name = d.database_name
-             where c.cmdb_id = :1  and d.collect_date >= :2 order by d.collect_date"""
-    res = OracleHelper.select(query, params=[cmdb_id, start_time], one=False)
-    # 填充表格健康度数据
-    # ----------------start---------------------
-    col = 1
-    if res:
-        for value in res:
-            ws.write(4, col, value[2].strftime("%Y-%m-%d"), date_format)
-            if value[1] < 75:
-                ws.write(5, col, value[1], content_format)
-            else:
-                ws.write(5, col, value[1], text_format)
-            col += 1
-    # --------------------------end-------------------
-    # 根据健康度表格数据绘制折线图
-    # --------------------------------start--------------------
-    chart1 = wb.add_chart({'type': 'line'})
-    chart1.width = 650
-    chart1.height = 350
-    # Configure the first series.
-    chart1.add_series({
-        'name': '健康度',
-        'categories': ['1.整体健康度', 4, 1, 4, 7],
-        'values': ['1.整体健康度', 5, 1, 5, 7],
-        'line': {'color': 'black', 'width': 1},
-        'marker': {'type': 'automatic',
-                   },
-        'data_labels': {'value': True},
-        'name_font': {
-            'size': 10,
-        },
-    })
-
-    # 设置折线图的位置，标题，x轴，y轴
-    # --------------------start-------------------------
-    chart1.set_title({'name': '最近7天整体健康度',
-                      'name_font': {
-                          'bold': False,
-                          'size': 14, },
-                      })
-    chart1.set_plotarea({
-        'layout': {
-            'x': 0.1,
-            'y': 0.2,
-            'width': 0.88,
-            'height': 0.63,
-        }
-    })
-    chart1.set_legend({
-        'layout': {
-            'x': 0.90,
-            'y': 0.05,
-            'width': 0.2,
-            'height': 0.1,
-        }
-    })
-    chart1.set_y_axis({'name': '健康度分数',
-                       'min': 0,
-                       'max': 100,
-                       'name_font': {
-                           'bold': False,
-                           'size': 12,
-                       }
-                       })
-    ws.insert_chart('B7', chart1, {'x_offset': 25, 'y_offset': 20})
-    # --------------------------------end-----------------------------
-    # -------------------------------------end------------------------
-    sql = {"create_time": {"$gte": start_time.strftime("%Y-%m-%d %X")}}
-
-    if login_user != "admin":
-        sql.update({'cmdb_id': cmdb_id, 'desc.owner': {"$in": schemas}})
-    else:
-        sql.update({'cmdb_id': cmdb_id})
-
-    records = MongoHelper.find("job", sql)
-    records = sorted(records, key=lambda x: (
-        x['create_time'], x['name']), reverse=True)
-    status_map = {
-        "0": "失败",
-        "1": "成功",
-        "2": "正在运行"
-    }
-    # 健康度下钻表格样式设置及填充
-    # --------------------------start-----------------------------
-    ws.set_row(27, 20)
-    ws.merge_range('A27:H27', "2.健康度下钻", title_format)
-    ws.set_row(28, 20)
-    titles = ['审计目标', '审计用户', '创建时间', '状态', '类型', '分数', '开始时间', '结束时间']
-    ws.write_row('A28', titles, titles_format)
-
-    row = 28
-    col = 0
-    for value in records:
-        ws.write(row, col, value['connect_name'], text_format)
-        ws.write(row, col + 1, value["name"].split("#")[0], text_format)
-        ws.write(row, col + 2, value["create_time"][:-3], text_format)
-        ws.write(row, col + 3, status_map[str(value['status'])], text_format)
-        ws.write(row, col + 4, value["name"].split("#")[1], text_format)
-        if int(value.get("score", 0)) < 75:
-            ws.write(row, col + 5, value.get("score", ""), content_format)
-        else:
-            ws.write(row, col + 5, value.get("score", ""), text_format)
-        ws.write(row, col + 6, str(value["desc"]
-                                   ["capture_time_start"])[:-3], text_format)
-        ws.write(row, col + 7, str(value["desc"]
-                                   ["capture_time_end"])[:-3], text_format)
-        row += 1
-
-
-# ---------------------------------------------end---------------------------
 
 # 创建风险SQL EXCEL
 def create_risk_sql_files(rr, rst, wb):
