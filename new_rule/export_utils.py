@@ -5,8 +5,8 @@ import json
 from new_rule.rule import TicketRule
 
 
-def ticket_rule_import(filename) -> tuple:
-    """导入工单规则，去重"""
+def rule_import(filename) -> tuple:
+    """导入规则，去重"""
     with open(filename, "r") as z:
         rules = json.load(z)
     rules_to_import = []
@@ -23,8 +23,8 @@ def ticket_rule_import(filename) -> tuple:
     return len(rules_to_import), len(rules)
 
 
-def ticket_rule_export(filename) -> int:
-    """导出工单规则，覆盖给定的文件"""
+def rule_export(filename) -> int:
+    """导出规则，覆盖给定的文件"""
     rules = [i.to_dict(iter_if=lambda k, v: k not in ("_id", "id"))
              for i in TicketRule.objects()]
     with open(filename, "w") as z:
@@ -32,7 +32,7 @@ def ticket_rule_export(filename) -> int:
     return len(rules)
 
 
-def ticket_rule_drop() -> int:
-    """删除库中全部的工单规则"""
+def rule_drop() -> int:
+    """删除库中全部的规则"""
     deleted_num = TicketRule.objects().delete()
     return deleted_num
