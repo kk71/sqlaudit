@@ -595,7 +595,6 @@ class RankingConfigHandler(AuthReq):
             session.query(DataHealthUserConfig).filter_by(
                 database_name=cmdb.connect_name,
                 username=schema_name,
-                **params
             ).update(params)
         self.resp_created(msg="评分配置更新成功")
 
