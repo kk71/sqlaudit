@@ -36,8 +36,8 @@ class ObjectRiskListHandler(AuthReq):
             Optional("rule_name", default=None): scm_str,
             Optional("severity", default=None): scm_dot_split_str,
             scm_optional("task_record_id"): scm_int,
-            "date_start": scm_date,
-            "date_end": scm_date_end,
+            scm_optional("date_start"): scm_date,
+            scm_optional("date_end"): scm_date_end,
 
             Optional(object): object
         }
@@ -138,8 +138,8 @@ class SQLRiskListHandler(PrivilegeReq):
             Optional("schema_name", default=None): scm_str,
             Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("rule_name", default=None): scm_str,
-            "date_start": scm_date,
-            "date_end": scm_date_end,
+            scm_optional("date_start", default=None): scm_date,
+            scm_optional("date_end", default=None): scm_date_end,
             Optional("rule_type", default="ALL"): scm_one_of_choices(
                 ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
             Optional("enable_white_list", default=True):
