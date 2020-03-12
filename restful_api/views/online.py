@@ -160,6 +160,9 @@ class SQLRiskListHandler(PrivilegeReq):
         p = self.pop_p(params)
         date_range = params.pop("date_start"), params.pop("date_end")
 
+        if "task_record_id" in params.keys():
+            params["task_record_id_to_replace"] = params["task_record_id"]
+
         with make_session() as session:
             try:
                 rst = await AsyncTimeout(60).async_thr(
