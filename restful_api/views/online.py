@@ -161,7 +161,9 @@ class SQLRiskListHandler(PrivilegeReq):
         date_range = params.pop("date_start"), params.pop("date_end")
 
         if "task_record_id" in params.keys():
-            params["task_record_id_to_replace"] = params["task_record_id"]
+            params["task_record_id_to_replace"] = {
+                params["cmdb_id"]: params["task_record_id"]
+            }
 
         with make_session() as session:
             try:
