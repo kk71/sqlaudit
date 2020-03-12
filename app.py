@@ -103,7 +103,7 @@ def create_admin():
 @cli.command()
 def gen_license():
     """generate license"""
-    from past.utils.product_license import gen_license
+    from utils.product_license import gen_license
     gen_license()
 
 
