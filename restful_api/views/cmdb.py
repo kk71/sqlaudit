@@ -543,15 +543,10 @@ class RankingConfigHandler(AuthReq):
         """以库为单位修改(增删)评分权重"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            "schema_names": [
-                {
-                    "username": scm_unempty_str,
-                    scm_optional("weight", default=1): scm_float
-                }
-            ]
+            "schema_names": [scm_unempty_str]
         }))
         cmdb_id = params.pop("cmdb_id")
-        schema_names = params.pop("schema_names")
+        schema_names = set(params.pop("schema_names"))
         del params
 
         with make_session() as session:
@@ -561,17 +556,28 @@ class RankingConfigHandler(AuthReq):
             except cx_Oracle.DatabaseError as err:
                 print(err)
                 return self.resp_bad_req(msg="无法连接到目标主机")
-            schema_delta = set(schema_names) - set(schemas)
-            if schema_delta:
+            schema_delta_not_existed = schema_names - set(schemas)
+            if schema_delta_not_existed:
                 print(schemas)
-                return self.resp_bad_req(msg=f"给出的schema中包含该库不存在的schema：{schema_delta}")
-            session.query(DataHealthUserConfig). \
-                filter(DataHealthUserConfig.database_name == cmdb.connect_name). \
-                delete(synchronize_session='fetch')
+                return self.resp_bad_req(
+                    msg="给出的schema中包含该库不存在的schema："
+                        f"{', '.join([i for i in schema_delta_not_existed])}")
+            qe = QueryEntity(DataHealthUserConfig.username)
+            schema_names_current = qe.to_plain_list(
+                session.query(*qe).filter(
+                    DataHealthUserConfig.database_name == cmdb.connect_name))
+            schema_names_current = set(schema_names_current)
+            schema_names_to_delete = schema_names_current.difference(schema_names)
+            schema_names_to_add = schema_names.difference(schema_names_current)
+            session.query(DataHealthUserConfig).filter(
+                DataHealthUserConfig.database_name == cmdb.connect_name,
+                DataHealthUserConfig.username.in_(list(schema_names_to_delete))
+            ).delete(synchronize_session='fetch')
             session.add_all([DataHealthUserConfig(
                 database_name=cmdb.connect_name,
-                **i
-            ) for i in schema_names])
+                username=i,
+                weight=1.0
+            ) for i in schema_names_to_add])
         self.resp_created(msg="评分配置成功")
 
     def patch(self):
