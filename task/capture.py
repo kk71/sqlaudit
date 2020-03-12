@@ -1,4 +1,3 @@
-import time
 import signal
 import traceback
 
@@ -10,7 +9,6 @@ import past.command
 import plain_db.oracleob
 import past.utils.utils
 import past.utils.log
-import past.utils.health_data_gen
 import past.capture.sql
 
 import utils.const
@@ -19,7 +17,6 @@ import task.clear_cache
 import utils.capture_utils
 import utils.analyse_utils
 import utils.cmdb_utils
-from models.oracle import *
 from models.mongo.utils import *
 
 logger = past.utils.log.get_logger("capture")
