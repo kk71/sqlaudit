@@ -2,7 +2,7 @@
 
 __all__ = [
     "TicketRule",
-    "TicketRuleInputOutputParams"
+    "RuleInputOutputParams"
 ]
 
 import traceback
@@ -17,7 +17,7 @@ from utils import const
 from utils.schema_utils import scm_num
 
 
-class TicketRuleInputOutputParams(EmbeddedDocument):
+class RuleInputOutputParams(EmbeddedDocument):
     """输入输出参数"""
     name = StringField(required=True)
     desc = StringField()
@@ -40,8 +40,8 @@ class TicketRule(BaseDoc):
         required=True,
         choices=const.ALL_SUPPORTED_DB_TYPE,
         default=const.DB_ORACLE)
-    input_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)
-    output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)
+    input_params = EmbeddedDocumentListField(RuleInputOutputParams)
+    output_params = EmbeddedDocumentListField(RuleInputOutputParams)
     max_score = IntField()
     code = StringField(required=True)  # 规则的python代码
     status = BooleanField(default=True)  # 规则是否启用

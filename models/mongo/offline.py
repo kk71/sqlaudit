@@ -4,13 +4,20 @@ from typing import Union
 from copy import deepcopy
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    BooleanField, EmbeddedDocument, EmbeddedDocumentListField
+    BooleanField, EmbeddedDocument, EmbeddedDocumentListField, DynamicField
 
-from new_rule.rule import TicketRuleInputOutputParams, TicketRule
 from .utils import BaseDoc
 from utils import const
 from utils.datetime_utils import *
 from utils.parsed_sql import *
+
+
+class TicketOutputParams(EmbeddedDocument):
+    """输出参数"""
+    name = StringField(required=True)
+    desc = StringField()
+    unit = StringField()
+    value = DynamicField()
 
 
 class TicketSubResultItem(EmbeddedDocument):
@@ -19,20 +26,14 @@ class TicketSubResultItem(EmbeddedDocument):
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
     input_params = EmbeddedDocumentListField(
-        TicketRuleInputOutputParams)  # 记录规则执行时的输入参数快照
-    output_params = EmbeddedDocumentListField(TicketRuleInputOutputParams)  # 运行输出
+        TicketOutputParams)  # 记录规则执行时的输入参数快照
+    output_params = EmbeddedDocumentListField(TicketOutputParams)  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def get_rule(self) -> Union[TicketRule, None]:
-        """获取当前的规则对象"""
-        return TicketRule. \
-            filter_enabled(db_type=self.db_type, name=self.rule_name).\
-            first()
-
-    def as_sub_result_of(self, rule_object: TicketRule):
+    def as_sub_result_of(self, rule_object):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
         :param rule_object:
@@ -43,8 +44,8 @@ class TicketSubResultItem(EmbeddedDocument):
         self.rule_desc = rule_object.desc
         self.input_params = deepcopy(rule_object.input_params)
 
-    def add_output(self, output_structure: TicketRuleInputOutputParams, value):
-        to_add = TicketRuleInputOutputParams(
+    def add_output(self, output_structure: TicketOutputParams, value):
+        to_add = TicketOutputParams(
             name=output_structure.name,
             desc=output_structure.desc,
             unit=output_structure.unit,
