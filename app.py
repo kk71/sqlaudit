@@ -250,7 +250,7 @@ def ticket_rule_import_code(compare: bool):
     """FOR DEVELOPMENT: import rule code from ticket_rules"""
     from pathlib import Path
     import settings
-    from models.mongo import TicketRule
+    from new_rule.rule import TicketRule
     if compare:
         print("=== compare only ===")
     different_codes = []

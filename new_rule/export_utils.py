@@ -2,7 +2,7 @@
 
 import json
 
-from models.mongo import TicketRule
+from new_rule.rule import TicketRule
 
 
 def ticket_rule_import(filename) -> tuple:

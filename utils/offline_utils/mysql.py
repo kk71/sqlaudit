@@ -4,18 +4,10 @@ __all__ = [
     "MySQLSubTicketAnalysis",
 ]
 
-import re
-import uuid
-
-import sqlparse
 from mongoengine import QuerySet as mongoengine_qs
-from sqlalchemy.orm.query import Query as sqlalchemy_qs
 
-from models.mongo import *
-from models.oracle import CMDB, WorkList
-from plain_db.oracleob import *
 from utils.const import *
-from utils.datetime_utils import *
+from new_rule.rule import TicketRule
 from .base import SubTicketAnalysis
 
 

@@ -53,7 +53,7 @@ class WorkList(BaseModel):
         :param at_least: 遮羞分，为None或者0的时候表示不需要
         :return:
         """
-        from models.mongo import TicketRule
+        from new_rule.rule import TicketRule
         from models.mongo import OracleTicketSubResult as _TicketSubResult
         print("* calculating total score for offline ticket "
               f"with id: {self.work_list_id}...")

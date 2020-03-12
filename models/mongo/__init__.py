@@ -24,8 +24,6 @@ __all__ = [
     "StatsSchemaRate",
     "StatsCMDBRate",
     # 线下审核相关
-    "TicketRule",
-    "TicketRuleInputOutputParams",
     "TicketSubResultItem",
     "TicketSubResult",
     "OracleTicketSubResult",

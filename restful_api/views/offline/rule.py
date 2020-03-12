@@ -2,7 +2,7 @@
 
 from schema import Optional, Schema
 
-from models.mongo import *
+from new_rule.rule import *
 from utils.schema_utils import *
 from restful_api.views.base import PrivilegeReq
 from utils.const import *
@@ -98,7 +98,7 @@ class TicketRuleHandler(PrivilegeReq):
             Optional("weight"): scm_num
         }))
 
-        rule = Rule.objects(
+        rule = TicketRule.objects(
             name=params.pop("name"),
             db_type=params.pop("db_type")).first()
         rule.from_dict(params)
