@@ -10,7 +10,6 @@ from restful_api.views.base import PrivilegeReq
 from utils.schema_utils import *
 from utils.const import *
 from models.oracle import *
-from models.mongo import *
 from models.mongo.offline import TicketSubResult
 from utils import cmdb_utils
 from .base import TicketReq
