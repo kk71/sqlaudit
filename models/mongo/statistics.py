@@ -773,7 +773,8 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
 
         with make_session() as session:
             all_bound_schemas = get_cmdb_bound_schema(session, cmdb_id)
-            all_rules = Rule.filter_enabled()
+            all_rules = Rule.filter_enabled(
+                rule_type__in=ALL_RULE_TYPES_FOR_SQL_RULE)
             for schema in all_bound_schemas:
                 for rule in all_rules:
                     rsts = get_risk_sql_list(
