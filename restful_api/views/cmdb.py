@@ -473,9 +473,9 @@ class CMDBHealthTrendHandler(AuthReq):
                     session, user_login=self.current_user)
                 # 如果没有给出cmdb_id，则把最差的前十个拿出来
                 cmdb_id_list = [
-                                   i.cmdb_id
-                                   for i in cmdb_utils.get_latest_cmdb_score(session=session)
-                                   if i.cmdb_id in cmdb_id_list
+                                   i
+                                   for i in cmdb_utils.get_latest_cmdb_score(session=session).keys()
+                                   if i in cmdb_id_list
                                ][:10]
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
