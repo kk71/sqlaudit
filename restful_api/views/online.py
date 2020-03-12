@@ -136,16 +136,16 @@ class SQLRiskListHandler(PrivilegeReq):
         return {
             "cmdb_id": scm_int,
             Optional("schema_name", default=None): scm_str,
-            Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
+            # Optional("risk_sql_rule_id", default=None): scm_dot_split_int,
             Optional("rule_name", default=None): scm_str,
-            scm_optional("date_start", default=None): scm_date,
-            scm_optional("date_end", default=None): scm_date_end,
-            Optional("rule_type", default="ALL"): scm_one_of_choices(
-                ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
-            Optional("enable_white_list", default=True):
-                scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
-            Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
-            Optional("severity", default=None): scm_dot_split_str,
+            # scm_optional("date_start", default=None): scm_date,
+            # scm_optional("date_end", default=None): scm_date_end,
+            # Optional("rule_type", default="ALL"): scm_one_of_choices(
+            #     ["ALL"] + ALL_RULE_TYPES_FOR_SQL_RULE),
+            # Optional("enable_white_list", default=True):
+            #     scm_bool,  # 需要注意这个字段的实际值，query_args时是0或1的字符，json时是bool
+            # Optional("sort_by", default="sum"): scm_one_of_choices(["sum", "average"]),
+            # Optional("severity", default=None): scm_dot_split_str,
             scm_optional("task_record_id"): scm_int
         }
 
@@ -158,7 +158,7 @@ class SQLRiskListHandler(PrivilegeReq):
             Optional("per_page", default=10): scm_int,
         }))
         p = self.pop_p(params)
-        date_range = params.pop("date_start"), params.pop("date_end")
+        # date_range = params.pop("date_start"), params.pop("date_end")
 
         if "task_record_id" in params.keys():
             params["task_record_id_to_replace"] = {
@@ -171,7 +171,7 @@ class SQLRiskListHandler(PrivilegeReq):
                     sql_utils.get_risk_sql_list,
                     session=session,
                     **params,
-                    date_range=date_range
+                    # date_range=date_range
                 )
             except NoRiskRuleSetException:
                 self.resp(msg="未设置风险规则。")
@@ -508,7 +508,7 @@ class TableInfoHandler(AuthReq):
         })
 
 
-class OverviewHandler(SQLRiskListHandler):
+class OverviewHandler(PrivilegeReq):
 
     async def get(self):
         """数据库健康度概览"""
