@@ -34,7 +34,7 @@
             "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -531,7 +531,7 @@
             "2.应用程序替换数据库函数"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -865,7 +865,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3647,7 +3647,7 @@
             "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4654,7 +4654,7 @@
             "2.应用程序替换数据库函数"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5244,7 +5244,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7034,8 +7034,8 @@
             {
                 "parm_desc": "or个数",
                 "parm_name": "or_num",
-                "parm_value": 5,
-                "parm_unit": ""
+                "parm_unit": "",
+                "parm_value": 5
             }
         ],
         "max_score": 20,
