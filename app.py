@@ -103,7 +103,7 @@ def create_admin():
 @cli.command()
 def gen_license():
     """generate license"""
-    from past.utils.product_license import gen_license
+    from utils.product_license import gen_license
     gen_license()
 
 
@@ -234,7 +234,7 @@ def flush_celery_q(q):
     type=click.STRING)
 def ticket_rule_import(filename):
     """import ticket rules, deduplicated."""
-    from utils.ticket_rule_utils import ticket_rule_import
+    from new_rule.export_utils import ticket_rule_import
     print(f"going to import ticket rules from {filename} ...")
     imported_num = ticket_rule_import(filename)
     print(f"{imported_num} rule(s) imported.")
@@ -292,7 +292,7 @@ def ticket_rule_import_code(compare: bool):
     type=click.STRING)
 def ticket_rule_export(filename):
     """export ticket rules, target json file will be overwritten if existed."""
-    from utils.ticket_rule_utils import ticket_rule_export
+    from new_rule.export_utils import ticket_rule_export
     print(f"going to export ticket rules to {filename} ...")
     exported_num = ticket_rule_export(filename)
     print(f"{exported_num} rule(s) exported.")
@@ -307,7 +307,7 @@ def ticket_rule_export_code():
 @cli.command()
 def ticket_rule_drop():
     """delete all ticket rules, use with caution!"""
-    from utils.ticket_rule_utils import ticket_rule_drop
+    from new_rule.export_utils import ticket_rule_drop
     dropped_num = ticket_rule_drop()
     print(f"{dropped_num} ticket rule(s) dropped.")
 

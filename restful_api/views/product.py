@@ -1,11 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional
-
-from utils.schema_utils import *
 from .base import BaseReq
-from past.utils.product_license import *
-from utils.datetime_utils import *
+from utils.product_license import *
 from utils.version_utils import *
 
 
