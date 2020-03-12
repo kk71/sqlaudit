@@ -46,14 +46,7 @@ def run_capture(now, process_start_time):
         print(task)
 
         if task['script'] == const.DB_TASK_CAPTURE:
-            params = (task['host'],
-                      task['port'],
-                      task['sid'],
-                      task['user_name'],
-                      task['password'],
-                      task['task_id'],
-                      task['connect_name'],
-                      task['business_name'],
+            params = (task['task_id'],
                       [],
                       task['cmdb_id'],
                       path.split(__file__)[1]
