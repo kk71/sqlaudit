@@ -19,8 +19,8 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session, CMDB, DataHealth
-from models.mongo import Results
+from models.oracle import make_session,CMDB
+from models.mongo import Results,StatsCMDBRate
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
 from utils import cmdb_utils
@@ -140,12 +140,10 @@ def create_excels(username, send_list_id):
             wb.close()
         for cmdb_id in cmdb_ids:
             connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
-
-            dh_q = session.query(DataHealth).filter(
-                DataHealth.database_name == connect_name,
-                DataHealth.collect_date > now.shift(weeks=-1).datetime
-            ).order_by(DataHealth.collect_date)
-            dh_d = [x.to_dict() for x in dh_q]
+            cmdb_rate_q=StatsCMDBRate.objects().filter(connect_name=connect_name,
+                                           etl_date__gt=now.shift(weeks=-1).datetime).\
+                order_by("etl_date")
+            cmdb_rate=[x.to_dict() for x in cmdb_rate_q]
 
             rst_q=Results.objects(cmdb_id=cmdb_id,score__score__nin=[None,0],
                             create_date__gte=date_start,
@@ -163,7 +161,7 @@ def create_excels(username, send_list_id):
 
             wb = xlsxwriter.Workbook(
                 path + "/" + connect_name + "-" + arrow.now().date().strftime("%Y%m%d") + ".xlsx")
-            create_sql_healthy_files(rst_d, dh_d, connect_name, wb)
+            create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb)
             create_risk_obj_files(rr_obj, rst_obj, wb)
             create_risk_sql_files(rr_sql, rst_sql, wb)
             wb.close()
@@ -239,7 +237,7 @@ def create_excel(username, send_list_id):
 
 
 # 创建sql健康度EXCEL
-def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
+def create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb):
     # excel 表格样式sheet1
     ws = wb.add_worksheet("1.整体健康度")
     ws.set_column(0, 7, 18)
@@ -282,9 +280,9 @@ def create_sql_healthy_files(rst_d, dh_d, connect_name, wb):
     ws.write(4, 0, "采集日期", title_format)
     ws.write(5, 0, "得分")
     col = 1
-    for dh in dh_d:
-        ws.write(4, col, dh['collect_date'][:10], date_format)
-        ws.write(5, col, dh['health_score'], text_format)
+    for cr in cmdb_rate:
+        ws.write(4, col, cr['etl_date'][:10], date_format)
+        ws.write(5, col, cr['score'], text_format)
         col += 1
 
     # 根据健康度表格数据绘制折线图
