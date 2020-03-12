@@ -767,32 +767,37 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
         import arrow
         from utils.sql_utils import get_risk_sql_list
+        from utils.cmdb_utils import get_cmdb_bound_schema
         from models.oracle import make_session
-        from collections import defaultdict
+        from models.mongo import Rule
 
         with make_session() as session:
-            rst = get_risk_sql_list(
-                session=session,
-                cmdb_id=cmdb_id,
-                date_range=(None, None),
-                task_record_id=task_record_id,
-                task_record_id_to_replace={cmdb_id: task_record_id}
-            )
-
-        # rule_name, schema:
-        rsts = defaultdict(lambda: defaultdict(cls))
-        for x in rst:
-            doc = rsts[x["rule"]["rule_name"]][x["schema"]]
-            doc.task_record_id = task_record_id
-            doc.cmdb_id = cmdb_id
-            doc.rule = x["rule"]
-            doc.severity = x["severity"]
-            doc.last_appearance = arrow.get(x["last_appearance"]).datetime
-            doc.schema = x['schema']
-            doc.rule_num += 1
-        for i in rsts.values():
-            for j in i.values():
-                    yield j
+            all_bound_schemas = get_cmdb_bound_schema(session, cmdb_id)
+            all_rule_names = list(Rule.filter_enabled().values_list("rule_name"))
+            for schema in all_bound_schemas:
+                for rule_name in all_rule_names:
+                    rsts = get_risk_sql_list(
+                        session=session,
+                        cmdb_id=cmdb_id,
+                        date_range=(None, None),
+                        task_record_id=task_record_id,
+                        task_record_id_to_replace={cmdb_id: task_record_id},
+                        schema_name=schema,
+                        rule_name=rule_name
+                    )
+                    doc = cls(
+                        task_record_id=task_record_id,
+                        cmdb_id=cmdb_id,
+                        schema=schema,
+                        rule=rule_name,
+                        severity="严重"
+                    )
+                    for rst in rsts:
+                        appearance_time = arrow.get(rst["last_appearance"]).datetime
+                        if appearance_time > doc.last_appearance:
+                            doc.last_appearance = appearance_time
+                        doc.rule_num += 1
+                    yield doc
 
 
 class StatsRiskObjectsRule(BaseStatisticsDoc):
@@ -836,7 +841,7 @@ class StatsRiskObjectsRule(BaseStatisticsDoc):
             doc.rule_num += 1
         for i in rsts.values():
             for j in i.values():
-                    yield j
+                yield j
 
 
 class StatsCMDBPhySize(BaseStatisticsDoc):
@@ -963,4 +968,3 @@ class StatsCMDBSQLText(BaseStatisticsDoc):
                 sql_id=one.pop("_id"),
                 **one
             )
-
