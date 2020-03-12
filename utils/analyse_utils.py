@@ -14,13 +14,13 @@ from models.mongo import *
 STATS_MODELS = (
     StatsSchemaRate,
     StatsCMDBRate,
+    StatsCMDBSQLText,
     StatsRiskSqlRule,
     StatsRiskObjectsRule,
     StatsNumDrillDown,
     StatsCMDBPhySize,
     StatsCMDBLoginUser,
     StatsCMDBSQLPlan,
-    StatsCMDBSQLText,
     StatsLoginUser
 )
 
