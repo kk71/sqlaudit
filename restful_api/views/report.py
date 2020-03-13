@@ -162,7 +162,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
                     x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
                 x = ["" if x is None else x for x in x.values()]
-                pt.add_row([x[0], x[1], x[2], x[3], x[5], x[4], x[6]])
+                pt.add_row([x[0], x[1], x[2], x[4], x[5], x[3], x[6]])
             plans = str(pt)
 
         self.resp({
