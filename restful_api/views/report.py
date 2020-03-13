@@ -149,19 +149,22 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "operation_display",
                 "options",
                 "object_name",
-                "position",
+                "cardinality",
                 "bytes",
                 "cost",
                 "time"
-            ), iter_by=lambda k, v: arrow.get(v if v else 0).time().strftime("%H:%M:%S") if k == "time" else v)
-                     for i in dict(sorted(plans)).values()]
+            ))for i in dict(sorted(plans)).values()]
             pt = PrettyTable(page_plans)
             pt.align = "l"
             for x in plans:
+                m, s = divmod(x['time'] if x['time'] else 0, 60)
+                h, m = divmod(m, 60)
+                x['time'] = "%02d:%02d:%02d" % (h, m, s)
                 if x["options"] is not None:
                     x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
-                pt.add_row(["" if x is None else x for x in x.values()])
+                x = ["" if x is None else x for x in x.values()]
+                pt.add_row([x[0], x[1], x[2], x[4], x[5], x[3], x[6]])
             plans = str(pt)
 
         self.resp({
@@ -194,10 +197,10 @@ class ExportReportXLSXHandler(AuthReq):
             # job_info = Job.objects(id=job_id).first()
             with make_session() as session:
                 cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
-                port=cmdb.port
-                ip=cmdb.ip_address
-                schema_name=result.score.get("schema_name")
-                rule_type=result.score.get("rule_type")
+                port = cmdb.port
+                ip = cmdb.ip_address
+                schema_name = result.score.get("schema_name")
+                rule_type = result.score.get("rule_type")
                 # if port == 1521:
                 #     search_temp["instance_name"] = job_info.desc.instance_name or "空"
 
@@ -394,7 +397,7 @@ class ExportReportCmdbHTMLHandler(AuthReq):
             db_model = session.query(CMDB.db_model).filter(CMDB.cmdb_id == cmdb_id)[0][0]
             risk_rules_q = session.query(RiskSQLRule).filter(RiskSQLRule.db_model == db_model)
             sql_plan_stats = get_sql_plan_stats(session, cmdb_id)
-            filtered_plans = ["index", "operation_display", "options", "object_name", "position",
+            filtered_plans = ["index", "operation_display", "options", "object_name", "cardinality",
                               "bytes", "cost", "time"]
             page_plans = ["ID", "Operation", "Name",
                           "Rows", "Bytes", "Cost (%CPU)", "Time"]
@@ -456,7 +459,9 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                     pt.align = "l"
                     for p in plans:
                         to_add = list(p)
-                        to_add[-1] = arrow.get(to_add[-1] if to_add[-1] else 0).time().strftime("%H:%M:%S")
+                        m, s = divmod(to_add[-1] if to_add[-1] else 0, 60)
+                        h, m = divmod(m, 60)
+                        to_add[-1]="%02d:%02d:%02d" % (h, m, s)
                         to_add[1] = to_add[1] + " " + to_add[2] if to_add[2] else to_add[1]
                         to_add.pop(2)
                         to_add = [i if i is not None else " " for i in to_add]

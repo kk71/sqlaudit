@@ -439,7 +439,7 @@ class SQLPlanHandler(AuthReq):
         latest_plan = plans.first()  # 取出最后一次采集出来的record_id
         record_id = latest_plan.record_id
 
-        filtered_plans = ["index", "operation_display", "options","object_name", "position",
+        filtered_plans = ["index", "operation_display", "options","object_name", "cardinality",
                           "bytes","cost", "time"]
         page_plans = ["ID", "Operation", "Name",
                       "Rows","Bytes","Cost (%CPU)", "Time"]
