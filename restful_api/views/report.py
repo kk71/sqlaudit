@@ -153,11 +153,13 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "bytes",
                 "cost",
                 "time"
-            ), iter_by=lambda k, v: arrow.get(v if v else 0).time().strftime("%H:%M:%S") if k == "time" else v)
-                     for i in dict(sorted(plans)).values()]
+            ))for i in dict(sorted(plans)).values()]
             pt = PrettyTable(page_plans)
             pt.align = "l"
             for x in plans:
+                m, s = divmod(x['time'] if x['time'] else 0, 60)
+                h, m = divmod(m, 60)
+                x['time'] = "%02d:%02d:%02d" % (h, m, s)
                 if x["options"] is not None:
                     x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
