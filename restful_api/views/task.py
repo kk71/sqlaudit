@@ -85,6 +85,16 @@ class TaskExecutionHistoryHandler(AuthReq):
             items, p = self.paginate(task_exec_hist_q, **p)
             self.resp([i.to_dict() for i in items], **p)
 
+    def delete(self):
+        """手动删除挂起的任务"""
+        params = self.get_query_args(Schema({
+            "task_record_id": scm_int,
+        }))
+        task_record_id = params.pop("task_record_id")
+        with make_session() as session:
+            session.query(TaskExecHistory).filter_by(id=task_record_id).delete()
+        self.resp_created(msg="done")
+
 
 class TaskManualExecute(AuthReq):
 
