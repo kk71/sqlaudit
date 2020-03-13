@@ -87,7 +87,7 @@ class TaskExecutionHistoryHandler(AuthReq):
 
     def delete(self):
         """手动删除挂起的任务"""
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "task_record_id": scm_int,
         }))
         task_record_id = params.pop("task_record_id")
