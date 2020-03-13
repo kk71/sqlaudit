@@ -258,9 +258,8 @@ class TicketHandler(TicketReq):
                 filter(WorkList.work_list_id == work_list_id).first()
             sub_delete_id = work_list.work_list_id
             session.delete(work_list)
+        TicketSubResult.objects(work_list_id=sub_delete_id).delete()
         self.resp(msg="已删除")
-        work_sub_list = TicketSubResult.objects(work_list_id=sub_delete_id).all()
-        work_sub_list.delete()
 
 
 class TicketExportHandler(TicketReq):

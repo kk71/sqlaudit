@@ -16,6 +16,7 @@ from plain_db.oracleob import *
 from utils.const import *
 from .base import SubTicketAnalysis
 from utils.parsed_sql import ParsedSQL
+from new_rule.rule import TicketRule
 
 
 class OracleSubTicketAnalysis(SubTicketAnalysis):
