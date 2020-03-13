@@ -28,13 +28,13 @@ def run(task_id, schema=None, use_queue=False, operator=None):
     cmdb_odb = plain_db.oracleob.OracleOB(
         task['host'], task['port'], task['user_name'], task['password'], task['sid'])
     if task['script'] == DB_TASK_CAPTURE:
-        users = [x[0] for x in cmdb_odb.select(past.capture.sql.GET_SCHEMA, one=False)]
-        if schema and schema in users:
-            users = [schema]
-        print(users)
+        # users = [x[0] for x in cmdb_odb.select(past.capture.sql.GET_SCHEMA, one=False)]
+        # if schema and schema in users:
+        #     users = [schema]
+        # print(users)
         args = (
             task['task_id'],
-            users,
+            [],
             task['cmdb_id'],
             operator
         )

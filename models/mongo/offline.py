@@ -1,10 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from typing import Union
-from copy import deepcopy
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    BooleanField, EmbeddedDocument, EmbeddedDocumentListField, DynamicField
+    BooleanField, EmbeddedDocument, EmbeddedDocumentListField, DynamicField, \
+    ListField
 
 from .utils import BaseDoc
 from utils import const
@@ -12,22 +12,13 @@ from utils.datetime_utils import *
 from utils.parsed_sql import *
 
 
-class TicketOutputParams(EmbeddedDocument):
-    """输出参数"""
-    name = StringField(required=True)
-    desc = StringField()
-    unit = StringField()
-    value = DynamicField()
-
-
 class TicketSubResultItem(EmbeddedDocument):
     """子工单的一个规则结果"""
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
-    input_params = EmbeddedDocumentListField(
-        TicketOutputParams)  # 记录规则执行时的输入参数快照
-    output_params = EmbeddedDocumentListField(TicketOutputParams)  # 运行输出
+    input_params = ListField(default=lambda: [])  # 记录规则执行时的输入参数快照
+    output_params = ListField(default=lambda: [])  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
     def get_rule_unique_key(self) -> tuple:
@@ -42,10 +33,15 @@ class TicketSubResultItem(EmbeddedDocument):
         self.db_type = rule_object.db_type
         self.rule_name = rule_object.name
         self.rule_desc = rule_object.desc
-        self.input_params = deepcopy(rule_object.input_params)
+        self.input_params = [i for i in rule_object.to_dict()["input_params"]]
 
-    def add_output(self, output_structure: TicketOutputParams, value):
-        to_add = TicketOutputParams(
+    def add_output(self, output_structure, value):
+        """
+        :param output_structure: new_rule.rule.RuleInputOutputParams
+        :param value:
+        :return:
+        """
+        to_add = dict(
             name=output_structure.name,
             desc=output_structure.desc,
             unit=output_structure.unit,

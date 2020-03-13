@@ -585,7 +585,7 @@ class RankingConfigHandler(AuthReq):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             "username": scm_unempty_str,
-            "weight": And(scm_float, lambda x: x <= 1)
+            "weight": self.scm_with_em(And(scm_float, lambda x: x <= 1), e="权重不可大于1")
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("username")
