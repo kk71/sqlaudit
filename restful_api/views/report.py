@@ -161,7 +161,8 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 if x["options"] is not None:
                     x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
-                pt.add_row(["" if x is None else x for x in x.values()])
+                x = ["" if x is None else x for x in x.values()]
+                pt.add_row([x[0], x[1], x[2], x[3], x[5], x[4], x[6]])
             plans = str(pt)
 
         self.resp({
@@ -194,10 +195,10 @@ class ExportReportXLSXHandler(AuthReq):
             # job_info = Job.objects(id=job_id).first()
             with make_session() as session:
                 cmdb = session.query(CMDB).filter_by(cmdb_id=result.cmdb_id).first()
-                port=cmdb.port
-                ip=cmdb.ip_address
-                schema_name=result.score.get("schema_name")
-                rule_type=result.score.get("rule_type")
+                port = cmdb.port
+                ip = cmdb.ip_address
+                schema_name = result.score.get("schema_name")
+                rule_type = result.score.get("rule_type")
                 # if port == 1521:
                 #     search_temp["instance_name"] = job_info.desc.instance_name or "空"
 
