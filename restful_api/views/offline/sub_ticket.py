@@ -134,7 +134,7 @@ class SubTicketHandler(TicketReq):
         if not sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
         if TicketSubResult.objects(work_list_id=sub_ticket.work_list_id).count() == 1:
-            return self.resp_forbidden(msg="删除失败，工单应该有至少一条语句。")
+            return self.resp_bad_req(msg="删除失败，工单应该有至少一条语句。")
         sub_ticket.delete()
         self.resp_created(msg="删除成功。")
 
