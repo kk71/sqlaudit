@@ -130,11 +130,11 @@ def all_cmdb_info():
     from prettytable import PrettyTable
     with make_session() as session:
         task = session.query(TaskManage).filter(TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
-        con = ("task_id", "cmdb_id", "connect_name", "business_name", "group_name", "task_create_date")
+        con = ("task_id", "cmdb_id", "connect_name", "business_name", "group_name", "ip_address" , "task_create_date")
         pt = PrettyTable(con)
         pt.align = "l"
         for x in task:
-            pt.add_row([x.task_id, x.cmdb_id, x.connect_name, x.business_name, x.group_name, x.task_create_date])
+            pt.add_row([x.task_id, x.cmdb_id, x.connect_name, x.business_name, x.group_name, x.ip_address, x.task_create_date])
         print(pt)
 
 
