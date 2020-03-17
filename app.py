@@ -123,18 +123,25 @@ def password_convert():
 
 
 @cli.command()
-def all_cmdb_info():
-    """to see all cmdb info"""
-    from models.oracle import make_session, TaskManage
+def cmdb():
+    """display all cmdb info"""
+    from models.oracle import make_session, TaskManage, QueryEntity
     from utils.const import DB_TASK_CAPTURE
     from prettytable import PrettyTable
     with make_session() as session:
-        task = session.query(TaskManage).filter(TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
-        con = ("task_id", "cmdb_id", "connect_name", "business_name", "group_name", "ip_address" , "task_create_date")
-        pt = PrettyTable(con)
+        qe = QueryEntity(
+            TaskManage.cmdb_id,
+            TaskManage.task_id,
+            TaskManage.connect_name,
+            TaskManage.group_name,
+            TaskManage.ip_address
+        )
+        task_q = session.query(*qe).filter(
+            TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
+        pt = PrettyTable(qe.keys)
         pt.align = "l"
-        for x in task:
-            pt.add_row([x.task_id, x.cmdb_id, x.connect_name, x.business_name, x.group_name, x.ip_address, x.task_create_date])
+        for task in task_q:
+            pt.add_row(task)
         print(pt)
 
 
