@@ -7283,5 +7283,53 @@
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
+    },
+    {
+        "db_type": "oracle",
+        "db_model": "OLTP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 5,
+        "output_parms": [],
+        "rule_desc": "全局索引扫描",
+        "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "SQLPLAN",
+        "rule_type_detail": null,
+        "solution": [
+            "合理设计分区索引"
+        ],
+        "weight": 1.0,
+        "obj_info_type": "",
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
+    },
+    {
+        "db_type": "oracle",
+        "db_model": "OLAP",
+        "exclude_obj_type": "",
+        "input_parms": [],
+        "max_score": 5,
+        "output_parms": [],
+        "rule_desc": "全局索引扫描",
+        "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
+        "rule_complexity": "complex",
+        "rule_cmd": "",
+        "rule_status": "ON",
+        "rule_summary": "",
+        "rule_type": "SQLPLAN",
+        "rule_type_detail": null,
+        "solution": [
+            "合理设计分区索引"
+        ],
+        "weight": 1.0,
+        "obj_info_type": "",
+        "output_datas": [],
+        "sql_type": null,
+        "ddl_type": null
     }
 ]
