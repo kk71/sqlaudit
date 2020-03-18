@@ -1460,5 +1460,23 @@
             "建议减少表关联,业务逻辑sql改写"
         ],
         "weight": 1.0
+    },
+    {
+        "name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
+        "desc": "全局索引扫描",
+        "analyse_type": "DYNAMIC",
+        "sql_type": 0,
+        "ddl_type": null,
+        "db_type": "oracle",
+        "input_params": [],
+        "output_params": [],
+        "max_score": 5,
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"TABLE ACCESS\",\n        options=re.compile(r\"BY GLOBAL INDEX ROWID\", re.I)\n    )\n    if plans.count():\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "",
+        "solution": [
+            "合理设计分区索引"
+        ],
+        "weight": 1.0
     }
 ]
