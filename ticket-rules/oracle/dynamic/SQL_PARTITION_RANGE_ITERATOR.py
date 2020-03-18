@@ -1,7 +1,10 @@
 def code(rule, **kwargs):
     sql_plan_qs = kwargs["sql_plan_qs"]
 
-    plans = sql_plan_qs.filter(operation="PARTITION RANGE", options="ITERATOR")
+    plans = sql_plan_qs.filter(
+        operation="PARTITION RANGE",
+        options__in=("ITERATOR", "INLIST", "ALL")
+    )
 
     for x in plans:
         plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,
