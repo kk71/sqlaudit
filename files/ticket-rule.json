@@ -1265,7 +1265,7 @@
             }
         ],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(filter_predicates=re.compile(r\"SYS_OP\"))\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        filter_predicates=re.compile(r\"(SYS_OP|TO_NUMBER|INTERNAL_FUNCTION)\", re.I)\n    )\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "隐式转换",
         "solution": [
