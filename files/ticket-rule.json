@@ -527,7 +527,7 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normaliazed == \"FROM\":\n            has_from = True\n            continue\n        if token.normaliazed == \"SELECT\" and has_from:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normaliazed == \"FROM\":\n            has_from = True\n            continue\n        if token.normalized == \"SELECT\" and has_from:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
@@ -1242,12 +1242,6 @@
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
-            },
-            {
-                "name": "count",
-                "desc": "计数",
                 "unit": "",
                 "value": null
             }

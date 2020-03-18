@@ -11,7 +11,7 @@ def code(rule, **kwargs):
         if token.normaliazed == "FROM":
             has_from = True
             continue
-        if token.normaliazed == "SELECT" and has_from:
+        if token.normalized == "SELECT" and has_from:
             return -rule.weight, []
     return None, []
 
