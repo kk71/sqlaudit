@@ -185,29 +185,21 @@ class SubTicketExportHandler(SubTicketHandler):
                 'valign': 'vcenter',
                 'text_wrap': True,
             })
-            fields = ["主工单ID", "SQL_ID", "SQL文本", "静态检测结果", "动态检测结果",
-                      "检测时间", "执行时长(ms)", "错误信息", "备注"]
+            fields = ["工单编号","SQL文本", "静态检测结果", "动态检测结果",  "上线状态", "错误信息"]
             for x, field in enumerate(fields):
                 ws.write(0, x, field.upper(), format_title)
             for row_num, sub_ticket in enumerate(q.all()):
                 row_num += 1
-                ws.write(row_num, 0, sub_ticket.work_list_id, format_text)
-                ws.write(row_num, 1, sub_ticket.statement_id, format_text)
-                ws.write(row_num, 2, sub_ticket.sql_text, format_text)
+                ws.write(row_num, 0, sub_ticket.task_name, format_text)
+                ws.write(row_num, 1, sub_ticket.sql_text, format_text)
+                ws.write(row_num, 2, "\n".join(
+                    [x['rule_desc'] for x in sub_ticket.to_dict()['static']]),
+                         format_text)
                 ws.write(row_num, 3, "\n".join(
-                    [x['rule_name'] for x in sub_ticket.to_dict()['static']]),
+                    [x["rule_desc"] for x in sub_ticket.to_dict()['dynamic']]),
                          format_text)
-                ws.write(row_num, 4, "\n".join(
-                    [x["rule_name"] for x in sub_ticket.to_dict()['dynamic']]),
-                         format_text)
-                ws.write(row_num, 5, dt_to_str(sub_ticket.check_time))
-                # ws.write(row_num, 6, sub_ticket.check_owner, format_text)
-                # ws.write(row_num, 7, dt_to_str(sub_ticket.online_date))
-                # ws.write(row_num, 8, sub_ticket.online_owner, format_text)
-                ws.write(row_num, 6, sub_ticket.elapsed_seconds, format_text)
-                # ws.write(row_num, 10, sub_ticket.status, format_text)
-                ws.write(row_num, 7, sub_ticket.error_msg, format_text)
-                ws.write(row_num, 8, sub_ticket.comments, format_text)
+                ws.write(row_num,4,sub_ticket.online_status,format_text)
+                ws.write(row_num, 5, sub_ticket.error_msg, format_text)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 

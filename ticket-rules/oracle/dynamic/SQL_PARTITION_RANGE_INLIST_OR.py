@@ -1,12 +1,8 @@
-from mongoengine import Q
-
-
 def code(rule, **kwargs):
     sql_plan_qs = kwargs["sql_plan_qs"]
 
-    plans = sql_plan_qs.\
-        filter(operation="PARTITION RANGE"). \
-        filter(Q(options="INLIST") | Q(options="OR"))
+    plans = sql_plan_qs.filter(
+        operation="PARTITION RANGE", options__in=("INLIST", "OR"))
 
     for x in plans:
         plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,

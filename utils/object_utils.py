@@ -56,18 +56,6 @@ def get_object_stats_towards_cmdb(rule_names: Iterable, cmdb_id: int) -> dict:
     return ret
 
 
-def __prefetch():
-    with make_session() as session:
-        for cmdb in session.query(CMDB).all():
-            rule_names = list(Rule.objects.filter(db_model=cmdb.db_model).
-                              values_list("rule_name"))
-            get_object_stats_towards_cmdb(rule_names=rule_names, cmdb_id=cmdb.cmdb_id)
-
-
-get_object_stats_towards_cmdb.prefetch = __prefetch
-del __prefetch
-
-
 @timing(cache=r_cache)
 def get_risk_object_list(session,
                          cmdb_id,
@@ -231,32 +219,3 @@ def risk_object_export_data(cmdb_id=None, schema=None,
         )
 
     return rr, rst
-
-
-def __prefetch():
-    arrow_now = arrow.now()
-    date_end = arrow_now.shift(days=+1).date()
-    date_start_week = arrow_now.shift(weeks=-1).date()
-    date_start_month = arrow_now.shift(days=-30).date()
-    with make_session() as session:
-        for cmdb in session.query(CMDB).all():
-            get_risk_object_list(
-                session=session,
-                cmdb_id=cmdb.cmdb_id,
-                date_start=date_start_week,
-                date_end=date_end,
-                schema_name=None,
-                risk_sql_rule_id=None
-            )
-            get_risk_object_list(
-                session=session,
-                cmdb_id=cmdb.cmdb_id,
-                date_start=date_start_month,
-                date_end=date_end,
-                schema_name=None,
-                risk_sql_rule_id=None
-            )
-
-
-get_risk_object_list.prefetch = __prefetch
-del __prefetch

@@ -1,28 +1,17 @@
+from utils.parsed_sql import ParsedSQL
+
+
 def code(rule, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
     sql_text: str = single_sql["sql_text_no_comment"]
-    str_len = len(sql_text)
-    m = 0
-    n = 0
-    sqlbegin = 0
-    sql_content = []
-    for k in range(str_len):
-        if sql_text[k] == "(":
-            m = m + 1
-        if sql_text[k] == ")":
-            m = m - 1
-        if sql_text[k: k + 4] == "from" and m == 0:
-            sqlbegin = k + 5
-            n = n + 1
-        if sql_text[k: k + 5] == "where" or sql_text[k: k + 6] == "having" and m == 0:
-            sqlend = k - 1
-            n = n - 1
-            sql_content.append(sql_text[sqlbegin: sqlend])
-        if k == str_len - 1 and n > 0 and m == 0:
-            sqlend = k - 1
-            sql_content.append(sql_text[sqlbegin: sqlend])
-    for value in sql_content:
-        if "select " in value:
+    ps = ParsedSQL(sql_text)
+    this_one_sql = ps[0]
+    has_from = False
+    for token in this_one_sql.tokens:
+        if token.normalized == "FROM":
+            has_from = True
+            continue
+        if token.normalized == "SELECT" and has_from:
             return -rule.weight, []
     return None, []
 

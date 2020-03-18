@@ -367,7 +367,7 @@
             "2.垂直拆分,减少单库规模"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -411,7 +411,7 @@
             "重新合理定义分区键"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -452,7 +452,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -564,7 +564,7 @@
             "改造本地分区索引"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -642,7 +642,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.25,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1342,7 +1342,7 @@
             "2.表数据重新存储"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2487,7 +2487,7 @@
             "关闭表的并行度alter table TABLENAME noparallel"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2528,7 +2528,7 @@
             "2.历史数据归档"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2630,7 +2630,7 @@
             "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2671,7 +2671,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3828,7 +3828,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3869,7 +3869,7 @@
             "2.历史数据归档"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3943,7 +3943,7 @@
             "关闭表的并行度alter table TABLENAME noparallel"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3983,7 +3983,7 @@
             "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4028,7 +4028,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.25,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4274,7 +4274,7 @@
             "2.表数据重新存储"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4485,7 +4485,7 @@
             "重新合理定义分区键"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4579,7 +4579,7 @@
             "2.垂直拆分,减少单库规模"
         ],
         "weight": 1.0,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4747,7 +4747,7 @@
             "改造本地分区索引"
         ],
         "weight": 0.3,
-        "obj_info_type": null,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4829,7 +4829,7 @@
             "2.历史数据归档"
         ],
         "weight": 0.5,
-        "obj_info_type": null,
+        "obj_info_type": "TABLE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
