@@ -450,10 +450,24 @@ class SQLPlanHandler(AuthReq):
         pt.align = "l"
         for p in plans:
             to_add = list(p)
-            to_add[-1] = arrow.get(to_add[-1] if to_add[-1] else 0).time().strftime("%H:%M:%S")
+            m, s = divmod(to_add[-1] if to_add[-1] else 0, 60)
+            h, m = divmod(m, 60)
+            to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
             to_add[1] = to_add[1] + " " + to_add[2] if to_add[2] else to_add[1]
             to_add.pop(2)
             to_add = [i if i is not None else " " for i in to_add]
+            if 8 > len(str(to_add[-4])) > 5:
+                to_add[-4] = str(round(to_add[-4] // 1024)) + "K"
+                if len(str(to_add[-4])) >= 8:
+                    to_add[-4] = str(round(to_add[-4] // 1024 // 1024)) + "M"
+            if 8 > len(str(to_add[-3])) > 5:
+                to_add[-3] = str(round(to_add[-3] // 1024)) + "K"
+                if len(str(to_add[-3])) >= 8:
+                    to_add[-3] = str(round(to_add[-3] // 1024 // 1024)) + "M"
+            if 8 > len(str(to_add[-2])) > 5:
+                to_add[-2] = str(round(to_add[-2] // 1024)) + "K"
+                if len(str(to_add[-2])) >= 8:
+                    to_add[-2] = str(round(to_add[-2] // 1024 // 1024)) + "M"
             pt.add_row(to_add)
         output_table = str(pt)
 

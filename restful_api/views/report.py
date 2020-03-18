@@ -153,7 +153,7 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 "bytes",
                 "cost",
                 "time"
-            ))for i in dict(sorted(plans)).values()]
+            )) for i in dict(sorted(plans)).values()]
             pt = PrettyTable(page_plans)
             pt.align = "l"
             for x in plans:
@@ -163,8 +163,22 @@ class OnlineReportSQLPlanHandler(AuthReq):
                 if x["options"] is not None:
                     x["operation_display"] = x["operation_display"] + " " + x["options"]
                 x.pop("options")
-                x = ["" if x is None else x for x in x.values()]
-                pt.add_row([x[0], x[1], x[2], x[4], x[5], x[3], x[6]])
+                x = {k: "" if v is None else v for k, v in x.items()}
+                if 8 > len(str(x['cardinality'])) > 5:
+                    x['cardinality']=str(round(x['cardinality']//1024))+"K"
+                    if len(str(x['cardinality'])) >= 8:
+                        x['cardinality']=str(round(x['cardinality']//1024//1024))+"M"
+                if 8 > len(str(x['bytes'])) > 5:
+                    x['bytes'] = str(round(x['bytes'] // 1024)) + "K"
+                    if len(str(x['bytes'])) >= 8:
+                        x['bytes'] = str(round(x['bytes'] // 1024 // 1024)) + "M"
+                if 8 > len(str(x['cost'])) > 5:
+                    x['cost'] = str(round(x['cost'] // 1024)) + "K"
+                    if len(str(x['cost'])) >= 8:
+                        x['cost'] = str(round(x['cost'] // 1024 // 1024)) + "M"
+                pt.add_row([x['index'], x['operation_display'],
+                            x['object_name'], x['cardinality'],
+                            x['bytes'], x['cost'], x['time']])
             plans = str(pt)
 
         self.resp({
@@ -461,10 +475,23 @@ class ExportReportCmdbHTMLHandler(AuthReq):
                         to_add = list(p)
                         m, s = divmod(to_add[-1] if to_add[-1] else 0, 60)
                         h, m = divmod(m, 60)
-                        to_add[-1]="%02d:%02d:%02d" % (h, m, s)
+                        to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
                         to_add[1] = to_add[1] + " " + to_add[2] if to_add[2] else to_add[1]
                         to_add.pop(2)
                         to_add = [i if i is not None else " " for i in to_add]
+                        if 8 > len(str(to_add[-4])) > 5:
+                            to_add[-4] = str(round(to_add[-4] // 1024)) + "K"
+                            if len(str(to_add[-4])) >= 8:
+                                to_add[-4] = str(round(to_add[-4] // 1024 // 1024)) + "M"
+                        if 8 > len(str(to_add[-3])) > 5:
+                            to_add[-3] = str(round(to_add[-3] // 1024)) + "K"
+                            if len(str(to_add[-3])) >= 8:
+                                to_add[-3] = str(round(to_add[-3] // 1024 // 1024)) + "M"
+                        if 8 > len(str(to_add[-2])) > 5:
+                            to_add[-2] = str(round(to_add[-2] // 1024)) + "K"
+                            if len(str(to_add[-2])) >= 8:
+                                to_add[-2] = str(round(to_add[-2] // 1024 // 1024)) + "M"
+
                         pt.add_row(to_add)
                     sqlplan_table = str(pt)
 
