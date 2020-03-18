@@ -1073,16 +1073,10 @@
                 "desc": "cost",
                 "unit": "",
                 "value": null
-            },
-            {
-                "name": "count",
-                "desc": "计数",
-                "unit": "",
-                "value": null
             }
         ],
         "max_score": 5,
-        "code": "from mongoengine import Q\n\n\ndef code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.\\\n        filter(operation=\"PARTITION RANGE\"). \\\n        filter(Q(options=\"INLIST\") | Q(options=\"OR\"))\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\", options__in=(\"INLIST\", \"OR\"))\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "非连续分区扫描",
         "solution": [
@@ -1128,16 +1122,10 @@
                 "desc": "cost",
                 "unit": "",
                 "value": null
-            },
-            {
-                "name": "count",
-                "desc": "计数",
-                "unit": "",
-                "value": null
             }
         ],
         "max_score": 5,
-        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options__in=(\"ITERATOR\", \"INLIST\", \"ALL\")\n    )\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options=\"ITERATOR\"\n    )\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "跨分区扫描",
         "solution": [

@@ -3,7 +3,7 @@ def code(rule, **kwargs):
 
     plans = sql_plan_qs.filter(
         operation="PARTITION RANGE",
-        options__in=("ITERATOR", "INLIST", "ALL")
+        options="ITERATOR"
     )
 
     for x in plans:
