@@ -8,7 +8,7 @@ def code(rule, **kwargs):
     this_one_sql = ps[0]
     has_from = False
     for token in this_one_sql.tokens:
-        if token.normaliazed == "FROM":
+        if token.normalized == "FROM":
             has_from = True
             continue
         if token.normalized == "SELECT" and has_from:
