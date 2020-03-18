@@ -113,10 +113,10 @@ class Results(BaseDocRecordID):
                     #     obj_name = sql_dict["obj_name"]
                     # else:
                     #     obj_name = "空"
-                    if sql_dict.get("cost", None):
-                        cost = sql_dict["cost"]
-                    else:
-                        cost = "空"
+                    # if sql_dict.get("cost", None):
+                    #     cost = sql_dict["cost"]
+                    # else:
+                    #     cost = "空"
                     # if sql_dict.get("stat", None):
                     #     count = sql_dict["stat"].get("ts_cnt", "空")
                     # else:
@@ -126,7 +126,7 @@ class Results(BaseDocRecordID):
                         "SQL文本": sql_dict["sql_text"],
                         "执行计划哈希值": sql_dict["plan_hash_value"],
                         # "对象名": obj_name,
-                        "Cost": cost,
+                        # "Cost": cost,
                         # "计数": count
                     })
                 if records:
