@@ -12,6 +12,7 @@ from mongoengine import EmbeddedDocument, StringField, DynamicField,\
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
 from schema import Schema, Or, And
 
+import core.rule
 from models.mongo import BaseDoc
 from utils import const
 from utils.schema_utils import scm_num
@@ -26,7 +27,7 @@ class RuleInputOutputParams(EmbeddedDocument):
     value = DynamicField(default=None, required=False, null=True)
 
 
-class TicketRule(BaseDoc):
+class TicketRule(BaseDoc, core.rule.BaseRuleItem):
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
@@ -43,8 +44,8 @@ class TicketRule(BaseDoc):
     input_params = EmbeddedDocumentListField(RuleInputOutputParams)
     output_params = EmbeddedDocumentListField(RuleInputOutputParams)
     max_score = IntField()
-    code = StringField(required=True)  # 规则的python代码
-    status = BooleanField(default=True)  # 规则是否启用
+    code = StringField(required=True)
+    status = BooleanField(default=True)
     summary = StringField()  # 比desc更详细的一个规则解说
     solution = ListField()
     weight = FloatField(required=True)
@@ -107,9 +108,6 @@ def code(rule, **kwargs):
 code_hole.append(code)
         '''
 
-    def unique_key(self) -> tuple:
-        return self.db_type, self.name
-
     def gip(self, param_name: str) -> dict:
         """
         获取输入参数的值
@@ -121,7 +119,7 @@ code_hole.append(code)
                 for i in self.to_dict()["input_params"]}[param_name]
 
     @staticmethod
-    def _construct_code(code: str) -> Callable:
+    def construct_code(code: str) -> Callable:
         """构建code函数"""
         code_hole = []
         exec(code, {
@@ -131,7 +129,7 @@ code_hole.append(code)
             raise const.RuleCodeInvalidException("code not put in to the hole!")
         return code_hole.pop()
 
-    def analyse(self, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
+    def run(self, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
         """
         在给定的sql文本上执行当前规则
         :param test_only: 仅测试生成code代码函数，并不执行。
@@ -144,7 +142,7 @@ code_hole.append(code)
                 delattr(self, "_code")
             print(f"* generating code for {str(self)} (test only)...")
             try:
-                self._construct_code(self.code)
+                self.construct_code(self.code)
             except Exception as e:
                 trace = traceback.format_exc()
                 print(f"* failed when generating {self.unique_key()}: {e}")
@@ -155,7 +153,7 @@ code_hole.append(code)
             if not getattr(self, "_code", None):
                 print(f"* generating and analysing code of {str(self)} ...")
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
-                self._code: Callable = self._construct_code(self.code)
+                self._code: Callable = self.construct_code(self.code)
             else:
                 print(f"* analysing {str(self)} ...")
             ret = self._code(self, **kwargs)

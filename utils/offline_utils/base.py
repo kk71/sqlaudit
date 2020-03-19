@@ -107,7 +107,7 @@ class SubTicketAnalysis(abc.ABC):
                 sub_result_item.as_sub_result_of(sr)
 
                 # ===这里指明了静态审核的输入参数(kwargs)===
-                score_to_minus, output_params = sr.analyse(
+                score_to_minus, output_params = sr.run(
                     single_sql=single_sql,
                     sqls=sqls,
                     cmdb=self.cmdb

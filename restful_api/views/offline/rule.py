@@ -58,7 +58,7 @@ class TicketRuleHandler(PrivilegeReq):
             "analyse_type": scm_one_of_choices(ALL_TICKET_ANALYSE_TYPE)
         }))
         new_rule = TicketRule(**params)
-        new_rule.analyse(test_only=True)
+        new_rule.run(test_only=True)
         new_rule.save()
         self.resp_created(new_rule.to_dict())
 
@@ -102,7 +102,7 @@ class TicketRuleHandler(PrivilegeReq):
             name=params.pop("name"),
             db_type=params.pop("db_type")).first()
         rule.from_dict(params)
-        rule.analyse(test_only=True)
+        rule.run(test_only=True)
         rule.save()
         self.resp_created(rule.to_dict())
 

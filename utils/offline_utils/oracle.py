@@ -76,7 +76,7 @@ class OracleSubTicketAnalysis(SubTicketAnalysis):
                 sub_result_item.as_sub_result_of(dr)
 
                 # ===这里指明了动态审核的输入参数(kwargs)===
-                score_to_minus, output_params = dr.analyse(
+                score_to_minus, output_params = dr.run(
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,
                     mongo_connector=self.mongo_connector,
