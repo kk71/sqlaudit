@@ -546,7 +546,7 @@ class StatsLoginUser(BaseStatisticsDoc):
                         cmdb_id__in=cmdb_ids,
                         task_record_id__in=latest_task_record_ids,
                         add_to_rate=True
-                    ).order_by("-score_average")
+                    ).order_by("score_average")
                     for schema_rate in schema_rate_q[:10]:
                         doc.schema_rank.append(StatsLoginUser_SchemaRank(
                             schema_name=schema_rate.schema_name,
