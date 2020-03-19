@@ -102,7 +102,7 @@ urls += [
     (r"/api/report/online/plan_detail", report.OnlineReportSQLPlanHandler),
     (r"/api/report/export/xlsx", report.ExportReportXLSXHandler),
     (r"/api/report/export/html", report.ExportReportHTMLHandler),
-    (r"/api/report/export/cmdb/html",report.ExportReportCmdbHTMLHandler),
+    (r"/api/report/export/cmdb/html", report.ExportReportCmdbHTMLHandler),
 ]
 
 # optimize

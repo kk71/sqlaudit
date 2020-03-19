@@ -153,9 +153,17 @@ def get_risk_object_list(session,
             if not getattr(result, risky_rule_name).get("records", None):
                 continue  # 规则key存在，值非空，但是其下records的值为空
             for record in getattr(result, risky_rule_name)["records"]:
+                object_name = risky_rule_object.get_object_name(
+                    record, (
+                        const.OBJ_RULE_TYPE_TABLE,
+                        const.OBJ_RULE_TYPE_SEQ,
+                        const.OBJ_RULE_TYPE_INDEX)
+                )
+                if not object_name:
+                    object_name = record[0]
                 r = {
                     "schema": result.schema_name,
-                    "object_name": record[0],
+                    "object_name": object_name,
                     "rule_desc": risky_rule_object.rule_desc,
                     "table_name": risky_rule_object.get_object_name(
                         record, const.OBJ_RULE_TYPE_TABLE),

@@ -235,8 +235,21 @@ class SQLPlanHandler(TicketReq):
                 values_list(*sql_plan_head.values())
             for sql_plan in sql_plans:
                 to_add = [i if i is not None else " " for i in sql_plan]
-                if not isinstance(to_add[-1], str):
-                    to_add[-1] = arrow.get(to_add[-1]).time().strftime("%H:%M:%S")
+                m, s = divmod(to_add[-1] if to_add[-1] else 0, 60)
+                h, m = divmod(m, 60)
+                to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
+                if 8 > len(str(to_add[3])) > 5:
+                    to_add[3] = str(round(to_add[3] // 1024)) + "K"
+                    if len(str(to_add[3])) >= 8:
+                        to_add[3] = str(round(to_add[3] // 1024 // 1024)) + "M"
+                if 8 > len(str(to_add[4])) > 5:
+                    to_add[4] = str(round(to_add[4] // 1024)) + "K"
+                    if len(str(to_add[4])) >= 8:
+                        to_add[4] = str(round(to_add[4] // 1024 // 1024)) + "M"
+                if 8 > len(str(to_add[5])) > 5:
+                    to_add[5] = str(round(to_add[5] // 1024)) + "K"
+                    if len(str(to_add[5])) >= 8:
+                        to_add[5] = str(round(to_add[5] // 1024 // 1024)) + "M"
                 pt.add_row(to_add)
 
             output_table = str(pt)

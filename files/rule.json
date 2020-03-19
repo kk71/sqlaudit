@@ -184,7 +184,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": null,
+        "obj_info_type": "PROCEDURE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -218,7 +218,7 @@
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "用应用端程序实现将函数"
+            "用应用端程序实现函数"
         ],
         "weight": 3.0,
         "obj_info_type": null,
@@ -1332,7 +1332,7 @@
         "rule_desc": "索引的聚簇因子",
         "rule_name": "IDX_CLUSTERING_FACTOR",
         "rule_complexity": "simple",
-        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
+        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN$%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
         "rule_status": "ON",
         "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
         "rule_type": "OBJ",
@@ -4140,7 +4140,7 @@
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "用应用端程序实现将函数"
+            "用应用端程序实现函数"
         ],
         "weight": 3.0,
         "obj_info_type": null,
@@ -4217,7 +4217,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": null,
+        "obj_info_type": "PROCEDURE",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4264,7 +4264,7 @@
         "rule_desc": "索引的聚簇因子",
         "rule_name": "IDX_CLUSTERING_FACTOR",
         "rule_complexity": "simple",
-        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
+        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN$%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
         "rule_status": "ON",
         "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
         "rule_type": "OBJ",

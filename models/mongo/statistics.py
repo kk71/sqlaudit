@@ -432,7 +432,7 @@ class StatsLoginUser(BaseStatisticsDoc):
         "indexes": ["login_user"]
     }
 
-    requires = (StatsNumDrillDown,)
+    requires = (StatsNumDrillDown, StatsSchemaRate)
 
     @classmethod
     def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
@@ -542,25 +542,18 @@ class StatsLoginUser(BaseStatisticsDoc):
                         ))
 
                     # schema分数排名
-                    all_current_cmdb_schema_dict = dict()
-                    for the_cmdb in session.query(CMDB).filter(CMDB.cmdb_id.in_(cmdb_ids)):
-                        for the_schema, the_score in calc_score_by(
-                                session,
-                                the_cmdb,
-                                perspective=const.OVERVIEW_ITEM_SCHEMA,
-                                score_by=const.SCORE_BY_LOWEST
-                        ).items():
-                            all_current_cmdb_schema_dict[(the_cmdb.cmdb_id, the_schema)] = \
-                                StatsLoginUser_SchemaRank(
-                                    schema_name=the_schema,
-                                    connect_name=the_cmdb.connect_name,
-                                    health_score=the_score,
-                                    collect_date=None
-                                )
-                    doc.schema_rank = list(dict(sorted(
-                        all_current_cmdb_schema_dict.items(),
-                        key=lambda x: x[1].health_score
-                    )[:10]).values())  # 只取分数最低的x个
+                    schema_rate_q = StatsSchemaRate.objects(
+                        cmdb_id__in=cmdb_ids,
+                        task_record_id__in=latest_task_record_ids,
+                        add_to_rate=True
+                    ).order_by("score_average")
+                    for schema_rate in schema_rate_q[:10]:
+                        doc.schema_rank.append(StatsLoginUser_SchemaRank(
+                            schema_name=schema_rate.schema_name,
+                            connect_name=schema_rate.connect_name,
+                            health_score=schema_rate.score_average,
+                            collect_date=schema_rate.etl_date
+                        ))
 
                 # 计算当前用户绑定的各个库的统计数据
                 for the_cmdb_id, the_connect_name, the_db_model in \
