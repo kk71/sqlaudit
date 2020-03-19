@@ -109,25 +109,25 @@ class Results(BaseDocRecordID):
             elif rule.rule_type in [const.RULE_TYPE_SQLPLAN,
                                     const.RULE_TYPE_SQLSTAT]:
                 for sql_dict in rule_dict_in_rst["sqls"]:
-                    if sql_dict.get("obj_name", None):
-                        obj_name = sql_dict["obj_name"]
-                    else:
-                        obj_name = "空"
-                    if sql_dict.get("cost", None):
-                        cost = sql_dict["cost"]
-                    else:
-                        cost = "空"
-                    if sql_dict.get("stat", None):
-                        count = sql_dict["stat"].get("ts_cnt", "空")
-                    else:
-                        count = "空"
+                    # if sql_dict.get("obj_name", None):
+                    #     obj_name = sql_dict["obj_name"]
+                    # else:
+                    #     obj_name = "空"
+                    # if sql_dict.get("cost", None):
+                    #     cost = sql_dict["cost"]
+                    # else:
+                    #     cost = "空"
+                    # if sql_dict.get("stat", None):
+                    #     count = sql_dict["stat"].get("ts_cnt", "空")
+                    # else:
+                    #     count = "空"
                     records.append({
                         "SQL ID": sql_dict["sql_id"],
                         "SQL文本": sql_dict["sql_text"],
                         "执行计划哈希值": sql_dict["plan_hash_value"],
-                        "对象名": obj_name,
-                        "Cost": cost,
-                        "计数": count
+                        # "对象名": obj_name,
+                        # "Cost": cost,
+                        # "计数": count
                     })
                 if records:
                     columns = list(records[0].keys())

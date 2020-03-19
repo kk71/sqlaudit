@@ -670,3 +670,23 @@ def SQL_TO_CHANGE_TYPE(mongo_client, sql, username, etl_date_key, etl_date, **kw
             "COST": x["COST"],
             "COUNT": ""
         }
+
+
+def TABLE_ACCESS_BY_GLOBAL_INDEX(mongo_client, sql, username, etl_date_key, etl_date, **kwargs):
+
+    sql_collection = mongo_client.get_collection(sql)
+    found_items=sql_collection.find({
+        "OPERATION":"TABLE ACCESS",
+        "OPTIONS":re.compile(r"BY GLOBAL INDEX ROWID", re.I),
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
+    for x in found_items:
+        yield {
+            "SQL_ID": x["SQL_ID"],
+            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": x["OBJECT_NAME"],
+            "ID": x["ID"],
+            "COST": x["COST"],
+            "COUNT": ""
+        }
