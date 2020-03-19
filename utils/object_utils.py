@@ -159,6 +159,8 @@ def get_risk_object_list(session,
                         const.OBJ_RULE_TYPE_SEQ,
                         const.OBJ_RULE_TYPE_INDEX)
                 )
+                if not object_name:
+                    object_name = record[0]
                 r = {
                     "schema": result.schema_name,
                     "object_name": object_name,

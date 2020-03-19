@@ -184,7 +184,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": null,
+        "obj_info_type": "procedure",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4217,7 +4217,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": null,
+        "obj_info_type": "procedure",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
