@@ -323,7 +323,7 @@ OBJ_BASE_TAB_HEAP_INFO_SQL = """
      where t.table_name = s.object_name
        and t.owner = s.owner
        and s.object_type = 'TABLE'
-       and t.table_name not like '%BIN%'
+       and t.table_name not like '%BIN$%'
        and t.owner = '{obj_owner}'
 """
 # 获取某个schema下的对象类型为table的基本信息，如：表的物理大小
