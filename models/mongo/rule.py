@@ -46,6 +46,8 @@ class Rule(BaseDoc):
     def get_object_name(self, record, obj_info_type: Union[str, list, tuple]) -> Union[str, None]:
         """获取一条record数据的对象名"""
         key_index = None
+        if not obj_info_type:
+            return
         if isinstance(obj_info_type, str):
             obj_info_type = (obj_info_type,)
         for i, parm in enumerate(self.output_parms):
