@@ -43,19 +43,21 @@ class Rule(BaseDoc):
     def get_3_key(self) -> tuple:
         return self.db_type, self.db_model, self.rule_name
 
-    def get_object_name(self, record, obj_info_type) -> Union[str, None]:
+    def get_object_name(self, record, obj_info_type: Union[str, list, tuple]) -> Union[str, None]:
         """获取一条record数据的对象名"""
         key_index = None
+        if isinstance(obj_info_type, str):
+            obj_info_type = (obj_info_type,)
         for i, parm in enumerate(self.output_parms):
-            if obj_info_type == const.OBJ_RULE_TYPE_TABLE \
+            if const.OBJ_RULE_TYPE_TABLE in obj_info_type \
                     and "表名" in parm["parm_desc"]:
                 key_index = i
                 break
-            elif obj_info_type == const.OBJ_RULE_TYPE_INDEX \
+            elif const.OBJ_RULE_TYPE_INDEX in obj_info_type \
                     and "索引名" in parm["parm_desc"]:
                 key_index = i
                 break
-            elif obj_info_type == const.OBJ_RULE_TYPE_SEQ \
+            elif const.OBJ_RULE_TYPE_SEQ in obj_info_type \
                     and "序列名" in parm["parm_desc"]:
                 key_index = i
                 break
