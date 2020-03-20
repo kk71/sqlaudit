@@ -6,6 +6,10 @@ import abc
 class BaseCaptureItem(abc.ABC):
     """基础采集对象"""
 
+    cmdb_id = None  # 纳管库id
+    task_record_id = None  # 任务id
+    etl_date = None  # 构建时间
+
     @classmethod
     def simple_capture(cls, *args, **kwargs):
         """简单采集行为"""

@@ -16,6 +16,8 @@ class BaseRuleItem(abc.ABC):
     code = None  # 规则的python代码
     status = None  # 规则是否启用
     solution = None  # 解决方案描述
+    create_time = None  # 创建时间
+    update_time = None  # 修改时间
 
     def __init__(self, *args, **kwargs):
         self._code = None  # 已构建的规则python函数引用
@@ -40,3 +42,14 @@ class BaseRuleItem(abc.ABC):
         """返回一个规则的唯一标识"""
         return self.db_type, self.name
 
+
+class BaseRuleJar(abc.ABC):
+    """规则暂存仓库"""
+
+    @abc.abstractmethod
+    def __init__(self, *args, **kwargs):
+        self.rules = []
+
+    def get_rules(self):
+        """返回规则们"""
+        return self.rules

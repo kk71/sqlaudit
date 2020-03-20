@@ -12,7 +12,12 @@ class BaseTicket(abc.ABC):
         pass
 
 
+class BaseTicketScript(abc.ABC):
+    """基础工单脚本（即单个脚本文件）"""
+    pass
+
+
 class BaseSubTicket(abc.ABC):
-    """基础子工单"""
+    """基础子工单（即单条SQL语句）"""
     pass
 

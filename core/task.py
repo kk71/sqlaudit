@@ -13,5 +13,5 @@ class BaseTask(abc.ABC):
 
 
 class BaseStage(abc.ABC):
-    """任务的阶段"""
+    """基础任务的阶段"""
     pass

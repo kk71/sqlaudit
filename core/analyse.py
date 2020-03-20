@@ -5,4 +5,6 @@ import abc
 
 class BaseAnalyse(abc.ABC):
     """基础分析"""
-    pass
+
+    def run(self, *args, **kwargs):
+        pass
