@@ -348,16 +348,12 @@
             {
                 "parm_desc": "表类型",
                 "parm_name": "table_type"
-            },
-            {
-                "parm_desc": "个数",
-                "parm_name": "part_table_num"
             }
         ],
         "rule_desc": "分区表数量过多",
         "rule_name": "COUNT_SUMPART_FULL_TAB",
         "rule_complexity": "simple",
-        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type, part_table_num from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABles t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
+        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABles t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
         "rule_status": "ON",
         "rule_summary": "分区表过多,常见原因是大表较多。因根据需求,考虑进行垂直拆分,减小单库规模。",
         "rule_type": "OBJ",
@@ -4560,16 +4556,12 @@
             {
                 "parm_desc": "表类型",
                 "parm_name": "table_type"
-            },
-            {
-                "parm_desc": "个数",
-                "parm_name": "part_table_num"
             }
         ],
         "rule_desc": "分区表数量过多",
         "rule_name": "COUNT_SUMPART_FULL_TAB",
         "rule_complexity": "simple",
-        "rule_cmd": "select distinct s.TABLE_OWNER||'.'||s.table_name, 'PART_TABLE' as table_type, part_table_num from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABLES t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
+        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABLES t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
         "rule_status": "ON",
         "rule_summary": "分区表过多,常见原因是大表较多。因根据需求,考虑进行垂直拆分,减小单库规模。",
         "rule_type": "OBJ",
