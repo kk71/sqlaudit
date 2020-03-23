@@ -29,7 +29,12 @@ class BaseStatistic(abc.ABC):
     """基础统计"""
 
     # 统计对象
-    statistic_items: (BaseStatisticItem,) = ()
+    statistic_items: (Union[BaseStatisticItem, str],) = ()
+
+    @classmethod
+    def check_requires(cls):
+        """检查依赖关系"""
+        pass
 
     def run(self):
         """启动统计"""
