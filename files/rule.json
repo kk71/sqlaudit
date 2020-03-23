@@ -184,7 +184,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": "PROCEDURE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -218,7 +218,7 @@
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "用应用端程序实现函数"
+            "用应用端程序实现将函数"
         ],
         "weight": 3.0,
         "obj_info_type": null,
@@ -348,12 +348,16 @@
             {
                 "parm_desc": "表类型",
                 "parm_name": "table_type"
+            },
+            {
+                "parm_desc": "个数",
+                "parm_name": "part_table_num"
             }
         ],
         "rule_desc": "分区表数量过多",
         "rule_name": "COUNT_SUMPART_FULL_TAB",
         "rule_complexity": "simple",
-        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABles t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
+        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type, part_table_num from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABles t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
         "rule_status": "ON",
         "rule_summary": "分区表过多,常见原因是大表较多。因根据需求,考虑进行垂直拆分,减小单库规模。",
         "rule_type": "OBJ",
@@ -1328,7 +1332,7 @@
         "rule_desc": "索引的聚簇因子",
         "rule_name": "IDX_CLUSTERING_FACTOR",
         "rule_complexity": "simple",
-        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN$%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
+        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
         "rule_status": "ON",
         "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
         "rule_type": "OBJ",
@@ -1739,7 +1743,7 @@
         "rule_desc": "过多的表关联",
         "rule_name": "SQL_TAB_REL_NUM",
         "rule_complexity": "simple",
-        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"OBJECT_TYPE\":1,\"COST\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",\"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":x.ID,\"COUNT\":x.count,\"COST\":x.COST})});db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":y.COST,\"OBJECT_NAME\":\"\"})})",
+        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"OBJECT_TYPE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",\"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":x.ID,\"COUNT\":x.count})});db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})",
         "rule_status": "ON",
         "rule_summary": "过多的表关联,影响性能",
         "rule_type": "SQLPLAN",
@@ -2437,7 +2441,7 @@
         "rule_desc": "嵌套层次过深",
         "rule_name": "SQL_LOOP_NUM",
         "rule_complexity": "simple",
-        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"COST\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",$or: [{\"OPERATION\":/NESTED LOOP/},{\"OPERATION\":/FILTER/}]}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"COUNT\":x.count,\"COST\":x.COST})});db.@tmp1@.find({\"COUNT\":{$gte:\"@loop_num@\"}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":y.COST,\"OBJECT_NAME\":\"\"})})",
+        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",$or: [{\"OPERATION\":/NESTED LOOP/},{\"OPERATION\":/FILTER/}]}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"COUNT\":x.count})});db.@tmp1@.find({\"COUNT\":{$gte:\"@loop_num@\"}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})",
         "rule_status": "ON",
         "rule_summary": "嵌套层次过深",
         "rule_type": "SQLPLAN",
@@ -4136,7 +4140,7 @@
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "用应用端程序实现函数"
+            "用应用端程序实现将函数"
         ],
         "weight": 3.0,
         "obj_info_type": null,
@@ -4213,7 +4217,7 @@
             "用应用端程序实现将存储过程"
         ],
         "weight": 3.0,
-        "obj_info_type": "PROCEDURE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4260,7 +4264,7 @@
         "rule_desc": "索引的聚簇因子",
         "rule_name": "IDX_CLUSTERING_FACTOR",
         "rule_complexity": "simple",
-        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN$%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
+        "rule_cmd": "select * from (select owner||'.'||index_name,type,CLUSTERING_FACTOR,table_name,NUM_ROWS,ceil(NUM_ROWS / CLUSTERING_FACTOR) as ratio from (select distinct t.INDEX_NAME,t.OWNER,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL', 'Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,t.TABLE_NAME,decode(t.CLUSTERING_FACTOR,0,1,decode(t.clustering_factor,'',1,t.clustering_factor)) as CLUSTERING_FACTOR, u.NUM_ROWS from dba_indexes t, dba_tables u where u.table_name = t.table_name and t.OWNER = u.OWNER and t.index_name not like 'BIN%' and t.owner = '@username@' order by t.table_name, t.index_name)) where ratio >@cluster_row_ratio@",
         "rule_status": "ON",
         "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
         "rule_type": "OBJ",
@@ -4556,12 +4560,16 @@
             {
                 "parm_desc": "表类型",
                 "parm_name": "table_type"
+            },
+            {
+                "parm_desc": "个数",
+                "parm_name": "part_table_num"
             }
         ],
         "rule_desc": "分区表数量过多",
         "rule_name": "COUNT_SUMPART_FULL_TAB",
         "rule_complexity": "simple",
-        "rule_cmd": "select distinct s.table_name, 'PART_TABLE' as table_type from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABLES t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
+        "rule_cmd": "select distinct s.TABLE_OWNER||'.'||s.table_name, 'PART_TABLE' as table_type, part_table_num from dba_tab_partitions s, (select t.owner owner, count(1) part_table_num from DBA_TABLES t where t.partitioned = 'YES'  and t.owner = '@username@' and t.table_name not like 'BIN$%' group by t.owner having count(1) > @part_tab_num@ ) a where s.table_owner = a.owner and s.table_name not like 'BIN$%'",
         "rule_status": "ON",
         "rule_summary": "分区表过多,常见原因是大表较多。因根据需求,考虑进行垂直拆分,减小单库规模。",
         "rule_type": "OBJ",
@@ -5645,7 +5653,7 @@
         "rule_desc": "过多的表关联,影响性能",
         "rule_name": "SQL_TAB_REL_NUM",
         "rule_complexity": "simple",
-        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"OBJECT_TYPE\":1,\"COST\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",\"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":x.ID,\"COUNT\":x.count,\"COST\":x.COST})});db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":y.COST,\"OBJECT_NAME\":\"\"})})",
+        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"OBJECT_TYPE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",\"OBJECT_TYPE\":\"TABLE\"}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"ID\":x.ID,\"COUNT\":x.count})});db.@tmp1@.find({\"COUNT\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":y.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})",
         "rule_status": "ON",
         "rule_summary": "过多的表关联,影响性能",
         "rule_type": "SQLPLAN",
@@ -6191,7 +6199,7 @@
         "rule_desc": "嵌套层次过深",
         "rule_name": "SQL_LOOP_NUM",
         "rule_complexity": "simple",
-        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1,\"COST\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",$or: [{\"OPERATION\":/NESTED LOOP/},{\"OPERATION\":/FILTER/}]}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"COUNT\":x.count,\"COST\":x.COST})});db.@tmp1@.find({\"COUNT\":{$gte:\"@loop_num@\"}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":y.COST,\"OBJECT_NAME\":\"\"})})",
+        "rule_cmd": "db.@sql@.group( { key:{\"USERNAME\":1,\"ETL_DATE\":1,\"SQL_ID\":1,\"PLAN_HASH_VALUE\":1}, cond:{\"USERNAME\":\"@username@\",\"@etl_date_key@\":\"@etl_date@\",$or: [{\"OPERATION\":/NESTED LOOP/},{\"OPERATION\":/FILTER/}]}, reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,\"COUNT\":x.count})});db.@tmp1@.find({\"COUNT\":{$gte:\"@loop_num@\"}}).forEach(function(y){db.@tmp@.save({\"SQL_ID\":y.SQL_ID,\"PLAN_HASH_VALUE\":y.PLAN_HASH_VALUE,\"ID\":y.ID,\"COUNT\":x.COUNT,\"COST\":\"\",\"OBJECT_NAME\":\"\"})})",
         "rule_status": "ON",
         "rule_summary": "嵌套层次过深",
         "rule_type": "SQLPLAN",
@@ -7272,54 +7280,6 @@
         ],
         "weight": 0.1,
         "obj_info_type": "TABLE",
-        "output_datas": [],
-        "sql_type": null,
-        "ddl_type": null
-    },
-    {
-        "db_type": "oracle",
-        "db_model": "OLTP",
-        "exclude_obj_type": "",
-        "input_parms": [],
-        "max_score": 5,
-        "output_parms": [],
-        "rule_desc": "全局索引扫描",
-        "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
-        "rule_complexity": "complex",
-        "rule_cmd": "",
-        "rule_status": "ON",
-        "rule_summary": "",
-        "rule_type": "SQLPLAN",
-        "rule_type_detail": null,
-        "solution": [
-            "合理设计分区索引"
-        ],
-        "weight": 1.0,
-        "obj_info_type": "",
-        "output_datas": [],
-        "sql_type": null,
-        "ddl_type": null
-    },
-    {
-        "db_type": "oracle",
-        "db_model": "OLAP",
-        "exclude_obj_type": "",
-        "input_parms": [],
-        "max_score": 5,
-        "output_parms": [],
-        "rule_desc": "全局索引扫描",
-        "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
-        "rule_complexity": "complex",
-        "rule_cmd": "",
-        "rule_status": "ON",
-        "rule_summary": "",
-        "rule_type": "SQLPLAN",
-        "rule_type_detail": null,
-        "solution": [
-            "合理设计分区索引"
-        ],
-        "weight": 1.0,
-        "obj_info_type": "",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
