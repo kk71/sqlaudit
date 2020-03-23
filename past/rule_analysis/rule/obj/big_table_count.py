@@ -18,7 +18,7 @@ def execute_rule(**kwargs):
                                 'TABLE PARTITION',
                                 'TABLE SUBPARTITION')
          AND u.owner = '@username@'
-         AND u.segment_name NOT LIKE '%BIN%'
+         AND u.segment_name NOT LIKE 'BIN%'
        GROUP BY u.owner,
                 u.segment_name,
                 u.segment_type)
