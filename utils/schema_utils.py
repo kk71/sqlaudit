@@ -1,11 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import arrow
-from schema import And, Use, Optional as scm_optional
+from schema import And, Use, Optional as scm_optional, Schema
 
 from utils import const
 
 __all__ = [
+    "Schema",
+    "And",
     "scm_str",
     "scm_int",
     "scm_gt0_int",

@@ -1,9 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
+    "ABCDocumentMetaclass",
+    "ABCTopLevelDocumentMetaclass",
     "BaseDoc"
 ]
 
+import abc
 import json
 from typing import NoReturn
 from types import FunctionType
@@ -11,14 +14,25 @@ from types import FunctionType
 import arrow
 from bson import ObjectId
 from mongoengine.base.datastructures import EmbeddedDocumentList
-from mongoengine import Document, EmbeddedDocument
+from mongoengine import Document, EmbeddedDocument, DateTimeField
+from mongoengine.base.metaclasses import TopLevelDocumentMetaclass, DocumentMetaclass
 
 from utils import const
 from utils import datetime_utils
 
 
+class ABCTopLevelDocumentMetaclass(TopLevelDocumentMetaclass, abc.ABCMeta):
+    pass
+
+
+class ABCDocumentMetaclass(DocumentMetaclass, abc.ABCMeta):
+    pass
+
+
 class BaseDoc(Document):
     """针对mongoengine的基础文档对象"""
+
+    create_time = DateTimeField(default=lambda: datetime_utils.datetime.now())
 
     meta = {
         'abstract': True
@@ -38,7 +52,8 @@ class BaseDoc(Document):
                 v = iter_by(k, v)
             if k not in dir(self):  # TODO is it strict?
                 # warn develop
-                print(f"warning: a key({k}) not in the document model is inserting into mongodb.")
+                print(f"warning:"
+                      f" a key({k}) not in the document model is inserting into mongodb.")
             setattr(self, k, v)
 
     def to_dict(self,

@@ -8,12 +8,13 @@ __all__ = [
 import traceback
 from typing import Union, Callable, Optional
 
-from mongoengine import EmbeddedDocument, StringField, DynamicField,\
+from mongoengine import EmbeddedDocument, StringField, DynamicField, \
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
 from schema import Schema, Or, And
 
 import core.rule
-from models.mongo import BaseDoc
+from models.mongo.utils import BaseDoc
+from new_models.mongoengine import ABCTopLevelDocumentMetaclass
 from utils import const
 from utils.schema_utils import scm_num
 
@@ -27,7 +28,10 @@ class RuleInputOutputParams(EmbeddedDocument):
     value = DynamicField(default=None, required=False, null=True)
 
 
-class TicketRule(BaseDoc, core.rule.BaseRuleItem):
+class TicketRule(
+        core.rule.BaseRuleItem,
+        BaseDoc,
+        metaclass=ABCTopLevelDocumentMetaclass):
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)

@@ -3,7 +3,7 @@
 import abc
 
 
-class BaseRuleItem(abc.ABC):
+class BaseRuleItem(metaclass=abc.ABCMeta):
     """基础规则对象"""
 
     name = None  # 规则名称

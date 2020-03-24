@@ -3,7 +3,8 @@
 __all__ = [
     "BaseReq",
     "AuthReq",
-    "PrivilegeReq"
+    "PrivilegeReq",
+    "as_view"
 ]
 
 import json
@@ -339,3 +340,11 @@ class PrivilegeReq(AuthReq):
     def current_roles(self) -> list:
         """returns role_ids to current user"""
         return list(get_role_of_user(self.current_user).get(self.current_user, set([])))
+
+
+def as_view(route_rule: str):
+    def as_view_inner(req_handler: BaseReq):
+        import restful_api.urls
+        restful_api.urls.urls.append((route_rule, req_handler))
+        return req_handler
+    return as_view_inner
