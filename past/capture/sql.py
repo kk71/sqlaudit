@@ -433,7 +433,7 @@ OBJ_PART_TAB_PHY_SIZE_SQL = """
   from dba_segments u
  where u.segment_type = 'TABLE PARTITION'
    and u.owner = '{obj_owner}'
-   and u.segment_name not like '%BIN$%'
+   and u.segment_name not like 'BIN$%'
  group by u.owner, u.segment_name, u.partition_name
 union
 select s.segment_name segment_name,
@@ -442,7 +442,7 @@ select s.segment_name segment_name,
   from dba_segments s, dba_tab_subpartitions t
  where s.partition_name = t.subpartition_name
    and s.segment_type = 'TABLE SUBPARTITION'
-   and s.segment_name not like '%BIN$%'
+   and s.segment_name not like 'BIN$%'
    and s.owner = t.table_owner
    and s.owner = '{obj_owner}'
  group by s.owner, s.segment_name,t.partition_name
@@ -481,7 +481,7 @@ OBJ_PART_TAB_PARENT_PHY_SIZE_SQL = """
     from dba_segments t
     where t.owner = '{obj_owner}'
     and t.partition_name is not null
-    and t.segment_name not like '%BIN$%'
+    and t.segment_name not like 'BIN$%'
     and t.segment_type in ('TABLE SUBPARTITION','TABLE PARTITION')
     group by segment_name
 """
