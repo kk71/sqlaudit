@@ -37,6 +37,7 @@ class BaseTicketScript(abc.ABC):
     """基础工单脚本（即单个脚本文件）"""
     script_id = None  # 脚本id
     script_name = None  # 脚本名
+    db_type = None  # 数据库类型
     dir_path = None  # 脚本原始所在目录
     sub_ticket_count = None  # 子工单数
 

@@ -6,6 +6,7 @@ __all__ = [
 ]
 
 import re
+import pickle
 
 import sqlparse
 
@@ -101,3 +102,12 @@ class ParsedSQLStatement:
                f"{const.ALL_SQL_TYPE_NAME_MAPPING[self.sql_type]}-" \
                f"{self.statement_type}-" \
                f"{sql_thumbnail}>"
+
+    def serialize(self):
+        return {
+            "normalized": self.normalized,
+            "normalized_without_comment": self.normalized_without_comment,
+            "tokens": pickle.dumps(self.tokens),
+            "statement_type": self.statement_type,
+            "sql_type": self.sql_type
+        }

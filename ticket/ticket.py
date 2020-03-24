@@ -6,6 +6,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     EmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
 
 import utils.const
+from .parsed_sql import ParsedSQL
 from core.ticket import *
 from new_models.mongoengine import *
 from utils import datetime_utils
@@ -17,6 +18,7 @@ class TicketScript(EmbeddedDocument, BaseTicketScript, metaclass=ABCDocumentMeta
 
     script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
     script_name = StringField()
+    db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
     dir_path = StringField()
     sub_ticket_count = IntField(default=0)
 
@@ -66,7 +68,6 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
 class TempScriptStatement(BaseDoc):
     """临时脚本语句"""
 
-    db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
     script = EmbeddedDocumentField(TicketScript)
     position = IntField()  # 语句所在位置
     comment = StringField(default="")
@@ -90,6 +91,14 @@ class TempScriptStatement(BaseDoc):
     }
 
     @classmethod
-    def parse_script(cls, script_text, script: TicketScript):
+    def parse_script(
+            cls, script_text, script: TicketScript) -> ["TempScriptStatement"]:
         """处理一个sql脚本"""
-        pass
+        return [
+            cls(
+                script=script,
+                position=i,
+                ** parsed_sql_statement.serialize()
+            )
+            for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
+        ]
