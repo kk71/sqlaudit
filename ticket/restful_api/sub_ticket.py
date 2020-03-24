@@ -1,8 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from os import path
+
 import xlsxwriter
 from mongoengine import Q
 
+import settings
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from .base import *
@@ -17,7 +20,7 @@ class SubTicketHandler(TicketReq):
                 const.ALL_SUB_TICKET_FILTERS),
             scm_optional("start_time", default=None): scm_date,
             scm_optional("end_time", default=None): scm_date_end,
-            scm_optional("work_list_id"): scm_int,
+            scm_optional("ticket_id"): scm_unempty_str,
             scm_optional("schema_name", default=None): scm_str,
             scm_optional("cmdb_id", default=None): scm_int,
             scm_optional("keyword", default=None): scm_str,
@@ -145,7 +148,7 @@ class SubTicketExportHandler(SubTicketHandler):
                 # 给出子工单id，仅导出这些。
                 params = self.get_query_args(Schema({
                     "statement_id_list": scm_dot_split_str,
-                    Optional(object): object
+                    scm_optional(object): object
                 }))
                 statement_id_list = params.pop("statement_id_list")
                 q = TicketSubResult.objects(statement_id__in=statement_id_list)
@@ -173,7 +176,7 @@ class SubTicketExportHandler(SubTicketHandler):
                 'valign': 'vcenter',
                 'text_wrap': True,
             })
-            fields = ["工单编号","SQL文本", "静态检测结果", "动态检测结果",  "上线状态", "错误信息"]
+            fields = ["工单编号", "SQL文本", "静态检测结果", "动态检测结果", "上线状态", "错误信息"]
             for x, field in enumerate(fields):
                 ws.write(0, x, field.upper(), format_title)
             for row_num, sub_ticket in enumerate(q.all()):
@@ -186,8 +189,7 @@ class SubTicketExportHandler(SubTicketHandler):
                 ws.write(row_num, 3, "\n".join(
                     [x["rule_desc"] for x in sub_ticket.to_dict()['dynamic']]),
                          format_text)
-                ws.write(row_num,4,sub_ticket.online_status,format_text)
+                ws.write(row_num, 4, sub_ticket.online_status, format_text)
                 ws.write(row_num, 5, sub_ticket.error_msg, format_text)
             wb.close()
             self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
-
