@@ -10,7 +10,7 @@ from utils import const, datetime_utils
 from .ticket import TicketScript
 
 
-class SubTicketResultItem(EmbeddedDocument):
+class SubTicketIssue(EmbeddedDocument):
     """子工单的一个规则结果"""
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
@@ -65,8 +65,8 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
     sql_text_no_comment = StringField()
     comments = StringField(default="")
     position = IntField()
-    static = EmbeddedDocumentListField(SubTicketResultItem)
-    dynamic = EmbeddedDocumentListField(SubTicketResultItem)
+    static = EmbeddedDocumentListField(SubTicketIssue)
+    dynamic = EmbeddedDocumentListField(SubTicketIssue)
     online_date = DateTimeField(default=None)  # 上线日期
     online_operator = StringField()  # 上线操作员
     online_status = BooleanField(default=None)  # 上线是否成功

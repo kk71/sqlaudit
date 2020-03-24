@@ -13,9 +13,9 @@ from mongoengine import EmbeddedDocument, StringField, DynamicField, \
 from schema import Schema, Or, And
 
 import core.rule
-from models.mongo.utils import BaseDoc
-from new_models.mongoengine import ABCTopLevelDocumentMetaclass
-from utils import const
+import utils.const
+from .import const
+from new_models.mongoengine import *
 from utils.schema_utils import scm_num
 
 
@@ -35,16 +35,15 @@ class TicketRule(
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
-    analyse_type = StringField(
-        null=True, choices=const.ALL_TICKET_ANALYSE_TYPE)  # 规则类型，静态还是动态
+    analyse_type = StringField(null=True)  # 规则类型，静态还是动态
     sql_type = IntField(
         null=True,
         choices=const.ALL_SQL_TYPE)  # 线下审核SQL的类型,为None则表示规则不区分sql_type
-    ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
+    # ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
-        choices=const.ALL_SUPPORTED_DB_TYPE,
-        default=const.DB_ORACLE)
+        choices=utils.const.ALL_SUPPORTED_DB_TYPE,
+        default=utils.const.DB_ORACLE)
     input_params = EmbeddedDocumentListField(RuleInputOutputParams)
     output_params = EmbeddedDocumentListField(RuleInputOutputParams)
     max_score = IntField()

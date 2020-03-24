@@ -40,10 +40,6 @@ class BaseTicketScript(abc.ABC):
     dir_path = None  # 脚本原始所在目录
     sub_ticket_count = None  # 子工单数
 
-    @abc.abstractmethod
-    def generate_new_script_id(self):
-        pass
-
 
 class BaseSubTicket(abc.ABC):
     """基础子工单（即单条SQL语句）"""

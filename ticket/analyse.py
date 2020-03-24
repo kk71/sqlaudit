@@ -11,7 +11,7 @@ import settings
 from .const import *
 from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
-from .sub_ticket import SubTicketResultItem
+from .sub_ticket import SubTicketIssue
 
 
 class SubTicketAnalysis(abc.ABC):
@@ -78,8 +78,8 @@ class SubTicketAnalysis(abc.ABC):
                 if sr.sql_type is not SQL_ANY and \
                         sr.sql_type != single_sql["sql_type"]:
                     continue
-                sub_result_item = SubTicketResultItem()
-                sub_result_item.as_sub_result_of(sr)
+                sub_result_issue = SubTicketIssue()
+                sub_result_issue.as_sub_result_of(sr)
 
                 # ===这里指明了静态审核的输入参数(kwargs)===
                 score_to_minus, output_params = sr.run(
@@ -88,10 +88,10 @@ class SubTicketAnalysis(abc.ABC):
                     cmdb=self.cmdb
                 )
                 for output, current_ret in zip(sr.output_params, output_params):
-                    sub_result_item.add_output(output, current_ret)
-                sub_result_item.minus_score = score_to_minus
-                if sub_result_item.minus_score != 0:
-                    sub_result.static.append(sub_result_item)
+                    sub_result_issue.add_output(output, current_ret)
+                sub_result_issue.minus_score = score_to_minus
+                if sub_result_issue.minus_score != 0:
+                    sub_result.static.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)
             trace = traceback.format_exc()

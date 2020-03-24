@@ -3,8 +3,9 @@
 import uuid
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    EmbeddedDocument, EmbeddedDocumentListField
+    EmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
 
+import utils.const
 from core.ticket import *
 from new_models.mongoengine import *
 from utils import datetime_utils
@@ -14,19 +15,10 @@ from . import const
 class TicketScript(EmbeddedDocument, BaseTicketScript, metaclass=ABCDocumentMetaclass):
     """工单脚本"""
 
-    script_id = StringField(required=True)
+    script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
     script_name = StringField()
     dir_path = StringField()
     sub_ticket_count = IntField(default=0)
-
-    def generate_new_script_id(self):
-        """
-        生成新的唯一脚本id
-        :return: new script id
-        """
-        new_script_id = uuid.uuid4().hex
-        self.script_id = new_script_id
-        return new_script_id
 
 
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
@@ -61,7 +53,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         ]
     }
 
-    def calculate_score(self, *args, **kwargs):
+    def calculate_score(self, *args, **kwargs) -> float:
         """
         计算工单当前分数
         :param args:
@@ -69,3 +61,35 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         :return:
         """
         return
+
+
+class TempScriptStatement(BaseDoc):
+    """临时脚本语句"""
+
+    db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
+    script = EmbeddedDocumentField(TicketScript)
+    position = IntField()  # 语句所在位置
+    comment = StringField(default="")
+
+    # 以下字段是ParsedSQLStatement封装的
+    normalized = StringField()  # 处理后的单条sql语句
+    normalized_without_comment = StringField()  # 处理后的单条无注释sql语句
+    tokens = StringField()  # sql语句内的结构(pickle)
+    statement_type = StringField()  # 语句归属（select update delete etc...）
+    sql_type = StringField(choices=const.ALL_SQL_TYPE)  # sql type: ddl or dml or ...
+
+    meta = {
+        "collection": "ticket_temp_parsed_sql_statement",
+        "allow_inheritance": True,
+        'indexes': [
+            "db_type",
+            "script.script_id",
+            "position",
+            "sql_type"
+        ]
+    }
+
+    @classmethod
+    def parse_script(cls, script_text, script: TicketScript):
+        """处理一个sql脚本"""
+        pass

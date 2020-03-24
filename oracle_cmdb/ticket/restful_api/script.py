@@ -1,9 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import ticket.restful_api.script
+import ticket.restful_api.temp_script
 
 
-class UploadScriptHandler(ticket.restful_api.script.UploadScriptHandler):
+class UploadTempScriptHandler(ticket.restful_api.temp_script.UploadTempScriptHandler):
 
     def post(self):
         """上传一个sql脚本"""
