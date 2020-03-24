@@ -2,9 +2,11 @@
 
 import abc
 
-from utils.schema_utils import *
+import chardet
 
+from utils.schema_utils import *
 from .base import *
+from ..ticket import *
 
 
 class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
@@ -53,7 +55,33 @@ class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
                 session.refresh(wlat)
                 self.resp_created(wlat.to_dict())
 
-    @abc.abstractmethod
     def post(self):
-        """上传脚本"""
-        pass
+        """上传一个sql脚本"""
+
+        if not len(self.request.files) or not self.request.files.get("file"):
+            return self.resp_bad_req(msg="未选择文件。")
+
+        params = self.get_query_args(Schema({
+            scm_optional("filter_sql_type", default=None):
+                And(scm_int, scm_one_of_choices(utils.const.ALL_SQL_TYPE)),
+        }))
+        file_object = self.request.files.get("file")[0]
+        filter_sql_type = params.pop("filter_sql_type")
+
+        # 现在仅支持SQL脚本文件，不再支持Excel文档
+        body = file_object["body"]
+        if not body:
+            return self.resp_bad_req(msg="空脚本。")
+        try:
+            body = body.decode(chardet.detect(body)["encoding"])
+        except:
+            try:
+                body = body.decode('utf-8')
+            except:
+                try:
+                    body = body.decode('gbk')
+                except Exception as e:
+                    return self.resp_bad_req(msg=f"文本解码失败: {e}")
+        script_object = TicketScript(script_name=file_object["filename"])
+
+        self.resp_created({"script_id": script_object})
