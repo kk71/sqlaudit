@@ -69,16 +69,16 @@ urls += [
 
 # offline
 urls += [
-    (r"/api/offline/rule", rule.TicketRuleHandler),
-    (r"/api/offline/rule/code", rule.TicketRuleCodeHandler),
-    (r"/api/offline/sql_upload", ticket.SQLUploadHandler),
-    (r"/api/offline/ticket/outer", ticket.TicketOuterHandler),
-    (r"/api/offline/ticket", ticket.TicketHandler),
-    (r"/api/offline/ticket/export", ticket.TicketExportHandler),
-    (r"/api/offline/sub_ticket", sub_ticket.SubTicketHandler),
-    (r"/api/offline/sub_ticket/sql_plan", sub_ticket.SQLPlanHandler),
-    (r"/api/offline/sub_ticket/export", sub_ticket.SubTicketExportHandler),
-    (r"/api/offline/sub_ticket/rule", sub_ticket.SubTicketRuleHandler),
+    # (r"/api/offline/rule", rule.TicketRuleHandler),
+    # (r"/api/offline/rule/code", rule.TicketRuleCodeHandler),
+    # (r"/api/offline/sql_upload", ticket.SQLUploadHandler),
+    # (r"/api/offline/ticket/outer", ticket.TicketOuterHandler),
+    # (r"/api/offline/ticket", ticket.TicketHandler),
+    # (r"/api/offline/ticket/export", ticket.TicketExportHandler),
+    # (r"/api/offline/sub_ticket", sub_ticket.SubTicketHandler),
+    # (r"/api/offline/sub_ticket/sql_plan", sub_ticket.SQLPlanHandler),
+    # (r"/api/offline/sub_ticket/export", sub_ticket.SubTicketExportHandler),
+    # (r"/api/offline/sub_ticket/rule", sub_ticket.SubTicketRuleHandler),
 ]
 
 # online audit
@@ -121,8 +121,8 @@ urls += [
 
 # self help online
 urls += [
-    (r"/api/self_service/overview", self_service.OverviewHandler),
-    (r"/api/self_service/execute", self_service.ExecuteHandler),
+    # (r"/api/self_service/overview", self_service.OverviewHandler),
+    # (r"/api/self_service/execute", self_service.ExecuteHandler),
 ]
 
 # report sending manage
@@ -143,6 +143,7 @@ import ticket.restful_api.ticket
 import ticket.restful_api.temp_script
 import oracle_cmdb.ticket.restful_api.sub_ticket
 import oracle_cmdb.ticket.restful_api.ticket
+import oracle_cmdb.ticket.restful_api.online
 
 urls += [
     # common
@@ -156,4 +157,7 @@ urls += [
     (r"/api/oracle_cmdb/ticket/ticket", oracle_cmdb.ticket.restful_api.ticket),
     (r"/api/oracle_cmdb/ticket/sub_ticket/issue", oracle_cmdb.ticket.restful_api.sub_ticket.SubTicketIssueHandler),
     (r"/api/oracle_cmdb/ticket/sub_ticket/sql_plan", oracle_cmdb.ticket.restful_api.sub_ticket.SQLPlanHandler),
+    (r"/api/oracle_cmdb/ticket/online/overview", oracle_cmdb.ticket.restful_api.online.OracleTicketOnlineOverviewHandler),
+    (r"/api/oracle_cmdb/ticket/online/execute", oracle_cmdb.ticket.restful_api.online.OracleTicketOnlineExecuteHandler),
+
 ]
