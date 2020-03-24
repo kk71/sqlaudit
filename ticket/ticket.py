@@ -35,6 +35,7 @@ class TicketScript(
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     """工单"""
 
+    ticket_id = StringField(primary_key=True)
     task_name = StringField(required=True)
     db_type = StringField()
     cmdb_id = IntField()

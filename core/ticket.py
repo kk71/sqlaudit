@@ -12,6 +12,7 @@ import abc
 class BaseTicket(abc.ABC):
     """基础工单"""
 
+    ticket_id = None  # 工单id
     task_name = None  # 工单名
     db_type = None  # 数据库类型
     cmdb_id = None  # 纳管库id
@@ -44,12 +45,12 @@ class BaseTicketScript(abc.ABC):
 
 class BaseSubTicket(abc.ABC):
     """基础子工单（即单条SQL语句）"""
+    statement_id = None  # 语句id
     ticket_id = None  # 工单id
     script = None  # 脚本信息
     task_name = None  # 工单名
     db_type = None  # 纳管库类型
     cmdb_id = None  # 纳管库id
-    statement_id = None  # 语句id
     sql_type = None  # 语句类型
     sql_text = None  # 语句原文
     sql_text_no_comment = None  # 无注释语句

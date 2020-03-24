@@ -37,7 +37,8 @@ class BaseDoc(Document):
     create_time = DateTimeField(default=lambda: datetime_utils.datetime.now())
 
     meta = {
-        'abstract': True
+        'abstract': True,
+        "indexes": ("create_time",)
     }
 
     def from_dict(self,
