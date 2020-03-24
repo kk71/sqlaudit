@@ -56,6 +56,6 @@ class TicketReq(PrivilegeReq):
             sq = Ticket.objects(
                 submit_owner=self.current_user).values_list("ticket_id")
             ticket_ids: list = list(sq)
-            q = q.filter(work_list_id__in=ticket_ids)
+            q = q.filter(ticket_id__in=ticket_ids)
 
         return q

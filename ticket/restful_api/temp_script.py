@@ -5,6 +5,8 @@ import abc
 from utils.schema_utils import *
 
 from .base import *
+from ..ticket import TempScriptStatement
+from ..const import *
 
 
 class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
@@ -16,16 +18,17 @@ class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
+        script_id = params.pop("script_id")
         keyword = params.pop("keyword")
         p = self.pop_p(params)
-        with make_session() as session:
-            q = session.query(WorkListAnalyseTemp).filter_by(**params)
-            if keyword:
-                q = self.query_keyword(q, keyword,
-                                       WorkListAnalyseTemp.sql_text,
-                                       WorkListAnalyseTemp.comments)
-            sqls, p = self.paginate(q, **p)
-            self.resp([sql.to_dict() for sql in sqls], **p)
+        del params
+
+        q=TempScriptStatement.objects().\
+            filter_by(script__script_id=script_id)
+        if keyword:
+            q = self.query_keyword(q, keyword,"normalized","comment")
+        sqls, p = self.paginate(q, **p)
+        self.resp([sql.to_dict() for sql in sqls], **p)
 
     def patch(self):
         """编辑上传的临时sql数据"""
@@ -38,20 +41,17 @@ class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
         }))
         wlat_id = params.pop("id")
         delete = params.pop("delete")
-        with make_session() as session:
-            wlat = session.query(WorkListAnalyseTemp).filter_by(id=wlat_id).first()
-            if not wlat:
-                self.resp_bad_req(msg=f"找不到编号为{wlat_id}的临时sql session")
-            if delete:
-                session.delete(wlat)
-                session.commit()
-                self.resp_created(msg="sql已删除。")
-            else:
-                wlat.from_dict(params)
-                session.add(wlat)
-                session.commit()
-                session.refresh(wlat)
-                self.resp_created(wlat.to_dict())
+
+        wlat=TempScriptStatement.objects().filter_by(id=wlat_id).first()
+        if not wlat:
+            self.resp_bad_req(msg=f"找不到编号为{wlat_id}的临时sql session")
+        if delete:
+            wlat.delete()
+            self.resp_created(msg="sql已删除。")
+        else:
+            wlat.from_dict(params)
+            wlat.save()
+            self.resp_created(wlat.to_dict())
 
     @abc.abstractmethod
     def post(self):
