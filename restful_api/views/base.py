@@ -12,8 +12,7 @@ from typing import *
 
 import jwt
 from tornado.web import RequestHandler
-from schema import Schema, SchemaError, Or
-from schema import Optional as scm_Optional
+from schema import SchemaError, Or
 from mongoengine import QuerySet as M_Query
 from mongoengine import Q
 from sqlalchemy.orm.query import Query as S_Query
@@ -21,7 +20,7 @@ from sqlalchemy import or_
 
 import settings
 from utils.perf_utils import timing, r_cache
-from utils.schema_utils import scm_unempty_str, scm_gt0_int
+from utils.schema_utils import *
 from utils.privilege_utils import *
 from utils.const import AdminRequired
 from utils.datetime_utils import *
@@ -186,14 +185,44 @@ class BaseReq(RequestHandler):
     def gen_p(page=1, per_page=10):
         """分页的配置"""
         return {
-            scm_Optional("page", default=page): scm_gt0_int,
-            scm_Optional("per_page", default=per_page): scm_gt0_int,
+            scm_optional("page", default=page): scm_gt0_int,
+            scm_optional("per_page", default=per_page): scm_gt0_int,
         }
 
     @staticmethod
     def pop_p(query_dict) -> dict:
         """弹出分页相关的两个字段"""
         return {"page": query_dict.pop("page"), "per_page": query_dict.pop("per_page")}
+
+    def pop_p_for_paginating(self, query_dict) -> NoReturn:
+        """弹出分页相关的两个字段，并且在操作分页的时候默认使用这个字段"""
+        pass
+
+    @staticmethod
+    def gen_date(
+            date_start: Union[None, bool, date] = None,
+            date_end: Union[None, bool, date] = None):
+        """时间段过滤"""
+        ret = {}
+        if date_start is True:
+            ret["date_start"] = scm_date
+        elif date_start is False:
+            pass
+        else:
+            ret[scm_optional("date_start", default=date_start)] = scm_date
+        if date_end is True:
+            ret["date_end"] = scm_date_end
+        elif date_end is False:
+            pass
+        else:
+            ret[scm_optional("date_end", default=date_end)] = scm_date_end
+        return ret
+
+    @staticmethod
+    def pop_date(query_dict) -> (object, object):
+        """弹出时间起始和终止两个字段，如果任一个字段不存在那么就以None替代"""
+        return query_dict.pop("date_start", None),\
+               query_dict.pop("date_end", None)
 
     @staticmethod
     def query_keyword(q, l, *args) -> Union[M_Query, S_Query]:

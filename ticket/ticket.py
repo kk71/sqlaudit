@@ -28,7 +28,6 @@ class TicketScript(
     script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
     script_name = StringField()
     db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
-    dir_path = StringField()
     sub_ticket_count = IntField(default=0)
 
 
@@ -93,7 +92,6 @@ class TempScriptStatement(BaseDoc):
         "collection": "ticket_temp_parsed_sql_statement",
         "allow_inheritance": True,
         'indexes': [
-            "db_type",
             "script.script_id",
             "position",
             "sql_type"
@@ -102,8 +100,17 @@ class TempScriptStatement(BaseDoc):
 
     @classmethod
     def parse_script(
-            cls, script_text, script: TicketScript) -> ["TempScriptStatement"]:
-        """处理一个sql脚本"""
+            cls,
+            script_text,
+            script: TicketScript,
+            filter_sql_type: str = None) -> ["TempScriptStatement"]:
+        """
+        处理一个sql脚本
+        :param script_text:
+        :param script:
+        :param filter_sql_type: 是否过滤sql_type
+        :return:
+        """
         return [
             cls(
                 script=script,
@@ -111,4 +118,5 @@ class TempScriptStatement(BaseDoc):
                 ** parsed_sql_statement.serialize()
             )
             for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
+            if filter_sql_type and parsed_sql_statement.sql_type == filter_sql_type
         ]

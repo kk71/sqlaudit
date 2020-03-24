@@ -4,8 +4,7 @@ __all__ = [
     "TicketReq"
 ]
 
-from mongoengine import QuerySet as mongoengine_qs
-from mongoengine import Q
+from mongoengine import Q, QuerySet as mongoengine_qs
 
 import utils.const
 from ..ticket import Ticket

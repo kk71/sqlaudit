@@ -6,7 +6,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
 
 from core.ticket import *
 from new_models.mongoengine import *
-from utils import const, datetime_utils
+from utils import const
 from .ticket import TicketScript
 
 

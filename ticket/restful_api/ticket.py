@@ -4,9 +4,9 @@ import settings
 from os import path
 from collections import defaultdict
 
+import utils.const
 from ticket.const import ALL_TICKET_STATUS
 from .base import *
-from utils.const import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.conc_utils import AsyncTimeout
@@ -17,18 +17,16 @@ class ArchiveHandler(TicketReq):
 
     def get(self):
         """线下工单的外层归档列表，按照日期，工单类型，审核结果来归档"""
-        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
+        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            "date_start": scm_date,
-            "date_end": scm_date_end,
+            **self.gen_date(date_start=True, date_end=True),
             scm_optional("status", default=None): And(
                 scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
             **self.gen_p()
         }))
         p = self.pop_p(params)
-        date_start = params.pop("date_start")
-        date_end = params.pop("date_end")
+        date_start, date_end = self.pop_date(params)
         work_list_status = params.pop("work_list_status")
 
         with make_session() as session:
@@ -46,7 +44,7 @@ class ArchiveHandler(TicketReq):
                 ret_item = {
                     **ticket.to_dict(
                         iter_by=lambda k, v:
-                        arrow.get(v).format(const.COMMON_DATE_FORMAT)
+                        arrow.get(v).format(utils.const.COMMON_DATE_FORMAT)
                         if k == "submit_date" else v),
                     "result_stats": {
                         "static_problem_num": sum([
@@ -94,7 +92,7 @@ class TicketHandler(TicketReq):
     def get(self):
         """工单列表"""
 
-        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
+        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
             scm_optional("status", default=None):
@@ -162,7 +160,7 @@ class TicketHandler(TicketReq):
 
     def patch(self):
         """编辑工单状态"""
-        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
+        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
 
         params = self.get_json_args(Schema({
             "ticket_id": scm_int,

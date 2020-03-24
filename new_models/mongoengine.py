@@ -38,7 +38,7 @@ class BaseDoc(Document):
 
     meta = {
         'abstract': True,
-        "indexes": ("create_time",)
+        "indexes": ["create_time"]
     }
 
     def from_dict(self,

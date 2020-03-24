@@ -7,7 +7,7 @@ from mongoengine import StringField, IntField
 from new_models.mongoengine import *
 
 
-class TicketSQLPlan(BaseDoc, abc.ABCMeta, metaclass=ABCTopLevelDocumentMetaclass):
+class TicketSQLPlan(BaseDoc, abc.ABC, metaclass=ABCTopLevelDocumentMetaclass):
     """工单动态审核产生的执行计划，基类"""
 
     statement_id = StringField(primary_key=True)

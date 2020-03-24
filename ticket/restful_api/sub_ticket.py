@@ -37,11 +37,13 @@ class SubTicketHandler(TicketReq):
                      ("ticket_id",)}
 
         # TODO 需要根据权限加过滤判断
-        q=SubTicket.objects(**to_filter)
+        q = SubTicket.objects(**to_filter)
         if cmdb_id:
-            ticket_id_list=[i[0] for i in Ticket.objects().
-                filter_by(cmdb_id=cmdb_id).
-                values_list("ticket_id").all()]
+            ticket_id_list = [
+                i[0]
+                for i in Ticket.objects().filter_by(
+                    cmdb_id=cmdb_id).values_list("ticket_id").all()
+            ]
             q = q.filter(ticket_id__in=ticket_id_list)
         if start_time:
             q = q.filter(create_time__gt=start_time)
@@ -50,10 +52,10 @@ class SubTicketHandler(TicketReq):
         if keyword:
             q = self.query_keyword(q, keyword, "static", "dynamic", "comments")
         if schema_name:
-            ticket_id_in_tuple = Ticket.objects().\
-                filter_by(schema_name=schema_name).\
+            ticket_id_in_tuple = Ticket.objects(). \
+                filter_by(schema_name=schema_name). \
                 values_list("ticket_id").all()
-            ticket_id_list=[i[0] for i in ticket_id_in_tuple]
+            ticket_id_list = [i[0] for i in ticket_id_in_tuple]
             q = q.filter(ticket_id__in=ticket_id_list)
         if error_type == const.SUB_TICKET_WITH_STATIC_PROBLEM:
             q = q.filter(static__not__size=0)
@@ -86,16 +88,17 @@ class SubTicketHandler(TicketReq):
         items, p = self.paginate(q, **p)
         # 加上工单的task_name
         ticket_ids: list = list({i.ticket_id for i in items})
-        ticket_id_pairs = Ticket.objects().\
-            filter(ticket_id__in=ticket_ids).\
-            values_list("ticket_id","task_name")
+        ticket_id_pairs = Ticket.objects(). \
+            filter(ticket_id__in=ticket_ids). \
+            values_list("ticket_id", "task_name")
         ticket_id_pair_dict = dict(ticket_id_pairs)
 
         self.resp([
             {
                 **i.to_dict(),
                 "task_name": ticket_id_pair_dict.get(i.ticket_id, None)
-            } for i in items], **p)
+            } for i in items
+        ], **p)
 
     def patch(self):
         """编辑单个子工单"""
@@ -107,7 +110,7 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        sub_ticket=SubTicket.objects(statement_id=statement_id).first()
+        sub_ticket = SubTicket.objects(statement_id=statement_id).first()
         if not sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
         sub_ticket.from_dict(params)
@@ -121,7 +124,7 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        sub_ticket=SubTicket.objects(statement_id=statement_id).first()
+        sub_ticket = SubTicket.objects(statement_id=statement_id).first()
         if not sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
         if SubTicket.objects(ticket_id=sub_ticket.ticket_id).count() == 1:

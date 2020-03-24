@@ -16,9 +16,6 @@ from plain_db.oracleob import *
 from utils.const import *
 from utils.parsed_sql import ParsedSQL
 from new_rule.rule import TicketRule
-
-from utils.datetime_utils import *
-
 from ticket.analyse import SubTicketAnalysis
 
 
@@ -26,22 +23,6 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
     """oracle子工单分析"""
 
     db_type = DB_ORACLE
-
-    def get_available_task_name(self, submit_owner: str, session) -> str:
-        """获取当前可用的线下审核任务名"""
-        current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
-        k = f"offline-ticket-task-num-{current_date}"
-        current_num_int = self.redis_cli.incr(k, 1)
-        current_num = "%03d" % current_num_int
-        self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
-        ret = f"{submit_owner}-{current_date}-{current_num}"
-        if current_num_int == 1:
-            while session.query(WorkList).filter(WorkList.task_name == ret).count():
-                current_num_int = self.redis_cli.incr(k, 1)
-                current_num = "%03d" % current_num_int
-                self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
-                ret = f"{submit_owner}-{current_date}-{current_num}"
-        return ret
 
     @staticmethod
     def sql_filter_annotation(sql):
@@ -72,7 +53,7 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
     def write_sql_plan(self, list_of_plan_dicts, **kwargs) -> mongoengine_qs:
         """写入执行计划"""
         OracleTicketSQLPlan.add_from_dict(
-            self.ticket.work_list_id,
+            self.ticket.ticket_id,
             self.cmdb.cmdb_id,
             self.schema_name,
             list_of_plan_dicts

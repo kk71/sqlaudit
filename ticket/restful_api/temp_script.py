@@ -4,13 +4,14 @@ import abc
 
 import chardet
 
+import utils.const
 from utils.schema_utils import *
 from .base import *
 from ..const import *
 from ..ticket import *
 
 
-class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
+class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     def get(self):
         """获取上传的临时sql数据"""
@@ -55,7 +56,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
             self.resp_created(wlat.to_dict())
 
     def post(self):
-        """上传一个sql脚本"""
+        """上传多个sql脚本"""
 
         if not len(self.request.files) or not self.request.files.get("file"):
             return self.resp_bad_req(msg="未选择文件。")
@@ -64,23 +65,36 @@ class UploadTempScriptHandler(TicketReq, abc.ABCMeta):
             scm_optional("filter_sql_type", default=None):
                 And(scm_int, scm_one_of_choices(utils.const.ALL_SQL_TYPE)),
         }))
-        file_object = self.request.files.get("file")[0]
+        file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")
 
-        # 现在仅支持SQL脚本文件，不再支持Excel文档
-        body = file_object["body"]
-        if not body:
-            return self.resp_bad_req(msg="空脚本。")
-        try:
-            body = body.decode(chardet.detect(body)["encoding"])
-        except:
+        temp_script_statements: [TempScriptStatement] = []
+        script_ids: [str] = []
+        for file_object in file_objects:
+            body = file_object["body"]
+            filename = file_object["filename"]
+            if not body:
+                continue
             try:
-                body = body.decode('utf-8')
+                body = body.decode(chardet.detect(body)["encoding"])
             except:
                 try:
-                    body = body.decode('gbk')
-                except Exception as e:
-                    return self.resp_bad_req(msg=f"文本解码失败: {e}")
-        script_object = TicketScript(script_name=file_object["filename"])
+                    body = body.decode('utf-8')
+                except:
+                    try:
+                        body = body.decode('gbk')
+                    except Exception as e:
+                        return self.resp_bad_req(msg=f"文本解码失败: {e}")
+            script_object = TicketScript(script_name=filename)
+            temp_script_statements_to_this_script = TempScriptStatement.parse_script(
+                body, script_object, filter_sql_type=filter_sql_type)
+            script_object.sub_ticket_count = len(temp_script_statements_to_this_script)
+            if script_object.sub_ticket_count:
+                temp_script_statements += temp_script_statements_to_this_script
+                script_ids.append(script_object.script_id)
 
-        self.resp_created({"script_id": script_object})
+        n = TempScriptStatement.objects.insert(temp_script_statements)
+        self.resp_created({
+            "statements_inserted": n,
+            "script_ids": script_ids
+        })

@@ -39,7 +39,6 @@ class BaseTicketScript(abc.ABC):
     script_id = None  # 脚本id
     script_name = None  # 脚本名
     db_type = None  # 数据库类型
-    dir_path = None  # 脚本原始所在目录
     sub_ticket_count = None  # 子工单数
 
 
