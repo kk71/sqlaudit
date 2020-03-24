@@ -143,7 +143,6 @@ import ticket.restful_api.ticket
 import ticket.restful_api.temp_script
 import oracle_cmdb.ticket.restful_api.sub_ticket
 import oracle_cmdb.ticket.restful_api.ticket
-import oracle_cmdb.ticket.restful_api.script
 
 urls += [
     # common
@@ -151,10 +150,10 @@ urls += [
     (r"/api/ticket/ticket/export", ticket.restful_api.ticket.TicketExportHandler),
     (r"/api/ticket/sub_ticket", ticket.restful_api.sub_ticket.SubTicketHandler),
     (r"/api/ticket/sub_ticket/export", ticket.restful_api.sub_ticket.SubTicketExportHandler),
+    (r"/api/ticket/ticket/temp_script", ticket.restful_api.temp_script.UploadTempScriptHandler),
 
     # for oracle
     (r"/api/oracle_cmdb/ticket/ticket", oracle_cmdb.ticket.restful_api.ticket),
-    (r"/api/oracle_cmdb/ticket/temp_script", oracle_cmdb.ticket.restful_api.script.UploadTempScriptHandler),
     (r"/api/oracle_cmdb/ticket/sub_ticket/issue", oracle_cmdb.ticket.restful_api.sub_ticket.SubTicketIssueHandler),
     (r"/api/oracle_cmdb/ticket/sub_ticket/sql_plan", oracle_cmdb.ticket.restful_api.sub_ticket.SQLPlanHandler),
 ]

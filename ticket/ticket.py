@@ -1,9 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "TicketScript",
+    "Ticket",
+    "TempScriptStatement"
+]
+
 import uuid
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    EmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
+    DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
 
 import utils.const
 from .parsed_sql import ParsedSQL
@@ -13,7 +19,10 @@ from utils import datetime_utils
 from . import const
 
 
-class TicketScript(EmbeddedDocument, BaseTicketScript, metaclass=ABCDocumentMetaclass):
+class TicketScript(
+        DynamicEmbeddedDocument,
+        BaseTicketScript,
+        metaclass=ABCDocumentMetaclass):
     """工单脚本"""
 
     script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
@@ -26,6 +35,7 @@ class TicketScript(EmbeddedDocument, BaseTicketScript, metaclass=ABCDocumentMeta
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     """工单"""
 
+    ticket_id = StringField(primary_key=True)
     task_name = StringField(required=True)
     db_type = StringField()
     cmdb_id = IntField()

@@ -54,12 +54,12 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
     请注意：这个子工单类是需要被不同的子类继承的，以兼顾oracle和mysql，
     在子工单列表里读取的时候使用本类进行操作以达到兼容效果，写入数据的时候请使用子类
     """
-    ticket_id = StringField()
+    statement_id = StringField(primary_key=True)
+    ticket_id = StringField(required=True)
     script = EmbeddedDocumentField(TicketScript)
     task_name = StringField(default=None)
     db_type = StringField()
     cmdb_id = IntField()
-    statement_id = StringField()
     sql_type = IntField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
     sql_text_no_comment = StringField()
@@ -74,7 +74,6 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
     # 额外错误信息
     # 如果存在额外错误信息，则当前子工单未正确分析
     error_msg = StringField(null=True)
-    check_time = DateTimeField(default=datetime_utils.datetime.now)  # 分析日期
 
     meta = {
         "allow_inheritance": True,
@@ -85,9 +84,7 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
             "task_name",
             "db_type",
             "cmdb_id",
-            "statement_id",
             "position",
-            "online_status",
-            "check_time",
+            "online_status"
         ]
     }
