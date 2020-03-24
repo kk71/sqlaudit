@@ -51,15 +51,13 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         "allow_inheritance": True,
         "collection": "ticket",
         'indexes': [
-            "ticket_id",
-            "script_id",
             "task_name",
             "db_type",
             "cmdb_id",
-            "statement_id",
-            "position",
-            "online_status",
-            "check_time",
+            "submit_time",
+            "submit_owner",
+            "status",
+            "audit_role_id"
         ]
     }
 

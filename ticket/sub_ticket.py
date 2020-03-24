@@ -81,7 +81,7 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
         "collection": "sub_ticket",
         'indexes': [
             "ticket_id",
-            "script_id",
+            "script.script_id",
             "task_name",
             "db_type",
             "cmdb_id",

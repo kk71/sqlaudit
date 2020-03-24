@@ -7,6 +7,11 @@ from tornado.web import StaticFileHandler
 import settings
 from .views import *
 
+dynamic_urls = [
+    # here serves dynamic urls.
+    # use as_vew("relative path to the package")
+]
+
 # static prefix
 urls = [
     (
@@ -126,4 +131,41 @@ urls += [
     (r"/api/mail/sender", report_sending.ConfigSenderHandler),
     (r"/api/mail/send", report_sending.SendMailHandler),
     (r"/api/mail/history", report_sending.MailHistory),
+]
+
+
+# === 重构的线下审核 ===
+
+# TODO 未来这块url控制是由package path+自定义路径组成的，代码结构还没完善，暂时先手写
+
+import ticket.restful_api.sub_ticket
+import ticket.restful_api.ticket
+import ticket.restful_api.script
+import oracle_cmdb.ticket.restful_api.ticket
+import oracle_cmdb.ticket.restful_api.sub_ticket
+import oracle_cmdb.ticket.restful_api.script
+
+# (r"/api/offline/ticket/outer", ticket.TicketOuterHandler),
+# (r"/api/offline/ticket/export", ticket.TicketExportHandler),
+# (r"/api/offline/sub_ticket", sub_ticket.SubTicketHandler),
+# (r"/api/offline/sub_ticket/export", sub_ticket.SubTicketExportHandler),
+# (r"/api/offline/sub_ticket/rule", sub_ticket.SubTicketRuleHandler),
+
+# (r"/api/offline/ticket", ticket.TicketHandler),
+# (r"/api/offline/sql_upload", ticket.SQLUploadHandler),
+
+# (r"/api/offline/sub_ticket/sql_plan", sub_ticket.SQLPlanHandler),
+
+urls += [
+    # common
+    (r"/api/ticket/ticket/archive", ticket.restful_api.ticket.ArchiveHandler),
+    (r"/api/ticket/ticket/export", ticket.restful_api.ticket.TicketExportHandler),
+    (r"/api/ticket/sub_ticket", ticket.restful_api.sub_ticket.SubTicketHandler),
+    (r"/api/ticket/sub_ticket/export", ticket.restful_api.sub_ticket.SubTicketExportHandler),
+
+    # for oracle
+    (r"/api/oracle_cmdb/ticket/ticket", oracle_cmdb.ticket.restful_api.ticket),
+    (r"/api/oracle_cmdb/ticket/script", oracle_cmdb.ticket.restful_api.script.UploadScriptHandler),
+    (r"/api/oracle_cmdb/ticket/sub_ticket/issue", oracle_cmdb.ticket.restful_api.sub_ticket.SubTicketIssueHandler),
+    (r"/api/oracle_cmdb/ticket/sub_ticket/sql_plan", oracle_cmdb.ticket.restful_api.sub_ticket.SQLPlanHandler),
 ]

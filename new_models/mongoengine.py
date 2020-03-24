@@ -22,10 +22,12 @@ from utils import datetime_utils
 
 
 class ABCTopLevelDocumentMetaclass(TopLevelDocumentMetaclass, abc.ABCMeta):
+    """顶级document的元类，Document, BaseDoc请优先使用这个"""
     pass
 
 
 class ABCDocumentMetaclass(DocumentMetaclass, abc.ABCMeta):
+    """普通document的元类，给EmbeddedDocument使用"""
     pass
 
 

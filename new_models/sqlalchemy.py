@@ -3,15 +3,18 @@
 __all__ = [
     "make_session",
     "QueryEntity",
-    "BaseModel"
+    "BaseModel",
+    "ABCDeclarativeMeta"
 ]
 
+import abc
 import json
 from contextlib import contextmanager
 from typing import *
 from types import FunctionType
 
 import arrow
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 # TODO must initiate models first!
 from . import Session, base
@@ -54,6 +57,10 @@ class QueryEntity(List):
     def to_plain_list(cls, v):
         """如果只有单个查询参数，将其展开成为单个list"""
         return [i[0] for i in v]
+
+
+class ABCDeclarativeMeta(DeclarativeMeta, abc.ABCMeta):
+    pass
 
 
 class BaseModel(base):
