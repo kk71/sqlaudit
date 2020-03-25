@@ -14,7 +14,7 @@ from new_rule.export_utils import rule_import
 @click.option(
     "--filename",
     help="the json filename",
-    default="./files/ticket-rule.json",
+    default="./new_rule/files/ticket-rule.json",
     type=click.STRING)
 def main(filename):
     """import ticket rules, deduplicated."""

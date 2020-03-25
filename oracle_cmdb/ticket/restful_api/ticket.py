@@ -52,7 +52,7 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 )
             new_ticket.from_dict(params)
             new_ticket.save()
-            task.ticket_analyse.delay(
+            task.ticket_analyse(
                 ticket_id=new_ticket.ticket_id, script_ids=script_ids)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 

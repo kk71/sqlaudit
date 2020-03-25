@@ -31,7 +31,7 @@ def collect_startup_scripts():
         m = importlib.import_module(f"{CURRENT_PACKAGE}.{to_import}")
         cmd = click.decorators._make_command(
             m.main,
-            name=to_import,
+            name=to_import.replace("_", "-"),
             cls=click.Command,
             attrs={}
         )

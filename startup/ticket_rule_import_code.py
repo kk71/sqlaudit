@@ -28,7 +28,7 @@ def main(compare: bool):
     for tr in TicketRule.objects().all():
         try:
             code_file = Path(settings.SETTINGS_FILE_DIR) / \
-                        f"ticket-rules/{tr.db_type}/" \
+                        f"new_rule/ticket-rules/{tr.db_type}/" \
                         f"{tr.analyse_type.lower()}/{tr.name}.py"
             if not code_file.exists():
                 raise Exception(f"code file {code_file} not existed.")

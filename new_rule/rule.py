@@ -30,8 +30,8 @@ class RuleInputOutputParams(EmbeddedDocument):
 
 
 class TicketRule(
-        core.rule.BaseRuleItem,
         BaseDoc,
+        core.rule.BaseRuleItem,
         metaclass=ABCTopLevelDocumentMetaclass):
     """线下审核工单的规则"""
     name = StringField(required=True)
@@ -71,10 +71,10 @@ class TicketRule(
         self._code: Union[Callable, None] = None
 
     def __str__(self):
-        return "Rule:" + "-".join(
-            [self.analyse_type] +
+        return "<Rule " + "-".join(
+            [str(self.analyse_type)] +
             [str(i) for i in self.unique_key() if i is not None]
-        )
+        ) + ">"
 
     @classmethod
     def calc_score_max_sum(cls, *args, **kwargs):
