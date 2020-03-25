@@ -540,7 +540,7 @@ def SQL_CPU_TIME(mongo_client, sql, username, etl_date_key, etl_date, cpu_time, 
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
     statement = {
-        "PER_CPU_TIME": {"$gte": cpu_time},
+        "PER_CPU_TIME": {"$gte": int(cpu_time)},
         "USERNAME": username,
         etl_date_key: etl_date
     }
