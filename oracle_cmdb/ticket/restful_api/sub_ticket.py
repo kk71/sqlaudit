@@ -65,10 +65,11 @@ class SubTicketIssueHandler(TicketReq):
     def patch(self):
         """修改子工单内的规则，修改后重新计算工单的分数"""
         params = self.get_json_args(Schema({
-            "work_list_id": scm_gt0_int,
+            "ticket_id": scm_unempty_str,
             "statement_id": scm_unempty_str,
             "ticket_rule_name": scm_unempty_str,
-            "analyse_type": scm_one_of_choices(ticket.const.ALL_TICKET_ANALYSE_TYPE),
+            "analyse_type": scm_one_of_choices(
+                ticket.const.ALL_TICKET_ANALYSE_TYPE),
             scm_optional("action", default="delete"):
                 scm_one_of_choices(["update", "delete"]),
             scm_optional("update"): {
@@ -76,7 +77,7 @@ class SubTicketIssueHandler(TicketReq):
             }
         }))
 
-        ticket_id = params.pop("work_list_id")
+        ticket_id = params.pop("ticket_id")
         statement_id = params.pop("statement_id")
         ticket_rule_name = params.pop("ticket_rule_name")
         analyse_type = params.pop("analyse_type")
