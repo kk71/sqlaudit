@@ -502,7 +502,7 @@ def SQL_BUFFER_GETS(mongo_client, sql, username, etl_date_key, etl_date, buffer_
     sql_collection = mongo_client.get_collection(sql)
 
     found_items = sql_collection.find({
-        "PER_BUFFER_GETS": {"$gte": buffer_gets},
+        "PER_BUFFER_GETS": {"$gte": int(buffer_gets)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
@@ -580,7 +580,7 @@ def SQL_ELAPSED_TIME(mongo_client, sql, username, etl_date_key, etl_date, elapse
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "PER_ELAPSED_TIME": {"$gte": elapsed_time},
+        "PER_ELAPSED_TIME": {"$gte": int(elapsed_time)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
