@@ -6,7 +6,7 @@ from models.oracle import make_session, CMDB
 from utils.schema_utils import *
 from ..ticket import OracleTicket
 from ..analyse import OracleSubTicketAnalyse
-from .. import ticket_utils
+from .. import ticket_utils, task
 
 
 class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
@@ -52,8 +52,7 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 )
             new_ticket.from_dict(params)
             new_ticket.save()
-            offline_ticket.delay(
+            task.ticket_analyse.delay(
                 ticket_id=new_ticket.ticket_id, script_ids=script_ids)
-
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 

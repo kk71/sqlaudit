@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "ticket_analyse"
+]
+
 from models import init_models
 init_models()
 
@@ -14,7 +18,7 @@ from ticket.ticket import TempScriptStatement
 
 
 @celery.task
-def ticket_analyse(ticket_id: str, script_ids: [str]):
+def ticket_analyse(ticket_id: str, script_id: [str]):
     """
     诊断线下工单
     """
@@ -52,11 +56,11 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
                     sqls=sqls
                 )
                 sub_tickets.append(sub_ticket)
-    ticket.status = ticket.const.TICKET_PENDING
+    the_ticket.status = ticket.const.TICKET_PENDING
     if sub_tickets:
         print(f"finally we got {len(sub_tickets)} sub tickets.")
         OracleSubTicket.objects.insert(sub_tickets)
-        ticket.calculate_score()
+        the_ticket.calculate_score()
     else:
-        print("no sub tickets was generated.")
+        raise ticket.exceptions.NoSubTicketGenerated
     print(f"{ticket} is successfully analysed.")
