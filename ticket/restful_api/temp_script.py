@@ -71,8 +71,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")
 
+        scripts = []
         temp_script_statements: [TempScriptStatement] = []
-        script_ids: [str] = []
         for file_object in file_objects:
             body = file_object["body"]
             filename = file_object["filename"]
@@ -89,15 +89,19 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
                     except Exception as e:
                         return self.resp_bad_req(msg=f"文本解码失败: {e}")
             script_object = TicketScript(script_name=filename)
+            scripts.append(script_object)
             temp_script_statements_to_this_script = TempScriptStatement.parse_script(
                 body, script_object, filter_sql_type=filter_sql_type)
             script_object.sub_ticket_count = len(temp_script_statements_to_this_script)
             if script_object.sub_ticket_count:
                 temp_script_statements += temp_script_statements_to_this_script
-                script_ids.append(script_object.script_id)
 
-        inserted_docs = TempScriptStatement.objects.insert(temp_script_statements)
+        TempScriptStatement.objects.insert(temp_script_statements)
         self.resp_created({
-            "statements_inserted": len(inserted_docs),
-            "script_ids": script_ids
+            "scripts": [
+                {
+                    "script_id": a_script.script_id,
+                    "script_name": a_script.script_name
+                } for a_script in scripts
+            ]
         })
