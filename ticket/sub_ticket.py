@@ -15,7 +15,8 @@ class SubTicketIssue(EmbeddedDocument):
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
-    input_params = ListField(default=lambda: [])  # 记录规则执行时的输入参数快照
+    max_score = FloatField(required=True)  # 最大扣分快照
+    input_params = ListField(default=lambda: [])  # 输入参数快照
     output_params = ListField(default=lambda: [])  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
@@ -31,6 +32,7 @@ class SubTicketIssue(EmbeddedDocument):
         self.db_type = rule_object.db_type
         self.rule_name = rule_object.name
         self.rule_desc = rule_object.desc
+        self.max_score = rule_object.max_score
         self.input_params = [i for i in rule_object.to_dict()["input_params"]]
 
     def add_output(self, output_structure, value):
@@ -88,3 +90,6 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
             "online_status"
         ]
     }
+
+    def __repr__(self):
+        return f"<SubTicket {self.statement_id}>"

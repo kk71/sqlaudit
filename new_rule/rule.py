@@ -14,7 +14,8 @@ from schema import Schema, Or, And
 
 import core.rule
 import utils.const
-from .import const
+from . import exceptions
+from . import const
 from new_models.mongoengine import *
 from utils.schema_utils import scm_num
 
@@ -92,8 +93,9 @@ class TicketRule(
 # 如果有任何import，请在此处导入，方便在规则执行前进行检查。
 
 
-def code(rule, **kwargs):
+def code(rule, entry, **kwargs):
     
+    # entry 指明了本次调用是什么层面的调用。
     # kwargs存放当前规则类型下会给定的输入参数，
     # 可能包括纳管库连接对象，当前工单的全部语句，当前停留在的语句索引，执行计划等等。具体看业务。
     # 可通过self活得当前规则的参数信息，
@@ -129,16 +131,18 @@ code_hole.append(code)
             "code_hole": code_hole,
         })
         if len(code_hole) != 1 or not callable(code_hole[0]):
-            raise const.RuleCodeInvalidException("code not put in to the hole!")
+            raise exceptions.RuleCodeInvalidException("code not put in to the hole!")
         return code_hole.pop()
 
-    def run(self, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
+    def run(self, entry, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
         """
         在给定的sql文本上执行当前规则
+        :param entry: 入口，告诉规则函数，本次调用是从哪里调入的，不同调用入口，会带入不同的参数
         :param test_only: 仅测试生成code代码函数，并不执行。
         :param kwargs: 别的参数，根据业务不同传入不同的参数，具体看业务实现
         :return:
         """
+        assert entry in const.ALL_RULE_ENTRIES
         if test_only:
             # 仅生成code函数，并不缓存，也不执行。
             if getattr(self, "_code", None):
@@ -150,7 +154,7 @@ code_hole.append(code)
                 trace = traceback.format_exc()
                 print(f"* failed when generating {self.unique_key()}: {e}")
                 print(trace)
-                raise const.RuleCodeInvalidException(trace)
+                raise exceptions.RuleCodeInvalidException(trace)
             return
         try:
             if not getattr(self, "_code", None):
@@ -159,7 +163,7 @@ code_hole.append(code)
                 self._code: Callable = self.construct_code(self.code)
             else:
                 print(f"* analysing {str(self)} ...")
-            ret = self._code(self, **kwargs)
+            ret = self._code(self, entry, **kwargs)
 
             # 校验函数返回的结构是否合乎预期
             Schema((
@@ -170,7 +174,7 @@ code_hole.append(code)
                 Or([object], (object,))
             )).validate(ret)
             if ret[0] and len(ret[1]) != len(self.output_params):
-                raise const.RuleCodeInvalidException(
+                raise exceptions.RuleCodeInvalidException(
                     f"The length of the iterable ticket rule returned({len(ret[1])}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
             ret = list(ret)
@@ -183,7 +187,7 @@ code_hole.append(code)
             print("failed when executing(or generating) ticket rule "
                   f"{self.unique_key()}: {e}")
             print(trace)
-            raise const.RuleCodeInvalidException(trace)
+            raise exceptions.RuleCodeInvalidException(trace)
 
     @classmethod
     def filter_enabled(cls, *args, **kwargs):

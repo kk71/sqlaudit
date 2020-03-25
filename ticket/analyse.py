@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "SubTicketAnalyse"
+]
+
 import abc
 import traceback
 
@@ -8,14 +12,16 @@ from redis import StrictRedis
 from mongoengine import QuerySet as mongoengine_qs
 
 import settings
-from .const import *
+import new_rule.const
+from models.oracle import CMDB
+from . import const
 from utils.datetime_utils import *
 from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
 from .sub_ticket import SubTicketIssue
 
 
-class SubTicketAnalysis(abc.ABC):
+class SubTicketAnalyse(abc.ABC):
     """子工单分析模块，不指明纳管库类型"""
 
     # TODO 指明数据库类型，mysql还是oracle
@@ -30,7 +36,7 @@ class SubTicketAnalysis(abc.ABC):
         self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
         ret = f"{submit_owner}-{current_date}-{current_num}"
         if current_num_int == 1:
-            while session.query(WorkList).filter(WorkList.task_name == ret).count():
+            while Ticket.objects(task_name=ret).count():
                 current_num_int = self.redis_cli.incr(k, 1)
                 current_num = "%03d" % current_num_int
                 self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
@@ -41,7 +47,7 @@ class SubTicketAnalysis(abc.ABC):
     def __init__(self,
                  static_rules_qs: mongoengine_qs,
                  dynamic_rules_qs: mongoengine_qs,
-                 cmdb,
+                 cmdb: CMDB,
                  ticket: Ticket):
         # 缓存存放每日工单的子增流水号
         self.redis_cli = StrictRedis(
@@ -87,19 +93,21 @@ class SubTicketAnalysis(abc.ABC):
         静态分析
         :param self:
         :param sub_result:
-        :param single_sql: {"sql_text":,"comments":,"num":,"sql_type":}
+        :param single_sql:
         :param sqls: [{single_sql},...]
         """
         try:
             for sr in self.static_rules:
-                if sr.sql_type is not SQL_ANY and \
+                if sr.sql_type is not const.SQL_ANY and \
                         sr.sql_type != single_sql["sql_type"]:
                     continue
                 sub_result_issue = SubTicketIssue()
                 sub_result_issue.as_sub_result_of(sr)
 
-                # ===这里指明了静态审核的输入参数(kwargs)===
+                # ===指明静态审核的输入参数(kwargs)===
                 score_to_minus, output_params = sr.run(
+                    entry=new_rule.const.RULE_ENTRY_TICKET_STATIC,
+
                     single_sql=single_sql,
                     sqls=sqls,
                     cmdb=self.cmdb

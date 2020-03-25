@@ -11,18 +11,21 @@ import traceback
 from mongoengine import QuerySet as mongoengine_qs
 from cx_Oracle import DatabaseError
 
+import new_rule.const
+import ticket.const
+import ticket.exceptions
+import utils.const
 from models.mongo import *
 from plain_db.oracleob import *
-from utils.const import *
 from utils.parsed_sql import ParsedSQL
 from new_rule.rule import TicketRule
-from ticket.analyse import SubTicketAnalysis
+from ticket.analyse import SubTicketAnalyse
 
 
-class OracleSubTicketAnalyse(SubTicketAnalysis):
+class OracleSubTicketAnalyse(SubTicketAnalyse):
     """oracle子工单分析"""
 
-    db_type = DB_ORACLE
+    db_type = utils.const.DB_ORACLE
 
     @staticmethod
     def sql_filter_annotation(sql):
@@ -35,13 +38,13 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
     def __init__(self, **kwargs):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=TICKET_ANALYSE_TYPE_STATIC,
-                db_type=DB_ORACLE
+                analyse_type=ticket.const.TICKET_ANALYSE_TYPE_STATIC,
+                db_type=utils.const.DB_ORACLE
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=TICKET_ANALYSE_TYPE_DYNAMIC,
-                db_type=DB_ORACLE
+                analyse_type=ticket.const.TICKET_ANALYSE_TYPE_DYNAMIC,
+                db_type=utils.const.DB_ORACLE
             )
         super(OracleSubTicketAnalyse, self).__init__(**kwargs)
         self.schema_name = self.ticket.schema_name \
@@ -77,14 +80,16 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
                                 f"sql: {formatted_sql}")
             sql_plan_qs = self.write_sql_plan(sql_plans)
             for dr in self.dynamic_rules:
-                if dr.sql_type is not SQL_ANY and \
+                if dr.sql_type is not ticket.const.SQL_ANY and \
                         dr.sql_type != single_sql["sql_type"]:
                     continue
                 sub_result_item = TicketSubResultItem()
                 sub_result_item.as_sub_result_of(dr)
 
-                # ===这里指明了动态审核的输入参数(kwargs)===
+                # ===指明oracle动态审核的输入参数(kwargs)===
                 score_to_minus, output_params = dr.run(
+                    entry=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC,
+
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,
                     mongo_connector=self.mongo_connector,
@@ -116,7 +121,6 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
         """
         单条sql的静态动态审核
         :param single_sql:
-                {"sql_text":,"sql_text_no_comment":"comments":,"num":,"sql_type"}
         :param sqls: [{single_sql},...]
         :param kwargs:
         """
@@ -128,20 +132,19 @@ class OracleSubTicketAnalyse(SubTicketAnalysis):
         print(f"* {_for_print} of {len(sqls)}")
         ps = ParsedSQL(single_sql["sql_text"])
         if len(ps) != 1:
-            raise TicketAnalyseException(
+            raise ticket.exceptions.TicketAnalyseException(
                 f"sub ticket with more than one sql sentence: {ps}")
         sub_result = OracleTicketSubResult(
-            work_list_id=self.ticket.work_list_id,
+            ticket_id=str(self.ticket.ticket_id),
             task_name=self.ticket.task_name,
             cmdb_id=self.cmdb.cmdb_id,
-            db_type=DB_ORACLE,
+            db_type=utils.const.DB_ORACLE,
             schema_name=self.schema_name,
             statement_id=self.statement_id,
-            position=single_sql.pop("num"),
             **single_sql
         )
         self.run_static(sub_result, sqls, single_sql)
-        if ps[0].statement_type not in SQL_KEYWORDS_NO_DYNAMIC_ANALYSE:
+        if ps[0].statement_type not in ticket.const.SQL_KEYWORDS_NO_DYNAMIC_ANALYSE:
             self.run_dynamic(sub_result, single_sql)
         return sub_result
 

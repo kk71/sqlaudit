@@ -1,8 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 
-class RuleCodeInvalidException(Exception):
-    """规则代码无法执行，或者返回结果非正常"""
-    pass
+# 规则代码的调用入口
 
+RULE_ENTRY_TICKET_STATIC = "ticket_static"
+RULE_ENTRY_TICKET_DYNAMIC = "ticket_dynamic"
+RULE_ENTRY_ONLINE = "online"
 
+ALL_RULE_ENTRIES = (
+    RULE_ENTRY_TICKET_STATIC,
+    RULE_ENTRY_TICKET_DYNAMIC,
+    RULE_ENTRY_ONLINE
+)

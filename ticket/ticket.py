@@ -7,6 +7,9 @@ __all__ = [
 ]
 
 import uuid
+from typing import Union
+from functools import reduce
+from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
@@ -17,6 +20,7 @@ from core.ticket import *
 from new_models.mongoengine import *
 from utils import datetime_utils
 from . import const
+from . import exceptions
 
 
 class TicketScript(
@@ -30,13 +34,16 @@ class TicketScript(
     db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
     sub_ticket_count = IntField(default=0)
 
+    def __repr__(self):
+        return f"<TicketScript {self.script_id}-{self.script_name}>"
+
 
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     """工单"""
 
+    db_type = StringField()
     ticket_id = StringField(primary_key=True)
     task_name = StringField(required=True)
-    db_type = StringField()
     cmdb_id = IntField()
     sub_ticket_count = IntField(default=0)
     scripts = EmbeddedDocumentListField(TicketScript)
@@ -64,14 +71,53 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         ]
     }
 
-    def calculate_score(self, *args, **kwargs) -> float:
+    def __repr__(self):
+        return f"<Ticket {self.db_type}-{self.ticket_id}>"
+
+    def calculate_score(
+            self, at_least: Union[None, int, float] = 60, **kwargs) -> float:
         """
         计算工单当前分数
-        :param args:
+        :param at_least:
         :param kwargs:
         :return:
         """
-        return
+        from new_rule.rule import TicketRule
+        from .sub_ticket import SubTicket
+
+        print(f"calculating total score for {self.ticket_id}...")
+        # unique_key: (当前已扣, 最大扣分)
+        rules_max_score = defaultdict(lambda: [0, 0])
+        for sub_result in SubTicket.objects(ticket_id=self.ticket_id):
+            static_and_dynamic_results = sub_result.static + sub_result.dynamic
+            for issue_of_sub_result in static_and_dynamic_results:
+                rule_unique_key = issue_of_sub_result.get_rule_unique_key()
+                rules_max_score[rule_unique_key][1] = issue_of_sub_result.max_score
+                if rules_max_score[rule_unique_key][0] < \
+                        rules_max_score[rule_unique_key][1]:
+                    # 仅当已经扣掉的分数依然小于最大扣分的时候才继续扣分
+                    rules_max_score[rule_unique_key][0] += \
+                        issue_of_sub_result.minus_score  # 这个minus_score是负数或0！
+                else:
+                    # 否则，直接将扣分置为最大扣分
+                    rules_max_score[rule_unique_key][0] = \
+                        rules_max_score[rule_unique_key][1]
+        if not rules_max_score:
+            raise exceptions.NoEnabledRuleToCalculateScore
+        total_minus_score, _ = reduce(
+            lambda x, y: [x[0] + y[0], x[1] + y[1]],
+            rules_max_score.values()
+        )
+        all_rule_max_score_sum = TicketRule.calc_score_max_sum(db_type=self.db_type)
+        if all_rule_max_score_sum:
+            final_score = (all_rule_max_score_sum + total_minus_score) / \
+                          float(all_rule_max_score_sum) * 100.0
+        else:
+            final_score = 100
+        if at_least and final_score < at_least:
+            final_score = at_least
+        self.score = round(final_score, 2)  # 未更新库中数据，需要手动加入session并commit
+        return self.score
 
 
 class TempScriptStatement(BaseDoc):

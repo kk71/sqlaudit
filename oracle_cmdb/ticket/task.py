@@ -3,66 +3,60 @@
 from models import init_models
 init_models()
 
-import utils.const
+import ticket.const
+import ticket.exceptions
 from task.base import *
+from models.oracle import make_session, CMDB
+from .analyse import OracleSubTicketAnalyse
+from .ticket import OracleTicket
+from .sub_ticket import OracleSubTicket
+from ticket.ticket import TempScriptStatement
 
 
 @celery.task
-def offline_ticket(work_list_id: int, session_id: str):
+def ticket_analyse(ticket_id: str, script_ids: [str]):
     """
     诊断线下工单
     """
+    the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
+    if not the_ticket:
+        raise ticket.exceptions.TicketNotFound(
+            "fatal: the ticket with ticket_id={ticket_id} is not found.")
+    if the_ticket.status != ticket.const.TICKET_ANALYSING:
+        raise ticket.exceptions.TicketWithWrongStatus(
+            "fatal: current ticket has wrong status.")
+
+    sub_tickets = []
     with make_session() as session:
-        ticket = session.query(WorkList). \
-            filter(WorkList.work_list_id == work_list_id).first()
-        if not ticket:
-            raise Exception("fatal: the ticket with "
-                            f"work_list_id={work_list_id} is not found.")
-        elif ticket.work_list_status != OFFLINE_TICKET_ANALYSING:
-            raise Exception("fatal: current ticket has wrong status.")
-
-        cmdb = session.query(CMDB).filter(CMDB.cmdb_id == ticket.cmdb_id).first()
-        if not cmdb:
-            raise CMDBNotFoundException(ticket.cmdb_id)
-
-        qe = QueryEntity(
-            WorkListAnalyseTemp.sql_text,
-            WorkListAnalyseTemp.sql_text_no_comment,
-            WorkListAnalyseTemp.comments,
-            WorkListAnalyseTemp.num,
-            WorkListAnalyseTemp.sql_type
-        )
-        sqls = session.query(*qe). \
-            filter(WorkListAnalyseTemp.session_id == session_id). \
-            order_by(WorkListAnalyseTemp.num.desc())
-        sqls: [dict] = [qe.to_dict(a_sql) for a_sql in sqls]
-        if not sqls:
-            raise Exception("fatal: no SQL was given in session_id.")
-        print(f"* going to analyse {len(sqls)} sqls "
-              f"in ticket({ticket.task_name}, {ticket.work_list_id}), "
-              f"cmdb_id({ticket.cmdb_id}), schema({ticket.schema_name})")
-        sub_tickets = []
-        for single_sql in sqls:
-            if cmdb.database_type in (DB_ORACLE, 1):
-                sub_ticket_analysis = OracleSubTicketAnalysis(
+        cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
+        for the_script in the_ticket.scripts:
+            statement_q = TempScriptStatement.objects(
+                script__script_id=the_script.script_id).order_by("position")
+            sqls = [
+                # 格式化成通用的sql结构
+                {
+                    "sql_text": ts.normalized,
+                    "sql_text_no_comment": ts.normalized_without_comment,
+                    "comments": ts.comment,
+                    "position": ts.position,
+                    "sql_type": ts.sql_type
+                } for ts in statement_q
+            ]
+            for the_sql in sqls:
+                osta = OracleSubTicketAnalyse(
                     cmdb=cmdb,
-                    ticket=ticket
+                    ticket=the_ticket
                 )
-            else:
-                assert 0  # TODO add mysql support here
-            sub_ticket = sub_ticket_analysis.run(
-                sqls=sqls,
-                single_sql=single_sql
-            )
-            sub_tickets.append(sub_ticket)
-        ticket.work_list_status = OFFLINE_TICKET_PENDING
-
-        if cmdb.database_type in (DB_ORACLE, 1):
-            _TicketSubResult = OracleTicketSubResult
-        else:
-            assert 0  # TODO add mysql support here
-        print(f"finally we got {len(sub_tickets)} sub_tickets.")
-        _TicketSubResult.objects.insert(sub_tickets)
-        ticket.calc_score()
-        session.add(ticket)
-    print(f"ticket with work_list_id = {work_list_id} is successfully analysed.")
+                sub_ticket = osta.run(
+                    single_sql=the_sql,
+                    sqls=sqls
+                )
+                sub_tickets.append(sub_ticket)
+    ticket.status = ticket.const.TICKET_PENDING
+    if sub_tickets:
+        print(f"finally we got {len(sub_tickets)} sub tickets.")
+        OracleSubTicket.objects.insert(sub_tickets)
+        ticket.calculate_score()
+    else:
+        print("no sub tickets was generated.")
+    print(f"{ticket} is successfully analysed.")
