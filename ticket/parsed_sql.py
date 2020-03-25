@@ -107,7 +107,6 @@ class ParsedSQLStatement:
         return {
             "normalized": self.normalized,
             "normalized_without_comment": self.normalized_without_comment,
-            "tokens": pickle.dumps(self.tokens),
             "statement_type": self.statement_type,
             "sql_type": self.sql_type
         }

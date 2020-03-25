@@ -7,7 +7,6 @@ __all__ = [
 ]
 
 import uuid
-import pickle
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
@@ -86,7 +85,6 @@ class TempScriptStatement(BaseDoc):
     # 以下字段是ParsedSQLStatement封装的
     normalized = StringField()  # 处理后的单条sql语句
     normalized_without_comment = StringField()  # 处理后的单条无注释sql语句
-    tokens = StringField()  # sql语句内的结构(pickle)
     statement_type = StringField()  # 语句归属（select update delete etc...）
     sql_type = StringField(choices=const.ALL_SQL_TYPE)  # sql type: ddl or dml or ...
 
@@ -120,11 +118,11 @@ class TempScriptStatement(BaseDoc):
                 ** parsed_sql_statement.serialize()
             )
             for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
-            if filter_sql_type and parsed_sql_statement.sql_type == filter_sql_type
+            if filter_sql_type is None or parsed_sql_statement.sql_type == filter_sql_type
         ]
 
-    def load_tokens(self):
-        return pickle.loads(self.tokens)
+    def gen_tokens(self):
+        return ParsedSQL(self.normalized)[0].tokens
 
     def parse_single_statement(self, sql_text: str):
         """
@@ -138,7 +136,6 @@ class TempScriptStatement(BaseDoc):
             iter_if=lambda k, v: k in (
                 "normalized",
                 "normalized_without_comment",
-                "tokens",
                 "statement_type",
                 "sql_type"
             )

@@ -4,10 +4,9 @@ import abc
 
 import chardet
 
-import utils.const
 from utils.schema_utils import *
+from .. import const
 from .base import *
-from ..const import *
 from ..ticket import *
 
 
@@ -38,7 +37,6 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
             scm_optional("sql_text"): scm_unempty_str,
             scm_optional("comment"): scm_str,
-            scm_optional("sql_type"): scm_one_of_choices(ALL_SQL_TYPE),
             scm_optional("delete", default=False): scm_bool
         }))
         statement_id = params.pop("statement_id")
@@ -51,6 +49,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql session")
         if delete:
             temp_scipt_statement_object.delete()
+            # TODO 这里会导致脚本中记录的语句个数和实际的不符，但是无所谓，创建工单的时候重新计算
+            # TODO 以工单scripts记录的信息为准
             self.resp_created(msg="sql已删除。")
         else:
             temp_scipt_statement_object.from_dict(params)
@@ -66,7 +66,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
         params = self.get_query_args(Schema({
             scm_optional("filter_sql_type", default=None):
-                And(scm_int, scm_one_of_choices(utils.const.ALL_SQL_TYPE)),
+                And(scm_int, scm_one_of_choices(const.ALL_SQL_TYPE)),
         }))
         file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")
@@ -96,8 +96,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
                 temp_script_statements += temp_script_statements_to_this_script
                 script_ids.append(script_object.script_id)
 
-        n = TempScriptStatement.objects.insert(temp_script_statements)
+        inserted_docs = TempScriptStatement.objects.insert(temp_script_statements)
         self.resp_created({
-            "statements_inserted": n,
+            "statements_inserted": len(inserted_docs),
             "script_ids": script_ids
         })

@@ -79,7 +79,7 @@ class BaseDoc(Document):
                 continue
             if iter_by:
                 v = iter_by(k, v)
-            if k in ("_id", "id") and isinstance(v, ObjectId):
+            if isinstance(v, ObjectId):
                 v = str(v)
             if isinstance(v, dict):
                 v = self.to_dict(iter_if, iter_by, recurse=v)
