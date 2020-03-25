@@ -7,6 +7,7 @@ __all__ = [
 ]
 
 import uuid
+import pickle
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
@@ -77,6 +78,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
 class TempScriptStatement(BaseDoc):
     """临时脚本语句"""
 
+    statement_id = StringField(primary_key=True)
     script = EmbeddedDocumentField(TicketScript)
     position = IntField()  # 语句所在位置
     comment = StringField(default="")
@@ -120,3 +122,24 @@ class TempScriptStatement(BaseDoc):
             for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
             if filter_sql_type and parsed_sql_statement.sql_type == filter_sql_type
         ]
+
+    def load_tokens(self):
+        return pickle.loads(self.tokens)
+
+    def parse_single_statement(self, sql_text: str):
+        """
+        处理单个sql语句
+        :param sql_text:
+        :return:
+        """
+        new_temp_statements = self.parse_script(sql_text, script=None)
+        assert len(new_temp_statements) == 1
+        self.from_dict(new_temp_statements[0].to_dict(
+            iter_if=lambda k, v: k in (
+                "normalized",
+                "normalized_without_comment",
+                "tokens",
+                "statement_type",
+                "sql_type"
+            )
+        ))

@@ -25,35 +25,38 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         p = self.pop_p(params)
         del params
 
-        q=TempScriptStatement.objects().\
-            filter_by(script__script_id=script_id)
+        q = TempScriptStatement.objects(script__script_id=script_id)
         if keyword:
-            q = self.query_keyword(q, keyword,"normalized","comment")
+            q = self.query_keyword(q, keyword, "normalized", "comment")
         sqls, p = self.paginate(q, **p)
         self.resp([sql.to_dict() for sql in sqls], **p)
 
     def patch(self):
         """编辑上传的临时sql数据"""
         params = self.get_json_args(Schema({
-            "id": scm_str,
+            "statement_id": scm_str,
+
             scm_optional("sql_text"): scm_unempty_str,
-            scm_optional("comments"): scm_str,
+            scm_optional("comment"): scm_str,
             scm_optional("sql_type"): scm_one_of_choices(ALL_SQL_TYPE),
             scm_optional("delete", default=False): scm_bool
         }))
-        wlat_id = params.pop("id")
+        statement_id = params.pop("statement_id")
+        sql_text = params.pop("sql_text")
         delete = params.pop("delete")
 
-        wlat=TempScriptStatement.objects().filter_by(id=wlat_id).first()
-        if not wlat:
-            self.resp_bad_req(msg=f"找不到编号为{wlat_id}的临时sql session")
+        temp_scipt_statement_object = TempScriptStatement.objects(
+            statement_id=statement_id).first()
+        if not temp_scipt_statement_object:
+            self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql session")
         if delete:
-            wlat.delete()
+            temp_scipt_statement_object.delete()
             self.resp_created(msg="sql已删除。")
         else:
-            wlat.from_dict(params)
-            wlat.save()
-            self.resp_created(wlat.to_dict())
+            temp_scipt_statement_object.from_dict(params)
+            temp_scipt_statement_object.parse_single_statement(sql_text)
+            temp_scipt_statement_object.save()
+            self.resp_created(temp_scipt_statement_object.to_dict())
 
     def post(self):
         """上传多个sql脚本"""
