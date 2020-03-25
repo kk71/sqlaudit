@@ -11,6 +11,7 @@ from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.conc_utils import AsyncTimeout
 from ..sub_ticket import SubTicket
+from ..ticket import Ticket
 
 
 class ArchiveHandler(TicketReq):
@@ -20,71 +21,67 @@ class ArchiveHandler(TicketReq):
         self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            **self.gen_date(date_start=True, date_end=True),
             scm_optional("status", default=None): And(
                 scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
+            **self.gen_date(date_start=True, date_end=True),
             **self.gen_p()
         }))
         p = self.pop_p(params)
         date_start, date_end = self.pop_date(params)
-        work_list_status = params.pop("work_list_status")
+        ticket_status = params.pop("status")
 
-        with make_session() as session:
-            filtered_tickets = session.query(WorkList).filter(WorkList.submit_date >= date_start,
-                                                              WorkList.submit_date < date_end). \
-                order_by(WorkList.work_list_id.desc())
-            if work_list_status is not None:
-                filtered_tickets = filtered_tickets.filter(
-                    WorkList.work_list_status == work_list_status)
-            filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
-            tickets: list = []
-            for ticket in filtered_tickets:
-                sub_tickets = TicketSubResult.objects(
-                    work_list_id=ticket.work_list_id)
-                ret_item = {
-                    **ticket.to_dict(
-                        iter_by=lambda k, v:
-                        arrow.get(v).format(utils.const.COMMON_DATE_FORMAT)
-                        if k == "submit_date" else v),
+        filtered_tickets = Ticket.objects(
+            create_time__gte=date_start, create_time__lt=date_end
+        ).order_by("-create_time")
+        if ticket_status:
+            filtered_tickets = filtered_tickets.filter(status=ticket_status)
+        filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
+        tickets: list = []
+        for ticket in filtered_tickets:
+            sub_tickets = SubTicket.objects(ticket_id=ticket.ticket_id)
+            ret_item = {
+                **ticket.to_dict(
+                    iter_by=lambda k, v: d_to_str(v) if k == "create_time" else v),
+                "result_stats": {
+                    "static_problem_num": sum([
+                        len(x.static) for x in sub_tickets if x]),
+                    "dynamic_problem_num": sum([
+                        len(x.dynamic) for x in sub_tickets if x])
+                }
+            }
+            tickets.append(ret_item)
+
+        # ds: date: work_list_status  {"k":{"k":[]}}
+        ds = defaultdict(lambda: defaultdict(list))
+        for ticket in tickets:
+            submit_date: str = ticket["create_time"]  # 只有日期没有时间
+            ticket_status: int = ticket["status"]
+            ds[submit_date][ticket_status].append(ticket)
+        rst = []
+        for the_date, date_vs in ds.items():
+            for ticket_status, tickets in date_vs.items():
+                stats = {
+                    "create_time": the_date,
+                    "status": ticket_status,
+                    "num": len(tickets),
                     "result_stats": {
-                        "static_problem_num": sum([
-                            len(x.static) for x in sub_tickets if x]),
-                        "dynamic_problem_num": sum([
-                            len(x.dynamic) for x in sub_tickets if x])
+                        'static_problem_num': 0,
+                        'dynamic_problem_num': 0
                     }
                 }
-                tickets.append(ret_item)
-            # ds: date: work_list_status  {"k":{"k":[]}}
-            ds = defaultdict(lambda: defaultdict(list))
-            for ticket in tickets:
-                submit_date: str = ticket["submit_date"]  # 只有日期没有时间
-                work_list_status: int = ticket["work_list_status"]
-                ds[submit_date][work_list_status].append(ticket)
-            rst = []
-            for the_date, date_vs in ds.items():
-                for work_list_status, tickets in date_vs.items():
-                    stats = {
-                        "submit_date": the_date,
-                        "work_list_status": work_list_status,
-                        "num": len(tickets),
-                        "result_stats": {
-                            'static_problem_num': 0,
-                            'dynamic_problem_num': 0
-                        }
-                    }
-                    for ticket in tickets:
-                        stats["result_stats"]["static_problem_num"] += \
-                            ticket["result_stats"]["static_problem_num"]
-                        stats["result_stats"]["dynamic_problem_num"] += \
-                            ticket["result_stats"]["dynamic_problem_num"]
-                    rst.append(stats)
-            rr = sorted(
-                rst,
-                key=lambda x: arrow.get(x['submit_date']).date(),
-                reverse=True
-            )
-            items, p = self.paginate(rr, **p)
-            self.resp(items, **p)
+                for ticket in tickets:
+                    stats["result_stats"]["static_problem_num"] += \
+                        ticket["result_stats"]["static_problem_num"]
+                    stats["result_stats"]["dynamic_problem_num"] += \
+                        ticket["result_stats"]["dynamic_problem_num"]
+                rst.append(stats)
+        rr = sorted(
+            rst,
+            key=lambda x: arrow.get(x['create_time']).date(),
+            reverse=True
+        )
+        items, p = self.paginate(rr, **p)
+        self.resp(items, **p)
 
 
 class TicketHandler(TicketReq):
@@ -98,61 +95,49 @@ class TicketHandler(TicketReq):
             scm_optional("status", default=None):
                 And(scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
             scm_optional("keyword", default=None): scm_str,
-            scm_optional("date_start", default=None): scm_date,
-            scm_optional("date_end", default=None): scm_date_end,
-            scm_optional("ticket_id", default=None): scm_int,
+            scm_optional("ticket_id", default=None): scm_str,
+            **self.gen_date(),
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
-        work_list_status: int = params.pop("work_list_status")
-        date_start = params.pop("date_start")
-        date_end = params.pop("date_end")
-        work_list_id = params.pop("work_list_id")
+        ticket_id = params.pop("ticket_id")
+        date_start, date_end = self.pop_date(params)
         p = self.pop_p(params)
 
-        with make_session() as session:
-            q = session.query(WorkList). \
-                filter_by(**params). \
-                order_by(WorkList.work_list_id.desc())
-            if work_list_status is not None:  # take care of the value 0!
-                q = q.filter_by(work_list_status=work_list_status)
-            if keyword:
-                q = self.query_keyword(q, keyword,
-                                       WorkList.work_list_id,
-                                       WorkList.cmdb_id,
-                                       WorkList.schema_name,
-                                       WorkList.task_name,
-                                       WorkList.system_name,
-                                       WorkList.database_name,
-                                       WorkList.submit_owner,
-                                       WorkList.audit_owner,
-                                       WorkList.audit_comments)
-            if date_start:
-                q = q.filter(WorkList.submit_date >= date_start)
-            if date_end:
-                q = q.filter(WorkList.submit_date < date_end)
-            if work_list_id:
-                q = q.filter(WorkList.work_list_id == work_list_id)
-            q = self.privilege_filter_ticket(q)
-            filtered_tickets, p = self.paginate(q, **p)
-            ret = []
-            for ticket in filtered_tickets:
-                sub_tickets_to_current_ticket = TicketSubResult.objects(
-                    work_list_id=ticket.work_list_id)
-                ret_item = {
-                    **ticket.to_dict(),
-                    "result_stats": {
-                        "static_problem_num": sum([
-                            len(x.static) for x in sub_tickets_to_current_ticket if x]),
-                        "dynamic_problem_num": sum([
-                            len(x.dynamic) for x in sub_tickets_to_current_ticket if x])
-                    },
-                    "sql_counts": TicketSubResult.
-                        objects(work_list_id=ticket.work_list_id).count()
-                }
-                ret.append(ret_item)
+        ticket_q = Ticket.objects(**params).order_by("-create_time")
+        if keyword:
+            ticket_q = self.query_keyword(ticket_q, keyword,
+                                          "ticket_id",
+                                          "cmdb_id",
+                                          "task_name",
+                                          "submit_owner",
+                                          "audit_owner",
+                                          "audit_comment")
+        if date_start:
+            ticket_q = ticket_q.filter(create_time__gte=date_start)
+        if date_end:
+            ticket_q = ticket_q.filter(create_time__le=date_end)
+        if ticket_id:
+            ticket_q = ticket_q.filter(ticket_id=ticket_id)
+        ticket_q = self.privilege_filter_ticket(ticket_q)
+        filtered_tickets, p = self.paginate(ticket_q, **p)
+        ret = []
+        for ticket in filtered_tickets:
+            sub_tickets_q_to_current_ticket = SubTicket.objects(
+                ticket_id=ticket.ticket_id)
+            ret_item = {
+                **ticket.to_dict(),
+                "result_stats": {
+                    "static_problem_num": sum([
+                        len(x.static) for x in sub_tickets_q_to_current_ticket if x]),
+                    "dynamic_problem_num": sum([
+                        len(x.dynamic) for x in sub_tickets_q_to_current_ticket if x])
+                },
+                "sql_counts": SubTicket.objects(ticketet_id=ticket.ticket_id).count()
+            }
+            ret.append(ret_item)
 
-            self.resp(ret, **p)
+        self.resp(ret, **p)
 
     def post(self):
         """提交工单"""
@@ -163,37 +148,30 @@ class TicketHandler(TicketReq):
         self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
 
         params = self.get_json_args(Schema({
-            "ticket_id": scm_int,
+            "ticket_id": scm_str,
+
             scm_optional("audit_comment"): scm_str,
             "status": And(scm_int, scm_one_of_choices(ALL_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
         params["audit_owner"] = self.current_user
-        work_list_id = params.pop("work_list_id")
-        with make_session() as session:
-            session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id). \
-                update(params)
-            ticket = session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id). \
-                first()
-            timing_send_work_list_status.delay(ticket.to_dict())
+        ticket_id = params.pop("ticket_id")
+
+        Ticket.objects(ticket_id=ticket_id).update(params)
+        # TODO timing_send_work_list_status.delay(ticket.to_dict())
         return self.resp_created(msg="更新成功")
 
     def delete(self):
         """删除工单"""
         params = self.get_json_args(Schema({
-            "ticket_id": scm_int
+            "ticket_id": scm_str
         }))
-        work_list_id = params.pop("work_list_id")
+        ticket_id = params.pop("ticket_id")
         del params
 
-        with make_session() as session:
-            work_list = session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id).first()
-            sub_delete_id = work_list.work_list_id
-            session.delete(work_list)
-        TicketSubResult.objects(work_list_id=sub_delete_id).delete()
+        ticket = Ticket.objects(ticket_id=ticket_id).first()
+        ticket.delete()
+        SubTicket.objects(ticket_id=ticket_id).delete()
         self.resp(msg="已删除")
 
 
