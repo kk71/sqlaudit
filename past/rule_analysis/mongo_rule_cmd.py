@@ -539,6 +539,7 @@ def SQL_CPU_TIME(mongo_client, sql, username, etl_date_key, etl_date, cpu_time, 
     forEach(function(x)
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
+    print(f"QQAAZZ {etl_date_key}, {etl_date}")
     found_items = sql_collection.find({
         "PER_CPU_TIME": {"$gte": cpu_time},
         "USERNAME": username,
@@ -558,7 +559,6 @@ def SQL_EXECUTIONS(mongo_client, sql, username, etl_date_key, etl_date, sql_coun
     forEach(function(x)
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
-    print(f"{etl_date_key}, {etl_date}")
     found_items = sql_collection.find({
         "EXECUTIONS": {"$gte": sql_count_num},
         "USERNMAE": username,
