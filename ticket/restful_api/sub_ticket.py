@@ -20,16 +20,15 @@ class SubTicketHandler(TicketReq):
         params = self.get_query_args(Schema({
             scm_optional("error_type", default=None): scm_one_of_choices(
                 const.ALL_SUB_TICKET_FILTERS),
-            scm_optional("start_time", default=None): scm_date,
-            scm_optional("end_time", default=None): scm_date_end,
             scm_optional("ticket_id"): scm_unempty_str,
             scm_optional("schema_name", default=None): scm_str,
             scm_optional("cmdb_id", default=None): scm_int,
             scm_optional("keyword", default=None): scm_str,
+            **self.gen_date(),
         }, ignore_extra_keys=True))
         error_type = params.pop("error_type")
         keyword = params.pop("keyword")
-        start_time, end_time = params.pop("start_time"), params.pop("end_time")
+        start_time, end_time = self.pop_date(params)
         schema_name = params.pop("schema_name")
         cmdb_id = params.pop("cmdb_id")
 
@@ -124,12 +123,23 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        sub_ticket = SubTicket.objects(statement_id=statement_id).first()
-        if not sub_ticket:
+        the_sub_ticket = SubTicket.objects(statement_id=statement_id).first()
+        if not the_sub_ticket:
+            return self.resp_bad_req(msg="子工单未找到")
+        the_script_id_to_this_sub_ticket = the_sub_ticket.script.script_id
+        the_ticket = Ticket.objects(ticket_id=the_sub_ticket.ticket_id).first()
+        if not the_ticket:
+            return self.resp_bad_req(msg="工单未找到")
+        if not the_sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
-        if SubTicket.objects(ticket_id=sub_ticket.ticket_id).count() == 1:
+        if SubTicket.objects(ticket_id=the_sub_ticket.ticket_id).count() == 1:
             return self.resp_bad_req(msg="删除失败，工单应该有至少一条语句。")
-        sub_ticket.delete()
+        the_sub_ticket.delete()
+        for the_script in the_ticket.scripts:
+            if the_script.script_id == the_script_id_to_this_sub_ticket:
+                the_script.update_sub_ticket_count_from_sub_ticket()
+        the_ticket.update_sub_ticket_count_from_scripts()
+        the_ticket.save()
         self.resp_created(msg="删除成功。")
 
 
