@@ -32,7 +32,8 @@ class ParsedSQL(list):
             sql_remark_replaced, strip_comment=True)
         parsed_sqlparse_sql_statements = sqlparse.parse(sql_remark_replaced)
         super(ParsedSQL, self).__init__([ParsedSQLStatement(i)
-                                         for i in parsed_sqlparse_sql_statements])
+                                         for i in parsed_sqlparse_sql_statements
+                                         if i.normalized.strip()])
 
     def get_original_sql(self):
         return self._original_sql

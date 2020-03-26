@@ -98,15 +98,16 @@ class SubTicketAnalyse(abc.ABC):
         """
         try:
             for sr in self.static_rules:
-                if sr.sql_type is not const.SQL_ANY and \
-                        sr.sql_type != single_sql["sql_type"]:
+                if single_sql["sql_type"] not in sr.entries:
+                    # 这里默认sql type和规则entries的类型在文本层面是相等的
+                    # 实际都是文本，注意发生更改需要修改
                     continue
                 sub_result_issue = SubTicketIssue()
                 sub_result_issue.as_sub_result_of(sr)
 
                 # ===指明静态审核的输入参数(kwargs)===
                 score_to_minus, output_params = sr.run(
-                    entry=new_rule.const.RULE_ENTRY_TICKET_STATIC,
+                    entries=[new_rule.const.RULE_ENTRY_TICKET_STATIC],
 
                     single_sql=single_sql,
                     sqls=sqls,

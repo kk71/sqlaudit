@@ -92,7 +92,7 @@ class TicketHandler(TicketReq):
         self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            scm_optional("status", default=None):
+            scm_optional("status"):
                 And(scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
             scm_optional("keyword", default=None): scm_str,
             scm_optional("ticket_id", default=None): scm_str,
@@ -122,18 +122,17 @@ class TicketHandler(TicketReq):
         ticket_q = self.privilege_filter_ticket(ticket_q)
         filtered_tickets, p = self.paginate(ticket_q, **p)
         ret = []
-        for ticket in filtered_tickets:
+        for the_ticket in filtered_tickets:
             sub_tickets_q_to_current_ticket = SubTicket.objects(
-                ticket_id=ticket.ticket_id)
+                ticket_id=the_ticket.ticket_id)
             ret_item = {
-                **ticket.to_dict(),
+                **the_ticket.to_dict(),
                 "result_stats": {
                     "static_problem_num": sum([
                         len(x.static) for x in sub_tickets_q_to_current_ticket if x]),
                     "dynamic_problem_num": sum([
                         len(x.dynamic) for x in sub_tickets_q_to_current_ticket if x])
-                },
-                "sql_counts": SubTicket.objects(ticketet_id=ticket.ticket_id).count()
+                }
             }
             ret.append(ret_item)
 
@@ -151,7 +150,7 @@ class TicketHandler(TicketReq):
             "ticket_id": scm_str,
 
             scm_optional("audit_comment"): scm_str,
-            "status": And(scm_int, scm_one_of_choices(ALL_TICKET_STATUS))
+            "status": And(scm_unempty_str, scm_one_of_choices(ALL_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
         params["audit_owner"] = self.current_user

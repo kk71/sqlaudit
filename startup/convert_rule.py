@@ -14,7 +14,7 @@ import utils.const
 
 
 def main():
-    """export ticket rules, target json file will be overwritten if existed."""
+    """DO NOT USE IT!!!"""
     for r in TicketRule.objects():
         r.entries = [const.RULE_ENTRY_TICKET]
         if r.analyse_type == "STATIC":

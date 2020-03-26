@@ -78,4 +78,4 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
         the_ticket.save()
     else:
         raise ticket.exceptions.NoSubTicketGenerated
-    print(f"{ticket} is successfully analysed.")
+    print(f"{the_ticket} is successfully analysed.")

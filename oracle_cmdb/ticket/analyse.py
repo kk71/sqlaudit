@@ -41,12 +41,12 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
                 db_type=utils.const.DB_ORACLE,
-                entries__match=new_rule.const.RULE_ENTRY_TICKET_STATIC
+                entries=new_rule.const.RULE_ENTRY_TICKET_STATIC
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
                 db_type=utils.const.DB_ORACLE,
-                entries__match=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC
+                entries=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC
             )
         super(OracleSubTicketAnalyse, self).__init__(**kwargs)
         self.schema_name = self.ticket.schema_name \
@@ -58,10 +58,11 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
     def write_sql_plan(self, list_of_plan_dicts, **kwargs) -> mongoengine_qs:
         """写入执行计划"""
         OracleTicketSQLPlan.add_from_dict(
+            self.statement_id,
             self.ticket.ticket_id,
             self.cmdb.cmdb_id,
             schema_name=self.schema_name,
-            list_of_plan_dicts=list_of_plan_dicts,
+            list_of_plan_dicts=list_of_plan_dicts
         )
         return OracleTicketSQLPlan.objects(statement_id=self.statement_id)
 
@@ -81,16 +82,18 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                 raise Exception(f"fatal: No plans for statement_id: {self.statement_id}, "
                                 f"sql: {formatted_sql}")
             sql_plan_qs = self.write_sql_plan(sql_plans)
+
             for dr in self.dynamic_rules:
-                if dr.sql_type is not ticket.const.SQL_ANY and \
-                        dr.sql_type != single_sql["sql_type"]:
+                if single_sql["sql_type"] not in dr.entries:
+                    # 这里默认sql type和规则entries的类型在文本层面是相等的
+                    # 实际都是文本，注意发生更改需要修改
                     continue
                 sub_result_item = ticket.sub_ticket.SubTicketIssue()
                 sub_result_item.as_sub_result_of(dr)
 
                 # ===指明oracle动态审核的输入参数(kwargs)===
                 score_to_minus, output_params = dr.run(
-                    entry=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC,
+                    entries=[new_rule.const.RULE_ENTRY_TICKET_DYNAMIC],
 
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,

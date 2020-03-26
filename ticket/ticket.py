@@ -78,7 +78,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         ]
     }
 
-    def __repr__(self):
+    def __str__(self):
         return f"<Ticket {self.db_type}-{self.ticket_id}>"
 
     def calculate_score(
