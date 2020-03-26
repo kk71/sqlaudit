@@ -39,7 +39,7 @@ class ArchiveHandler(TicketReq):
         filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
         tickets: list = []
         for ticket in filtered_tickets:
-            sub_tickets = SubTicket.objects(ticket_id=ticket.ticket_id)
+            sub_tickets = SubTicket.objects(ticket_id=str(ticket.ticket_id))
             ret_item = {
                 **ticket.to_dict(
                     iter_by=lambda k, v: d_to_str(v) if k == "create_time" else v),
@@ -125,7 +125,7 @@ class TicketHandler(TicketReq):
         ret = []
         for the_ticket in filtered_tickets:
             sub_tickets_q_to_current_ticket = SubTicket.objects(
-                ticket_id=the_ticket.ticket_id)
+                ticket_id=str(the_ticket.ticket_id))
             ret_item = {
                 **the_ticket.to_dict(),
                 "result_stats": {

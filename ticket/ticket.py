@@ -136,7 +136,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
 class TempScriptStatement(BaseDoc):
     """临时脚本语句"""
 
-    statement_id = StringField(primary_key=True)
+    statement_id = ObjectIdField(primary_key=True)
     script = EmbeddedDocumentField(TicketScript)
     position = IntField()  # 语句所在位置
     comment = StringField(default="")
