@@ -82,22 +82,9 @@ class SubTicketHandler(TicketReq):
             **self.gen_p(),
         }, ignore_extra_keys=True))
         p = self.pop_p(params)
-
         q = self.filter_sub_ticket()
         items, p = self.paginate(q, **p)
-        # 加上工单的task_name
-        ticket_ids: list = list({i.ticket_id for i in items})
-        ticket_id_pairs = Ticket.objects(). \
-            filter(ticket_id__in=ticket_ids). \
-            values_list("ticket_id", "task_name")
-        ticket_id_pair_dict = dict(ticket_id_pairs)
-
-        self.resp([
-            {
-                **i.to_dict(),
-                "task_name": ticket_id_pair_dict.get(i.ticket_id, None)
-            } for i in items
-        ], **p)
+        self.resp([i.to_dict() for i in items], **p)
 
     def patch(self):
         """编辑单个子工单"""
