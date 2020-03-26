@@ -5,7 +5,8 @@ from os import path
 from collections import defaultdict
 
 import utils.const
-from ticket.const import ALL_TICKET_STATUS
+import past.utils.utils
+from ticket import const
 from .base import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
@@ -22,7 +23,7 @@ class ArchiveHandler(TicketReq):
 
         params = self.get_query_args(Schema({
             scm_optional("status", default=None): And(
-                scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
+                scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
             **self.gen_date(date_start=True, date_end=True),
             **self.gen_p()
         }))
@@ -93,7 +94,7 @@ class TicketHandler(TicketReq):
 
         params = self.get_query_args(Schema({
             scm_optional("status"):
-                And(scm_int, scm_one_of_choices(ALL_TICKET_STATUS)),
+                And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
             scm_optional("keyword", default=None): scm_str,
             scm_optional("ticket_id", default=None): scm_str,
             **self.gen_date(),
@@ -150,7 +151,7 @@ class TicketHandler(TicketReq):
             "ticket_id": scm_str,
 
             scm_optional("audit_comment"): scm_str,
-            "status": And(scm_unempty_str, scm_one_of_choices(ALL_TICKET_STATUS))
+            "status": And(scm_unempty_str, scm_one_of_choices(const.ALL_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
         params["audit_owner"] = self.current_user
@@ -179,110 +180,105 @@ class TicketExportHandler(TicketReq):
     async def get(self):
         """导出工单"""
         params = self.get_query_args(Schema({
-            "work_list_id": scm_int
+            "ticket_id": scm_unempty_str
         }))
-        work_list_id = params.pop("work_list_id")
+        ticket_id = params.pop("ticket_id")
 
         # 首先获取主工单的基本信息
-        with make_session() as session:
-            work_list = session.query(WorkList). \
-                filter(WorkList.work_list_id == work_list_id).first()
-            work_list = work_list.to_dict()
-            work_list['work_list_status'] = \
-                ALL_OFFLINE_TICKET_STATUS_CHINESE[work_list['work_list_status']]
-            work_list['submit_date'] = str(work_list['submit_date']) \
-                if work_list['submit_date'] else ''
-            work_list['audit_date'] = str(work_list['audit_date']) \
-                if work_list['audit_date'] else ''
-            work_list['online_date'] = str(work_list['online_date']) \
-                if work_list['online_date'] else ''
+        the_ticket = Ticket.objects(ticket_id=ticket_id).first()
+        work_list = the_ticket.to_dict(
+            iter_by=lambda k, v:
+                const.ALL_TICKET_STATUS_CHINESE[the_ticket.status]
+                if k == "status"
+                else v
+        )
 
-            # 主要信息
-            work_list_heads = [
-                "工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
-                "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-                "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"
-            ]
-            work_list_data = list(work_list.values())
-            params_dict = {
-                'work_list_heads': work_list_heads,
-                'work_list_data': work_list_data
+        # 主要信息
+        work_list_heads = [
+            "工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
+            "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
+            "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"
+        ]
+        work_list_data = list(work_list.values())
+        params_dict = {
+            'work_list_heads': work_list_heads,
+            'work_list_data': work_list_data
+        }
+
+        filename = '_'.join([
+            '工单信息',
+            work_list['task_name'],
+            d_to_str(arrow.now())]) + '.xlsx'
+
+        # 根据工单获得一些统计信息
+        work_sub_list = SubTicket.objects(ticket_id=ticket_id).all()
+        work_sub_list = [x.to_dict(
+            iter_by=lambda k, v: dt_to_str(v)
+            if k == 'check_time' else v)
+            for x in work_sub_list]
+        sql_count = len(work_sub_list)
+        fail_count = len([
+            x['static'] or x['dynamic']
+            for x in work_sub_list
+            if x['static'] or x['dynamic']
+        ])
+
+        # 静态错误的工单
+        static_fail_works = [x for x in work_sub_list if x['static']]
+        static_fail_count = len(static_fail_works)
+
+        # 动态错误的工单
+        dynamic_fail_works = [x for x in work_sub_list if x['dynamic']]
+        dynamic_fail_count = len(dynamic_fail_works)
+
+        fail_heads = ['总脚本数', '失败脚本数', '静态失败数', '动态失败数']
+        fail_data = [sql_count, fail_count, static_fail_count, dynamic_fail_count]
+
+        params_dict.update(
+            {
+                'fail_heads': fail_heads,
+                'fail_data': fail_data
             }
+        )
 
-            filename = '_'.join([
-                '工单信息',
-                work_list['task_name'],
-                d_to_str(arrow.now())]) + '.xlsx'
+        # 获得静态错误的子工单
+        static_fail_heads = ['SQL_ID', 'SQL文本', '静态检测结果']
+        static_fail_data = [[static_fail_work['statement_id'], static_fail_work['sql_text'],
+                             "\n".join([static['rule_name'] for static in static_fail_work['static']])]
+                            for static_fail_work in static_fail_works]
+        params_dict.update(
+            {
+                'static_fail_heads': static_fail_heads,
+                'static_fail_data': static_fail_data
+            }
+        )
+        # 获得动态错误的子工单
+        dynamic_fail_heads = ['SQL_ID', 'SQL文本', '动态检测结果']
+        dynamic_fail_data = [[dynamic_fail_work['statement_id'], dynamic_fail_work['sql_text'],
+                              "\n".join([dynamic['rule_name'] for dynamic in dynamic_fail_work['dynamic']])]
+                             for dynamic_fail_work in dynamic_fail_works]
 
-            # 根据工单获得一些统计信息
-            work_sub_list = SubTicket.objects(ticket_id=work_list_id).all()
-            work_sub_list = [x.to_dict(
-                iter_by=lambda k, v: dt_to_str(v)
-                if k == 'check_time' else v)
-                for x in work_sub_list]
-            sql_count = len(work_sub_list)
-            fail_count = len([
-                x['static'] or x['dynamic']
-                for x in work_sub_list
-                if x['static'] or x['dynamic']
-            ])
+        params_dict.update(
+            {
+                'dynamic_fail_heads': dynamic_fail_heads,
+                'dynamic_fail_data': dynamic_fail_data
+            }
+        )
 
-            # 静态错误的工单
-            static_fail_works = [x for x in work_sub_list if x['static']]
-            static_fail_count = len(static_fail_works)
+        # 获得所有子工单
+        all_work_heads = ['SQL_ID', 'SQL文本', '静态检测结果', '动态检测结果']
+        all_work_data = [[x['statement_id'], x['sql_text'],
+                          "\n".join([y['rule_name'] for y in x['static']]),
+                          "\n".join([y['rule_name'] for y in x['dynamic']])]
+                         for x in work_sub_list]
 
-            # 动态错误的工单
-            dynamic_fail_works = [x for x in work_sub_list if x['dynamic']]
-            dynamic_fail_count = len(dynamic_fail_works)
+        params_dict.update(
+            {
+                'all_work_heads': all_work_heads,
+                'all_work_data': all_work_data
+            }
+        )
 
-            fail_heads = ['总脚本数', '失败脚本数', '静态失败数', '动态失败数']
-            fail_data = [sql_count, fail_count, static_fail_count, dynamic_fail_count]
-
-            params_dict.update(
-                {
-                    'fail_heads': fail_heads,
-                    'fail_data': fail_data
-                }
-            )
-
-            # 获得静态错误的子工单
-            static_fail_heads = ['SQL_ID', 'SQL文本', '静态检测结果']
-            static_fail_data = [[static_fail_work['statement_id'], static_fail_work['sql_text'],
-                                 "\n".join([static['rule_name'] for static in static_fail_work['static']])]
-                                for static_fail_work in static_fail_works]
-            params_dict.update(
-                {
-                    'static_fail_heads': static_fail_heads,
-                    'static_fail_data': static_fail_data
-                }
-            )
-            # 获得动态错误的子工单
-            dynamic_fail_heads = ['SQL_ID', 'SQL文本', '动态检测结果']
-            dynamic_fail_data = [[dynamic_fail_work['statement_id'], dynamic_fail_work['sql_text'],
-                                  "\n".join([dynamic['rule_name'] for dynamic in dynamic_fail_work['dynamic']])]
-                                 for dynamic_fail_work in dynamic_fail_works]
-
-            params_dict.update(
-                {
-                    'dynamic_fail_heads': dynamic_fail_heads,
-                    'dynamic_fail_data': dynamic_fail_data
-                }
-            )
-
-            # 获得所有子工单
-            all_work_heads = ['SQL_ID', 'SQL文本', '静态检测结果', '动态检测结果']
-            all_work_data = [[x['statement_id'], x['sql_text'],
-                              "\n".join([y['rule_name'] for y in x['static']]),
-                              "\n".join([y['rule_name'] for y in x['dynamic']])]
-                             for x in work_sub_list]
-
-            params_dict.update(
-                {
-                    'all_work_heads': all_work_heads,
-                    'all_work_data': all_work_data
-                }
-            )
-
-            await AsyncTimeout(10).async_thr(
-                past.utils.utils.create_worklist_xlsx, filename, params_dict)
-            self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        await AsyncTimeout(10).async_thr(
+            past.utils.utils.create_worklist_xlsx, filename, params_dict)
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
