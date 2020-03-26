@@ -157,7 +157,8 @@ class TicketHandler(TicketReq):
         params["audit_owner"] = self.current_user
         ticket_id = params.pop("ticket_id")
 
-        Ticket.objects(ticket_id=ticket_id).update(params)
+        Ticket.objects(ticket_id=ticket_id).update(**{
+            "set__" + k: v for k, v in params.items()})
         # TODO timing_send_work_list_status.delay(ticket.to_dict())
         return self.resp_created(msg="更新成功")
 
