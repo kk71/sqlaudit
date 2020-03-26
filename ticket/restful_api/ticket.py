@@ -151,7 +151,7 @@ class TicketHandler(TicketReq):
             "ticket_id": scm_str,
 
             scm_optional("audit_comment"): scm_str,
-            "status": And(scm_unempty_str, scm_one_of_choices(const.ALL_TICKET_STATUS))
+            "status": And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS))
         }))
         params["audit_date"] = datetime.now()
         params["audit_owner"] = self.current_user

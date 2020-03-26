@@ -46,7 +46,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         temp_scipt_statement_object = TempScriptStatement.objects(
             statement_id=statement_id).first()
         if not temp_scipt_statement_object:
-            self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql session")
+            self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql语句")
         if delete:
             temp_scipt_statement_object.delete()
             # TODO 这里会导致脚本中记录的语句个数和实际的不符，但是无所谓，创建工单的时候重新计算
