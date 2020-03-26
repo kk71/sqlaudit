@@ -18,11 +18,12 @@ class SubTicketHandler(TicketReq):
 
     def filter_sub_ticket(self):
         params = self.get_query_args(Schema({
+            scm_optional("ticket_id"): scm_unempty_str,
+            scm_optional("cmdb_id"): scm_int,
+            scm_optional("script_id", default=None): scm_unempty_str,
+            scm_optional("schema_name", default=None): scm_str,
             scm_optional("error_type", default=None): scm_one_of_choices(
                 const.ALL_SUB_TICKET_FILTERS),
-            scm_optional("ticket_id"): scm_unempty_str,
-            scm_optional("schema_name", default=None): scm_str,
-            scm_optional("cmdb_id", default=None): scm_int,
             scm_optional("keyword", default=None): scm_str,
             **self.gen_date(),
         }, ignore_extra_keys=True))
@@ -30,20 +31,16 @@ class SubTicketHandler(TicketReq):
         keyword = params.pop("keyword")
         start_time, end_time = self.pop_date(params)
         schema_name = params.pop("schema_name")
-        cmdb_id = params.pop("cmdb_id")
+        script_id = params.pop("script_id")
 
         to_filter = {k: v for k, v in params.items() if k in
-                     ("ticket_id",)}
+                     ("ticket_id", "cmdb_id")}
+        del params
 
         # TODO 需要根据权限加过滤判断
         q = SubTicket.objects(**to_filter)
-        if cmdb_id:
-            ticket_id_list = [
-                i[0]
-                for i in Ticket.objects().filter_by(
-                    cmdb_id=cmdb_id).values_list("ticket_id").all()
-            ]
-            q = q.filter(ticket_id__in=ticket_id_list)
+        if script_id:
+            q = q.filter(script__script_id=script_id)
         if start_time:
             q = q.filter(create_time__gt=start_time)
         if end_time:
