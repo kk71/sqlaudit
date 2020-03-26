@@ -521,7 +521,7 @@ def SQL_SUB_CURSOR_COUNT(mongo_client, sql, username, etl_date_key, etl_date, cu
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "VERSION_COUNT": {"$gte": cursor_num},
+        "VERSION_COUNT": {"$gte": int(cursor_num)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
@@ -599,7 +599,7 @@ def SQL_DISK_READS(mongo_client, sql, username, etl_date_key, etl_date, disk_rea
     {db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "PER_DISK_READS": {"$gte": disk_reads},
+        "PER_DISK_READS": {"$gte": int(disk_reads)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
@@ -617,7 +617,7 @@ def SQL_DIRECT_WRITES(mongo_client, sql, username, etl_date_key, etl_date, direc
     forEach(function(x){db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE})})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "PER_DIRECT_WRITES": {"$gte": direct_writes},
+        "PER_DIRECT_WRITES": {"$gte": int(direct_writes)},
         "USERNMAE": username,
         etl_date_key: etl_date
     })
@@ -636,7 +636,7 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
     \"SQL_TEXT_DETAIL\":x.SQL_TEXT_DETAIL,\"SQL_TEXT\":x.SQL_TEXT});})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "SUM": {"$gt": sql_no_bind_count},
+        "SUM": {"$gt": int(sql_no_bind_count)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
