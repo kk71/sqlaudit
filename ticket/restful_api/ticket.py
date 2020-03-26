@@ -187,6 +187,7 @@ class TicketExportHandler(TicketReq):
         # 首先获取主工单的基本信息
         the_ticket = Ticket.objects(ticket_id=ticket_id).first()
         work_list = the_ticket.to_dict(
+            iter_if=lambda k, v: k not in ("scripts",),
             iter_by=lambda k, v:
                 const.ALL_TICKET_STATUS_CHINESE[the_ticket.status]
                 if k == "status"
