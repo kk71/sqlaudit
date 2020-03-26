@@ -46,12 +46,15 @@ class SubTicketHandler(TicketReq):
         if end_time:
             q = q.filter(create_time__lt=end_time)
         if keyword:
-            q = self.query_keyword(q, keyword, "static", "dynamic", "comments")
+            q = self.query_keyword(q, keyword,
+                                   "static",
+                                   "dynamic",
+                                   "comments",
+                                   "task_name"
+                                   "sql_text")
         if schema_name:
-            ticket_id_in_tuple = Ticket.objects(). \
-                filter_by(schema_name=schema_name). \
-                values_list("ticket_id").all()
-            ticket_id_list = [i[0] for i in ticket_id_in_tuple]
+            ticket_id_list: list = list(Ticket.objects(
+                schema_name=schema_name).values_list("ticket_id"))
             q = q.filter(ticket_id__in=ticket_id_list)
         if error_type == const.SUB_TICKET_WITH_STATIC_PROBLEM:
             q = q.filter(static__not__size=0)
