@@ -36,22 +36,18 @@ class TicketRule(
     """线下审核工单的规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
-    analyse_type = StringField(null=True)  # 规则类型，静态还是动态
-    sql_type = IntField(
-        null=True,
-        choices=utils.const.ALL_SQL_TYPE)  # 线下审核SQL的类型,为None则表示规则不区分sql_type
-    # ddl_type = StringField(choices=const.ALL_DDL_TYPE)  # 线下审核DDL的详细分类(暂时没什么用)
     db_type = StringField(
         required=True,
         choices=utils.const.ALL_SUPPORTED_DB_TYPE,
         default=utils.const.DB_ORACLE)
+    entries = ListField(null=lambda: [], choices=const.ALL_RULE_ENTRIES)
     input_params = EmbeddedDocumentListField(RuleInputOutputParams)
     output_params = EmbeddedDocumentListField(RuleInputOutputParams)
     max_score = IntField()
     code = StringField(required=True)
     status = BooleanField(default=True)
     summary = StringField()  # 比desc更详细的一个规则解说
-    solution = ListField()
+    solution = ListField(default=lambda: [])
     weight = FloatField(required=True)
 
     meta = {
@@ -59,9 +55,8 @@ class TicketRule(
         'indexes': [
             {'fields': ("db_type", "name"), 'unique': True},
             "name",
-            "analyse_type",
-            "sql_type",
             "db_type",
+            "entries",
             "status"
         ],
     }
@@ -72,7 +67,7 @@ class TicketRule(
 
     def __str__(self):
         return "<Rule " + "-".join(
-            [str(self.analyse_type)] +
+            [str(self.entries)] +
             [str(i) for i in self.unique_key() if i is not None]
         ) + ">"
 
@@ -134,7 +129,7 @@ code_hole.append(code)
             raise exceptions.RuleCodeInvalidException("code not put in to the hole!")
         return code_hole.pop()
 
-    def run(self, entry, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
+    def run(self, entry=None, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
         """
         在给定的sql文本上执行当前规则
         :param entry: 入口，告诉规则函数，本次调用是从哪里调入的，不同调用入口，会带入不同的参数
@@ -142,7 +137,8 @@ code_hole.append(code)
         :param kwargs: 别的参数，根据业务不同传入不同的参数，具体看业务实现
         :return:
         """
-        assert entry in const.ALL_RULE_ENTRIES
+        if not test_only:
+            assert entry in const.ALL_RULE_ENTRIES
         if test_only:
             # 仅生成code函数，并不缓存，也不执行。
             if getattr(self, "_code", None):

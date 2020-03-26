@@ -15,11 +15,13 @@ import new_rule.const
 import ticket.const
 import ticket.exceptions
 import utils.const
-from models.mongo import *
+import ticket.sub_ticket
 from plain_db.oracleob import *
 from utils.parsed_sql import ParsedSQL
 from new_rule.rule import TicketRule
 from ticket.analyse import SubTicketAnalyse
+from .sub_ticket import OracleSubTicket
+from .sql_plan import OracleTicketSQLPlan
 
 
 class OracleSubTicketAnalyse(SubTicketAnalyse):
@@ -38,13 +40,13 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
     def __init__(self, **kwargs):
         if kwargs.get("static_rules_qs", None) is None:
             kwargs["static_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=ticket.const.TICKET_ANALYSE_TYPE_STATIC,
-                db_type=utils.const.DB_ORACLE
+                db_type=utils.const.DB_ORACLE,
+                entries__match=new_rule.const.RULE_ENTRY_TICKET_STATIC
             )
         if kwargs.get("dynamic_rules_qs", None) is None:
             kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                analyse_type=ticket.const.TICKET_ANALYSE_TYPE_DYNAMIC,
-                db_type=utils.const.DB_ORACLE
+                db_type=utils.const.DB_ORACLE,
+                entries__match=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC
             )
         super(OracleSubTicketAnalyse, self).__init__(**kwargs)
         self.schema_name = self.ticket.schema_name \
@@ -58,13 +60,13 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
         OracleTicketSQLPlan.add_from_dict(
             self.ticket.ticket_id,
             self.cmdb.cmdb_id,
-            self.schema_name,
-            list_of_plan_dicts
+            schema_name=self.schema_name,
+            list_of_plan_dicts=list_of_plan_dicts,
         )
         return OracleTicketSQLPlan.objects(statement_id=self.statement_id)
 
     def run_dynamic(self,
-                    sub_result: OracleTicketSubResult,
+                    sub_result: OracleSubTicket,
                     single_sql: dict):
         """动态分析"""
         try:
@@ -83,7 +85,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                 if dr.sql_type is not ticket.const.SQL_ANY and \
                         dr.sql_type != single_sql["sql_type"]:
                     continue
-                sub_result_item = TicketSubResultItem()
+                sub_result_item = ticket.sub_ticket.SubTicketIssue()
                 sub_result_item.as_sub_result_of(dr)
 
                 # ===指明oracle动态审核的输入参数(kwargs)===
@@ -117,7 +119,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
     def run(self,
             sqls: [dict],
             single_sql: dict,
-            **kwargs) -> OracleTicketSubResult:
+            **kwargs) -> OracleSubTicket:
         """
         单条sql的静态动态审核
         :param single_sql:
@@ -134,13 +136,13 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
         if len(ps) != 1:
             raise ticket.exceptions.TicketAnalyseException(
                 f"sub ticket with more than one sql sentence: {ps}")
-        sub_result = OracleTicketSubResult(
+        sub_result = OracleSubTicket(
+            statement_id=self.statement_id,
             ticket_id=str(self.ticket.ticket_id),
             task_name=self.ticket.task_name,
             cmdb_id=self.cmdb.cmdb_id,
             db_type=utils.const.DB_ORACLE,
             schema_name=self.schema_name,
-            statement_id=self.statement_id,
             **single_sql
         )
         self.run_static(sub_result, sqls, single_sql)

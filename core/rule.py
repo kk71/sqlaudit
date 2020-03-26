@@ -9,6 +9,7 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
     name = None  # 规则名称
     desc = None  # 规则描述
     db_type = None  # 数据库类型
+    entries = None  # 规则代码可以接受的运行场景。
     input_params = None  # 输入参数
     output_params = None  # 输出参数
     weight = None  # 权重

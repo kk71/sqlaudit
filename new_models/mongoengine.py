@@ -14,7 +14,7 @@ from types import FunctionType
 import arrow
 from bson import ObjectId
 from mongoengine.base.datastructures import EmbeddedDocumentList
-from mongoengine import Document, EmbeddedDocument, DateTimeField
+from mongoengine import Document, EmbeddedDocument, DateTimeField, DynamicDocument
 from mongoengine.base.metaclasses import TopLevelDocumentMetaclass, DocumentMetaclass
 
 from utils import const
@@ -31,7 +31,7 @@ class ABCDocumentMetaclass(DocumentMetaclass, abc.ABCMeta):
     pass
 
 
-class BaseDoc(Document):
+class BaseDoc(DynamicDocument):
     """针对mongoengine的基础文档对象"""
 
     create_time = DateTimeField(default=lambda: datetime_utils.datetime.now())

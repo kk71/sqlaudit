@@ -30,7 +30,7 @@ class SubTicketAnalyse(abc.ABC):
     def get_available_task_name(self, submit_owner: str) -> str:
         """获取当前可用的线下审核任务名"""
         current_date = d_to_str(arrow.now().date(), fmt=COMMON_DATE_FORMAT_COMPACT)
-        k = f"offline-ticket-task-num-{current_date}"
+        k = f"ticket-task-num-{current_date}"
         current_num_int = self.redis_cli.incr(k, 1)
         current_num = "%03d" % current_num_int
         self.redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时

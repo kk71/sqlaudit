@@ -16,11 +16,6 @@ class TicketAnalyseException(Exception):
     pass
 
 
-class NoEnabledRuleToCalculateScore(Exception):
-    """计算工单分数失败，没有任何子工单"""
-    pass
-
-
 class NoSubTicketGenerated(Exception):
     """没有任何子工单"""
     pass

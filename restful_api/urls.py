@@ -133,7 +133,6 @@ urls += [
     (r"/api/mail/history", report_sending.MailHistory),
 ]
 
-
 # === 重构的线下审核 ===
 
 # TODO 未来这块url控制是由package path+自定义路径组成的，代码结构还没完善，暂时先手写
@@ -146,6 +145,7 @@ import oracle_cmdb.ticket.restful_api.ticket
 import oracle_cmdb.ticket.restful_api.online
 
 urls += [
+
     # common
     (r"/api/ticket/ticket/archive", ticket.restful_api.ticket.ArchiveHandler),
     (r"/api/ticket/ticket/export", ticket.restful_api.ticket.TicketExportHandler),
@@ -154,7 +154,7 @@ urls += [
     (r"/api/ticket/temp_script", ticket.restful_api.temp_script.UploadTempScriptHandler),
 
     # for oracle
-    (r"/api/oracle_cmdb/ticket/ticket", oracle_cmdb.ticket.restful_api.ticket),
+    (r"/api/oracle_cmdb/ticket/ticket", oracle_cmdb.ticket.restful_api.ticket.OracleTicketHandler),
     (r"/api/oracle_cmdb/ticket/sub_ticket/issue", oracle_cmdb.ticket.restful_api.sub_ticket.SubTicketIssueHandler),
     (r"/api/oracle_cmdb/ticket/sub_ticket/sql_plan", oracle_cmdb.ticket.restful_api.sub_ticket.SQLPlanHandler),
     (r"/api/oracle_cmdb/ticket/online/overview", oracle_cmdb.ticket.restful_api.online.OracleTicketOnlineOverviewHandler),

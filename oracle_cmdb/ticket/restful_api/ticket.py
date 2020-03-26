@@ -44,8 +44,6 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 # 默认的纳管库用户是需要打开权限的，以保证能够在访问别的schema的对象
                 # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
                 params["schema_name"] = cmdb.user_name
-            params["system_name"] = cmdb.business_name
-            params["database_name"] = cmdb.connect_name
             if not params["task_name"]:
                 params['task_name'] = sub_ticket_analysis.get_available_task_name(
                     submit_owner=params["submit_owner"]

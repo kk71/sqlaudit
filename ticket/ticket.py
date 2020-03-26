@@ -12,7 +12,9 @@ from functools import reduce
 from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField
+    DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField, \
+    ObjectIdField
+from bson.objectid import ObjectId
 
 import utils.const
 from .parsed_sql import ParsedSQL
@@ -20,7 +22,6 @@ from core.ticket import *
 from new_models.mongoengine import *
 from utils import datetime_utils
 from . import const
-from . import exceptions
 
 
 class TicketScript(
@@ -37,19 +38,25 @@ class TicketScript(
     def __repr__(self):
         return f"<TicketScript {self.script_id}-{self.script_name}>"
 
+    def update_sub_ticket_count_from_sub_ticket(self):
+        """从子工单处更新当前脚本的sub_ticket_count, TODO 需要手动保存工单"""
+        from .sub_ticket import SubTicket
+        self.sub_ticket_count = SubTicket.objects(
+            script__script_id=self.script_id).count()
+
 
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     """工单"""
 
+    ticket_id = ObjectIdField(primary_key=True, default=ObjectId)
     db_type = StringField()
-    ticket_id = StringField(primary_key=True)
     task_name = StringField(required=True)
     cmdb_id = IntField()
     sub_ticket_count = IntField(default=0)
     scripts = EmbeddedDocumentListField(TicketScript)
     submit_time = DateTimeField(default=lambda: datetime_utils.datetime.now())
     submit_owner = StringField()
-    status = IntField(choices=const.ALL_TICKET_STATUS)
+    status = IntField(default=const.TICKET_ANALYSING, choices=const.ALL_TICKET_STATUS)
     audit_role_id = IntField()
     audit_owner = StringField()
     audit_time = DateTimeField()
@@ -102,12 +109,13 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
                     # 否则，直接将扣分置为最大扣分
                     rules_max_score[rule_unique_key][0] = \
                         rules_max_score[rule_unique_key][1]
-        if not rules_max_score:
-            raise exceptions.NoEnabledRuleToCalculateScore
-        total_minus_score, _ = reduce(
-            lambda x, y: [x[0] + y[0], x[1] + y[1]],
-            rules_max_score.values()
-        )
+        if rules_max_score:
+            total_minus_score, _ = reduce(
+                lambda x, y: [x[0] + y[0], x[1] + y[1]],
+                rules_max_score.values()
+            )
+        else:
+            total_minus_score = 0
         all_rule_max_score_sum = TicketRule.calc_score_max_sum(db_type=self.db_type)
         if all_rule_max_score_sum:
             final_score = (all_rule_max_score_sum + total_minus_score) / \
@@ -118,6 +126,11 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
             final_score = at_least
         self.score = round(final_score, 2)  # 未更新库中数据，需要手动加入session并commit
         return self.score
+
+    def update_sub_ticket_count_from_scripts(self):
+        """从当前工单的scripts.sub_ticket_count更新工单的全部子工单数，TODO 需要手动保存"""
+        self.sub_ticket_count = sum([
+            a_script.sub_ticket_count for a_script in self.scripts])
 
 
 class TempScriptStatement(BaseDoc):

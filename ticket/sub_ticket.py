@@ -81,6 +81,7 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
         "allow_inheritance": True,
         "collection": "sub_ticket",
         'indexes': [
+            "statement_id",
             "ticket_id",
             "script.script_id",
             "task_name",

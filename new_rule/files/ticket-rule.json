@@ -1,11 +1,13 @@
 [
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "TOOMANY_IN_LIST",
         "desc": "IN List元素过多",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "in_list_num",
@@ -25,12 +27,13 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "DML_DDL_MIXED",
         "desc": "DML和DDL语句混写",
-        "analyse_type": "STATIC",
-        "sql_type": null,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -43,12 +46,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "BAD_JOIN",
         "desc": "存在全连接或外连接",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -61,12 +66,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_ADD_COLUMN",
         "desc": "添加字段有默认值",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -79,12 +86,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_BITMAP_INDEX",
         "desc": "位图索引",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -97,12 +106,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_COLUMN_NUMBER",
         "desc": "列数",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -115,12 +126,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_CONCURRENCY_LEVEL",
         "desc": "并行度",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -133,12 +146,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_CREATE_TABLE_NOT_DEFINE_TABLE_SPACE",
         "desc": "创建表未指定表空间",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -151,12 +166,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DB_LINK_CREATED",
         "desc": "创建数据库链接",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -169,12 +186,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DB_LINK_OFFLINE",
         "desc": "存在DBLINK",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -187,12 +206,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DELETE_SEQUENCE",
         "desc": "删除序列",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -205,12 +226,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DROP_COLUMN",
         "desc": "删除字段",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -223,12 +246,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DROP_INDEX",
         "desc": "删除索引",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -241,12 +266,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DROP_PARTITION",
         "desc": "删除分区",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -259,12 +286,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DROP_PRIMARY_KEY",
         "desc": "删除主键",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -277,12 +306,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_DROP_TABLE",
         "desc": "删除表",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -295,12 +326,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
         "desc": "索引未定义表空间",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -313,12 +346,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_INDEX_ONLINE",
         "desc": "创建索引时未带上online关键字",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -331,12 +366,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_LOB_USING",
         "desc": "LOB使用",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -349,12 +386,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_MODIFY_COLUMN",
         "desc": "修改字段类型",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -367,12 +406,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_SEQUENCE",
         "desc": "序列",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -385,12 +426,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_TRUNCATE_TABLE",
         "desc": "清空表数据",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -403,12 +446,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "CHECK_USING_REVOKE",
         "desc": "撤回权限",
-        "analyse_type": "STATIC",
-        "sql_type": 1,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DDL"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -421,12 +466,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "DML_ALLDATA",
         "desc": "delete或update中缺少where条件",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -439,12 +486,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "DML_SORT",
         "desc": "delete或update中出现order by子句",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -457,12 +506,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "LIKE_UNINDEX",
         "desc": "谓词条件使用like %xxx,无法使用索引",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -475,12 +526,13 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "LONG_TEXT",
         "desc": "SQL文本过长",
-        "analyse_type": "STATIC",
-        "sql_type": null,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC"
+        ],
         "input_params": [
             {
                 "name": "char_num",
@@ -500,12 +552,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SELECT_ANY",
         "desc": "使用select *",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -518,12 +572,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SUBQUERY_FROM",
         "desc": "from段出现子查询",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -536,12 +592,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SUBQUERY_HAVING",
         "desc": "having段出现子查询",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -554,12 +612,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SUBQUERY_REP",
         "desc": "重复查询子句",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -573,12 +633,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SUBQUERY_SELECT",
         "desc": "select段出现子查询",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -591,12 +653,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SUBQUERY_WHERE",
         "desc": "where段出现子查询",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -609,12 +673,13 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "TOOMANY_BIND",
         "desc": "绑定变量过多",
-        "analyse_type": "STATIC",
-        "sql_type": null,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC"
+        ],
         "input_params": [
             {
                 "name": "num_of_bound_var",
@@ -634,12 +699,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "TOOMANY_OR",
         "desc": "多个过滤条件通过or连接",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "or_num",
@@ -659,12 +726,13 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "UNION",
         "desc": "SQL中出现union",
-        "analyse_type": "STATIC",
-        "sql_type": null,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -677,12 +745,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "WHERE_FUNC",
         "desc": "查询列上使用表达式",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -696,12 +766,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "WHERE_NOT",
         "desc": "谓词中存在负向操作符!=等",
-        "analyse_type": "STATIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_STATIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
@@ -715,12 +787,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_INDEX_FAST_FULL_SCAN",
         "desc": "执行计划中索引快速全扫",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "ind_phy_size",
@@ -777,12 +851,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_INDEX_FULL_SCAN",
         "desc": "执行计划中索引全扫",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "ind_phy_size",
@@ -833,12 +909,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_INDEX_SKIP_SCAN",
         "desc": "执行计划中存在索引跳描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -882,12 +960,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_MERGE_JOIN_CARTESIAN",
         "desc": "笛卡尔积关联",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -932,12 +1012,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_PARALLEL_FETCH",
         "desc": "存在并行访问特征",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -987,12 +1069,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_PARTITION_RANGE_ALL",
         "desc": "分区全扫描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -1036,12 +1120,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_PARTITION_RANGE_INLIST_OR",
         "desc": "非连续分区扫描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -1085,12 +1171,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_PARTITION_RANGE_ITERATOR",
         "desc": "跨分区扫描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -1134,12 +1222,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_TABLE_FULL_SCAN",
         "desc": "全表扫描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "table_phy_size",
@@ -1207,12 +1297,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_TO_CHANGE_TYPE",
         "desc": "隐式转换",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -1257,12 +1349,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_VIEW_SCAN",
         "desc": "存在视图访问",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [
             {
@@ -1312,12 +1406,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "LOOP_IN_TAB_FULL_SCAN",
         "desc": "嵌套循环内层表全扫",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "table_phy_size",
@@ -1374,12 +1470,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_LOOP_NUM",
         "desc": "嵌套层次过深",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "loop_num",
@@ -1418,12 +1516,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "SQL_TAB_REL_NUM",
         "desc": "过多的表关联",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [
             {
                 "name": "tab_num",
@@ -1462,12 +1562,14 @@
         "weight": 1.0
     },
     {
-        "create_time": "2020-03-25 17:37:54",
         "name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
         "desc": "全局索引扫描",
-        "analyse_type": "DYNAMIC",
-        "sql_type": 0,
         "db_type": "oracle",
+        "entries": [
+            "TICKET",
+            "TICKET_DYNAMIC",
+            "DML"
+        ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,

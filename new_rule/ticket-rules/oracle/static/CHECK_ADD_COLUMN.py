@@ -1,5 +1,4 @@
 import re
-from utils.const import SQL_DDL
 
 
 def code(rule, **kwargs):

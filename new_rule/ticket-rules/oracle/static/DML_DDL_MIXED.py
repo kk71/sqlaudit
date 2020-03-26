@@ -1,5 +1,4 @@
 
-
 def code(rule, **kwargs):
     """判断同一个工单的sql语句是否存在ddl和dml混写的情况"""
     sqls: [dict] = kwargs.get("sqls")

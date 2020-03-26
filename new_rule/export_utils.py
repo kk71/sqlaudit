@@ -25,7 +25,7 @@ def rule_import(filename) -> tuple:
 
 def rule_export(filename) -> int:
     """导出规则，覆盖给定的文件"""
-    rules = [i.to_dict(iter_if=lambda k, v: k not in ("_id", "id"))
+    rules = [i.to_dict(iter_if=lambda k, v: k not in ("_id", "id", "create_time"))
              for i in TicketRule.objects()]
     with open(filename, "w") as z:
         z.write(json.dumps(rules, indent=4, ensure_ascii=False))
