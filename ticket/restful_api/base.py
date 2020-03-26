@@ -7,12 +7,20 @@ __all__ = [
 from mongoengine import Q, QuerySet as mongoengine_qs
 
 import utils.const
-from ..ticket import Ticket
+from utils.schema_utils import *
+from ..ticket import Ticket, const
 from restful_api.views.base import PrivilegeReq
 
 
 class TicketReq(PrivilegeReq):
     """工单通用请求，提供权限过滤"""
+
+    def __init__(self, *args, **kwargs):
+        super(TicketReq, self).__init__(*args, **kwargs)
+        self.scm_status = self.scm_with_em(
+            And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
+            e=f"工单规则为：{const.ALL_TICKET_STATUS}"
+        )
 
     def privilege_filter_ticket(self, q: mongoengine_qs) -> mongoengine_qs:
         """根据登录用户的权限过滤工单"""

@@ -22,8 +22,7 @@ class ArchiveHandler(TicketReq):
         self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            scm_optional("status", default=None): And(
-                scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
+            scm_optional("status", default=None): self.scm_status,
             **self.gen_date(date_start=True, date_end=True),
             **self.gen_p()
         }))
@@ -93,8 +92,7 @@ class TicketHandler(TicketReq):
         self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
-            scm_optional("status"):
-                And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
+            scm_optional("status"): self.scm_status,
             scm_optional("keyword", default=None): scm_str,
             scm_optional("ticket_id", default=None): scm_str,
             **self.gen_date(),
@@ -151,7 +149,7 @@ class TicketHandler(TicketReq):
             "ticket_id": scm_str,
 
             scm_optional("audit_comment"): scm_str,
-            "status": And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS))
+            "status": self.scm_status
         }))
         params["audit_date"] = datetime.now()
         params["audit_owner"] = self.current_user
