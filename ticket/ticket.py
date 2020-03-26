@@ -95,7 +95,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         print(f"calculating total score for {self.ticket_id}...")
         # unique_key: (当前已扣, 最大扣分)
         rules_max_score = defaultdict(lambda: [0, 0])
-        for sub_result in SubTicket.objects(ticket_id=self.ticket_id):
+        for sub_result in SubTicket.objects(ticket_id=str(self.ticket_id)):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for issue_of_sub_result in static_and_dynamic_results:
                 rule_unique_key = issue_of_sub_result.get_rule_unique_key()
