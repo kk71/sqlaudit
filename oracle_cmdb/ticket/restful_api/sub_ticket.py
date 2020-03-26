@@ -65,7 +65,6 @@ class SubTicketIssueHandler(TicketReq):
     def patch(self):
         """修改子工单内的规则，修改后重新计算工单的分数"""
         params = self.get_json_args(Schema({
-            "ticket_id": scm_unempty_str,
             "statement_id": scm_unempty_str,
             "ticket_rule_name": scm_unempty_str,
             "analyse_type": scm_one_of_choices(
@@ -77,14 +76,12 @@ class SubTicketIssueHandler(TicketReq):
             }
         }))
 
-        ticket_id = params.pop("ticket_id")
         statement_id = params.pop("statement_id")
         ticket_rule_name = params.pop("ticket_rule_name")
         analyse_type = params.pop("analyse_type")
         action = params.pop("action")
 
-        sub_ticket = OracleSubTicket.objects(
-            ticket_id=ticket_id, statement_id=statement_id).first()
+        sub_ticket = OracleSubTicket.objects(statement_id=statement_id).first()
         embedded_list = getattr(sub_ticket, analyse_type.lower())
         operated = False
         for n, sub_ticket_item in enumerate(embedded_list):
@@ -98,7 +95,8 @@ class SubTicketIssueHandler(TicketReq):
         if not operated:
             return self.resp_bad_req(msg="未找到对应需要操作的规则。")
         sub_ticket.save()
-        the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
+        the_ticket = OracleTicket.objects(
+            ticket_id=sub_ticket.ticket_id).first()
         the_ticket.calculate_score()  # 修改了之后重新计算整个工单的分数
         the_ticket.save()
         self.resp_created(sub_ticket.to_dict())

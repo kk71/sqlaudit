@@ -4,9 +4,10 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, ListField, \
     EmbeddedDocument
 
+import utils.const
+from . import const
 from core.ticket import *
 from new_models.mongoengine import *
-from utils import const
 from .ticket import TicketScript
 
 
@@ -62,7 +63,7 @@ class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
     task_name = StringField(default=None)
     db_type = StringField()
     cmdb_id = IntField()
-    sql_type = IntField(choices=const.ALL_SQL_TYPE)
+    sql_type = StringField(choices=const.ALL_SQL_TYPE)
     sql_text = StringField()
     sql_text_no_comment = StringField()
     comments = StringField(default="")
