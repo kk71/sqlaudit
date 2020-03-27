@@ -29,7 +29,7 @@ class ParsedSQL(list):
             const.REMARK_PLACEHOLDER, sql)
         # 去掉注释的sql只是暂存，后续可能有用
         self._comment_striped_sql: str = sqlparse.format(
-            sql_remark_replaced, strip_comment=True)
+            sql_remark_replaced, strip_comments=True)
         parsed_sqlparse_sql_statements = sqlparse.parse(sql_remark_replaced)
         super(ParsedSQL, self).__init__([ParsedSQLStatement(i)
                                          for i in parsed_sqlparse_sql_statements
