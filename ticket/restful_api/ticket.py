@@ -13,6 +13,7 @@ from utils.datetime_utils import *
 from utils.conc_utils import AsyncTimeout
 from ..sub_ticket import SubTicket
 from ..ticket import Ticket
+from models.oracle import make_session, CMDB
 
 
 class ArchiveHandler(TicketReq):
@@ -121,11 +122,15 @@ class TicketHandler(TicketReq):
         ticket_q = self.privilege_filter_ticket(ticket_q)
         filtered_tickets, p = self.paginate(ticket_q, **p)
         ret = []
+        with make_session() as session:
+            cmdb_id_connect_name_pairs = dict(session.query(
+                CMDB.cmdb_id, CMDB.connect_name))
         for the_ticket in filtered_tickets:
             sub_tickets_q_to_current_ticket = SubTicket.objects(
                 ticket_id=str(the_ticket.ticket_id))
             ret_item = {
                 **the_ticket.to_dict(),
+                "connect_name": cmdb_id_connect_name_pairs.get(the_ticket.cmdb_id, None),
                 "result_stats": {
                     "static_problem_num": sum([
                         len(x.static) for x in sub_tickets_q_to_current_ticket if x]),

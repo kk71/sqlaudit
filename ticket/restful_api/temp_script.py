@@ -40,7 +40,6 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             scm_optional("delete", default=False): scm_bool
         }))
         statement_id = params.pop("statement_id")
-        sql_text = params.pop("sql_text")
         delete = params.pop("delete")
 
         temp_scipt_statement_object = TempScriptStatement.objects(
@@ -53,6 +52,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             # TODO 以工单scripts记录的信息为准
             self.resp_created(msg="sql已删除。")
         else:
+            sql_text = params.pop("sql_text")
             temp_scipt_statement_object.from_dict(params)
             temp_scipt_statement_object.parse_single_statement(sql_text)
             temp_scipt_statement_object.save()
