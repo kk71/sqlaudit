@@ -36,9 +36,9 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
 
     sub_tickets = []
     scripts: {str: TicketScript} = dict()
-    static_rules = RuleJar(
+    static_rules = RuleJar.gen_jar_with_entries(
         new_rule.const.RULE_ENTRY_TICKET_STATIC, db_type=utils.const.DB_ORACLE)
-    dynamic_rules = RuleJar(
+    dynamic_rules = RuleJar.gen_jar_with_entries(
         new_rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=utils.const.DB_ORACLE)
     with make_session() as session:
         cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
