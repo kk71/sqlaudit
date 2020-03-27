@@ -24,7 +24,7 @@ class BaseTicket(abc.ABC):
     audit_role_id = None  # 分配审核的角色id
     audit_owner = None  # 实际审核人
     audit_time = None  # 审核时间
-    audit_comment = None  # 审核批注
+    audit_comments = None  # 审核批注
     online_time = None  # 上线时间
     score = None  # 工单评分
 
