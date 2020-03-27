@@ -143,6 +143,7 @@ import ticket.restful_api.temp_script
 import oracle_cmdb.ticket.restful_api.sub_ticket
 import oracle_cmdb.ticket.restful_api.ticket
 import oracle_cmdb.ticket.restful_api.online
+import oracle_cmdb.ticket.restful_api.quick_analyse
 
 urls += [
 
@@ -159,5 +160,6 @@ urls += [
     (r"/api/oracle_cmdb/ticket/sub_ticket/sql_plan", oracle_cmdb.ticket.restful_api.sub_ticket.SQLPlanHandler),
     (r"/api/oracle_cmdb/ticket/online/overview", oracle_cmdb.ticket.restful_api.online.OracleTicketOnlineOverviewHandler),
     (r"/api/oracle_cmdb/ticket/online/execute", oracle_cmdb.ticket.restful_api.online.OracleTicketOnlineExecuteHandler),
+    (r"/api/oracle_cmdb/ticket/quick_analyse/single", oracle_cmdb.ticket.restful_api.quick_analyse.QuickSingleSQLAnalyse),
 
 ]

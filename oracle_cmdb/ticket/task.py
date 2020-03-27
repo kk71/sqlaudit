@@ -15,16 +15,7 @@ from .analyse import OracleSubTicketAnalyse
 from .ticket import OracleTicket
 from .sub_ticket import OracleSubTicket
 from ticket.ticket import TempScriptStatement, TicketScript
-
-
-def format_single_sql(ts):
-    return {
-        "sql_text": ts.normalized,
-        "sql_text_no_comment": ts.normalized_without_comment,
-        "comments": ts.comment,
-        "position": ts.position,
-        "sql_type": ts.sql_type
-    }
+from .single_sql import SingleSQL
 
 
 @celery.task
@@ -49,10 +40,10 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
                 script__script_id=the_script_id).order_by("position")
             sqls = [
                 # {single-sql}: 格式化成通用的sql结构
-                format_single_sql(ts) for ts in statement_q
+                SingleSQL.gen_from_temp_script(ts) for ts in statement_q
             ]
             for the_statement in statement_q:
-                single_sql = format_single_sql(the_statement)
+                single_sql = SingleSQL.gen_from_temp_script(the_statement)
                 osta = OracleSubTicketAnalyse(
                     cmdb=cmdb,
                     ticket=the_ticket
