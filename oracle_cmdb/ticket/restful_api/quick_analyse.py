@@ -35,11 +35,11 @@ class QuickSQLAnalyse(BaseReq):
         ]
         ret = []
         for single_sql in sqls:
-            the_sub_ticket = OracleSubTicket()
+            the_sub_ticket = OracleSubTicket(sql_text=single_sql["sql_text"])
             stasci.run_static(
                 sub_result=the_sub_ticket,
                 single_sql=single_sql,
                 sqls=sqls
             )
-            ret.append(the_sub_ticket.to_dict(iter_if=lambda k, v: k == "static"))
+            ret.append(the_sub_ticket.to_dict())
         self.resp(ret)
