@@ -60,7 +60,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     audit_role_id = IntField()
     audit_owner = StringField()
     audit_time = DateTimeField()
-    audit_comment = StringField(default="")
+    audit_comments = StringField(default="")
     online_time = DateTimeField()
     score = FloatField()
 

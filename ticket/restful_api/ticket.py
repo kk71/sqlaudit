@@ -153,7 +153,7 @@ class TicketHandler(TicketReq):
         params = self.get_json_args(Schema({
             "ticket_id": scm_str,
 
-            scm_optional("audit_comment"): scm_str,
+            scm_optional("audit_comments"): scm_str,
             "status": self.scm_status
         }))
         params["audit_date"] = datetime.now()
