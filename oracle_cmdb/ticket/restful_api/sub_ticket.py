@@ -37,7 +37,7 @@ class SQLPlanHandler(TicketReq):
             values_list(*sql_plan_head.values())
         for sql_plan in sql_plans:
             to_add = [i if i is not None else " " for i in sql_plan]
-            m, s = divmod(to_add[-1] if to_add[-1] else 0, 60)
+            m, s = divmod(to_add[-1] if to_add[-1] and to_add[-1] != " " else 0, 60)
             h, m = divmod(m, 60)
             to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
             if 8 > len(str(to_add[3])) > 5:
