@@ -65,7 +65,7 @@ class ParsedSQLStatement:
             const.REMARK_PLACEHOLDER, self.normalized)
         # 去掉注释的sql只是暂存，后续可能有用
         self.normalized_without_comment: str = sqlparse.format(
-            sql_remark_replaced, strip_comment=True)
+            sql_remark_replaced, strip_comments=True)
 
         # 语句内的组成部分
         self.tokens = sss.tokens
