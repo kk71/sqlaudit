@@ -26,7 +26,7 @@ broker_transport_options = {'visibility_timeout': 60*60*24*9}
 imports = (
     "task.capture",
     # "task.offline_ticket",
-    "oracle_cmdb.ticket.task"
+    "oracle_cmdb.ticket.task",
     "task.clear_cache",
     # "task.export",
     "task.mail_report"
