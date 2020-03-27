@@ -28,7 +28,10 @@ class QuickSQLAnalyse(BaseReq):
         statements = ParsedSQL(sql_text)
         if not statements:
             return self.resp_bad_req(msg="未发现sql语句。")
-        sqls = SingleSQL.gen_from_parsed_sql_statement(statements[0])
+        sqls = [
+            SingleSQL.gen_from_parsed_sql_statement(a_statement)
+            for a_statement in statements
+        ]
         ret = []
         for single_sql in sqls:
             the_sub_ticket = OracleSubTicket()
