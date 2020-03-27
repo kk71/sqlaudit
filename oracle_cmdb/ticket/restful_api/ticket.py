@@ -5,8 +5,8 @@ import ticket.restful_api.ticket
 from models.oracle import make_session, CMDB
 from utils.schema_utils import *
 from ..ticket import OracleTicket
-from ..analyse import OracleSubTicketAnalyse
 from .. import ticket_utils, task
+from ticket.task_name_utils import *
 
 
 class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
@@ -35,7 +35,6 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 )
 
             new_ticket = OracleTicket(db_type=utils.const.DB_ORACLE)
-            sub_ticket_analysis = OracleSubTicketAnalyse(cmdb=cmdb, ticket=new_ticket)
             if not params["schema_name"]:
                 # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
                 # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
@@ -45,7 +44,7 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
                 params["schema_name"] = cmdb.user_name
             if not params["task_name"]:
-                params['task_name'] = sub_ticket_analysis.get_available_task_name(
+                params['task_name'] = get_available_task_name(
                     submit_owner=params["submit_owner"]
                 )
             new_ticket.from_dict(params)

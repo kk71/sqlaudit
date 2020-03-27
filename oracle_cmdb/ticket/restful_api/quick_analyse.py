@@ -21,6 +21,7 @@ class QuickSQLAnalyse(BaseReq):
         sql_text = params.pop("sql_text")
 
         rule_jar = RuleJar.gen_jar_with_entries(
+            new_rule.const.RULE_ENTRY_TICKET_STATIC,
             new_rule.const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT,
             db_type=utils.const.DB_ORACLE
         )
