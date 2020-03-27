@@ -130,7 +130,7 @@ class TicketHandler(TicketReq):
                 ticket_id=str(the_ticket.ticket_id))
             ret_item = {
                 **the_ticket.to_dict(),
-                "connect_name": cmdb_id_connect_name_pairs.get(the_ticket.cmdb_id, None),
+                "database_name": cmdb_id_connect_name_pairs.get(the_ticket.cmdb_id, None),
                 "result_stats": {
                     "static_problem_num": sum([
                         len(x.static) for x in sub_tickets_q_to_current_ticket if x]),
