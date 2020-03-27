@@ -1,15 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import utils.const
+import new_rule.const
 from utils.schema_utils import *
 from restful_api.views.base import BaseReq
-from ..analyse import OracleSubTicketAnalyse
 from ..sub_ticket import OracleSubTicket
-from ..ticket import OracleTicket
+from ticket.analyse import SubTicketAnalyseStaticCMDBIndependent
 from ..single_sql import SingleSQL
 from ticket.parsed_sql import ParsedSQL
+from new_rule.rule_jar import *
 
 
-class QuickSingleSQLAnalyse(BaseReq):
+class QuickSQLAnalyse(BaseReq):
 
     def post(self):
         """快速单条sql分析（仅静态）"""
@@ -18,13 +20,22 @@ class QuickSingleSQLAnalyse(BaseReq):
         }))
         sql_text = params.pop("sql_text")
 
-        osta = OracleSubTicketAnalyse(cmdb=None, ticket=OracleTicket())
-        the_sub_ticket = OracleSubTicket()
+        rule_jar = RuleJar.gen_jar_with_entries(
+            new_rule.const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT,
+            db_type=utils.const.DB_ORACLE
+        )
+        stasci = SubTicketAnalyseStaticCMDBIndependent(rule_jar)
         statements = ParsedSQL(sql_text)
         if not statements:
             return self.resp_bad_req(msg="未发现sql语句。")
-        single_sql = SingleSQL.gen_from_parsed_sql_statement(statements[0])
-        osta.run_static(
-            sub_result=the_sub_ticket, single_sql=single_sql, sqls=[single_sql])
-        ret = the_sub_ticket.to_dict(iter_if=lambda k, v: k == "static")
+        sqls = SingleSQL.gen_from_parsed_sql_statement(statements[0])
+        ret = []
+        for single_sql in sqls:
+            the_sub_ticket = OracleSubTicket()
+            stasci.run_static(
+                sub_result=the_sub_ticket,
+                single_sql=single_sql,
+                sqls=sqls
+            )
+            ret.append(the_sub_ticket.to_dict(iter_if=lambda k, v: k == "static"))
         self.resp(ret)

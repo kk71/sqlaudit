@@ -9,6 +9,8 @@ init_models()
 
 import ticket.const
 import ticket.exceptions
+import new_rule.const
+import utils.const
 from task.base import *
 from models.oracle import make_session, CMDB
 from .analyse import OracleSubTicketAnalyse
@@ -16,6 +18,7 @@ from .ticket import OracleTicket
 from .sub_ticket import OracleSubTicket
 from ticket.ticket import TempScriptStatement, TicketScript
 from .single_sql import SingleSQL
+from new_rule.rule_jar import RuleJar
 
 
 @celery.task
@@ -33,6 +36,10 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
 
     sub_tickets = []
     scripts: {str: TicketScript} = dict()
+    static_rules = RuleJar(
+        new_rule.const.RULE_ENTRY_TICKET_STATIC, db_type=utils.const.DB_ORACLE)
+    dynamic_rules = RuleJar(
+        new_rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=utils.const.DB_ORACLE)
     with make_session() as session:
         cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
         for the_script_id in script_ids:
@@ -45,6 +52,8 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
             for the_statement in statement_q:
                 single_sql = SingleSQL.gen_from_temp_script(the_statement)
                 osta = OracleSubTicketAnalyse(
+                    static_rules=static_rules,
+                    dynamic_rules=dynamic_rules,
                     cmdb=cmdb,
                     ticket=the_ticket
                 )

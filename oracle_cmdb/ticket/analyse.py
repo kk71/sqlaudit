@@ -18,7 +18,6 @@ import utils.const
 import ticket.sub_ticket
 from plain_db.oracleob import *
 from utils.parsed_sql import ParsedSQL
-from new_rule.rule import TicketRule
 from ticket.analyse import SubTicketAnalyse
 from .sub_ticket import OracleSubTicket
 from .sql_plan import OracleTicketSQLPlan
@@ -38,16 +37,6 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
         return sql.strip()
 
     def __init__(self, **kwargs):
-        if kwargs.get("static_rules_qs", None) is None:
-            kwargs["static_rules_qs"] = TicketRule.filter_enabled(
-                db_type=utils.const.DB_ORACLE,
-                entries=new_rule.const.RULE_ENTRY_TICKET_STATIC
-            )
-        if kwargs.get("dynamic_rules_qs", None) is None:
-            kwargs["dynamic_rules_qs"] = TicketRule.filter_enabled(
-                db_type=utils.const.DB_ORACLE,
-                entries=new_rule.const.RULE_ENTRY_TICKET_DYNAMIC
-            )
         super(OracleSubTicketAnalyse, self).__init__(**kwargs)
         self.schema_name = self.ticket.schema_name \
             if self.ticket.schema_name else self.cmdb.user_name
