@@ -116,7 +116,7 @@ class TicketHandler(TicketReq):
         if date_start:
             ticket_q = ticket_q.filter(create_time__gte=date_start)
         if date_end:
-            ticket_q = ticket_q.filter(create_time__le=date_end)
+            ticket_q = ticket_q.filter(create_time__lt=date_end)
         if ticket_id:
             ticket_q = ticket_q.filter(ticket_id=ticket_id)
         ticket_q = self.privilege_filter_ticket(ticket_q)
