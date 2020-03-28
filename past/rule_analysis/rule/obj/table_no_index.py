@@ -17,7 +17,7 @@ def execute_rule(**kwargs):
  ORDER BY 3 DESC
     """
     db_cursor.execute(sql_table_name_bigger_than_threshold.
-        replace("@username@", username).replace("@tab_phy_size@", tab_phy_size))
+        replace("@username@", username).replace("@tab_phy_size@", str(tab_phy_size)))
     big_table_table_names = tuple(db_cursor.fetchall())
 
     sql = f"""
