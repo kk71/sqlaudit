@@ -604,7 +604,7 @@
         "exclude_obj_type": "TABLE",
         "input_parms": [
             {
-                "parm_desc": "大表数量占所有表数量的比率",
+                "parm_desc": "表大小",
                 "parm_name": "tab_phy_size",
                 "parm_unit": "MB",
                 "parm_value": 10240
@@ -613,16 +613,16 @@
         "max_score": 5,
         "output_parms": [
             {
-                "parm_name": "big_tab_count",
-                "parm_desc": "大表数量"
+                "parm_name": "segment_name",
+                "parm_desc": "段名"
             },
             {
-                "parm_desc": "所有表数量",
-                "parm_name": "table_count"
+                "parm_name": "segment_type",
+                "parm_desc": "段类型"
             },
             {
-                "parm_desc": "比率",
-                "parm_name": "big_tab_ratio"
+                "parm_name": "tab_space",
+                "parm_desc": "表大小"
             }
         ],
         "rule_desc": "大表数量过多",
@@ -3990,7 +3990,7 @@
         "exclude_obj_type": "TABLE",
         "input_parms": [
             {
-                "parm_desc": "大表数量占所有表数量的比率",
+                "parm_desc": "表大小",
                 "parm_name": "tab_phy_size",
                 "parm_unit": "MB",
                 "parm_value": 10240
@@ -3999,16 +3999,16 @@
         "max_score": 5,
         "output_parms": [
             {
-                "parm_name": "big_tab_count",
-                "parm_desc": "大表数量"
+                "parm_name": "segment_name",
+                "parm_desc": "段名"
             },
             {
-                "parm_desc": "所有表数量",
-                "parm_name": "table_count"
+                "parm_name": "segment_type",
+                "parm_desc": "段类型"
             },
             {
-                "parm_desc": "比率",
-                "parm_name": "big_tab_ratio"
+                "parm_name": "tab_space",
+                "parm_desc": "表大小"
             }
         ],
         "rule_desc": "大表数量过多",
