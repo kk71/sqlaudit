@@ -227,23 +227,15 @@ def SQL_PARTITION_RANGE_ALL(mongo_client, sql, username, etl_date_key, etl_date,
         etl_date_key: etl_date
     })
 
-    for x in found_items:
-        condition_find_sql = {
-            "SQL_ID": x["SQL_ID"],
-            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-            "ID": x["ID"] + 1
+    for y in found_items:
+        yield {
+            "SQL_ID": y["SQL_ID"],
+            "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": y["OBJECT_NAME"],
+            "ID": y["ID"],
+            "COST": y["COST"],
+            "COUNT": ""
         }
-        condition_find_sql = sql_collection.find(condition_find_sql)
-
-        for y in condition_find_sql:
-            yield {
-                "SQL_ID": y["SQL_ID"],
-                "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
-                "OBJECT_NAME": y["OBJECT_NAME"],
-                "ID": y["ID"],
-                "COST": x["COST"],
-                "COUNT": ""
-            }
 
 
 @timing()
@@ -296,24 +288,15 @@ def SQL_PARTITION_RANGE_ITERATOR(mongo_client, sql, username, etl_date_key, etl_
         "USERNAME": username,
         etl_date_key: etl_date
     })
-    for x in found_items:
-        condition_find_sql = {
-            "SQL_ID": x["SQL_ID"],
-            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-            "ID": x["ID"] + 1,
-            "USERNAME": username,
-            etl_date_key: etl_date
+    for y in found_items:
+        yield {
+            "SQL_ID": y["SQL_ID"],
+            "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": y["OBJECT_NAME"],
+            "ID": y["ID"],
+            "COST": y["COST"],
+            "COUNT": ""
         }
-        condition_find_sql = sql_collection.find(condition_find_sql)
-        for y in condition_find_sql:
-            yield {
-                "SQL_ID": y["SQL_ID"],
-                "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
-                "OBJECT_NAME": y["OBJECT_NAME"],
-                "ID": y["ID"],
-                "COST": x["COST"],
-                "COUNT": ""
-            }
 
 
 @timing()
@@ -325,7 +308,6 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
     db.@tmp@.save({\"SQL_ID\":x.SQL_ID,\"PLAN_HASH_VALUE\":x.PLAN_HASH_VALUE,
     \"OBJECT_NAME\":x.OBJECT_NAME,\"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
     sql_collection = mongo_client.get_collection(sql)
-    obj_tab_info_collection = mongo_client.get_collection("obj_tab_info")
     found_items = sql_collection.find({
         "OPERATION": "TABLE ACCESS",
         "OPTIONS": "FULL",
@@ -333,22 +315,14 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
         etl_date_key: etl_date
     })
     for x in found_items:
-        first_obj_tab_info = obj_tab_info_collection.find_one({
-            "TABLE_NAME": x["OBJECT_NAME"],
-            "$or": [
-                {"NUM_ROWS": {"$gt": table_row_num}},
-                {"PHY_SIZE(MB)": {"$gt": table_phy_size}}
-            ]
-        })
-        if first_obj_tab_info:
-            yield {
-                "SQL_ID": x["SQL_ID"],
-                "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-                "OBJECT_NAME": x["OBJECT_NAME"],
-                "ID": x["ID"],
-                "COST": x["COST"],
-                "COUNT": ""
-            }
+        yield {
+            "SQL_ID": x["SQL_ID"],
+            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": x["OBJECT_NAME"],
+            "ID": x["ID"],
+            "COST": x["COST"],
+            "COUNT": ""
+        }
 
 
 @timing()
@@ -411,7 +385,6 @@ def SQL_INDEX_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, ind
     \"ID\":x.ID,\"COST\":x.COST,\"COUNT\":\"\"});})"""
 
     sql_collection = mongo_client.get_collection(sql)
-    obj_ind_info_collection = mongo_client.get_collection("obj_ind_info")
     found_items = sql_collection.find({
         "OPERATION": "INDEX",
         "OPTIONS": "FULL SCAN",
@@ -419,19 +392,14 @@ def SQL_INDEX_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, ind
         etl_date_key: etl_date
     })
     for x in found_items:
-        first_obj_ind_info = obj_ind_info_collection.find_one({
-            "INDEX_NAME": x["OBJECT_NAME"],
-            "PHY_SIZE(MB)": {"$gt": ind_phy_size}
-        })
-        if first_obj_ind_info:
-            yield {
-                "SQL_ID": x["SQL_ID"],
-                "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-                "OBJECT_NAME": x["OBJECT_NAME"],
-                "ID": x["ID"],
-                "COST": x["COST"],
-                "COUNT": ""
-            }
+        yield {
+            "SQL_ID": x["SQL_ID"],
+            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": x["OBJECT_NAME"],
+            "ID": x["ID"],
+            "COST": x["COST"],
+            "COUNT": ""
+        }
 
 
 @timing()
@@ -451,21 +419,15 @@ def SQL_PARTITION_RANGE_INLIST_OR(mongo_client, sql, username, etl_date_key, etl
         "USERNAME": username,
         etl_date_key: etl_date
     })
-    for x in found_items:
-        condition_find_sql = sql_collection.find({
-            "SQL_ID": x["SQL_ID"],
-            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-            "ID": {"$eq": x["ID"] + 1}
-        })
-        for y in condition_find_sql:
-            yield {
-                "SQL_ID": y["SQL_ID"],
-                "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
-                "OBJECT_NAME": y["OBJECT_NAME"],
-                "ID": y["ID"],
-                "COST": x["COST"],
-                "COUNT": ""
-            }
+    for y in found_items:
+        yield {
+            "SQL_ID": y["SQL_ID"],
+            "PLAN_HASH_VALUE": y["PLAN_HASH_VALUE"],
+            "OBJECT_NAME": y["OBJECT_NAME"],
+            "ID": y["ID"],
+            "COST": y["COST"],
+            "COUNT": ""
+        }
 
 
 @timing()
@@ -636,7 +598,7 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
     \"SQL_TEXT_DETAIL\":x.SQL_TEXT_DETAIL,\"SQL_TEXT\":x.SQL_TEXT});})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "SUM": {"$gt": int(sql_no_bind_count)},
+        "SUM": {"$gte": int(sql_no_bind_count)},
         "USERNAME": username,
         etl_date_key: etl_date
     })
@@ -659,7 +621,7 @@ def SQL_TO_CHANGE_TYPE(mongo_client, sql, username, etl_date_key, etl_date, **kw
     ID:x.ID,COST:x.COST,COUNT:\"\"})})"""
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
-        "FILTER_PREDICATES": re.compile("SYS_OP"),
+        "FILTER_PREDICATES": re.compile(r"(SYS_OP|TO_NUMBER|INTERNAL_FUNCTION)", re.I),
         "USERNAME": username,
         "ETL_DATE": etl_date
     })
