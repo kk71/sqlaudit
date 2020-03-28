@@ -16,10 +16,11 @@ def execute_rule(**kwargs):
    and bytes / 1024 / 1024 >= @tab_phy_size@
     """
     db_cursor.execute(sql_table_name_bigger_than_threshold.
-        replace("@username@", username).replace("@tab_phy_size@", str(tab_phy_size)))
+                      replace("@username@", username).replace("@tab_phy_size@", str(tab_phy_size)))
     big_table_table_names = tuple(db_cursor.fetchall())
 
-    print(big_table_table_names)
+    if not big_table_table_names:
+        return [], 0.0
 
     sql = f"""
     SELECT 'COMBINEINDEX',
