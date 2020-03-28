@@ -17,6 +17,7 @@ class SubTicketIssue(EmbeddedDocument):
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
     max_score = FloatField(required=True)  # 最大扣分快照
+    level = IntField()  # 规则优先级
     input_params = ListField(default=lambda: [])  # 输入参数快照
     output_params = ListField(default=lambda: [])  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
@@ -33,6 +34,7 @@ class SubTicketIssue(EmbeddedDocument):
         self.db_type = rule_object.db_type
         self.rule_name = rule_object.name
         self.rule_desc = rule_object.desc
+        self.level = rule_object.level
         self.max_score = rule_object.max_score
         self.input_params = [i for i in rule_object.to_dict()["input_params"]]
 

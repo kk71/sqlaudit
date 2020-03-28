@@ -50,25 +50,10 @@ class OracleTicketOnlineOverviewHandler(
             online_times = sum(worklist_online.values())
 
             # 上线成功的语句数
-            ticket_q = OracleSubTicket.objects(cmdb_id__in=cmdb_ids)
-            work_list = [x.to_dict()['work_list_id'] for x in work_list]
-
-            to_collection = [{
-                "$group": {'_id': "$online_status",
-                           "count": {"$sum": 1}
-                           }
-            }]
-            sub_worklist_online = OracleSubTicket.objects(
-                ticket_id__in=work_list,
-                online_date__gt=date_start).aggregate(*to_collection)
-            sub_worklist_online = list(sub_worklist_online)
-
-            sub_worklist_online_count = {}
-            for x in sub_worklist_online:
-                sub_worklist_online_count[x['_id']] = x['count']
+            sub_ticket_q = OracleSubTicket.objects(cmdb_id__in=cmdb_ids)
             sub_worklist_online = {
-                "sql_succeed": sub_worklist_online_count.get(True, 0),
-                "sql_fail": sub_worklist_online_count.get(False, 0),
+                "sql_succeed": sub_ticket_q.filter(online_status=True).count(),
+                "sql_fail": sub_ticket_q.filter(online_status=False).count()
             }
 
             # 展示待上线的脚本
@@ -85,7 +70,6 @@ class OracleTicketOnlineOverviewHandler(
                 **worklist_online,
                 **sub_worklist_online,
                 "online_times": online_times,
-                "business": business,
                 "scripts_ready": scripts_ready
             })
 

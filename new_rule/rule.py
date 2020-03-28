@@ -50,6 +50,7 @@ class TicketRule(
     summary = StringField()  # 比desc更详细的一个规则解说
     solution = ListField(default=lambda: [])
     weight = FloatField(required=True)
+    level = IntField(choices=const.ALL_RULE_LEVELS)
 
     meta = {
         "collection": "ticket_rule",
