@@ -7222,12 +7222,27 @@
         "db_type": "oracle",
         "db_model": "OLTP",
         "exclude_obj_type": "INDEX",
-        "input_parms": [],
+        "input_parms": [
+            {
+                "parm_desc": "表大小",
+                "parm_name": "tab_phy_size",
+                "parm_unit": "MB",
+                "parm_value": 10240
+            }
+        ],
         "max_score": 3,
         "output_parms": [
             {
+                "parm_desc": "拥有者",
+                "parm_name": "owner"
+            },
+            {
                 "parm_desc": "表名",
                 "parm_name": "table_name"
+            },
+            {
+                "parm_desc": "表大小",
+                "parm_name": "size_mb"
             }
         ],
         "rule_desc": "没有索引",
@@ -7251,12 +7266,27 @@
         "db_type": "oracle",
         "db_model": "OLAP",
         "exclude_obj_type": "INDEX",
-        "input_parms": [],
+        "input_parms": [
+            {
+                "parm_desc": "表大小",
+                "parm_name": "tab_phy_size",
+                "parm_unit": "MB",
+                "parm_value": 10240
+            }
+        ],
         "max_score": 3,
         "output_parms": [
             {
+                "parm_desc": "拥有者",
+                "parm_name": "owner"
+            },
+            {
                 "parm_desc": "表名",
                 "parm_name": "table_name"
+            },
+            {
+                "parm_desc": "表大小",
+                "parm_name": "size_mb"
             }
         ],
         "rule_desc": "没有索引",
