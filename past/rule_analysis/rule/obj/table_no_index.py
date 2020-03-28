@@ -22,7 +22,8 @@ def execute_rule(**kwargs):
 
     sql = f"""
     SELECT 'COMBINEINDEX',
-           COUNT(DISTINCT IC.INDEX_NAME) AS COMBINEINDEXNUMBER
+           COUNT(DISTINCT IC.INDEX_NAME) AS COMBINEINDEXNUMBER,
+           distinct ic.table_name
     FROM DBA_IND_COLUMNS IC
     WHERE IC.INDEX_OWNER = '@username@'
       AND IC.COLUMN_POSITION > 1
@@ -36,16 +37,18 @@ def execute_rule(**kwargs):
     records_comindnum_allinnum = db_cursor.fetchall()
 
     all_index_sum = 0
+    table_names = []
     # 取组合索引数量和所有索引数量并赋值给本地变量
     for i in records_comindnum_allinnum:
         if i[0] == 'COMBINEINDEX':
             pass
         elif i[0] == 'ALLINDEX':
             all_index_sum += i[1]
+            table_names.append(i[2])
         else:
             pass
 
     # 如果所有索引数量为0，则直接返回，并扣除本规则所有分数。
     if True and all_index_sum == 0:
-        return [], float("%0.2f" % max_score)
+        return [[i] for i in table_names], float("%0.2f" % max_score)
     return [], 0.0
