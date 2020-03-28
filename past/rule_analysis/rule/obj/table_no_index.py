@@ -14,7 +14,6 @@ def execute_rule(**kwargs):
    AND owner = '@username@'
    AND segment_name NOT LIKE 'BIN%'
    and bytes / 1024 / 1024 >= @tab_phy_size@
- ORDER BY 3 DESC
     """
     db_cursor.execute(sql_table_name_bigger_than_threshold.
         replace("@username@", username).replace("@tab_phy_size@", str(tab_phy_size)))
