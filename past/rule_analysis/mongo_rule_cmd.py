@@ -626,7 +626,8 @@ having count(*) >= {int(sql_no_bind_count)}
             "SQL_ID": x["sql_id"],
             "SUM": x["sum"],
             "SQL_TEXT_DETAIL": None,
-            "SQL_TEXT": None
+            "SQL_TEXT": None,
+            "PLAN_HASH_VALUE": None
         }
 
 
