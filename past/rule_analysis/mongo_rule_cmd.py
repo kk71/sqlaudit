@@ -617,7 +617,9 @@ having count(*) >= {int(sql_no_bind_count)}
  order by 3 desc
 """)
 
-    for x in found_items.items():
+    print(found_items)
+    
+    for x in found_items:
         yield {
             "USERNMAE": None,
             "SQL_ID": x["sql_id"],
