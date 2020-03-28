@@ -2,6 +2,7 @@
 
 import time
 import traceback
+from collections import defaultdict
 
 from cx_Oracle import DatabaseError
 
@@ -35,35 +36,21 @@ class OracleTicketOnlineOverviewHandler(
             cmdb_ids: list = cmdb_utils.get_current_cmdb(session, self.current_user)
 
             # 成功次数、失败次数, 上线次数(3+4)
-            qe = QueryEntity(
-                WorkList.work_list_status,
-                func.count().label('work_list_status_count')
+            ticket_onlined_q = OracleTicket.objects(
+                cmdb_id__in=cmdb_ids,
+                online_date__gt=date_start
             )
-            worklist_online = dict(session.query(*qe).
-                                   filter(WorkList.work_list_status.in_([
-                OFFLINE_TICKET_FAILED, OFFLINE_TICKET_EXECUTED]),
-                WorkList.cmdb_id.in_(cmdb_ids),
-                WorkList.online_date > date_start).
-                                   group_by(WorkList.work_list_status))
+
             worklist_online = {
-                "ticket_succeed": worklist_online.get(OFFLINE_TICKET_EXECUTED, 0),
-                "ticket_fail": worklist_online.get(OFFLINE_TICKET_FAILED, 0)
+                "ticket_succeed": ticket_onlined_q.filter(
+                    status=ticket.const.TICKET_EXECUTED).count(),
+                "ticket_fail": ticket_onlined_q.filter(
+                    status=ticket.const.TICKET_FAILED).count()
             }
             online_times = sum(worklist_online.values())
 
-            # 在业务维度 展示上线次数
-            qe = QueryEntity(
-                WorkList.system_name,
-                func.count().label('system_name_count')
-            )
-            business = session.query(*qe). \
-                filter(WorkList.work_list_status == OFFLINE_TICKET_EXECUTED,
-                       WorkList.cmdb_id.in_(cmdb_ids),
-                       WorkList.online_date > date_start).group_by(WorkList.system_name)
-            business = [qe.to_dict(x) for x in business]
-
             # 上线成功的语句数
-            work_list = session.query(WorkList).filter(WorkList.cmdb_id.in_(cmdb_ids))
+            ticket_q = OracleSubTicket.objects(cmdb_id__in=cmdb_ids)
             work_list = [x.to_dict()['work_list_id'] for x in work_list]
 
             to_collection = [{
@@ -71,9 +58,9 @@ class OracleTicketOnlineOverviewHandler(
                            "count": {"$sum": 1}
                            }
             }]
-            sub_worklist_online = TicketSubResult.objects(work_list_id__in=work_list,
-                                                          online_date__gt=date_start). \
-                aggregate(*to_collection)
+            sub_worklist_online = OracleSubTicket.objects(
+                ticket_id__in=work_list,
+                online_date__gt=date_start).aggregate(*to_collection)
             sub_worklist_online = list(sub_worklist_online)
 
             sub_worklist_online_count = {}
@@ -85,17 +72,14 @@ class OracleTicketOnlineOverviewHandler(
             }
 
             # 展示待上线的脚本
-            qe = QueryEntity(
-                WorkList.task_name,
-                WorkList.work_list_id,
-                WorkList.submit_owner,
-                WorkList.system_name
-            )
-            scripts_ready = session.query(*qe).filter(
-                WorkList.work_list_status == OFFLINE_TICKET_PASSED,
-                WorkList.cmdb_id.in_(cmdb_ids)
-            ).order_by(WorkList.submit_date.desc())
-            scripts_ready = [qe.to_dict(x) for x in scripts_ready]
+            tickets_ready = OracleTicket.objects(
+                status=ticket.const.TICKET_PASSED,
+                cmdb_id__in=cmdb_ids
+            ).order_by("-create_time")
+            scripts_ready = [
+                ticket_ready.to_dict()
+                for ticket_ready in tickets_ready[:10]
+            ]
 
             return self.resp({
                 **worklist_online,
@@ -121,7 +105,7 @@ class OracleTicketOnlineExecuteHandler(
         try:
             with make_session() as session:
                 the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
-                sub_ticket_q = OracleSubTicket.objects(ticket_id=ticket.ticket_id)
+                sub_ticket_q = OracleSubTicket.objects(ticket_id=the_ticket.ticket_id)
                 cmdb = session.query(CMDB).filter(CMDB.cmdb_id == the_ticket.cmdb_id).first()
                 if not cmdb.allow_online:
                     return self.resp_forbidden("当前库不允许自助上线")
