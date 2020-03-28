@@ -14,7 +14,8 @@ from new_rule import const
 
 def main():
     """FOR DEVELOPMENT: add new entry to rule"""
-    TicketRule.objects(
-        entries__in=[const.RULE_ENTRY_TICKET_STATIC]).update(
-        entries__insert=const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT)
+    # TicketRule.objects(
+    #     entries__in=[const.RULE_ENTRY_TICKET_STATIC]).update(
+    #     push__entries=const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT)
+    pass
 
