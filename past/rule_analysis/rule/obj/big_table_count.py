@@ -11,7 +11,7 @@ def execute_rule(**kwargs):
     SELECT segment_name, segment_type, bytes / 1024 / 1024 tab_space
   FROM dba_segments
  WHERE segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')
-   AND u.owner = '@username@'
+   AND owner = '@username@'
    AND segment_name NOT LIKE 'BIN%'
    and bytes / 1024 / 1024 >= @tab_phy_size@
  ORDER BY 3 DESC
