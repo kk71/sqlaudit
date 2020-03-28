@@ -591,25 +591,33 @@ def SQL_DIRECT_WRITES(mongo_client, sql, username, etl_date_key, etl_date, direc
 
 
 @timing()
-def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind_count, **kwargs):
+def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind_count, cmdb_id, **kwargs):
     """db.@sql@.find({\"SUM\":{$gt:@sql_no_bind_count@},\"USERNAME\":\"@username@\",
     \"@etl_date_key@\":\"@etl_date@\"}).
     forEach(function(x){db.@tmp@.save({\"USERNAME\":x.USERNAME,\"SQL_ID\":x.SQL_ID,\"SUM\":x.SUM,
     \"SQL_TEXT_DETAIL\":x.SQL_TEXT_DETAIL,\"SQL_TEXT\":x.SQL_TEXT});})"""
-    sql_collection = mongo_client.get_collection(sql)
-    found_items = sql_collection.find({
-        "SUM": {"$gte": int(sql_no_bind_count)},
-        "USERNAME": username,
-        etl_date_key: etl_date
-    })
+
+    from models.oracle import make_session, CMDB
+    from plain_db.oracleob import OracleCMDBConnector
+    with make_session() as session:
+        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+        connector = OracleCMDBConnector(cmdb)
+        found_items = connector.select_dict(f"""
+select sql_id, force_matching_signature, count(*) sum
+  from dba_hist_sqlstat t
+ where t.snap_id BETWEEN '&beg_snap' AND '&end_snap'
+ group by sql_id, force_matching_signature
+having count(*) >= {sql_no_bind_count}
+ order by 3 desc;
+""")
 
     for x in found_items:
         yield {
-            "USERNMAE": x["USERNMAE"],
-            "SQL_ID": x["SQL_ID"],
-            "SUM": x["SUM"],
-            "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
-            "SQL_TEXT": x["SQL_TEXT"]
+            "USERNMAE": None,
+            "SQL_ID": x["sql_id"],
+            "SUM": x["sum"],
+            "SQL_TEXT_DETAIL": None,
+            "SQL_TEXT": None
         }
 
 

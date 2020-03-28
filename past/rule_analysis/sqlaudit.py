@@ -37,6 +37,7 @@ class SqlAudit(object):
         self.stopdate = stopdate
         self.record_id = kwargs['record_id']
         self.db_model = kwargs['db_model']
+        self.cmdb_id = kwargs.get("cmdb_id", None)
         self.review_result = past.rule_analysis.review_result.rule_result.ReviewResult(
             self.mongo_client,
             self.db_type,
@@ -135,6 +136,7 @@ class SqlAudit(object):
                 "sql": self.rule_type.lower(),
                 "etl_date_key": "record_id",
                 "etl_date": self.record_id,
+                "cmdb_id": self.cmdb_id,  # 可能为None
                 **{parm["parm_name"]: str(parm["parm_value"]) for parm in input_parms}
             }
             print(f"using complex rule function {cmd_func_of_the_rule} ...")

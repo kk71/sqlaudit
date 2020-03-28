@@ -167,6 +167,7 @@ class Command(object):
         elif db_type == utils.const.DB_ORACLE and rule_type in ["SQLPLAN", "SQLSTAT"]:
             instance_name = args.get("sid")
             capture_date = args.get("capture_date")
+            kwargs["cmdb_id"] = cmdb_id
             sqlaudit = past.rule_analysis.sqlaudit.SqlAudit(username, rule_type, rule_status, db_type,
                                                             startdate=capture_date, create_user=create_user,
                                                             **kwargs)

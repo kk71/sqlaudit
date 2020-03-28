@@ -1089,13 +1089,13 @@
                 "parm_desc": "表物理大小",
                 "parm_name": "table_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 10
+                "parm_value": 2048
             },
             {
                 "parm_desc": "表行数",
                 "parm_name": "table_row_num",
                 "parm_unit": "",
-                "parm_value": 100
+                "parm_value": 100000
             }
         ],
         "max_score": 20,
@@ -4838,13 +4838,13 @@
                 "parm_desc": "表物理大小",
                 "parm_name": "table_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 10
+                "parm_value": 2048
             },
             {
                 "parm_desc": "表行数",
                 "parm_name": "table_row_num",
                 "parm_unit": "",
-                "parm_value": 100
+                "parm_value": 100000
             }
         ],
         "max_score": 20,
