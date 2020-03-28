@@ -3,7 +3,8 @@
 __all__ = [
     "BaseReq",
     "AuthReq",
-    "PrivilegeReq"
+    "PrivilegeReq",
+    "as_view"
 ]
 
 import json
@@ -11,8 +12,7 @@ from typing import *
 
 import jwt
 from tornado.web import RequestHandler
-from schema import Schema, SchemaError, Or
-from schema import Optional as scm_Optional
+from schema import SchemaError, Or
 from mongoengine import QuerySet as M_Query
 from mongoengine import Q
 from sqlalchemy.orm.query import Query as S_Query
@@ -20,7 +20,7 @@ from sqlalchemy import or_
 
 import settings
 from utils.perf_utils import timing, r_cache
-from utils.schema_utils import scm_unempty_str, scm_gt0_int
+from utils.schema_utils import *
 from utils.privilege_utils import *
 from utils.const import AdminRequired
 from utils.datetime_utils import *
@@ -45,9 +45,11 @@ class BaseReq(RequestHandler):
 
     def _resp_em(self, e):
         """return error message if a schema validation failed."""
+
         def s(*args, **kwargs):
             self.resp_bad_req(msg=e)
             raise SchemaErrorWithMessageResponsed(e)
+
         return s
 
     def scm_with_em(self, *args, e):
@@ -114,20 +116,21 @@ class BaseReq(RequestHandler):
         return k_value, func(current_schema_to_validate)
 
     def resp(self,
-        content: Union[dict, list] = None,
-        msg: str = "",
-        status_code: int = 200,
-        **kwargs
+             content: Union[dict, list] = None,
+             msg: str = "",
+             status_code: int = 200,
+             **kwargs
              ) -> NoReturn:
+        content = dt_to_str(content)  # 直接把时间对象都转成文本
         resp_structure_base = {
-            "msg": msg,                  # 提示信息，多为错误信息
-            "content": content,          # 返回实质内容
+            "msg": msg,  # 提示信息，多为错误信息
+            "content": content,  # 返回实质内容
         }
         resp_structure_kwargs = {
-            "total": None,               # （列表）返回的项目总数
-            "pages": None,               # （列表）返回的总页数
-            "page": None,                # （列表）当前返回的页数
-            "per_page": None             # （列表）当前返回的每页项目数
+            "total": None,  # （列表）返回的项目总数
+            "pages": None,  # （列表）返回的总页数
+            "page": None,  # （列表）当前返回的页数
+            "per_page": None  # （列表）当前返回的每页项目数
         }
         if kwargs:
             resp_structure_kwargs.update(kwargs)
@@ -164,7 +167,7 @@ class BaseReq(RequestHandler):
         elif isinstance(query, S_Query):
             items = query.limit(per_page).offset((page - 1) * per_page).all()
         elif isinstance(query, (list, tuple)):
-            items = query[(page-1)*per_page:(page-1)*per_page+per_page]
+            items = query[(page - 1) * per_page:(page - 1) * per_page + per_page]
         else:
             assert 0
         if page == 1 and len(items) < per_page:
@@ -185,14 +188,50 @@ class BaseReq(RequestHandler):
     def gen_p(page=1, per_page=10):
         """分页的配置"""
         return {
-            scm_Optional("page", default=page): scm_gt0_int,
-            scm_Optional("per_page", default=per_page): scm_gt0_int,
+            scm_optional("page", default=page): scm_gt0_int,
+            scm_optional("per_page", default=per_page): scm_gt0_int,
         }
 
     @staticmethod
     def pop_p(query_dict) -> dict:
         """弹出分页相关的两个字段"""
         return {"page": query_dict.pop("page"), "per_page": query_dict.pop("per_page")}
+
+    def pop_p_for_paginating(self, query_dict) -> NoReturn:
+        """弹出分页相关的两个字段，并且在操作分页的时候默认使用这个字段"""
+        pass
+
+    @staticmethod
+    def gen_date(
+            date_start: Union[None, bool, date] = None,
+            date_end: Union[None, bool, date] = None):
+        """
+        时间段过滤
+        输入参数，为True表示必选，False表示必不选，None或者date对象表示可选并设置默认值
+        :param date_start:
+        :param date_end:
+        :return:
+        """
+        ret = {}
+        if date_start is True:
+            ret["date_start"] = scm_date
+        elif date_start is False:
+            pass
+        else:
+            ret[scm_optional("date_start", default=date_start)] = scm_date
+        if date_end is True:
+            ret["date_end"] = scm_date_end
+        elif date_end is False:
+            pass
+        else:
+            ret[scm_optional("date_end", default=date_end)] = scm_date_end
+        return ret
+
+    @staticmethod
+    def pop_date(query_dict) -> (object, object):
+        """弹出时间起始和终止两个字段，如果任一个字段不存在那么就以None替代"""
+        return query_dict.pop("date_start", None), \
+               query_dict.pop("date_end", None)
 
     @staticmethod
     def query_keyword(q, l, *args) -> Union[M_Query, S_Query]:
@@ -279,7 +318,7 @@ class AuthReq(BaseReq):
             data = Schema({
                 "login_user": scm_unempty_str,
                 "timestamp": object,
-                scm_Optional(object): object  # 兼容未来可能增加的字段
+                scm_optional(object): object  # 兼容未来可能增加的字段
             }).validate(payload)
             # 验证token的超时
             if now_timestamp - data["timestamp"] > settings.JWT_EXPIRE_SEC:
@@ -293,7 +332,8 @@ class AuthReq(BaseReq):
             self.current_user = None
             self.resp_unauthorized(msg="请重新登录。")
             return
-        print(f'* {self.current_user} - {settings.JWT_EXPIRE_SEC - (now_timestamp - data["timestamp"])}s to expire - {token}')
+        print(
+            f'* {self.current_user} - {settings.JWT_EXPIRE_SEC - (now_timestamp - data["timestamp"])}s to expire - {token}')
 
     def prepare(self) -> Optional[Awaitable[None]]:
         self.get_current_user()
@@ -339,3 +379,12 @@ class PrivilegeReq(AuthReq):
     def current_roles(self) -> list:
         """returns role_ids to current user"""
         return list(get_role_of_user(self.current_user).get(self.current_user, set([])))
+
+
+def as_view(route_rule: str):
+    def as_view_inner(req_handler: BaseReq):
+        import restful_api.urls
+        restful_api.urls.dynamic_urls.append((route_rule, req_handler))
+        return req_handler
+
+    return as_view_inner
