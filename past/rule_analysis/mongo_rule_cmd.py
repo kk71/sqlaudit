@@ -617,8 +617,9 @@ having count(*) >= {int(sql_no_bind_count)}
  order by 3 desc
 """)
 
-    print(found_items)
-    
+    if isinstance(found_items, dict):
+        found_items = [found_items]
+
     for x in found_items:
         yield {
             "USERNMAE": None,
