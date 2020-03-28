@@ -608,7 +608,7 @@ select sql_id, force_matching_signature, count(*) sum
  where t.snap_id BETWEEN '&beg_snap' AND '&end_snap'
  group by sql_id, force_matching_signature
 having count(*) >= {sql_no_bind_count}
- order by 3 desc;
+ order by 3 desc
 """)
 
     for x in found_items:
