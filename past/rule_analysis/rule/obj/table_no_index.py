@@ -19,20 +19,22 @@ def execute_rule(**kwargs):
         replace("@username@", username).replace("@tab_phy_size@", str(tab_phy_size)))
     big_table_table_names = tuple(db_cursor.fetchall())
 
+    print(big_table_table_names)
+
     sql = f"""
     SELECT 'COMBINEINDEX',
            COUNT(DISTINCT IC.INDEX_NAME) AS COMBINEINDEXNUMBER,
            distinct ic.table_name
     FROM DBA_IND_COLUMNS IC
-    WHERE IC.INDEX_OWNER = '@username@'
+    WHERE IC.INDEX_OWNER = '{username}'
       AND IC.COLUMN_POSITION > 1
       UNION ALL
       SELECT 'ALLINDEX',
              COUNT(1)
-      FROM DBA_INDEXES I WHERE I.OWNER = '@username@' 
+      FROM DBA_INDEXES I WHERE I.OWNER = '{username}' 
       and table_name in {big_table_table_names}
     """
-    db_cursor.execute(sql.replace("@username@", username))
+    db_cursor.execute(sql)
     records_comindnum_allinnum = db_cursor.fetchall()
 
     all_index_sum = 0
