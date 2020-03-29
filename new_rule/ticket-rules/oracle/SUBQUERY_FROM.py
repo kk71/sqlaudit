@@ -1,4 +1,17 @@
+from sqlparse.sql import TokenList
+
 from utils.parsed_sql import ParsedSQL
+
+
+def recursively_find_following_select(token: TokenList) -> bool:
+    if not isinstance(token, TokenList):
+        return False
+    if token.normalized == "SELECT":
+        return True
+    if token.tokens:
+        for new_token in token.tokens:
+            return recursively_find_following_select(new_token)
+    return False
 
 
 def code(rule, entries, **kwargs):
@@ -11,8 +24,9 @@ def code(rule, entries, **kwargs):
         if token.normalized == "FROM":
             has_from = True
             continue
-        if token.normalized == "SELECT" and has_from:
-            return -rule.weight, []
+        if has_from:
+            if recursively_find_following_select(token):
+                return -rule.weight, []
     return None, []
 
 

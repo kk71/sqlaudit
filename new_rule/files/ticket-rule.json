@@ -26,7 +26,7 @@
             "改用临时表存入变量"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "DML_DDL_MIXED",
@@ -47,7 +47,7 @@
             "建议拆分DDL和DML语句"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "BAD_JOIN",
@@ -69,7 +69,7 @@
             "改写为innerjoin"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_ADD_COLUMN",
@@ -91,7 +91,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_BITMAP_INDEX",
@@ -112,7 +112,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_COLUMN_NUMBER",
@@ -134,7 +134,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_CONCURRENCY_LEVEL",
@@ -156,7 +156,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_CREATE_TABLE_NOT_DEFINE_TABLE_SPACE",
@@ -178,7 +178,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_DB_LINK_CREATED",
@@ -200,7 +200,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_DB_LINK_OFFLINE",
@@ -222,7 +222,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_DELETE_SEQUENCE",
@@ -376,7 +376,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_INDEX_ONLINE",
@@ -398,7 +398,7 @@
             "创建索引的时候加上online"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_LOB_USING",
@@ -420,7 +420,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_MODIFY_COLUMN",
@@ -442,7 +442,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_SEQUENCE",
@@ -464,7 +464,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "CHECK_TRUNCATE_TABLE",
@@ -508,7 +508,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "DML_ALLDATA",
@@ -530,7 +530,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "DML_SORT",
@@ -552,7 +552,7 @@
             ""
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "LIKE_UNINDEX",
@@ -574,7 +574,7 @@
             "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "LONG_TEXT",
@@ -602,7 +602,7 @@
             "sql改写为精简语句"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SELECT_ANY",
@@ -624,7 +624,7 @@
             "使用明确的列"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SUBQUERY_FROM",
@@ -639,14 +639,14 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if token.normalized == \"SELECT\" and has_from:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from sqlparse.sql import TokenList\n\nfrom utils.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    if not isinstance(token, TokenList):\n        return False\n    if token.normalized == \"SELECT\":\n        return True\n    if token.tokens:\n        for new_token in token.tokens:\n            return recursively_find_following_select(new_token)\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SUBQUERY_HAVING",
@@ -668,7 +668,7 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SUBQUERY_REP",
@@ -691,7 +691,7 @@
             "2.改写sql避免重复查询"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SUBQUERY_SELECT",
@@ -713,7 +713,7 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SUBQUERY_WHERE",
@@ -735,7 +735,7 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "TOOMANY_BIND",
@@ -763,7 +763,7 @@
             "减少绑定变量"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "TOOMANY_OR",
@@ -792,7 +792,7 @@
             "改用临时表存入变量"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "UNION",
@@ -813,7 +813,7 @@
             "改写unionall和sql逻辑中去重"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "WHERE_FUNC",
@@ -836,7 +836,7 @@
             "2.应用程序实现函数功能"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "WHERE_NOT",
@@ -859,7 +859,7 @@
             "2.不建议使用不等值运算"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_INDEX_FAST_FULL_SCAN",
@@ -924,7 +924,7 @@
             "SQL逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_INDEX_FULL_SCAN",
@@ -983,7 +983,7 @@
             "SQL逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_INDEX_SKIP_SCAN",
@@ -1035,7 +1035,7 @@
             "索引列的先后顺序是否合理"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_MERGE_JOIN_CARTESIAN",
@@ -1088,7 +1088,7 @@
             "2.统计信息不准确,手工收集统计信息"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_PARALLEL_FETCH",
@@ -1146,7 +1146,7 @@
             "取消表、索引、sql中的并行设置"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_PARTITION_RANGE_ALL",
@@ -1198,7 +1198,7 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_PARTITION_RANGE_INLIST_OR",
@@ -1250,7 +1250,7 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_PARTITION_RANGE_ITERATOR",
@@ -1302,7 +1302,7 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_TABLE_FULL_SCAN",
@@ -1378,7 +1378,7 @@
             "12.统计信息不准确数据批量加载程序触发收集统计信息"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_TO_CHANGE_TYPE",
@@ -1431,7 +1431,7 @@
             "2.选择合适的字段类型"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_VIEW_SCAN",
@@ -1489,7 +1489,7 @@
             "视图不能展开,复杂视图拆解、改写"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "LOOP_IN_TAB_FULL_SCAN",
@@ -1554,7 +1554,7 @@
             "关联列创建索引"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_LOOP_NUM",
@@ -1601,7 +1601,7 @@
             "改写sql逻辑减少表关联的数量"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "SQL_TAB_REL_NUM",
@@ -1648,7 +1648,7 @@
             "建议减少表关联,业务逻辑sql改写"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     },
     {
         "name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
@@ -1669,6 +1669,6 @@
             "合理设计分区索引"
         ],
         "weight": 1.0,
-        "level": null
+        "level": 3
     }
 ]

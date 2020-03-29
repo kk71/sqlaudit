@@ -130,7 +130,7 @@ class ReviewResult(object):
             else:
                 temp_key = "#".join([value[0], v1, "v"])
                 cost_count.update({temp_key: [value[5], value[6]]})
-        print(sqltext)
+        # print(sqltext)
         for value in sqltext:
             text_temp.update({value[0]: value[1]})
         for value in sqlstat:
