@@ -627,8 +627,6 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
 #             "SUM": x["sum"],
 #             "SQL_TEXT_DETAIL": None,
 #             "SQL_TEXT": None,
-#             "PLAN_HASH_VALUE": None,
-#             "OBJECT_NAME": None
 #         }
 
     sql_collection = mongo_client.get_collection(sql)
@@ -646,6 +644,7 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
             "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
             "SQL_TEXT": x["SQL_TEXT"]
         }
+        print("qweqweqwe=====================")
         print(r)
         yield r
 
