@@ -9,7 +9,9 @@ def recursively_find_following_select(token: TokenList) -> bool:
         return True
     if isinstance(token, TokenList) and token.tokens:
         for new_token in token.tokens:
-            return recursively_find_following_select(new_token)
+            recursive_ret = recursively_find_following_select(new_token)
+            if recursive_ret:
+                return True
     return False
 
 
