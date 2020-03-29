@@ -146,26 +146,26 @@ class SqlAudit(object):
             else:
                 records = list(records)
             print(f"got {len(records)} result(s)")
-            if key == "SQL_NO_BIND":
-                # 超级无敌恶心代码
-                result = []
-                for record in records:
-                    ret = {
-                        "sql_id": record["SQL_ID"],
-                        "plan_hash_value": 0,
-                        "schema": self.username,
-                        "sql_text": "",
-                        "stat": {},
-                        "obj_info": "",
-                        "obj_name": "",
-                        "cost": "",
-                        "count": ""
-                    }
-                    result.append(ret)
-                score = self.review_result.rule_info[key]["weight"] * len(result)
-                if score >= self.review_result.rule_info[key]["max_score"]:
-                    score = self.review_result.rule_info[key]["max_score"]
-                return result, score
+            # if key == "SQL_NO_BIND":
+            #     # 超级无敌恶心代码
+                # result = []
+                # for record in records:
+                #     ret = {
+                #         "sql_id": record["SQL_ID"],
+                #         "plan_hash_value": 0,
+                #         "schema": self.username,
+                #         "sql_text": "",
+                #         "stat": {},
+                #         "obj_info": "",
+                #         "obj_name": "",
+                #         "cost": "",
+                #         "count": ""
+                #     }
+                #     result.append(ret)
+                # score = self.review_result.rule_info[key]["weight"] * len(result)
+                # if score >= self.review_result.rule_info[key]["max_score"]:
+                #     score = self.review_result.rule_info[key]["max_score"]
+                # return result, score
             # 后面的代码就是抄上面的simple的代码。
             objs, plans, texts, stats, score = self.ora.execute(
                 self.rule_type, records, cmd_attach, info_type, weight, max_score)
