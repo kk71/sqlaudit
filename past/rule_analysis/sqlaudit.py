@@ -151,7 +151,7 @@ class SqlAudit(object):
                 result = []
                 for record in records:
                     ret = {
-                        "sql_id": record["sql_id"],
+                        "sql_id": record["SQL_ID"],
                         "plan_hash_value": 0,
                         "schema": self.username,
                         "sql_text": "",
