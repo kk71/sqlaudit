@@ -639,13 +639,15 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
     })
 
     for x in found_items:
-        yield {
+        r = {
             "USERNMAE": x["USERNMAE"],
             "SQL_ID": x["SQL_ID"],
             "SUM": x["SUM"],
             "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
             "SQL_TEXT": x["SQL_TEXT"]
         }
+        print(r)
+        yield r
 
 
 @timing()
