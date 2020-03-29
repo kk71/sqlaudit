@@ -597,38 +597,54 @@ def SQL_NO_BIND(mongo_client, sql, username, etl_date_key, etl_date, sql_no_bind
     forEach(function(x){db.@tmp@.save({\"USERNAME\":x.USERNAME,\"SQL_ID\":x.SQL_ID,\"SUM\":x.SUM,
     \"SQL_TEXT_DETAIL\":x.SQL_TEXT_DETAIL,\"SQL_TEXT\":x.SQL_TEXT});})"""
 
-    from models.oracle import make_session, CMDB
-    from plain_db.oracleob import OracleCMDBConnector
-    with make_session() as session:
-        cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
-        connector = OracleCMDBConnector(cmdb)
-        found_items = connector.select_dict(f"""
-select sql_id, force_matching_signature, count(*) sum
-  from dba_hist_sqlstat t
-where PARSING_SCHEMA_NAME not in (
-         'SYS', 'OUTLN', 'SYSTEM', 'CTXSYS', 'DBSNMP','DIP','ORACLE_OCM','APPQOSSYS','WMSYS','EXFSYS','CTXSYS','ANONYMOUS',
-         'LOGSTDBY_ADMINISTRATOR', 'ORDSYS','XDB','XS$NULL','SI_INFORMTN_SCHEMA','ORDDATA','OLAPSYS','MDDATA','SPATIAL_WFS_ADMIN_USR',
-         'ORDPLUGINS', 'OEM_MONITOR', 'WKSYS', 'WKPROXY','SPATIAL_CSW_ADMIN_USR','SPATIAL_CSW_ADMIN_USR','SYSMAN','MGMT_VIEW','FLOWS_FILES',
-         'WK_TEST', 'WKUSER', 'MDSYS', 'LBACSYS', 'DMSYS','APEX_030200','APEX_PUBLIC_USER','OWBSYS','OWBSYS_AUDIT','OSE$HTTP$ADMIN',
-         'WMSYS', 'OLAPDBA', 'OLAPSVR', 'OLAP_USER','SCOTT','AURORA$JIS$UTILITY$','BLAKE','JONES','ADAMS','CLARK','MTSSYS',
-         'OLAPSYS', 'EXFSYS', 'SYSMAN', 'MDDATA','AURORA$ORB$UNAUTHENTICATED', 'SI_INFORMTN_SCHEMA', 'XDB', 'ODM')
- group by sql_id, force_matching_signature
-having count(*) >= {int(sql_no_bind_count)}
- order by 3 desc
-""")
+    # from models.oracle import make_session, CMDB
+    # from plain_db.oracleob import OracleCMDBConnector
+    # with make_session() as session:
+    #     cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+    #     connector = OracleCMDBConnector(cmdb)
+    #     found_items = connector.select_dict(f"""
+# select sql_id, force_matching_signature, count(*) sum
+#   from dba_hist_sqlstat t
+# where PARSING_SCHEMA_NAME not in (
+#          'SYS', 'OUTLN', 'SYSTEM', 'CTXSYS', 'DBSNMP','DIP','ORACLE_OCM','APPQOSSYS','WMSYS','EXFSYS','CTXSYS','ANONYMOUS',
+#          'LOGSTDBY_ADMINISTRATOR', 'ORDSYS','XDB','XS$NULL','SI_INFORMTN_SCHEMA','ORDDATA','OLAPSYS','MDDATA','SPATIAL_WFS_ADMIN_USR',
+#          'ORDPLUGINS', 'OEM_MONITOR', 'WKSYS', 'WKPROXY','SPATIAL_CSW_ADMIN_USR','SPATIAL_CSW_ADMIN_USR','SYSMAN','MGMT_VIEW','FLOWS_FILES',
+#          'WK_TEST', 'WKUSER', 'MDSYS', 'LBACSYS', 'DMSYS','APEX_030200','APEX_PUBLIC_USER','OWBSYS','OWBSYS_AUDIT','OSE$HTTP$ADMIN',
+#          'WMSYS', 'OLAPDBA', 'OLAPSVR', 'OLAP_USER','SCOTT','AURORA$JIS$UTILITY$','BLAKE','JONES','ADAMS','CLARK','MTSSYS',
+#          'OLAPSYS', 'EXFSYS', 'SYSMAN', 'MDDATA','AURORA$ORB$UNAUTHENTICATED', 'SI_INFORMTN_SCHEMA', 'XDB', 'ODM')
+#  group by sql_id, force_matching_signature
+# having count(*) >= {int(sql_no_bind_count)}
+#  order by 3 desc
+# """)
+#
+#     if isinstance(found_items, dict):
+#         found_items = [found_items]
+#
+#     for x in found_items:
+#         yield {
+#             "USERNMAE": None,
+#             "SQL_ID": x["sql_id"],
+#             "SUM": x["sum"],
+#             "SQL_TEXT_DETAIL": None,
+#             "SQL_TEXT": None,
+#             "PLAN_HASH_VALUE": None,
+#             "OBJECT_NAME": None
+#         }
 
-    if isinstance(found_items, dict):
-        found_items = [found_items]
+    sql_collection = mongo_client.get_collection(sql)
+    found_items = sql_collection.find({
+        "SUM": {"$gte": int(sql_no_bind_count)},
+        "USERNAME": username,
+        etl_date_key: etl_date
+    })
 
     for x in found_items:
         yield {
-            "USERNMAE": None,
-            "SQL_ID": x["sql_id"],
-            "SUM": x["sum"],
-            "SQL_TEXT_DETAIL": None,
-            "SQL_TEXT": None,
-            "PLAN_HASH_VALUE": None,
-            "OBJECT_NAME": None
+            "USERNMAE": x["USERNMAE"],
+            "SQL_ID": x["SQL_ID"],
+            "SUM": x["SUM"],
+            "SQL_TEXT_DETAIL": x["SQL_TEXT_DETAIL"],
+            "SQL_TEXT": x["SQL_TEXT"]
         }
 
 
