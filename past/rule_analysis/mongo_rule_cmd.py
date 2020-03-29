@@ -627,6 +627,7 @@ having count(*) >= {int(sql_no_bind_count)}
             "SUM": x["sum"],
             "SQL_TEXT_DETAIL": "",
             "SQL_TEXT": "",
+            "PLAN_HASH_VALUE": 123,
         }
 
     # sql_collection = mongo_client.get_collection(sql)
