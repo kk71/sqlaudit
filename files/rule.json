@@ -1463,7 +1463,7 @@
                 "parm_desc": "索引物理大小",
                 "parm_name": "ind_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 10
+                "parm_value": 20480
             }
         ],
         "max_score": 5,
@@ -2549,7 +2549,7 @@
         "rule_name": "INVALID_INDEX",
         "rule_complexity": "simple",
         "rule_cmd": "SELECT T.OWNER||'.'||T.TABLE_NAME, T.INDEX_NAME  FROM DBA_INDEXES T  WHERE T.OWNER = '@username@' AND NOT EXISTS  (SELECT 1  FROM V$SQL_PLAN S  WHERE S.OBJECT_NAME = T.INDEX_NAME  AND S.OBJECT_OWNER = '@username@')  INTERSECT  SELECT T.TABLE_NAME, T.INDEX_NAME  FROM DBA_INDEXES T  WHERE T.OWNER = '@l_username'  AND NOT EXISTS   (SELECT 1   FROM DBA_HIST_SQL_PLAN P   WHERE P.OBJECT_NAME = T.INDEX_NAME  AND P.OBJECT_OWNER = '@username@')",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "在数据库一段时间内,该索引没有被任何SQL语句使用。请评估此索引的有效性。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -4094,7 +4094,7 @@
         "rule_name": "INVALID_INDEX",
         "rule_complexity": "simple",
         "rule_cmd": "SELECT T.OWNER||'.'||T.TABLE_NAME, T.INDEX_NAME  FROM DBA_INDEXES T  WHERE T.OWNER = '@username@' AND NOT EXISTS  (SELECT 1  FROM V$SQL_PLAN S  WHERE S.OBJECT_NAME = T.INDEX_NAME  AND S.OBJECT_OWNER = '@username@')  INTERSECT  SELECT T.TABLE_NAME, T.INDEX_NAME  FROM DBA_INDEXES T  WHERE T.OWNER = '@l_username'  AND NOT EXISTS   (SELECT 1   FROM DBA_HIST_SQL_PLAN P   WHERE P.OBJECT_NAME = T.INDEX_NAME  AND P.OBJECT_OWNER = '@username@')",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "存在7天内没有使用的索引",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -5050,7 +5050,7 @@
                 "parm_desc": "索引物理大小",
                 "parm_name": "ind_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 10
+                "parm_value": 20480
             }
         ],
         "max_score": 5,
