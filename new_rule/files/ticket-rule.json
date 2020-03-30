@@ -35,7 +35,9 @@
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "DML",
+            "DDL"
         ],
         "input_params": [],
         "output_params": [],
@@ -46,8 +48,8 @@
         "solution": [
             "建议拆分DDL和DML语句"
         ],
-        "weight": 1.0,
-        "level": 3
+        "weight": 0.1,
+        "level": 1
     },
     {
         "name": "BAD_JOIN",
@@ -88,7 +90,7 @@
         "status": true,
         "summary": "",
         "solution": [
-            ""
+            "尽可能在添加字段的时候指定默认值"
         ],
         "weight": 1.0,
         "level": 3
@@ -116,7 +118,7 @@
     },
     {
         "name": "CHECK_COLUMN_NUMBER",
-        "desc": "列数",
+        "desc": "表字段数",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -225,30 +227,30 @@
         "level": 3
     },
     {
-        "name": "CHECK_DELETE_SEQUENCE",
-        "desc": "删除序列",
+        "name": "CHECK_DELETE",
+        "desc": "存在delete语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "DDL",
+            "DML",
             "TICKET_STATIC_CMDB_INDEPENDENT"
         ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+sequence', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
-        "name": "CHECK_DROP_COLUMN",
-        "desc": "删除字段",
+        "name": "CHECK_DROP",
+        "desc": "存在drop语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -259,101 +261,13 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_INDEX",
-        "desc": "删除索引",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+index', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_PARTITION",
-        "desc": "删除分区",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+partition', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_PRIMARY_KEY",
-        "desc": "删除主键",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+constraint', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_TABLE",
-        "desc": "删除表",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+table', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
@@ -467,8 +381,8 @@
         "level": 3
     },
     {
-        "name": "CHECK_TRUNCATE_TABLE",
-        "desc": "清空表数据",
+        "name": "CHECK_TRUNCATE",
+        "desc": "存在truncate语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -479,13 +393,13 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'truncate\\s+table\\s+', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
@@ -798,21 +712,22 @@
     },
     {
         "name": "UNION",
-        "desc": "SQL中出现union",
+        "desc": "出现union",
         "db_type": "oracle",
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "DML"
         ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(\"union\")\n    pat_all = re.compile(\"union all\")\n\n    if pat.search(sql_text) and not pat_all.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "出现union,防止出现不必要的排序动作",
         "solution": [
-            "改写unionall和sql逻辑中去重"
+            "改写union和sql逻辑中去重"
         ],
         "weight": 1.0,
         "level": 3
@@ -1130,12 +1045,6 @@
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
-            },
-            {
-                "name": "count",
-                "desc": "计数",
                 "unit": "",
                 "value": null
             }
@@ -1596,7 +1505,7 @@
             }
         ],
         "max_score": 5,
-        "code": "import re\n\nfrom models.mongo import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
+        "code": "import re\n\nfrom oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
         "status": true,
         "summary": "嵌套层次过深",
         "solution": [
@@ -1643,7 +1552,7 @@
             }
         ],
         "max_score": 5,
-        "code": "from models.mongo import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.group( {\n        key:{\\\"USERNAME\\\":1,\\\"record_id\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1,\\\"OBJECT_TYPE\\\":1},\n        cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n            \\\"OBJECT_TYPE\\\":\\\"TABLE\\\"},\n        reduce:function(curr,result){ result.count++; },\n        initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\n            \\\"SQL_ID\\\":x.SQL_ID,\\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"ID\\\":x.ID,\\\"COUNT\\\":x.count\n        })});db.@tmp1@.find({\\\"COUNT\\\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\n            \\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\n            \\\"COUNT\\\":y.COUNT,\\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\n    '''\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] >= rule.gip(\"tab_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.group( {\n        key:{\\\"USERNAME\\\":1,\\\"record_id\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1,\\\"OBJECT_TYPE\\\":1},\n        cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n            \\\"OBJECT_TYPE\\\":\\\"TABLE\\\"},\n        reduce:function(curr,result){ result.count++; },\n        initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\n            \\\"SQL_ID\\\":x.SQL_ID,\\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"ID\\\":x.ID,\\\"COUNT\\\":x.count\n        })});db.@tmp1@.find({\\\"COUNT\\\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\n            \\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\n            \\\"COUNT\\\":y.COUNT,\\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\n    '''\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] >= rule.gip(\"tab_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "过多的表关联,影响性能",
         "solution": [

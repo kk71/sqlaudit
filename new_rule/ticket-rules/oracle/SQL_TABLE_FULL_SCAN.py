@@ -1,6 +1,3 @@
-from models.mongo import ObjTabInfo
-
-
 def code(rule, entries, **kwargs):
     '''
     db.@sql@.find({
