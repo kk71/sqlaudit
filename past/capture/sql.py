@@ -72,6 +72,7 @@ WHERE t.snap_id BETWEEN '&beg_snap' AND '&end_snap'
   AND t.parsing_schema_name = '&username'
   AND t.sql_id = '&sql_id'
   AND t.plan_hash_value = '&plan_hash_value'
+  and module not in ('DBMS_SCHEDULER', 'MMON_SLAVE')
 GROUP BY sql_id,
          plan_hash_value,
          t.parsing_schema_name,t.module
