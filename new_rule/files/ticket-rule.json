@@ -639,7 +639,7 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "from sqlparse.sql import TokenList\n\nfrom utils.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    print(token.normalized)\n    if token.normalized == \"SELECT\":\n        return True\n    if isinstance(token, TokenList) and token.tokens:\n        for new_token in token.tokens:\n            recursive_ret = recursively_find_following_select(new_token)\n            if recursive_ret:\n                return True\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from sqlparse.sql import TokenList\n\nfrom utils.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    if token.normalized == \"SELECT\":\n        return True\n    if isinstance(token, TokenList) and token.tokens:\n        for new_token in token.tokens:\n            recursive_ret = recursively_find_following_select(new_token)\n            if recursive_ret:\n                return True\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
@@ -744,7 +744,9 @@
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "DML",
+            "DDL"
         ],
         "input_params": [
             {
