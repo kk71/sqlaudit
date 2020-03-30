@@ -787,7 +787,7 @@
         ],
         "output_params": [],
         "max_score": 5,
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\"or\") > rule.gip(\"or_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            > rule.gip(\"or_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "多个过滤条件通过or连接,防止优化器出现选择异常",
         "solution": [
