@@ -745,7 +745,7 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
         "solution": [
@@ -1271,7 +1271,7 @@
             }
         ],
         "max_score": 5,
-        "code": "from models.mongo import ObjTabInfo\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.find({\n        OPERATION: 'TABLE ACCESS', OPTIONS: 'FULL', USERNAME: '@username@',\n        record_id: '@record_id@'}).forEach(function(x){db.@tmp@.save({\n            SQL_ID:x.SQL_ID, PLAN_HASH_VALUE:x.PLAN_HASH_VALUE, OBJECT_NAME:x.OBJECT_NAME,\n            ID:x.ID, COST:x.COST, COUNT:''});})\"\n    '''\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    '''\n    db.@sql@.find({\n        OPERATION: 'TABLE ACCESS', OPTIONS: 'FULL', USERNAME: '@username@',\n        record_id: '@record_id@'}).forEach(function(x){db.@tmp@.save({\n            SQL_ID:x.SQL_ID, PLAN_HASH_VALUE:x.PLAN_HASH_VALUE, OBJECT_NAME:x.OBJECT_NAME,\n            ID:x.ID, COST:x.COST, COUNT:''});})\"\n    '''\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "全表扫描",
         "solution": [
