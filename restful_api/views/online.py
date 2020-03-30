@@ -406,7 +406,7 @@ class SQLRiskDetailHandler(AuthReq):
                     "last_appearance": dt_to_str(last_appearance),
 
                     # 总数
-                    'cpu_time_delta': gp["cup_time_delta"][-1],
+                    'cpu_time_delta': gp["cpu_time_delta"][-1],
                     'disk_reads_delta': gp["disk_reads_delta"][-1],
                     'elapsed_time_delta': gp["elapsed_time_delta"][-1],
                     'buffer_gets_delta': gp["buffer_gets_delta"][-1],  # 逻辑读
