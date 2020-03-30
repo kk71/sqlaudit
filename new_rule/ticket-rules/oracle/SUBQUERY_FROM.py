@@ -4,7 +4,6 @@ from utils.parsed_sql import ParsedSQL
 
 
 def recursively_find_following_select(token: TokenList) -> bool:
-    print(token.normalized)
     if token.normalized == "SELECT":
         return True
     if isinstance(token, TokenList) and token.tokens:
