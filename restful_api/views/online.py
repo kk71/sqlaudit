@@ -336,12 +336,9 @@ class SQLRiskDetailHandler(AuthReq):
                     get("first_appearance", None)
                 last_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}). \
                     get("last_appearance", None)
-                plans.append({
-                    "plan_hash_value": plan_hash_value,
-                    "cost": sql_plan_object.cost,
-                    "first_appearance": dt_to_str(first_appearance),
-                    "last_appearance": dt_to_str(last_appearance),
-                })
+
+                # plans 挪到下面去了
+
                 # stats
                 sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id,
                                                    plan_hash_value=plan_hash_value)
@@ -401,6 +398,25 @@ class SQLRiskDetailHandler(AuthReq):
                             dict(self.list_of_dict_to_date_axis(j, "date", "value")))
                         j.clear()
                         j.extend(deduplicated_items)
+
+                plans.append({
+                    "plan_hash_value": plan_hash_value,
+                    "cost": sql_plan_object.cost,
+                    "first_appearance": dt_to_str(first_appearance),
+                    "last_appearance": dt_to_str(last_appearance),
+
+                    # 总数
+                    'cpu_time_delta': gp["cup_time_delta"][-1],
+                    'disk_reads_delta': gp["disk_reads_delta"][-1],
+                    'elapsed_time_delta': gp["elapsed_time_delta"][-1],
+                    'buffer_gets_delta': gp["buffer_gets_delta"][-1],  # 逻辑读
+
+                    # 平均数
+                    'cpu_time_average': gp["cpu_time_average"][-1],
+                    'disk_reads_average': gp["disk_reads_average"][-1],
+                    'elapsed_time_average': gp["elapsed_time_average"][-1],
+                    'buffer_gets_average': gp["buffer_gets_average"][-1],
+                })
 
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0
                          for k, v in sql_stats.items()}
