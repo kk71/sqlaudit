@@ -590,12 +590,12 @@
                 "name": "char_num",
                 "desc": "SQL字符数量",
                 "unit": "",
-                "value": 1000
+                "value": 5000
             }
         ],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "SQL文本过长",
         "solution": [
