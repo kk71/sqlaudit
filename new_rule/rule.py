@@ -23,11 +23,32 @@ from utils.schema_utils import scm_num
 
 class RuleInputOutputParams(EmbeddedDocument):
     """输入输出参数"""
-    name = StringField(required=True)
+    name = StringField(required=True)  # 唯一
     desc = StringField()
-    unit = StringField()
+    unit = StringField()  # 单位
+    data_type = StringField(choices=const.ALL_RULE_PARAM_TYPES)  # 数据类型
     # 此字段在ticket_rule的output_params里没有意义
     value = DynamicField(default=None, required=False, null=True)
+
+    def validate_data_type(self):
+        """验证数据类型是否正确"""
+        if self.data_type == const.RULE_PARAM_TYPE_STR:
+            if not isinstance(self.value, str):
+                raise exceptions.RuleCodeInvalidParamTypeException
+        elif self.data_type == const.RULE_PARAM_TYPE_INT:
+            if not isinstance(self.value, int):
+                raise exceptions.RuleCodeInvalidParamTypeException
+        elif self.data_type == const.RULE_PARAM_TYPE_FLOAT:
+            if not isinstance(self.value, float):
+                raise exceptions.RuleCodeInvalidParamTypeException
+        elif self.data_type == const.RULE_PARAM_TYPE_NUM:
+            if not isinstance(self.value, (float, int)):
+                raise exceptions.RuleCodeInvalidParamTypeException
+        elif self.data_type == const.RULE_PARAM_TYPE_LIST:
+            if not isinstance(self.value, list):
+                raise exceptions.RuleCodeInvalidParamTypeException
+        else:
+            assert 0
 
 
 class TicketRule(
@@ -44,12 +65,12 @@ class TicketRule(
     entries = ListField(null=lambda: [], choices=const.ALL_RULE_ENTRIES)
     input_params = EmbeddedDocumentListField(RuleInputOutputParams)
     output_params = EmbeddedDocumentListField(RuleInputOutputParams)
-    max_score = IntField()
     code = StringField(required=True)
     status = BooleanField(default=True)
     summary = StringField()  # 比desc更详细的一个规则解说
     solution = ListField(default=lambda: [])
     weight = FloatField(required=True)
+    max_score = IntField()
     level = IntField(choices=const.ALL_RULE_LEVELS)
 
     meta = {
@@ -127,11 +148,19 @@ code_hole.append(code)
         exec(code, {
             "code_hole": code_hole,
         })
-        if len(code_hole) != 1 or not callable(code_hole[0]):
-            raise exceptions.RuleCodeInvalidException("code not put in to the hole!")
+        if len(code_hole) != 1:
+            raise exceptions.RuleCodeInvalidException(
+                "code should be put into the hole")
+        if not callable(code_hole[0]):
+            raise exceptions.RuleCodeInvalidException(
+                "the object put into the hole is not callable")
         return code_hole.pop()
 
-    def run(self, entries: [str] = None, test_only=False, **kwargs) -> Optional[Union[list, tuple]]:
+    def run(
+            self,
+            entries: [str] = None,
+            test_only=False,
+            **kwargs) -> Optional[Union[list, tuple]]:
         """
         在给定的sql文本上执行当前规则
         :param entries: 入口，告诉规则函数，本次调用是从哪里调入的，不同调用入口，会带入不同的参数
@@ -172,7 +201,7 @@ code_hole.append(code)
                 Or([object], (object,))
             )).validate(ret)
             if ret[0] and len(ret[1]) != len(self.output_params):
-                raise exceptions.RuleCodeInvalidException(
+                raise exceptions.RuleCodeInvalidReturnException(
                     f"The length of the iterable ticket rule returned({len(ret[1])}) "
                     f"is not equal with defined in rule({len(self.output_params)})")
             ret = list(ret)
