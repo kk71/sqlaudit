@@ -35,7 +35,9 @@
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "DML",
+            "DDL"
         ],
         "input_params": [],
         "output_params": [],
@@ -46,7 +48,7 @@
         "solution": [
             "建议拆分DDL和DML语句"
         ],
-        "weight": 1.0,
+        "weight": 0.1,
         "level": 1
     },
     {
@@ -88,7 +90,7 @@
         "status": true,
         "summary": "",
         "solution": [
-            ""
+            "尽可能在添加字段的时候指定默认值"
         ],
         "weight": 1.0,
         "level": 3
@@ -116,7 +118,7 @@
     },
     {
         "name": "CHECK_COLUMN_NUMBER",
-        "desc": "列数",
+        "desc": "表字段数",
         "db_type": "oracle",
         "entries": [
             "TICKET",
