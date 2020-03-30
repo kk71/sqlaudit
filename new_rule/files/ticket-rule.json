@@ -47,7 +47,7 @@
             "建议拆分DDL和DML语句"
         ],
         "weight": 1.0,
-        "level": 3
+        "level": 1
     },
     {
         "name": "BAD_JOIN",
@@ -225,30 +225,30 @@
         "level": 3
     },
     {
-        "name": "CHECK_DELETE_SEQUENCE",
-        "desc": "删除序列",
+        "name": "CHECK_DELETE",
+        "desc": "存在delete语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "DDL",
+            "DML",
             "TICKET_STATIC_CMDB_INDEPENDENT"
         ],
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+sequence', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
-        "name": "CHECK_DROP_COLUMN",
-        "desc": "删除字段",
+        "name": "CHECK_DROP",
+        "desc": "存在drop语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -259,101 +259,13 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_INDEX",
-        "desc": "删除索引",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+index', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_PARTITION",
-        "desc": "删除分区",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+partition', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_PRIMARY_KEY",
-        "desc": "删除主键",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+drop\\s+constraint', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
-        "level": 1
-    },
-    {
-        "name": "CHECK_DROP_TABLE",
-        "desc": "删除表",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
-        ],
-        "input_params": [],
-        "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'drop\\s+table', sql_text, re.I):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
@@ -467,8 +379,8 @@
         "level": 3
     },
     {
-        "name": "CHECK_TRUNCATE_TABLE",
-        "desc": "清空表数据",
+        "name": "CHECK_TRUNCATE",
+        "desc": "存在truncate语句",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -479,13 +391,13 @@
         "input_params": [],
         "output_params": [],
         "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'truncate\\s+table\\s+', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
-        "weight": 0.0,
+        "weight": 0.1,
         "level": 1
     },
     {
