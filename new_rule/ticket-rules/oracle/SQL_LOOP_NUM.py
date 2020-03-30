@@ -1,6 +1,6 @@
 import re
 
-from models.mongo import OracleTicketSQLPlan
+from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan
 
 
 def code(rule, entries, **kwargs):
