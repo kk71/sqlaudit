@@ -406,16 +406,16 @@ class SQLRiskDetailHandler(AuthReq):
                     "last_appearance": dt_to_str(last_appearance),
 
                     # 总数
-                    'cpu_time_delta': gp["cpu_time_delta"][plan_hash_value][-1],
-                    'disk_reads_delta': gp["disk_reads_delta"][plan_hash_value][-1],
-                    'elapsed_time_delta': gp["elapsed_time_delta"][plan_hash_value][-1],
-                    'buffer_gets_delta': gp["buffer_gets_delta"][plan_hash_value][-1],  # 逻辑读
+                    'cpu_time_delta': gp["cpu_time_delta"][plan_hash_value][-1]["value"],
+                    'disk_reads_delta': gp["disk_reads_delta"][plan_hash_value][-1]["value"],
+                    'elapsed_time_delta': gp["elapsed_time_delta"][plan_hash_value][-1]["value"],
+                    'buffer_gets_delta': gp["buffer_gets_delta"][plan_hash_value][-1]["value"],  # 逻辑读
 
                     # 平均数
-                    'cpu_time_average': gp["cpu_time_average"][plan_hash_value][-1],
-                    'disk_reads_average': gp["disk_reads_average"][plan_hash_value][-1],
-                    'elapsed_time_average': gp["elapsed_time_average"][plan_hash_value][-1],
-                    'buffer_gets_average': gp["buffer_gets_average"][plan_hash_value][-1],
+                    'cpu_time_average': gp["cpu_time_average"][plan_hash_value][-1]["value"],
+                    'disk_reads_average': gp["disk_reads_average"][plan_hash_value][-1]["value"],
+                    'elapsed_time_average': gp["elapsed_time_average"][plan_hash_value][-1]["value"],
+                    'buffer_gets_average': gp["buffer_gets_average"][plan_hash_value][-1]["value"],
                 })
 
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0
