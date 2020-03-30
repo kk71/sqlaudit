@@ -336,12 +336,9 @@ class SQLRiskDetailHandler(AuthReq):
                     get("first_appearance", None)
                 last_appearance = sql_plan_stats.get((sql_id, plan_hash_value), {}). \
                     get("last_appearance", None)
-                plans.append({
-                    "plan_hash_value": plan_hash_value,
-                    "cost": sql_plan_object.cost,
-                    "first_appearance": dt_to_str(first_appearance),
-                    "last_appearance": dt_to_str(last_appearance),
-                })
+
+                # plans 挪到下面去了
+
                 # stats
                 sql_stat_objects = SQLStat.objects(cmdb_id=cmdb_id, sql_id=sql_id,
                                                    plan_hash_value=plan_hash_value)
@@ -401,6 +398,32 @@ class SQLRiskDetailHandler(AuthReq):
                             dict(self.list_of_dict_to_date_axis(j, "date", "value")))
                         j.clear()
                         j.extend(deduplicated_items)
+
+                empty_structure = {"key": None, "value": None}
+
+                def get_last(x):
+                    return x[-1] if len(x) else empty_structure
+
+                a_str_plan_hash_value = str(plan_hash_value)
+
+                plans.append({
+                    "plan_hash_value": plan_hash_value,
+                    "cost": sql_plan_object.cost,
+                    "first_appearance": dt_to_str(first_appearance),
+                    "last_appearance": dt_to_str(last_appearance),
+
+                    # 总数
+                    'cpu_time_delta': get_last(gp["cpu_time_delta"][a_str_plan_hash_value])["value"],
+                    'disk_reads_delta': get_last(gp["disk_reads_delta"][a_str_plan_hash_value])["value"],
+                    'elapsed_time_delta': get_last(gp["elapsed_time_delta"][a_str_plan_hash_value])["value"],
+                    'buffer_gets_delta': get_last(gp["buffer_gets_delta"][a_str_plan_hash_value])["value"],  # 逻辑读
+
+                    # 平均数
+                    'cpu_time_average': get_last(gp["cpu_time_average"][a_str_plan_hash_value])["value"],
+                    'disk_reads_average': get_last(gp["disk_reads_average"][a_str_plan_hash_value])["value"],
+                    'elapsed_time_average': get_last(gp["elapsed_time_average"][a_str_plan_hash_value])["value"],
+                    'buffer_gets_average': get_last(gp["buffer_gets_average"][a_str_plan_hash_value])["value"],
+                })
 
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0
                          for k, v in sql_stats.items()}
