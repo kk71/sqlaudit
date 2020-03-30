@@ -34,11 +34,24 @@ SELECT distinct owner  from (
 
 # 从awr中根据快照编号、schema名称以及按照top sql的类别（elapsed_time,cpu_time,disk_reads,executions,buffer_gets）取出所有的被审核的sql语句
 SQL_SET = """
-SELECT sql_id,
-       plan_hash_value,
-       parsing_schema_name
-FROM table(dbms_sqltune.select_workload_repository(&beg_snap, &end_snap, 'parsing_schema_name=''&username''', NULL, '&parameter', NULL, NULL, NULL, NULL))
+SELECT sql_id, plan_hash_value, parsing_schema_name
+  FROM table(dbms_sqltune.select_workload_repository(&beg_snap,
+                                                     &end_snap,
+                                                     'parsing_schema_name=''&username''',
+                                                     NULL,
+                                                     '&parameter',
+                                                     'module != ''DBMS_SCHEDULER''',
+                                                     NULL,
+                                                     NULL,
+                                                     NULL,
+                                                     NULL))
 """
+# """
+# SELECT sql_id,
+#        plan_hash_value,
+#        parsing_schema_name
+# FROM table(dbms_sqltune.select_workload_repository(&beg_snap, &end_snap, 'parsing_schema_name=''&username''', NULL, '&parameter', NULL, NULL, NULL, NULL))
+# """
 
 # 从dba_hist_sqlstat中，按照sql_id，plan_hash_value，快照点以及schema 名，取出某一条sql在执行时，使用cpu，buffer_gets等方面的情况。
 SQL_STAT_SET = """
