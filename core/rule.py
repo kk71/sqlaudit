@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import abc
+from typing import Union
 
 
 class BaseRuleItem(metaclass=abc.ABCMeta):
@@ -29,7 +30,7 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
         self._code = None
 
     @abc.abstractmethod
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> [(Union[int, float], dict)]:
         """执行规则"""
         pass
 

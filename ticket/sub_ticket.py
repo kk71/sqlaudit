@@ -1,59 +1,52 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
-    BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, ListField, \
-    EmbeddedDocument
+    BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, \
+    EmbeddedDocument, DictField
 
-import utils.const
 from . import const
 from core.ticket import *
+from core.issue import *
 from new_models.mongoengine import *
 from .ticket import TicketScript
+from new_rule.rule import TicketRule
 
 
-class SubTicketIssue(EmbeddedDocument):
+class SubTicketIssue(
+        EmbeddedDocument,
+        BaseIssue,
+        metaclass=ABCDocumentMetaclass):
     """子工单的一个规则结果"""
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
     max_score = FloatField(required=True)  # 最大扣分快照
     level = IntField()  # 规则优先级
-    input_params = ListField(default=lambda: [])  # 输入参数快照
-    output_params = ListField(default=lambda: [])  # 运行输出
+    input_params = DictField(default=lambda: {})  # 输入参数快照
+    output_params = DictField(default=lambda: {})  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def as_sub_result_of(self, rule_object):
+    def as_issue_of(self, rule: TicketRule):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
-        :param rule_object:
+        :param rule:
         :return:
         """
-        self.db_type = rule_object.db_type
-        self.rule_name = rule_object.name
-        self.rule_desc = rule_object.desc
-        self.level = rule_object.level
-        self.max_score = rule_object.max_score
-        self.input_params = [i for i in rule_object.to_dict()["input_params"]]
-
-    def add_output(self, output_structure, value):
-        """
-        :param output_structure: new_rule.rule.RuleInputOutputParams
-        :param value:
-        :return:
-        """
-        to_add = dict(
-            name=output_structure.name,
-            desc=output_structure.desc,
-            unit=output_structure.unit,
-            value=value
-        )
-        self.output_params.append(to_add)
+        self.db_type = rule.db_type
+        self.rule_name = rule.name
+        self.rule_desc = rule.desc
+        self.level = rule.level
+        self.max_score = rule.max_score
+        self.input_params = [i for i in rule.to_dict()["input_params"]]
 
 
-class SubTicket(BaseDoc, BaseSubTicket, metaclass=ABCTopLevelDocumentMetaclass):
+class SubTicket(
+        BaseDoc,
+        BaseSubTicket,
+        metaclass=ABCTopLevelDocumentMetaclass):
     """
     子工单
     请注意：这个子工单类是需要被不同的子类继承的，以兼顾oracle和mysql，

@@ -96,16 +96,16 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 sub_result_issue = SubTicketIssue()
-                sub_result_issue.as_sub_result_of(sr)
+                sub_result_issue.as_issue_of(sr)
 
                 # ===指明静态审核的输入参数(kwargs)===
-                score_to_minus, output_params = sr.run(
+                ret = sr.run(
                     entries=self.static_rules.entries,
 
                     single_sql=single_sql,
                     sqls=sqls
                 )
-                for output, current_ret in zip(sr.output_params, output_params):
+                for output, current_ret in ret:
                     sub_result_issue.add_output(output, current_ret)
                 sub_result_issue.minus_score = score_to_minus
                 if sub_result_issue.minus_score != 0:
@@ -157,7 +157,7 @@ class SubTicketAnalyse(
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 sub_result_issue = SubTicketIssue()
-                sub_result_issue.as_sub_result_of(sr)
+                sub_result_issue.as_issue_of(sr)
 
                 # ===指明静态审核的输入参数(kwargs)===
                 score_to_minus, output_params = sr.run(

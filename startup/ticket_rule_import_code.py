@@ -40,7 +40,7 @@ def main(compare: bool):
                     different_codes.append(tr.unique_key())
                     if not compare:
                         tr.code = new_code
-                        tr.run(test_only=True)
+                        tr.test()
                         tr.save()
         except Exception as e:
             print(e)

@@ -78,7 +78,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 sub_result_item = ticket.sub_ticket.SubTicketIssue()
-                sub_result_item.as_sub_result_of(dr)
+                sub_result_item.as_issue_of(dr)
 
                 # ===指明oracle动态审核的输入参数(kwargs)===
                 score_to_minus, output_params = dr.run(
