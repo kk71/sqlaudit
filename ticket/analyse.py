@@ -95,8 +95,6 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
                     # 这里默认sql type和规则entries的类型在文本层面是相等的
                     # 实际都是文本，注意发生更改需要修改
                     continue
-                sub_result_issue = SubTicketIssue()
-                sub_result_issue.as_issue_of(sr)
 
                 # ===指明静态审核的输入参数(kwargs)===
                 ret = sr.run(
@@ -105,10 +103,9 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
                     single_sql=single_sql,
                     sqls=sqls
                 )
-                for output, current_ret in ret:
-                    sub_result_issue.add_output(output, current_ret)
-                sub_result_issue.minus_score = score_to_minus
-                if sub_result_issue.minus_score != 0:
+                for minus_score, output_param in ret:
+                    sub_result_issue = SubTicketIssue(minus_score=minus_score)
+                    sub_result_issue.as_issue_of(sr, output_data=output_param)
                     sub_result.static.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)

@@ -22,6 +22,6 @@ class BaseIssue(abc.ABC):
     max_score = None  # 当前规则的最大扣分
 
     @abc.abstractmethod
-    def as_issue_of(self, rule: BaseRuleItem):
+    def as_issue_of(self, rule: BaseRuleItem, output_data: dict):
         """设置当前问题为某个规则的问题"""
         pass

@@ -21,5 +21,5 @@ class RuleCodeInvalidParamTypeException(RuleCodeException):
 
 
 class RuleCodeInvalidReturnException(RuleCodeException):
-    """规则代码返回不正确"""
+    """规则代码返回不正确(不包括输出的参数验证失败的问题)"""
     pass

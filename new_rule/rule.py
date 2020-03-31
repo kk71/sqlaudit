@@ -30,47 +30,43 @@ class RuleParams(EmbeddedDocument):
     unit = StringField()  # 单位
     data_type = StringField(choices=const.ALL_RULE_PARAM_TYPES)  # 数据类型
 
-
-class RuleInputParams(EmbeddedDocument):
-    """输入参数"""
-
-    # 此字段在ticket_rule的output_params里没有意义
-    value = DynamicField(default=None, required=False, null=True)
-
-    def validate_input_data(self):
-        """验证数据类型是否正确"""
+    def validate_data_type(self, the_value):
         if self.data_type == const.RULE_PARAM_TYPE_STR:
-            if not isinstance(self.value, str):
+            if not isinstance(the_value, str):
                 raise exceptions.RuleCodeInvalidParamTypeException
         elif self.data_type == const.RULE_PARAM_TYPE_INT:
-            if not isinstance(self.value, int):
+            if not isinstance(the_value, int):
                 raise exceptions.RuleCodeInvalidParamTypeException
         elif self.data_type == const.RULE_PARAM_TYPE_FLOAT:
-            if not isinstance(self.value, float):
+            if not isinstance(the_value, float):
                 raise exceptions.RuleCodeInvalidParamTypeException
         elif self.data_type == const.RULE_PARAM_TYPE_NUM:
-            if not isinstance(self.value, (float, int)):
+            if not isinstance(the_value, (float, int)):
                 raise exceptions.RuleCodeInvalidParamTypeException
         elif self.data_type == const.RULE_PARAM_TYPE_LIST:
-            if not isinstance(self.value, list):
+            if not isinstance(the_value, list):
                 raise exceptions.RuleCodeInvalidParamTypeException
         else:
             assert 0
 
 
-class RuleOutputParams(RuleInputParams):
+class RuleInputParams(RuleParams):
+    """输入参数"""
+
+    value = DynamicField(default=None, required=False, null=True)
+
+    def validate_input_data(self):
+        """验证数据类型是否正确"""
+        self.validate_data_type(self.value)
+
+
+class RuleOutputParams(RuleParams):
     """输出参数"""
 
-    # 此参数是否可以不返回,
+    # 标志此参数是否可以不返回
     # True则返回的时候会强制该字段必须出现且符合校验，
     # False则表示该字段可以不返回，或者返回None
     optional = BooleanField()
-
-    def validate_output_data(self, data: dict):
-        """验证数据类型是否正确"""
-        if self.optional and self.value is None:
-            return
-        super(RuleOutputParams, self).validate_data_type()
 
 
 class TicketRule(

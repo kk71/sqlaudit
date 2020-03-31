@@ -4,6 +4,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, \
     EmbeddedDocument, DictField
 
+import new_rule.exceptions
 from . import const
 from core.ticket import *
 from core.issue import *
@@ -29,10 +30,11 @@ class SubTicketIssue(
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def as_issue_of(self, rule: TicketRule):
+    def as_issue_of(self, rule: TicketRule, output_data: dict):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
         :param rule:
+        :param output_data:
         :return:
         """
         self.db_type = rule.db_type
@@ -41,6 +43,11 @@ class SubTicketIssue(
         self.level = rule.level
         self.max_score = rule.max_score
         self.input_params = [i for i in rule.to_dict()["input_params"]]
+        for output_param in rule.output_params:
+            the_output_data_to_this_param = output_data.get(output_param.name, None)
+            if not output_param.validate_data_type(the_output_data_to_this_param):
+                raise new_rule.exceptions.RuleCodeInvalidParamTypeException
+            self.output_params[output_param.name] = the_output_data_to_this_param
 
 
 class SubTicket(
