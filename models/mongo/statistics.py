@@ -761,13 +761,14 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
         import arrow
         from utils.sql_utils import get_risk_sql_list
         from utils.cmdb_utils import get_cmdb_bound_schema
-        from models.oracle import make_session
+        from models.oracle import make_session, CMDB
         from models.mongo import Rule
 
         with make_session() as session:
             all_bound_schemas = get_cmdb_bound_schema(session, cmdb_id)
+            cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
             all_rules = Rule.filter_enabled(
-                rule_type__in=ALL_RULE_TYPES_FOR_SQL_RULE)
+                rule_type__in=ALL_RULE_TYPES_FOR_SQL_RULE, db_model=cmdb.db_model)
             for schema in all_bound_schemas:
                 for rule in all_rules:
                     rsts = get_risk_sql_list(
