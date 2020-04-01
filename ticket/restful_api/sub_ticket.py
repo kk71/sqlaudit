@@ -25,6 +25,7 @@ class SubTicketHandler(TicketReq):
             scm_optional("error_type", default=None): scm_one_of_choices(
                 const.ALL_SUB_TICKET_FILTERS),
             scm_optional("keyword", default=None): scm_str,
+            scm_optional("order_by", default="position"): scm_unempty_str,
             **self.gen_date(),
         }, ignore_extra_keys=True))
         error_type = params.pop("error_type")
@@ -32,6 +33,7 @@ class SubTicketHandler(TicketReq):
         start_time, end_time = self.pop_date(params)
         schema_name = params.pop("schema_name")
         script_id = params.pop("script_id")
+        order_by = params.pop("order_by")
 
         to_filter = {k: v for k, v in params.items() if k in
                      ("ticket_id", "cmdb_id")}
@@ -72,8 +74,7 @@ class SubTicketHandler(TicketReq):
             pass  # reserved but should be useless
         else:
             assert 0
-        q = self.privilege_filter_sub_ticket(q)
-        q = q.order_by("position")
+        q = self.privilege_filter_sub_ticket(q).order_by(order_by)
         return q
 
     def get(self):
