@@ -6,14 +6,13 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if not re.search(r"create\s+table", sql_text, re.I):
-        return None, []
+        return
 
     if 'parallel' not in sql_text:
-        return None, []
+        return
     parallel = re.search(r"parallel\s+(\d)", sql_text, re.I)
     if parallel and int(parallel.group(1)) > 1:
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

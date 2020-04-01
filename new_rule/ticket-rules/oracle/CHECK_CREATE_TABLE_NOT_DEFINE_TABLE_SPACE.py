@@ -7,8 +7,7 @@ def code(rule, entries, **kwargs):
 
     if re.search(r'create\s+table', sql_text, re.I) and\
             'tablespace' not in sql_text:
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

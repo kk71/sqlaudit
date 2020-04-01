@@ -8,8 +8,7 @@ def code(rule, entries, **kwargs):
     like_unindex = re.compile("like .\\%")
 
     if like_unindex.search(sql_text):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

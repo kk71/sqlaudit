@@ -3,8 +3,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text"]
 
     if len(sql_text) > rule.gip("char_num"):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

@@ -7,7 +7,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if not re.search(r"create\s+table", sql_text, re.I):
-        return None, []
+        return
 
     left_brackets = 0
     left_flag = 0
@@ -26,9 +26,7 @@ def code(rule, entries, **kwargs):
     sql = sql_text[left_flag + 1: right_flag]
 
     if len(sql.split(',')) > 255:  # TODO,这不应写死
-        # if len(sql.split(',')) > rule.gip(""):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

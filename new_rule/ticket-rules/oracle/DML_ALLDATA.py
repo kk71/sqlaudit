@@ -9,8 +9,7 @@ def code(rule, entries, **kwargs):
     pat1 = re.compile(' where ')
 
     if pat.search(sql_text) and not pat1.search(sql_text):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

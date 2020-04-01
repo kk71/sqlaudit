@@ -5,8 +5,7 @@ def code(rule, entries, **kwargs):
 
     sql_types: set = {i["sql_type"] for i in sqls}
     if len(sql_types) > 1:
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

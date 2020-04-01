@@ -75,7 +75,7 @@ def code(rule, entries, **kwargs):
         if to_insert:
             tmp.insert_many(to_insert)
         else:
-            return None, []
+            return
         aggregate_result = tmp.aggregate([
             {
                 "$group": {
@@ -106,15 +106,7 @@ def code(rule, entries, **kwargs):
                     table_name=paa.object_name,
                 ).first()
                 if a_tab:
-                    return -rule.weight, [
-                        paa.statement_id,
-                        paa.plan_id,
-                        paa.object_name,
-                        paa.the_id,
-                        paa.cost
-                    ]
-
-    return None, []
+                    yield {}
 
 
 code_hole.append(code)

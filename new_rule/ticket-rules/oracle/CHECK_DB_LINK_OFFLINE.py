@@ -6,8 +6,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if re.search('@', sql_text):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

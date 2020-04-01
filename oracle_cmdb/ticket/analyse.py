@@ -11,7 +11,6 @@ import traceback
 from mongoengine import QuerySet as mongoengine_qs
 from cx_Oracle import DatabaseError
 
-import new_rule.const
 import ticket.const
 import ticket.exceptions
 import utils.const
@@ -77,12 +76,9 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                     # 这里默认sql type和规则entries的类型在文本层面是相等的
                     # 实际都是文本，注意发生更改需要修改
                     continue
-                sub_result_item = ticket.sub_ticket.SubTicketIssue()
-                sub_result_item.as_issue_of(dr)
-
                 # ===指明oracle动态审核的输入参数(kwargs)===
-                score_to_minus, output_params = dr.run(
-                    entries=[new_rule.const.RULE_ENTRY_TICKET_DYNAMIC],
+                ret = dr.run(
+                    entries=self.dynamic_rules.entries,
 
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,
@@ -91,11 +87,11 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                     schema_name=sub_result.schema_name,
                     statement_id=self.statement_id
                 )
-                for output, current_ret in zip(dr.output_params, output_params):
-                    sub_result_item.add_output(output, current_ret)
-                sub_result_item.minus_score = score_to_minus
-                if sub_result_item.minus_score != 0:
-                    sub_result.dynamic.append(sub_result_item)
+                for minus_score, output_param in ret:
+                    sub_result_issue = ticket.sub_ticket.SubTicketIssue(
+                        minus_score=minus_score)
+                    sub_result_issue.as_issue_of(dr, output_data=output_param)
+                    sub_result.dynamic.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)
             if isinstance(e, DatabaseError):

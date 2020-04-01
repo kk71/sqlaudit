@@ -7,8 +7,7 @@ def code(rule, entries, **kwargs):
 
     if re.search(r'create\s+index\s+', sql_text, re.I):
         if not re.search(r"\s+online", sql_text, re.I):
-            return -rule.weight, []
-    return None, []
+            yield {}
 
 
 code_hole.append(code)

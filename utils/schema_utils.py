@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import arrow
-from schema import And, Use, Optional as scm_optional, Schema
+from schema import And, Use, Optional as scm_optional, Schema, SchemaError
 
 from utils import const
 
@@ -24,7 +24,8 @@ __all__ = [
     "scm_date_end",
     "scm_datetime",
     "scm_bool",
-    "scm_optional"
+    "scm_optional",
+    "scm_raise_error"
 ]
 
 
@@ -38,6 +39,11 @@ def auto_num(x):
             return int(x)
     else:
         raise Exception("not a number.")
+
+
+def scm_raise_error(*args, **kwargs):
+    """便于在lambda里唤起SchemaError"""
+    raise SchemaError(*args, **kwargs)
 
 
 # for string

@@ -30,6 +30,10 @@ class RuleParams(EmbeddedDocument):
     unit = StringField()  # 单位
     data_type = StringField(choices=const.ALL_RULE_PARAM_TYPES)  # 数据类型
 
+    meta = {
+        "allow_inheritance": True
+    }
+
     def validate_data_type(self, the_value):
         if self.data_type == const.RULE_PARAM_TYPE_STR:
             if not isinstance(the_value, str):
@@ -147,6 +151,8 @@ def code(rule, entries: [str], **kwargs):
     
     yield minus_score, output_params_dict
     
+    # 省略minus_score的形式也是可以的,默认使用-rule.weight
+    yield output_params_dict
 
 
 code_hole.append(code)  # 务必加上这一句
@@ -187,11 +193,6 @@ code_hole.append(code)  # 务必加上这一句
         print(f"* generating code for {str(self)} (test only)...")
         self.construct_code(self.code)
 
-    def validate_output_data(self, data: dict):
-        """验证规则一个issue的输出参数是否符合"""
-        for output_param in self.output_params:
-            output_param.validate_data_type()
-
     def run(
             self,
             entries: [str] = None,
@@ -219,18 +220,23 @@ code_hole.append(code)  # 务必加上这一句
             raise exceptions.RuleCodeInvalidException(trace)
         try:
             # 校验函数返回的结构是否合乎预期
-            Schema(
+            ret = Schema(
                 Or(
-                    Use(lambda x: [] if x is None else x),
                     [
-                        (
-                            Or(
-                                Use(lambda x: -self.weight if x is None else x),
-                                And(scm_num, lambda x: x <= 0)
+                        Or(
+                            (
+                                Or(
+                                    And(scm_num, lambda x: x <= 0),
+                                    Use(lambda x:
+                                        -self.weight if x is None else scm_raise_error())
+                                ),
+                                dict
                             ),
-                            dict
+                            Use(lambda x:
+                                (None, x) if isinstance(x, dict) else scm_raise_error())
                         )
-                    ]
+                    ],
+                    Use(lambda x: [] if x is None else x)
                 )
             ).validate(ret)
         except SchemaError:

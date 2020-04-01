@@ -9,8 +9,8 @@ def code(rule, entries, **kwargs):
     this_one_sql = ps[0]
     for token in this_one_sql.tokens:
         if token.normalized == "DROP":
-            return -rule.weight, []
-    return None, []
+            yield {}
+            return
 
 
 code_hole.append(code)
