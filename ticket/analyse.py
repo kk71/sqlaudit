@@ -9,12 +9,9 @@ import abc
 import traceback
 
 from prettytable import PrettyTable
-from redis import StrictRedis
 from mongoengine import QuerySet as mongoengine_qs
 
-import settings
 from models.oracle import CMDB
-from utils.datetime_utils import *
 from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
 from .sub_ticket import SubTicketIssue

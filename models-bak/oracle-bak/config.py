@@ -42,27 +42,6 @@ class CMDB(BaseModel):
     allow_online = Column("ALLOW_ONLINE", Boolean, default=False)
 
 
-class RoleDataPrivilege(BaseModel):
-    """角色数据库权限"""
-    __tablename__ = "T_ROLE_DATA_PRIVILEGE"
-
-    id = Column("ID", Integer, Sequence("SEQ_ROLE_DATA_PRIVILEGE_ID"), primary_key=True)
-    role_id = Column("ROLE_ID", Integer)
-    cmdb_id = Column("CMDB_ID", Integer)
-    schema_name = Column("SCHEMA_NAME", String)
-    comments = Column("COMMENTS", String)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
-
-
-class OverviewRate(BaseModel):
-    """概览页的默认设置"""
-    __tablename__ = "T_OVERVIEW_RATE"
-
-    id = Column("ID", Integer, Sequence("SEQ_OVERVIEW_RATE"), primary_key=True)
-    login_user = Column("LOGIN_USER", String)
-    cmdb_id = Column("CMDB_ID", Integer)
-    item = Column("ITEM", String)
-    type = Column("TYPE", Integer)
 
 
 class DataHealthUserConfig(BaseModel):
@@ -77,11 +56,3 @@ class DataHealthUserConfig(BaseModel):
     weight = Column("WEIGHT", Float, default=1)
 
 
-class Notice(BaseModel):
-    """公告栏"""
-    __tablename__ = "T_NOTICE"
-
-    notice_id = Column("NOTICE_ID", Integer, default=1, primary_key=True)
-    contents = Column("CONTENTS", String)
-    update_date = Column("UPDATE_DATE", DATE, default=datetime.now, onupdate=datetime.now)
-    update_user = Column("UPDATE_USER", String)

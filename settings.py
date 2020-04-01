@@ -91,12 +91,11 @@ LOG_DEFAULT_PATH = "/tmp/"
 # oracle connection settings
 
 ORM_ECHO = env_get("ORM_ECHO", False, int)
-ORACLE_IP = env_get("ORACLE_IP", WEB_IP)
-ORACLE_USERNAME = env_get("ORACLE_USERNAME", "isqlaudit")
-ORACLE_PASSWORD = env_get("ORACLE_PASSWORD", "v1g2m60id2499yz")
-ORACLE_PORT = env_get("ORACLE_PORT", "1521")
-ORACLE_SID = env_get("ORACLE_SID", "sqlaudit")
-ORACLE_SERVICE_NAME = env_get("ORACLE_SERVICE_NAME", "sqlaudit")
+MYSQL_IP = env_get("MYSQL_IP", "192.0.0.11")
+MYSQL_PORT = env_get("MYSQL_PORT", 3304, int)
+MYSQL_USERNAME = env_get("ORACLE_USERNAME", "isqlaudit")
+MYSQL_PASSWORD = env_get("ORACLE_PASSWORD", "v1g2m60id2499yz")
+MYSQL_DATABASE = env_get("ORACLE_DATABASE", "isqlaudit")
 
 
 # the following is for plain sql connector for oracle
