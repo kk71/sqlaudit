@@ -4,7 +4,7 @@ from typing import Union
 from plain_db.oracleob import OracleOB
 
 
-def check_cmdb_privilege(cmdb: Union[int]) -> tuple:
+def check_cmdb_privilege(cmdb: Union[int]) -> bool:
     """
     检查纳管库的访问权限
     :param cmdb: cmdb_id或者cmdb对象

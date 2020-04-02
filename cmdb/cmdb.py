@@ -33,9 +33,3 @@ class CMDB(BaseModel):
     allow_online = Column("allow_online", Boolean, default=False)
     create_time = Column("create_time", DateTime, default=lambda: datetime.now().date())
 
-    # for oracle only
-    is_rac = Column("is_rac", Boolean)
-    is_pdb = Column("is_pdb", Boolean)
-    service_name = Column("service_name", String)
-    sid = Column("sid", String)
-
