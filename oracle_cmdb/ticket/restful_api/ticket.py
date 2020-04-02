@@ -2,13 +2,15 @@
 
 import utils.const
 import ticket.restful_api.ticket
-from models.oracle import make_session, CMDB
+from restful_api.modules import *
+from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from ..ticket import OracleTicket
 from .. import ticket_utils, task
 from ticket.task_name_utils import *
 
 
+@as_view()
 class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
 
     def post(self):

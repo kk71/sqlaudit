@@ -5,7 +5,6 @@ from os import path
 from collections import defaultdict
 
 import utils.const
-import past.utils.utils
 from ticket import const
 from .base import *
 from utils.schema_utils import *
@@ -13,9 +12,11 @@ from utils.datetime_utils import *
 from utils.conc_utils import AsyncTimeout
 from ..sub_ticket import SubTicket
 from ..ticket import Ticket
-from models.oracle import make_session, CMDB
+from models.sqlalchemy import make_session
+from restful_api.modules import *
 
 
+@as_view("archive")
 class ArchiveHandler(TicketReq):
 
     def get(self):
@@ -179,6 +180,7 @@ class TicketHandler(TicketReq):
         self.resp(msg="已删除")
 
 
+@as_view("export")
 class TicketExportHandler(TicketReq):
 
     async def get(self):

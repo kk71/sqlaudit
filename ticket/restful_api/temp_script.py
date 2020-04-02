@@ -5,11 +5,13 @@ import abc
 import chardet
 
 from utils.schema_utils import *
+from restful_api.modules import *
 from .. import const
 from .base import *
 from ..ticket import *
 
 
+@as_view()
 class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     def get(self):

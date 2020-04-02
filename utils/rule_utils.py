@@ -6,8 +6,7 @@ import json
 import chardet
 from mongoengine import Q
 
-from models.oracle import RiskSQLRule, WhiteListRules, CMDB
-from models.mongo import *
+from models.mongoengine import *
 from utils.perf_utils import *
 from utils.const import *
 

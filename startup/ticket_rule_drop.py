@@ -6,7 +6,7 @@ from models import init_models
 
 init_models()
 
-from new_rule.export_utils import rule_drop
+from rule.export_utils import rule_drop
 
 
 def main():

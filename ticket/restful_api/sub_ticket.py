@@ -6,6 +6,7 @@ import xlsxwriter
 from mongoengine import Q
 
 import settings
+from restful_api.modules import *
 from utils.datetime_utils import *
 from utils.schema_utils import *
 from .base import *
@@ -14,6 +15,7 @@ from ..sub_ticket import SubTicket
 from ..ticket import Ticket
 
 
+@as_view()
 class SubTicketHandler(TicketReq):
 
     def filter_sub_ticket(self):
@@ -131,6 +133,7 @@ class SubTicketHandler(TicketReq):
         self.resp_created(msg="删除成功。")
 
 
+@as_view("export")
 class SubTicketExportHandler(SubTicketHandler):
 
     def get(self):

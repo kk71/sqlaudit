@@ -2,7 +2,7 @@
 
 import json
 
-from new_rule.rule import TicketRule
+from rule.rule import TicketRule
 
 
 def rule_import(filename) -> tuple:

@@ -4,7 +4,7 @@ import abc
 
 from mongoengine import StringField, IntField
 
-from new_models.mongoengine import *
+from models.mongoengine import *
 
 
 class TicketSQLPlan(BaseDoc, abc.ABC, metaclass=ABCTopLevelDocumentMetaclass):

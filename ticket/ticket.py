@@ -19,7 +19,7 @@ from bson.objectid import ObjectId
 import utils.const
 from .parsed_sql import ParsedSQL
 from core.ticket import *
-from new_models.mongoengine import *
+from models.mongoengine import *
 from utils import datetime_utils
 from . import const
 

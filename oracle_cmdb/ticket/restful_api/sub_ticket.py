@@ -3,6 +3,7 @@
 from prettytable import PrettyTable
 
 import ticket.const
+from restful_api.modules import *
 from utils.schema_utils import *
 from ticket.restful_api.base import *
 from ..sql_plan import OracleTicketSQLPlan
@@ -10,6 +11,7 @@ from ..sub_ticket import OracleSubTicket
 from ..ticket import OracleTicket
 
 
+@as_view("sql_plan")
 class SQLPlanHandler(TicketReq):
 
     def get(self):
@@ -60,6 +62,7 @@ class SQLPlanHandler(TicketReq):
         })
 
 
+@as_view("issue")
 class SubTicketIssueHandler(TicketReq):
 
     def patch(self):

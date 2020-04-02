@@ -2,14 +2,13 @@
 
 import time
 import traceback
-from collections import defaultdict
 
 from cx_Oracle import DatabaseError
 
 import utils.const
 import ticket.const
 import ticket.restful_api.online
-from models.oracle import make_session, CMDB
+from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils import cmdb_utils

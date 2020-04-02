@@ -1,11 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from typing import Union
-from models.oracle import CMDB
 from plain_db.oracleob import OracleOB
 
 
-def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
+def check_cmdb_privilege(cmdb: Union[int]) -> tuple:
     """
     检查纳管库的访问权限
     :param cmdb: cmdb_id或者cmdb对象

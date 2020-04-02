@@ -15,6 +15,7 @@ def init_models():
         username=settings.MONGO_USER,
         password=settings.MONGO_PASSWORD
     )
+    return
 
     # connect to oracle
 

@@ -10,8 +10,6 @@ from models import init_models
 
 init_models()
 
-import past.mkdata
-
 
 @click.argument("task_id", type=click.INT, required=True)
 @click.option("--schema", help="schema(s) to collect", default=None, type=click.STRING)

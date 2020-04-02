@@ -9,16 +9,16 @@ init_models()
 
 import ticket.const
 import ticket.exceptions
-import new_rule.const
+import rule.const
 import utils.const
-from task.base import *
-from models.oracle import make_session, CMDB
+from task.celery import *
+from models.sqlalchemy import make_session
 from .analyse import OracleSubTicketAnalyse
 from .ticket import OracleTicket
 from .sub_ticket import OracleSubTicket
 from ticket.ticket import TempScriptStatement, TicketScript
 from .single_sql import SingleSQL
-from new_rule.rule_jar import RuleJar
+from rule.rule_jar import RuleJar
 
 
 @celery.task
@@ -37,9 +37,9 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
     sub_tickets = []
     scripts: {str: TicketScript} = dict()
     static_rules = RuleJar.gen_jar_with_entries(
-        new_rule.const.RULE_ENTRY_TICKET_STATIC, db_type=utils.const.DB_ORACLE)
+        rule.const.RULE_ENTRY_TICKET_STATIC, db_type=utils.const.DB_ORACLE)
     dynamic_rules = RuleJar.gen_jar_with_entries(
-        new_rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=utils.const.DB_ORACLE)
+        rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=utils.const.DB_ORACLE)
     with make_session() as session:
         cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
         for the_script_id in script_ids:

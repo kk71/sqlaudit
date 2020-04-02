@@ -19,7 +19,7 @@ import utils.const
 from utils.schema_utils import *
 from . import exceptions
 from . import const
-from new_models.mongoengine import *
+from models.mongoengine import *
 
 
 class RuleParams(EmbeddedDocument):

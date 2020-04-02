@@ -15,8 +15,6 @@ import cx_Oracle
 import settings
 os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
 
-from models.oracle import CMDB
-
 
 class DBError(Exception):
     pass
@@ -229,7 +227,7 @@ class OracleCMDBConnector(OracleOB):
     """
     用于快速连接oracle纳管库
     """
-    def __init__(self, cmdb: CMDB, **kwargs):
+    def __init__(self, cmdb, **kwargs):
         """
         根据纳管库sqlalchemy对象，建立一个纳管库连接
         :param cmdb:

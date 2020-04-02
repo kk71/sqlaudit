@@ -3,7 +3,7 @@
 import abc
 
 from .base import *
-from restful_api.views.base import *
+from auth.restful_api.base import *
 
 
 class OnlineOverviewHandler(PrivilegeReq, abc.ABC):

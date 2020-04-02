@@ -11,7 +11,7 @@ from models import init_models
 
 init_models()
 
-from new_rule.rule import TicketRule
+from rule.rule import TicketRule
 
 
 @click.option(

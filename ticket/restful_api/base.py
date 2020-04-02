@@ -9,7 +9,7 @@ from mongoengine import Q, QuerySet as mongoengine_qs
 import utils.const
 from utils.schema_utils import *
 from ..ticket import Ticket, const
-from restful_api.views.base import PrivilegeReq
+from auth.restful_api.base import *
 
 
 class TicketReq(PrivilegeReq):

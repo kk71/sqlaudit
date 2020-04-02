@@ -11,14 +11,18 @@ from models import init_models
 
 init_models()
 
-from restful_api.urls import urls
+import restful_api.modules
+import restful_api.urls
 
 
 def main():
     """start a web server for sqlaudit restful_api"""
+    restful_api.modules.collect_dynamic_modules(restful_api.urls.dynamic_url_modules)
+    for i in restful_api.urls.urls:
+        print(i)
     print("Starting http server for restful api...")
     app = Application(
-        urls,
+        restful_api.urls.urls,
         debug=settings.DEBUG,
         autoreload=True,
     )

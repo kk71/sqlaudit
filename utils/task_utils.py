@@ -11,8 +11,7 @@ from redis import StrictRedis
 
 import settings
 import celery_conf
-from models.oracle import *
-from utils import const, cmdb_utils, score_utils
+from utils import const, score_utils
 from utils.conc_utils import *
 
 

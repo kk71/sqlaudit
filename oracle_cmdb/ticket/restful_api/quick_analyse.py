@@ -1,17 +1,19 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import utils.const
-import new_rule.const
+import rule.const
+from restful_api.modules import *
 from utils.schema_utils import *
-from restful_api.views.base import BaseReq
+from auth.restful_api.base import AuthReq
 from ..sub_ticket import OracleSubTicket
 from ticket.analyse import SubTicketAnalyseStaticCMDBIndependent
 from ..single_sql import SingleSQL
 from ticket.parsed_sql import ParsedSQL
-from new_rule.rule_jar import *
+from rule.rule_jar import *
 
 
-class QuickSQLAnalyse(BaseReq):
+@as_view()
+class QuickSQLAnalyse(AuthReq):
 
     def post(self):
         """快速单条sql分析（仅静态）"""
@@ -21,7 +23,7 @@ class QuickSQLAnalyse(BaseReq):
         sql_text = params.pop("sql_text")
 
         rule_jar = RuleJar.gen_jar_with_entries(
-            new_rule.const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT,
+            rule.const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT,
             db_type=utils.const.DB_ORACLE
         )
         stasci = SubTicketAnalyseStaticCMDBIndependent(rule_jar)

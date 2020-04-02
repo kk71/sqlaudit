@@ -11,11 +11,10 @@ import traceback
 from prettytable import PrettyTable
 from mongoengine import QuerySet as mongoengine_qs
 
-from models.oracle import CMDB
 from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
 from .sub_ticket import SubTicketIssue
-from new_rule.rule_jar import RuleJar
+from rule.rule_jar import RuleJar
 
 
 class BaseSubTicketAnalyse(abc.ABC):
@@ -121,7 +120,7 @@ class SubTicketAnalyse(
     def __init__(self,
                  static_rules: RuleJar,
                  dynamic_rules: RuleJar,
-                 cmdb: CMDB,
+                 cmdb,
                  ticket: Ticket):
         # 缓存存放每日工单的子增流水号
         BaseSubTicketAnalyseStatic.__init__(self, static_rules)

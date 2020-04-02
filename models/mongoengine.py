@@ -3,7 +3,9 @@
 __all__ = [
     "ABCDocumentMetaclass",
     "ABCTopLevelDocumentMetaclass",
-    "BaseDoc"
+    "BaseDoc",
+    "mongoengine_qs",
+    "Q"
 ]
 
 import abc
@@ -16,6 +18,7 @@ from bson import ObjectId
 from mongoengine.base.datastructures import EmbeddedDocumentList
 from mongoengine import Document, EmbeddedDocument, DateTimeField, DynamicDocument
 from mongoengine.base.metaclasses import TopLevelDocumentMetaclass, DocumentMetaclass
+from mongoengine import Q, QuerySet as mongoengine_qs
 
 from utils import const
 from utils import datetime_utils

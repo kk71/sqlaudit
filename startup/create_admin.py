@@ -9,7 +9,7 @@ from models import init_models
 
 init_models()
 
-from models.oracle import User, make_session
+from models.sqlalchemy import make_session
 
 
 def main():

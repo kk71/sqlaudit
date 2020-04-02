@@ -8,8 +8,8 @@ from mongoengine import Q
 
 from utils.const import *
 from utils.perf_utils import timing
-from models.mongo import *
-from models.oracle import *
+from models.mongoengine import *
+from models.sqlalchemy import *
 from utils import rule_utils
 from utils.datetime_utils import *
 

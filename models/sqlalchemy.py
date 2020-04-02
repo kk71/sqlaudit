@@ -17,7 +17,10 @@ import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 # TODO must initiate models first!
-from . import Session, base
+# from . import Session, base
+
+base = object
+
 from utils import const
 from utils import datetime_utils
 

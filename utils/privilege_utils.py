@@ -11,7 +11,7 @@ from collections import defaultdict
 from typing import Union
 
 from utils.const import *
-from models.oracle import *
+from models.sqlalchemy import *
 
 # PRIVILEGE_DICT = dict()
 # PRIVILEGE_DICT_TO_EXPIRE = 0

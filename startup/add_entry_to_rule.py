@@ -8,8 +8,8 @@ from models import init_models
 
 init_models()
 
-from new_rule.rule import TicketRule
-from new_rule import const
+import rule.const
+from rule.rule import TicketRule
 
 
 def main():
