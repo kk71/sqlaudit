@@ -11,12 +11,14 @@ import ticket.restful_api.online
 from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils import cmdb_utils
+from restful_api.modules import *
+# from utils import cmdb_utils
 from ..ticket import OracleTicket
 from ..sub_ticket import OracleSubTicket
 from ..analyse import OracleSubTicketAnalyse
 
 
+@as_view("overview", group="ticket")
 class OracleTicketOnlineOverviewHandler(
         ticket.restful_api.online.OnlineOverviewHandler):
 
@@ -73,6 +75,7 @@ class OracleTicketOnlineOverviewHandler(
             })
 
 
+@as_view("execute", group="ticket")
 class OracleTicketOnlineExecuteHandler(
         ticket.restful_api.online.OnlineExecuteHandler):
 

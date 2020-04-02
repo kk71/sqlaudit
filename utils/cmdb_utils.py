@@ -5,7 +5,6 @@ from typing import Union
 import cx_Oracle
 
 from models.sqlalchemy import *
-from models.mongoengine import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
 from utils import privilege_utils, score_utils

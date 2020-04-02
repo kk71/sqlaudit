@@ -15,7 +15,7 @@ from ..sub_ticket import SubTicket
 from ..ticket import Ticket
 
 
-@as_view()
+@as_view(group="ticket")
 class SubTicketHandler(TicketReq):
 
     def filter_sub_ticket(self):
@@ -133,7 +133,7 @@ class SubTicketHandler(TicketReq):
         self.resp_created(msg="删除成功。")
 
 
-@as_view("export")
+@as_view("export", group="ticket")
 class SubTicketExportHandler(SubTicketHandler):
 
     def get(self):

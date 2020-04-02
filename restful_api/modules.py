@@ -3,11 +3,13 @@
 __all__ = ["as_view"]
 
 import importlib
-from os import path
 from glob import glob
 from pathlib import Path
 
+from prettytable import PrettyTable
+
 import settings
+import restful_api.urls
 from .base import *
 
 
@@ -31,9 +33,23 @@ def collect_dynamic_modules(module_names: [str]):
         py_file_path_for_importing = ".".join(py_file_dot_split)[:-3]
         importlib.import_module(f"{py_file_path_for_importing}")
 
+    if settings.URL_STATS:
+        # 打印url信息
+        pt = PrettyTable(["group name", "url", "request handler"])
+        pt.align = 'l'
+        for group_name, urls in restful_api.urls.verbose_structured_urls.items():
+            for url in urls:
+                pt.add_row((group_name, *url))
+        print(pt)
 
-def as_view(route_rule: str = ""):
-    """请求装饰器"""
+
+def as_view(route_rule: str = "", group: str = ""):
+    """
+    请求装饰器
+    :param route_rule: 相对的url路径，如果不传则以模块名作为路径
+    :param group: 接口分组。方便归类
+    :return:
+    """
 
     if route_rule:
         assert route_rule.strip()[0] != "/"
@@ -47,6 +63,9 @@ def as_view(route_rule: str = ""):
         ]
         route = "/" / Path("/".join(split_path)) / route_rule
         restful_api.urls.urls.append(
+            (str(route), req_handler)
+        )
+        restful_api.urls.verbose_structured_urls[group].append(
             (str(route), req_handler)
         )
         return req_handler

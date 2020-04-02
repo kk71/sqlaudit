@@ -11,7 +11,7 @@ from .base import *
 from ..ticket import *
 
 
-@as_view()
+@as_view(group="ticket")
 class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     def get(self):

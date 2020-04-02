@@ -10,7 +10,7 @@ from .. import ticket_utils, task
 from ticket.task_name_utils import *
 
 
-@as_view()
+@as_view(group="ticket")
 class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
 
     def post(self):

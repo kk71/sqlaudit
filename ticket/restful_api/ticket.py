@@ -16,7 +16,7 @@ from models.sqlalchemy import make_session
 from restful_api.modules import *
 
 
-@as_view("archive")
+@as_view("archive", group="ticket")
 class ArchiveHandler(TicketReq):
 
     def get(self):
@@ -180,7 +180,7 @@ class TicketHandler(TicketReq):
         self.resp(msg="已删除")
 
 
-@as_view("export")
+@as_view("export", group="ticket")
 class TicketExportHandler(TicketReq):
 
     async def get(self):

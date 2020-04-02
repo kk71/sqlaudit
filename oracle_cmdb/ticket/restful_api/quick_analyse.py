@@ -12,7 +12,7 @@ from ticket.parsed_sql import ParsedSQL
 from rule.rule_jar import *
 
 
-@as_view()
+@as_view(group="ticket")
 class QuickSQLAnalyse(AuthReq):
 
     def post(self):

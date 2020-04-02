@@ -18,9 +18,7 @@ import restful_api.urls
 def main():
     """start a web server for sqlaudit restful_api"""
     restful_api.modules.collect_dynamic_modules(restful_api.urls.dynamic_url_modules)
-    for i in restful_api.urls.urls:
-        print(i)
-    print("Starting http server for restful api...")
+    print("starting http server for restful api...")
     app = Application(
         restful_api.urls.urls,
         debug=settings.DEBUG,
@@ -28,7 +26,7 @@ def main():
     )
     enable_pretty_logging()
     app.listen(settings.WEB_PORT, settings.WEB_IP)
-    print(f"Listening on port {settings.WEB_IP}:{settings.WEB_PORT} ...")
+    print(f"listening on port {settings.WEB_IP}:{settings.WEB_PORT} ...")
     tornado.ioloop.IOLoop.instance().start()
 
 

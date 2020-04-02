@@ -11,7 +11,7 @@ from ..sub_ticket import OracleSubTicket
 from ..ticket import OracleTicket
 
 
-@as_view("sql_plan")
+@as_view("sql_plan", group="ticket")
 class SQLPlanHandler(TicketReq):
 
     def get(self):
@@ -62,7 +62,7 @@ class SQLPlanHandler(TicketReq):
         })
 
 
-@as_view("issue")
+@as_view("issue", group="ticket")
 class SubTicketIssueHandler(TicketReq):
 
     def patch(self):
