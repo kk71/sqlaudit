@@ -46,11 +46,11 @@ class DashboardHandler(PrivilegeReq):
                 optimized_execution_times = optimized_execution_q[0][0]
 
             # 线下审核工单状态归类
-            offline_tickets = session.query(
-                WorkList.work_list_status, func.count(WorkList.work_list_id)). \
-                group_by(WorkList.work_list_status)
-            offline_tickets = TicketReq.privilege_filter_ticket(
-                self=self, q=offline_tickets)  # 不是个特别好的操作，但不会出问题。
+            # offline_tickets = session.query(
+            #     WorkList.work_list_status, func.count(WorkList.work_list_id)). \
+            #     group_by(WorkList.work_list_status)
+            # offline_tickets = TicketReq.privilege_filter_ticket(
+            #     self=self, q=offline_tickets)  # 不是个特别好的操作，但不会出问题。
 
             # 线上审核的采集任务
             task_q = session.query(TaskManage).\
@@ -68,17 +68,16 @@ class DashboardHandler(PrivilegeReq):
                         t["execution_status"]]] += 1
 
             # 公告板
-            notice = session.query(Notice).filter(Notice.notice_id == 1).first()
+            # notice = session.query(Notice).filter(Notice.notice_id == 1).first()
             self.resp({
                 **stats_num_dict,
                 "env": self.dict_to_verbose_dict_in_list(dict(envs)),
                 "cmdb_num": len(cmdb_ids),
                 "ai_tune_num": optimized_execution_times,
-                "offline_ticket": {ALL_OFFLINE_TICKET_STATUS_CHINESE[k]: v
-                                   for k, v in dict(offline_tickets).items()},
+                "offline_ticket": {v: 0 for k, v in ALL_OFFLINE_TICKET_STATUS_CHINESE.items()},
                 "capture_tasks": self.dict_to_verbose_dict_in_list(task_status),
                 "all_capture_task_num": task_q.count(),
-                "notice": notice.contents if notice else "",
+                "notice": "",
             })
 
 
