@@ -11,7 +11,7 @@ from utils.datetime_utils import *
 
 
 class CMDB(BaseModel):
-    """客户纳管数据库"""
+    """纳管数据库"""
 
     __tablename__ = "cmdb"
 

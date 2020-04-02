@@ -1,51 +1,62 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "User",
+    "Role",
+    "UserRole",
+    "RolePrivilege"
+]
+
+from sqlalchemy import Column, String, Integer, Boolean, DateTime
+
+from models.sqlalchemy import BaseModel
+
 
 class User(BaseModel):
-    __tablename__ = "T_USER"
+    """用户"""
+    __tablename__ = "user"
 
-    login_user = Column("LOGIN_USER", String, primary_key=True)
-    user_name = Column("USER_NAME", String)
-    password = Column("PASSWORD", String)
-    email = Column("EMAIL", String)
-    mobile_phone = Column("MOBILE_PHONE", String)
-    department = Column("DEPARTMENT", String)
-    status = Column("STATUS", Boolean, default=True)
-    last_login_time = Column("LAST_LOGIN_TIME", DATE)
-    last_login_ip = Column("LAST_LOGIN_IP", String)
-    login_counts = Column("LOGIN_COUNTS", Integer, default=0)
-    login_retry_counts = Column("LOGIN_RETRY_COUNTS", Integer, default=0)
-    last_login_failure_time = Column("LAST_LOGIN_FAILURE_TIME", DATE)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
-    comments = Column("COMMENTS", String)
-    top_cmdb_ids = Column("TOP_CMDB_IDS", Integer)
-    col = Column("COL", DATE)
+    login_user = Column("login_user", String, primary_key=True)
+    username = Column("username", String)
+    password = Column("password", String)
+    email = Column("email", String)
+    mobile_phone = Column("mobile_phone", String)
+    department = Column("department", String)
+    status = Column("status", Boolean, default=True)
+    last_login_time = Column("last_login_time", DateTime)
+    last_login_ip = Column("last_login_ip", String)
+    login_counts = Column("login_counts", Integer, default=0)
+    login_retry_counts = Column("login_retry_counts", Integer, default=0)
+    last_login_failure_time = Column("last_login_failure_time", DateTime)
+    comments = Column("comments", String)
+    top_cmdb_ids = Column("top_cmdb_ids", Integer)
 
 
 class Role(BaseModel):
-    __tablename__ = "T_ROLE"
+    """角色"""
+    __tablename__ = "role"
 
-    role_id = Column("ROLE_ID", Integer, Sequence("SEQ_ROLE"), primary_key=True)
-    role_name = Column("ROLE_NAME", String)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
-    comments = Column("COMMENTS", String)
+    role_id = Column("role_id", Integer, primary_key=True)
+    role_name = Column("role_name", String)
+    comments = Column("comments", String)
 
 
 class UserRole(BaseModel):
-    __tablename__ = "T_USER_ROLE"
+    """用户角色绑定关系"""
+    __tablename__ = "user_role"
 
-    login_user = Column("LOGIN_USER", String, primary_key=True)
-    role_id = Column("ROLE_ID", Integer, primary_key=True)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
+    id = Column("id", Integer, primary_key=True)
+    login_user = Column("login_user", String, primary_key=True)
+    role_id = Column("role_id", Integer, primary_key=True)
 
 
 class RolePrivilege(BaseModel):
-    __tablename__ = "T_ROLE_PRIVILEGE"
+    """角色权限绑定关系"""
+    __tablename__ = "role_privilege"
 
-    id = Column("ID", Integer, Sequence("SEQ_ROLE_PRIVILEGE"), primary_key=True)
-    role_id = Column("ROLE_ID", Integer)
-    privilege_type = Column("PRIVILEGE_TYPE", Integer)
-    privilege_id = Column("PRIVILEGE_ID", Integer)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
+    id = Column("id", Integer, primary_key=True)
+    role_id = Column("role_id", Integer)
+    privilege_type = Column("privilege_type", Integer)
+    privilege_id = Column("privilege_id", Integer)
 
 

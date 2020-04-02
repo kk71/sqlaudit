@@ -1,14 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from sqlalchemy import Column, String, Integer
 
-class RoleDataPrivilege(BaseModel):
-    """角色数据库权限"""
-    __tablename__ = "T_ROLE_DATA_PRIVILEGE"
+from models.sqlalchemy import BaseModel
 
-    id = Column("ID", Integer, Sequence("SEQ_ROLE_DATA_PRIVILEGE_ID"), primary_key=True)
-    role_id = Column("ROLE_ID", Integer)
-    cmdb_id = Column("CMDB_ID", Integer)
-    schema_name = Column("SCHEMA_NAME", String)
-    comments = Column("COMMENTS", String)
-    create_date = Column("CREATE_DATE", DATE, default=datetime.now)
+
+class OracleRoleSchema(BaseModel):
+    """角色绑定的纳管库schema"""
+    __tablename__ = "oracle_role_schema"
+
+    id = Column("id", Integer, primary_key=True)
+    role_id = Column("role_id", Integer)
+    cmdb_id = Column("cmdb_id", Integer)
+    schema_name = Column("schema_name", String)
+    comments = Column("comments", String)
 

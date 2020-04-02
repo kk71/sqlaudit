@@ -15,6 +15,7 @@ from types import FunctionType
 
 import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy import Column, DateTime
 
 # TODO must initiate models first!
 # from . import Session, base
@@ -70,6 +71,9 @@ class BaseModel(base):
     """基础sqlalchemy的表对象"""
 
     __abstract__ = True
+
+    create_time = Column("create_time",
+                         DateTime, default=datetime_utils.datetime.now)
 
     def from_dict(self,
                   d: dict,
