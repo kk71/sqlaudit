@@ -1,5 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "TaskRecord",
+    "TaskManage",
+    "TaskExecHistory"
+]
+
 from sqlalchemy import Column, String, Integer, DateTime, Boolean
 from sqlalchemy import Sequence
 
@@ -10,6 +16,7 @@ from utils.datetime_utils import *
 
 class TaskRecord(BaseModel, BaseTaskRecord):
     """任务运行记录"""
+    __tablename__ = "task_record"
 
     task_record_id = Column("task_record_id", Integer, primary_key=True)
     task_type = Column("task_type", Integer)
