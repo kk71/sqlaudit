@@ -262,15 +262,18 @@ class CMDBHandler(AuthReq):
                     and params["allow_online"] != the_cmdb.allow_online:
                 return self.resp_forbidden("只有管理员可以操作自助上线开关")
 
-            if session.query(CMDB).filter(
-                    CMDB.ip_address == params["ip_address"],
-                    CMDB.port == params["port"],
-                    or_(  # TODO 记得改，目前sid和sid的字段名和实际意义是反过来的
-                        CMDB.service_name == params["service_name"],
-                        # CMDB.sid == params["sid"]
-                    )
-            ).first():
-                return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
+            if "ip_address" in params.keys() and\
+                    "port" in params.keys() and\
+                    "service_name" in params.keys():
+                if session.query(CMDB).filter(
+                        CMDB.ip_address == params["ip_address"],
+                        CMDB.port == params["port"],
+                        or_(  # TODO 记得改，目前sid和sid的字段名和实际意义是反过来的
+                            CMDB.service_name == params["service_name"],
+                            # CMDB.sid == params["sid"]
+                        )
+                ).first():
+                    return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
 
             the_cmdb.from_dict(params)
 
