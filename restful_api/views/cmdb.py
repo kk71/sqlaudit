@@ -94,6 +94,9 @@ class CMDBHandler(AuthReq):
                     **cmdb_obj_of_this_dh.to_dict(),
                     "data_health": data_health.to_dict()
                 })
+
+            ret *= 50
+
             ret, p = self.paginate(ret, **p)
 
             # 对分页之后的纳管库列表补充额外数据
