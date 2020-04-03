@@ -265,14 +265,15 @@ class CMDBHandler(AuthReq):
             if "ip_address" in params.keys() and\
                     "port" in params.keys() and\
                     "service_name" in params.keys():
-                if session.query(CMDB).filter(
+                qqq = session.query(CMDB).filter(
                         CMDB.ip_address == params["ip_address"],
                         CMDB.port == params["port"],
                         or_(  # TODO 记得改，目前sid和sid的字段名和实际意义是反过来的
                             CMDB.service_name == params["service_name"],
                             # CMDB.sid == params["sid"]
                         )
-                ).first():
+                )
+                if not qqq.filter(CMDB.cmdb_id == cmdb_id).count() and qqq.count():
                     return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
 
             the_cmdb.from_dict(params)
