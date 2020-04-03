@@ -9,10 +9,10 @@ __all__ = [
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
-from models.sqlalchemy import BaseModel
+from models.sqlalchemy import BaseModel, base
 
 
-class User(BaseModel):
+class User(base):
     """用户"""
     __tablename__ = "user"
 

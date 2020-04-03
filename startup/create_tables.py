@@ -3,6 +3,7 @@
 import importlib
 from pathlib import Path
 from glob import glob
+from os import path
 
 import settings
 from models import init_models
@@ -15,7 +16,7 @@ from models import base, engine
 
 
 def main():
-    """create all tables for mysql"""
+    """create all tables for mysql(没用)"""
 
     print("collecting sqlalchemy models ...")
     py_files = glob(str(Path(settings.SETTINGS_FILE_DIR) / "**/*.py"))
@@ -28,8 +29,12 @@ def main():
             if i
         ]
         to_import = filename.pop()
-        if to_import[-3:].lower() != ".py":
+        former, ext = path.splitext(to_import)
+        if ext.lower() in (".pyc",):
             continue
-        to_import = to_import[:-3]
-        importlib.import_module(f"{'.'.join(filename)}.{to_import}")
+        if former in ("__init__",):
+            continue
+        s = f"{'.'.join(filename)}.{former}"
+        print(s)
+        importlib.import_module(s)
     base.metadata.create_all(engine)

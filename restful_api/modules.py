@@ -61,7 +61,7 @@ def as_view(route_rule: str = "", group: str = ""):
             for i in req_handler.__module__.split(".")
             if i.lower() not in ("", "restful_api", "__init__")
         ]
-        route = "/api/" / Path("/".join(split_path)) / route_rule
+        route = "/api" / Path("/".join(split_path)) / route_rule
         restful_api.urls.urls.append(
             (str(route), req_handler)
         )

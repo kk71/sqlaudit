@@ -92,7 +92,7 @@ LOG_DEFAULT_PATH = "/tmp/"
 # oracle connection settings
 
 ORM_ECHO = env_get("ORM_ECHO", False, int)
-MYSQL_IP = env_get("MYSQL_IP", "192.0.0.11")
+MYSQL_IP = env_get("MYSQL_IP", "192.0.0.4")
 MYSQL_PORT = env_get("MYSQL_PORT", 3306, int)
 MYSQL_USERNAME = env_get("MYSQL_USERNAME", "isqlaudit")
 MYSQL_PASSWORD = env_get("MYSQL_PASSWORD", "v1g2m60id2499yz")
