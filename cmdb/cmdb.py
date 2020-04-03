@@ -4,10 +4,10 @@ __all__ = [
     "CMDB"
 ]
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime
+from sqlalchemy import Column, String, Integer, Boolean, DateTime,Float
 
 from models.sqlalchemy import BaseModel
-from utils.datetime_utils import *
+from utils.const import RANKING_CONFIG_NEED_CALC
 
 
 class CMDB(BaseModel):
@@ -31,4 +31,3 @@ class CMDB(BaseModel):
     baseline = Column("baseline", Integer)
     version = Column("version", String)
     allow_online = Column("allow_online", Boolean, default=False)
-

@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "OracleRatingSchema"
+]
+
 from sqlalchemy import Column, String, Float, Integer
 
 from models.sqlalchemy import BaseModel

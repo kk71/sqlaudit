@@ -7,6 +7,8 @@ __all__ = [
     "RolePrivilege"
 ]
 
+from datetime import datetime
+
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
 from models.sqlalchemy import BaseModel, base
@@ -58,5 +60,4 @@ class RolePrivilege(BaseModel):
     role_id = Column("role_id", Integer)
     privilege_type = Column("privilege_type", Integer)
     privilege_id = Column("privilege_id", Integer)
-
 

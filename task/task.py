@@ -11,13 +11,13 @@ from utils.datetime_utils import *
 class TaskRecord(BaseModel, BaseTaskRecord):
     """任务运行记录"""
 
-    task_record_id = Column(Integer, primary_key=True)
-    task_type = Column(Integer)
-    cmdb_id = Column(Integer)
-    start_time = Column(DateTime)
-    end_time = Column(DateTime)
-    status = Column(Integer)
-    operator = Column(String)
+    task_record_id = Column("task_record_id", Integer, primary_key=True)
+    task_type = Column("task_type", Integer)
+    cmdb_id = Column("cmdb_id", Integer)
+    start_time = Column("start_time", DateTime)
+    end_time = Column("end_time", DateTime)
+    status = Column("status", Integer)
+    operator = Column("operator", String)
 
     def run(self):
         """执行任务"""
@@ -25,41 +25,41 @@ class TaskRecord(BaseModel, BaseTaskRecord):
 
 
 class TaskManage(BaseModel):
-    __tablename__ = "T_TASK_MANAGE"
+    __tablename__ = "task_manage"
 
-    task_id = Column("TASK_ID", Integer, Sequence("SEQ_TASK_MANAGE"), primary_key=True)
-    connect_name = Column("CONNECT_NAME", String)
-    group_name = Column("GROUP_NAME", String)
-    business_name = Column("BUSINESS_NAME", String)
-    machine_room = Column("MACHINE_ROOM", Integer)
-    database_type = Column("DATABASE_TYPE", Integer)
-    server_name = Column("SERVER_NAME", String)
-    ip_address = Column("IP_ADDRESS", String)
-    port = Column("PORT", Integer)
-    task_status = Column("TASK_STATUS", Boolean, default=True)
-    task_schedule_date = Column("TASK_SCHEDULE_DATE", String, default="22:00")
-    task_exec_scripts = Column("TASK_EXEC_SCRIPTS", String)
-    task_exec_counts = Column("TASK_EXEC_COUNTS", Integer, default=0)
-    task_exec_success_count = Column("TASK_EXEC_SUCCESS_COUNTS", Integer, default=0)
-    last_task_exec_succ_date = Column("LAST_TASK_EXEC_SUCC_DATE", DateTime)
-    task_create_date = Column("TASK_CREATE_DATE", DateTime, default=datetime.now)
-    cmdb_id = Column("CMDB_ID", Integer)
-    task_exec_frequency = Column("TASK_EXEC_FREQUENCY", Integer, default=60*60*24)  # 单位分钟
+    task_id = Column("task_id", Integer, primary_key=True)
+    cmdb_id = Column("cmdb_id", Integer)
+    connect_name = Column("connect_name", String)
+    group_name = Column("group_name", String)
+    business_name = Column("business_name", String)
+    machine_room = Column("machine_room", Integer)
+    database_type = Column("database_type", Integer)
+    server_name = Column("server_name", String)
+    ip_address = Column("ip_address", String)
+    port = Column("port", Integer)
+    task_status = Column("task_status", Boolean, default=True)
+    task_schedule_date = Column("task_schedule_date", String, default="22:00")
+    task_exec_scripts = Column("task_exec_scripts", String)
+    task_exec_counts = Column("task_exec_counts", Integer, default=0)
+    task_exec_success_count = Column("task_exec_success_count", Integer, default=0)
+    last_task_exec_succ_date = Column("last_task_exec_succ_date", DateTime)
+    task_create_date = Column("task_create_date", DateTime, default=datetime.now)
+    task_exec_frequency = Column("task_exec_frequency", Integer, default=60*60*24)  # 单位分钟
 
 
 class TaskExecHistory(BaseModel):
     """任务执行历史"""
-    __tablename__ = "T_TASK_EXEC_HISTORY"
+    __tablename__ = "task_exec_history"
 
-    id = Column("ID", Integer, Sequence("SEQ_TASK_EXEC_HISTORY"), primary_key=True)
-    task_id = Column("TASK_ID", Integer)
-    connect_name = Column("CONNECT_NAME", String)
-    business_name = Column("BUSINESS_NAME", String)
-    task_start_date = Column("TASK_START_DATE", DateTime, default=datetime.now)
-    task_end_date = Column("TASK_END_DATE", DateTime, nullable=True)
-    status = Column("STATUS", Boolean, nullable=True)
-    error_msg = Column("ERROR_MSG", String, nullable=True)
-    operator = Column("OPERATOR", String, nullable=True)  # null自动采集 str采集发起人的login_user
+    id = Column("id", Integer, primary_key=True)
+    task_id = Column("task_id", Integer)
+    connect_name = Column("connect_name", String)
+    business_name = Column("business_name", String)
+    task_start_date = Column("task_start_date", DateTime, default=datetime.now)
+    task_end_date = Column("task_end_date", DateTime, nullable=True)
+    status = Column("status", Boolean, nullable=True)
+    error_msg = Column("error_msg", String, nullable=True)
+    operator = Column("operator", String, nullable=True)  # null自动采集 str采集发起人的login_user
 
     @classmethod
     def filter_succeed(cls, session, *args, **kwargs):

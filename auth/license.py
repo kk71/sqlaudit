@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "License"
+]
+
 from models.sqlalchemy import BaseModel
 
 from sqlalchemy import Column, String, Integer, Boolean
