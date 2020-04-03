@@ -31,5 +31,4 @@ class CMDB(BaseModel):
     baseline = Column("baseline", Integer)
     version = Column("version", String)
     allow_online = Column("allow_online", Boolean, default=False)
-    create_time = Column("create_time", DateTime, default=lambda: datetime.now().date())
 
