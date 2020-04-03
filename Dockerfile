@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-FROM python:3.7
+FROM python:3.8
 MAINTAINER bill
 
 WORKDIR /project

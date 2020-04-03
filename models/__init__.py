@@ -15,19 +15,17 @@ def init_models():
         username=settings.MONGO_USER,
         password=settings.MONGO_PASSWORD
     )
-    return
 
     # connect to oracle
 
     global Session, engine, base
 
-    import cx_Oracle
     from sqlalchemy import create_engine
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy.orm import sessionmaker
-    oracle_dsn = cx_Oracle.makedsn(settings.ORACLE_IP, settings.ORACLE_PORT, sid=settings.ORACLE_SID)
     engine = create_engine(
-        f"oracle://{settings.ORACLE_USERNAME}:{settings.ORACLE_PASSWORD}@{oracle_dsn}",
+        f"mysql+pymysql://{settings.MYSQL_USERNAME}:{settings.MYSQL_PASSWORD}@"
+        f"{settings.MYSQL_IP}:{settings.MYSQL_PORT}/{settings.MYSQL_DATABASE}",
         echo=settings.ORM_ECHO)
     base = declarative_base()
     Session = sessionmaker(bind=engine)

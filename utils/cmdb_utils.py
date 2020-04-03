@@ -39,12 +39,7 @@ def get_current_schema(
         cmdb_id=None,
         verbose: bool = False,
         verbose_dict: bool = False,
-        query_entity: Union[tuple, list] = (
-            RoleDataPrivilege.cmdb_id,
-            CMDB.connect_name,
-            RoleDataPrivilege.role_id,
-            RoleDataPrivilege.schema_name),
-) -> list:
+        query_entity: Union[tuple, list] = ()) -> list:
     """
     获取某个用户可见的schema
     :param session:
@@ -161,7 +156,7 @@ def test_cmdb_connectivity(cmdb):
     return {"connectivity": True, "info": ""}
 
 
-def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[CMDB, int]):
+def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[object, int]):
     """
     获取某个纳管库当前绑定的全部schema列表
     :param session:
@@ -185,7 +180,7 @@ def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[CMDB, int]):
     return list(set(schemas))
 
 
-def check_cmdb_privilege(cmdb: Union[CMDB, int]) -> tuple:
+def check_cmdb_privilege(cmdb: Union[object, int]) -> tuple:
     """
     检查纳管库的访问权限
     :param cmdb: cmdb_id或者cmdb对象

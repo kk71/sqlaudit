@@ -17,8 +17,8 @@ from .utils import print_html_rule_detail_info
 from .utils import print_html_rule_text_detail_info
 from .utils import print_html_obj_detail_info
 from plain_db.mongo_operat import MongoHelper
-from task.mail_report import zip_file_path
-from models.oracle import make_session,CMDB
+# from task.mail_report import zip_file_path
+# from models.oracle import make_session,CMDB
 
 
 def format_sqlplan_result(result):

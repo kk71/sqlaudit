@@ -6,8 +6,8 @@ from collections import Counter
 from mongoengine import Q
 
 from utils.perf_utils import *
-from models.mongo import *
-from models.oracle import *
+# from models.mongo import *
+# from models.oracle import *
 from utils import rule_utils, const
 from utils.datetime_utils import *
 

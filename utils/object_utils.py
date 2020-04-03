@@ -5,8 +5,6 @@ from typing import Iterable, Union
 from mongoengine import Q
 from sqlalchemy import func
 
-from models.oracle import *
-from models.mongo import *
 from utils.perf_utils import *
 from utils.datetime_utils import *
 from utils import rule_utils, const, cmdb_utils

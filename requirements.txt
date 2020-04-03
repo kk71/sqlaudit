@@ -15,5 +15,6 @@ sqlparse
 chardet
 xlsxwriter
 yagmail
-pymysql # for past
+pymysql
 pycryptodomex
+cryptography

@@ -7,22 +7,22 @@ __all__ = [
 
 from utils import const
 from utils.perf_utils import timing
-from models.mongo import *
-
+# from models. import *
+#
 # 统计数据model
 # 注意：如果统计数据有先后依赖，需要在这里体现。
-STATS_MODELS = (
-    StatsSchemaRate,
-    StatsCMDBRate,
-    StatsCMDBSQLText,
-    StatsRiskSqlRule,
-    StatsRiskObjectsRule,
-    StatsNumDrillDown,
-    StatsCMDBPhySize,
-    StatsCMDBLoginUser,
-    StatsCMDBSQLPlan,
-    StatsLoginUser
-)
+# STATS_MODELS = (
+#     StatsSchemaRate,
+#     StatsCMDBRate,
+#     StatsCMDBSQLText,
+#     StatsRiskSqlRule,
+#     StatsRiskObjectsRule,
+#     StatsNumDrillDown,
+#     StatsCMDBPhySize,
+#     StatsCMDBLoginUser,
+#     StatsCMDBSQLPlan,
+#     StatsLoginUser
+# )
 
 
 def check_for_requirement():

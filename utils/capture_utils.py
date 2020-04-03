@@ -9,15 +9,15 @@ from typing import Union
 
 from utils.perf_utils import timing
 from plain_db.oracleob import OracleOB
-from models.oracle import CMDB, make_session
-from models.mongo import *
-from models.mongo.utils import *
-
+# from models.oracle import CMDB, make_session
+# from models.mongo import *
+# from models.mongo.utils import *
+#
 # 普通采集涉及的模块
-CAPTURE_ITEMS = (
-    ObjSeqInfo,
-    ObjTabSpace
-)
+# CAPTURE_ITEMS = (
+#     ObjSeqInfo,
+#     ObjTabSpace
+# )
 
 # 实时采集涉及的模块
 REALTIME_CAPTURE_ITEMS = ()
@@ -28,7 +28,8 @@ def capture(
         task_record_id,
         cmdb_id,
         schema_name: Union[None, str],
-        capture_type: Union[SchemaCapture, CMDBCapture]):
+        capture_type: Union[object, object]):
+        # capture_type: Union[SchemaCapture, CMDBCapture]):
     """
     采集
     :param task_record_id:
