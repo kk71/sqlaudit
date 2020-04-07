@@ -30,3 +30,7 @@ class CMDB(BaseModel):
     baseline = Column("baseline", Integer)
     version = Column("version", String)
     allow_online = Column("allow_online", Boolean, default=False)
+
+    def build_connector(self, **kwargs):
+        """产生一个连接器"""
+        raise NotImplementedError
