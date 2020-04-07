@@ -23,8 +23,8 @@ class RuleJar(list):
         :param args: entries...
         :return:
         """
-        from new_rule.rule import TicketRule
-        new_jar = cls(TicketRule.filter_enabled(entries__in=args).filter(**kwargs))
+        from .rule import Rule
+        new_jar = cls(Rule.filter_enabled(entries__in=args).filter(**kwargs))
         new_jar.entries = args
         return new_jar
 

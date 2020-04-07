@@ -89,7 +89,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         :param kwargs:
         :return:
         """
-        from new_rule.rule import TicketRule
+        from rule.rule import Rule
         from .sub_ticket import SubTicket
 
         print(f"calculating total score for {self.ticket_id}...")
@@ -116,7 +116,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
             )
         else:
             total_minus_score = 0
-        all_rule_max_score_sum = TicketRule.calc_score_max_sum(db_type=self.db_type)
+        all_rule_max_score_sum = Rule.calc_score_max_sum(db_type=self.db_type)
         if all_rule_max_score_sum:
             final_score = (all_rule_max_score_sum + total_minus_score) / \
                           float(all_rule_max_score_sum) * 100.0

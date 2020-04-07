@@ -8,13 +8,13 @@ import uuid
 import base64
 import traceback
 
-from mongoengine import QuerySet as mongoengine_qs
 from cx_Oracle import DatabaseError
 
 import ticket.const
 import ticket.exceptions
 import utils.const
 import ticket.sub_ticket
+from models.mongoengine import *
 from plain_db.oracleob import *
 from utils.parsed_sql import ParsedSQL
 from ticket.analyse import SubTicketAnalyse

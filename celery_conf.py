@@ -24,23 +24,17 @@ broker_transport_options = {'visibility_timeout': 60*60*24*9}
 
 # when add new tasks in new a module, add it below.
 imports = (
-    "task.capture",
-    # "task.offline_ticket",
+    "oracle_cmdb.task",
     "oracle_cmdb.ticket.task",
-    "task.clear_cache",
-    # "task.export",
-    "task.mail_report"
+    # "task.mail_report"
 )
 
 # add task method below
 task_capture_task_run = "task.capture.task_run"
 ALL_TASK = (
     task_capture_task_run,
-    # "task.offline_ticket.offline_ticket",
     "oracle_cmdb.ticket.task.ticket_analyse",
-    "task.clear_cache.clear_cache",
-    # "task.export.export",
-    "task.mail_report.timing_send_mail"
+    # "task.mail_report.timing_send_mail"
 )
 
 task_routes = {
