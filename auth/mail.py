@@ -53,5 +53,4 @@ class SendMailHistory(BaseModel):
     send_mail_list_id = Column("send_mail_list_id", Integer)
     receiver = Column("receiver", String)
     file_path = Column("file_path", String)
-    create_time = Column("create_time", DateTime, default=datetime.now)
     status = Column("status", Boolean)

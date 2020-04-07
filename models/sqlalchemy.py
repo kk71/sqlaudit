@@ -4,7 +4,8 @@ __all__ = [
     "make_session",
     "QueryEntity",
     "BaseModel",
-    "ABCDeclarativeMeta"
+    "ABCDeclarativeMeta",
+    "sqlalchemy_q"
 ]
 
 import abc
@@ -22,6 +23,8 @@ from sqlalchemy import Column, DateTime
 
 base = object
 
+
+from sqlalchemy.orm.query import Query as sqlalchemy_q
 from utils import const
 from utils import datetime_utils
 

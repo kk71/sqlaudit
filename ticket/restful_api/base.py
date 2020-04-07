@@ -4,9 +4,8 @@ __all__ = [
     "TicketReq"
 ]
 
-from mongoengine import Q, QuerySet as mongoengine_qs
-
 import utils.const
+from models.mongoengine import *
 from utils.schema_utils import *
 from ..ticket import Ticket, const
 from auth.restful_api.base import *
@@ -17,7 +16,7 @@ class TicketReq(PrivilegeReq):
 
     def __init__(self, *args, **kwargs):
         super(TicketReq, self).__init__(*args, **kwargs)
-        self.scm_status = self.scm_with_em(
+        self.scm_status = self.scm_or_with_error_msg(
             And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
             e=f"工单规则为：{const.ALL_TICKET_STATUS}"
         )

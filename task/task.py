@@ -29,8 +29,16 @@ class Task(BaseModel):
     exec_success_count = Column("exec_success_count", Integer, default=0)
     last_exec_success_time = Column("last_exec_success_time", DateTime)
 
+    @classmethod
+    def filter_execution_status(cls, execution_status: bool = None) -> sqlalchemy_q:
+        """过滤特定运行状态的任务"""
+        pass
 
-class TaskRecord(BaseModel, BaseTaskRecord):
+
+class TaskRecord(
+        BaseModel,
+        BaseTaskRecord,
+        metaclass=ABCDeclarativeMeta):
     """任务运行记录"""
     __tablename__ = "task_record"
 

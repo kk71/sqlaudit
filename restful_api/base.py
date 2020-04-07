@@ -9,28 +9,13 @@ from typing import *
 
 from tornado.web import RequestHandler
 from schema import SchemaError, Or
-from mongoengine import QuerySet as M_Query
-from mongoengine import Q
-from sqlalchemy.orm.query import Query as S_Query
 from sqlalchemy import or_
 
-from utils.perf_utils import timing, r_cache
 from utils.schema_utils import *
 from utils.datetime_utils import *
-
-
-class SchemaErrorWithMessageResponsed(Exception):
-    pass
-
-
-class TokenHasExpiredException(Exception):
-    pass
-
-
-@timing(cache=r_cache)
-def paginate_count_using_cache(qs):
-    """用于给分页器存储总数，因为总数查询有的时候也很耗时"""
-    return qs.order_by(None).count()
+from models.sqlalchemy import sqlalchemy_q
+from models.mongoengine import mongoengine_qs, Q
+from . import exceptions
 
 
 class BaseReq(RequestHandler):
@@ -41,11 +26,11 @@ class BaseReq(RequestHandler):
 
         def s(*args, **kwargs):
             self.resp_bad_req(msg=e)
-            raise SchemaErrorWithMessageResponsed(e)
+            raise exceptions.SchemaErrorWithMessageResponsed(e)
 
         return s
 
-    def scm_with_em(self, *args, e):
+    def scm_or_with_error_msg(self, *args, e):
         """按照Or的顺序执行schema，如果都失败了，则返回400，msg为e"""
         args = list(args) + [self._resp_em(e)]
         return Or(*args)
@@ -56,7 +41,8 @@ class BaseReq(RequestHandler):
         """
         获取非get请求情况下，http request body所带的json数据
         :param schema_object:
-        :param default_body: 如果http request body没有数据，则用该数据替换，如果该数据为None，就报错
+        :param default_body: 如果http request body没有数据，则用该数据替换，
+                                如果该数据为None，就报错
         :return:
         """
         try:
@@ -143,21 +129,25 @@ class BaseReq(RequestHandler):
     def resp_forbidden(self, msg: str = "forbidden") -> NoReturn:
         self.resp(msg=msg, status_code=403)
 
-    def resp_not_found(self, msg: str = "not found", content: Union[dict, list] = None, **kwargs) -> NoReturn:
+    def resp_not_found(
+            self,
+            msg: str = "not found",
+            content: Union[dict, list] = None, **kwargs) -> NoReturn:
         self.resp(msg=msg, content=content, status_code=404, **kwargs)
 
     def resp_unauthorized(self, msg: str = "未登录。") -> NoReturn:
         self.resp(msg=msg, status_code=401)
 
-    def resp_bad_username_password(self, msg: str = "用户名或者密码错误。") -> NoReturn:
+    def resp_bad_username_password(
+            self, msg: str = "用户名或者密码错误。") -> NoReturn:
         self.resp(msg=msg, status_code=400)
 
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):
         """分页"""
-        if isinstance(query, M_Query):
+        if isinstance(query, mongoengine_qs):
             items = query.skip((page - 1) * per_page).limit(per_page)
-        elif isinstance(query, S_Query):
+        elif isinstance(query, sqlalchemy_q):
             items = query.limit(per_page).offset((page - 1) * per_page).all()
         elif isinstance(query, (list, tuple)):
             items = query[(page - 1) * per_page:(page - 1) * per_page + per_page]
@@ -167,7 +157,7 @@ class BaseReq(RequestHandler):
             total = len(items)
         elif isinstance(query, (list, tuple)):
             total = len(query)
-        elif isinstance(query, S_Query):
+        elif isinstance(query, sqlalchemy_q):
             total = query.order_by(None).count()
         else:
             # total = paginate_count_using_cache(qs=query)
@@ -227,7 +217,7 @@ class BaseReq(RequestHandler):
                query_dict.pop("date_end", None)
 
     @staticmethod
-    def query_keyword(q, l, *args) -> Union[M_Query, S_Query]:
+    def query_keyword(q, l, *args) -> Union[mongoengine_qs, sqlalchemy_q]:
         """
         查询sql语句的like，或者mongo的regex，以匹配类似项
         :param q: query object
@@ -235,14 +225,14 @@ class BaseReq(RequestHandler):
         :param args: sqlalchemy的字段
         :return: q
         """
-        if isinstance(q, S_Query):
+        if isinstance(q, sqlalchemy_q):
             l = f"%{l}%"
             to_or = []
             for s in args:
                 to_or.append(s.ilike(l))
             return q.filter(or_(*to_or))
 
-        elif isinstance(q, M_Query):
+        elif isinstance(q, mongoengine_qs):
             to_query = Q()
             for s in args:
                 to_query = to_query | Q(**{f"{s}__icontains": l})

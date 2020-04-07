@@ -17,6 +17,7 @@ import arrow
 from bson import ObjectId
 from mongoengine.base.datastructures import EmbeddedDocumentList
 from mongoengine import Document, EmbeddedDocument, DateTimeField, DynamicDocument
+# TODO do not delete Document!!!
 from mongoengine.base.metaclasses import TopLevelDocumentMetaclass, DocumentMetaclass
 from mongoengine import Q, QuerySet as mongoengine_qs
 
