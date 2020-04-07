@@ -4,7 +4,7 @@ __all__ = [
     "OracleRatingSchema"
 ]
 
-from sqlalchemy import Column, String, Float, Integer
+from sqlalchemy import Column, String, Integer, DECIMAL
 
 from models.sqlalchemy import BaseModel
 
@@ -16,4 +16,4 @@ class OracleRatingSchema(BaseModel):
     id = Column("id", Integer, primary_key=True)
     cmdb_id = Column("cmdb_id", Integer)
     schema = Column("schema", String)
-    weight = Column("weight", Float, default=1)
+    weight = Column("weight", DECIMAL, default=1)

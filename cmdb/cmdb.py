@@ -16,7 +16,7 @@ class CMDB(BaseModel):
 
     cmdb_id = Column("cmdb_id", Integer, primary_key=True)
     connect_name = Column("connect_name", String)
-    db_type = Column("db_type", Integer)
+    db_type = Column("db_type", String)
     group_name = Column("group_name", String)
     business_name = Column("business_name", String)
     server_name = Column("server_name", String)
