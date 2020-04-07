@@ -10,7 +10,6 @@ from typing import *
 from tornado.web import RequestHandler
 from schema import SchemaError, Or
 from sqlalchemy import or_
-
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from models.sqlalchemy import sqlalchemy_q
