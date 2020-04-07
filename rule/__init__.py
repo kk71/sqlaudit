@@ -5,7 +5,7 @@ from .export_utils import *
 from .rule_jar import *
 
 __all__ = [
-    "TicketRule",
+    "Rule",
     "RuleInputOutputParams",
     "RuleJar",
     "rule_import",

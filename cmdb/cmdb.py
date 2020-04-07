@@ -4,10 +4,9 @@ __all__ = [
     "CMDB"
 ]
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime,Float
+from sqlalchemy import Column, String, Integer, Boolean
 
 from models.sqlalchemy import BaseModel
-from utils.const import RANKING_CONFIG_NEED_CALC
 
 
 class CMDB(BaseModel):

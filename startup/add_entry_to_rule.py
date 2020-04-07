@@ -9,7 +9,7 @@ from models import init_models
 init_models()
 
 import rule.const
-from rule.rule import TicketRule
+from rule.rule import Rule
 
 
 def main():

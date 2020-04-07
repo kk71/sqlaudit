@@ -10,7 +10,7 @@ from core.ticket import *
 from core.issue import *
 from models.mongoengine import *
 from .ticket import TicketScript
-from rule.rule import TicketRule
+from rule.rule import Rule
 
 
 class SubTicketIssue(
@@ -21,20 +21,21 @@ class SubTicketIssue(
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
     rule_desc = StringField(required=True)
-    max_score = FloatField(required=True)  # 最大扣分快照
-    level = IntField()  # 规则优先级
+    weight = FloatField()
+    max_score = FloatField(required=True)
     input_params = DictField(default=lambda: {})  # 输入参数快照
     output_params = DictField(default=lambda: {})  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
+    level = IntField()  # 规则优先级
 
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def as_issue_of(self, the_rule: TicketRule, output_data: dict):
+    def as_issue_of(self, the_rule: Rule, output_data: dict):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
-        :param rule:
-        :param output_data:
+        :param the_rule:
+        :param output_data: 规则的运行输出
         :return:
         """
         self.db_type = the_rule.db_type
@@ -42,11 +43,13 @@ class SubTicketIssue(
         self.rule_desc = the_rule.desc
         self.level = the_rule.level
         self.max_score = the_rule.max_score
+        self.weight = the_rule.weight
         self.input_params = [i for i in the_rule.to_dict()["input_params"]]
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             if not output_param.validate_data_type(the_output_data_to_this_param):
-                raise rule.exceptions.RuleCodeInvalidParamTypeException
+                raise rule.exceptions.RuleCodeInvalidParamTypeException(
+                    f"{str(the_rule)}-{output_param.name}: {the_output_data_to_this_param}")
             self.output_params[output_param.name] = the_output_data_to_this_param
 
 

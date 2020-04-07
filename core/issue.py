@@ -19,9 +19,10 @@ class BaseIssue(abc.ABC):
     input_params = None  # 输入参数快照
     output_params = None  # 规则运行输出
     minus_score = None  # 当前规则的扣分，负数
-    max_score = None  # 当前规则的最大扣分
+    weight = None  # 权重快照
+    max_score = None  # 最大扣分快照
 
     @abc.abstractmethod
-    def as_issue_of(self, rule: BaseRuleItem, output_data: dict):
+    def as_issue_of(self, the_rule: BaseRuleItem, output_data: dict):
         """设置当前问题为某个规则的问题"""
         pass

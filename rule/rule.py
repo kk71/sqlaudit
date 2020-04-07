@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "TicketRule",
+    "Rule",
     "RuleInputParams",
     "RuleOutputParams",
 ]
@@ -73,18 +73,18 @@ class RuleOutputParams(RuleParams):
     optional = BooleanField()
 
 
-class TicketRule(
+class Rule(
         BaseDoc,
         core.rule.BaseRuleItem,
         metaclass=ABCTopLevelDocumentMetaclass):
-    """线下审核工单的规则"""
+    """规则"""
     name = StringField(required=True)
     desc = StringField(required=True)
     db_type = StringField(
         required=True,
         choices=utils.const.ALL_SUPPORTED_DB_TYPE,
         default=utils.const.DB_ORACLE)
-    entries = ListField(null=lambda: [], choices=const.ALL_RULE_ENTRIES)
+    entries = ListField(default=lambda: [], choices=const.ALL_RULE_ENTRIES)
     input_params = EmbeddedDocumentListField(RuleInputParams)
     output_params = EmbeddedDocumentListField(RuleOutputParams)
     code = StringField(required=True)
@@ -107,7 +107,7 @@ class TicketRule(
     }
 
     def __init__(self, *args, **kwargs):
-        super(TicketRule, self).__init__(*args, **kwargs)
+        super(Rule, self).__init__(*args, **kwargs)
         self._code: Union[Callable, None] = None
 
     def __str__(self):

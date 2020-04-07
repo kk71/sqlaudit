@@ -7,14 +7,12 @@ __all__ = [
     "RolePrivilege"
 ]
 
-from datetime import datetime
-
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
-from models.sqlalchemy import BaseModel, base
+from models.sqlalchemy import BaseModel
 
 
-class User(base):
+class User(BaseModel):
     """用户"""
     __tablename__ = "user"
 

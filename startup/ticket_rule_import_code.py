@@ -11,7 +11,7 @@ from models import init_models
 
 init_models()
 
-from rule.rule import TicketRule
+from rule.rule import Rule
 
 
 @click.option(
@@ -25,7 +25,7 @@ def main(compare: bool):
         print("=== compare only ===")
     different_codes = []
     not_imported_rules = []
-    for tr in TicketRule.objects().all():
+    for tr in Rule.objects().all():
         try:
             code_file = Path(settings.SETTINGS_FILE_DIR) / \
                         f"new_rule/ticket-rules/{tr.db_type}/" \
