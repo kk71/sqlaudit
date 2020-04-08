@@ -1,12 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleCMDB"
+    "OracleCMDB",
+    "RoleDataPrivilege"
 ]
 
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String, Boolean,Integer
 
 from cmdb.cmdb import CMDB
+from models.sqlalchemy import BaseModel
 from .plain_db import OraclePlainConnector
 
 
@@ -30,3 +32,14 @@ class OracleCMDB(CMDB):
             assert 0
         return OraclePlainConnector(
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
+
+
+class RoleDataPrivilege(BaseModel):
+    """角色的数据权限"""
+
+    id = Column("id", Integer)
+    role_id = Column("role_id", Integer)
+    cmdb_id = Column("cmdb_id", Integer)
+    schema_name = Column("schema_name", String)
+    comments = Column("comments", String)
+
