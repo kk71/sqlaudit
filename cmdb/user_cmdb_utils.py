@@ -2,7 +2,7 @@
 from utils import privilege_utils
 from models.sqlalchemy import make_session
 from cmdb.cmdb import CMDB
-from oracle_cmdb.cmdb import RoleDataPrivilege
+from oracle_cmdb.cmdb import RoleCMDBSchema
 
 def get_current_cmdb(user_login, id_name="cmdb_id") -> [str]:
     """
@@ -16,11 +16,11 @@ def get_current_cmdb(user_login, id_name="cmdb_id") -> [str]:
                         get(user_login, set([])))
     with make_session() as session:
         if id_name == "cmdb_id":
-            return [i[0] for i in session.query(RoleDataPrivilege.cmdb_id.distinct()).
-                    join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id).
-                    filter(RoleDataPrivilege.role_id.in_(role_ids))]
+            return [i[0] for i in session.query(RoleCMDBSchema.cmdb_id.distinct()).
+                    join(CMDB, CMDB.cmdb_id == RoleCMDBSchema.cmdb_id).
+                    filter(RoleCMDBSchema.role_id.in_(role_ids))]
         elif id_name == "connect_name":
             return [i[0] for i in session.query(CMDB.connect_name.distinct()).
-                    join(RoleDataPrivilege, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id).
-                    filter(RoleDataPrivilege.role_id.in_(role_ids))]
+                    join(RoleCMDBSchema, RoleCMDBSchema.cmdb_id == CMDB.cmdb_id).
+                    filter(RoleCMDBSchema.role_id.in_(role_ids))]
 
