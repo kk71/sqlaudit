@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from .base import BaseReq
-from utils.product_license import *
+from auth.product_license import *
 from utils.version_utils import *
 
 

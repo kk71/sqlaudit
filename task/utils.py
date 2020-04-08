@@ -11,7 +11,7 @@ from redis import StrictRedis
 
 import settings
 import celery_conf
-from utils import const, score_utils
+import utils.const
 from utils.conc_utils import *
 
 

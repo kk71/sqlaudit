@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, And
+from schema import Optional
 from sqlalchemy import func
 from mongoengine import Q
 
@@ -13,7 +13,8 @@ from models.oracle import *
 from utils.const import *
 from utils import cmdb_utils
 from utils.cmdb_utils import get_current_cmdb, get_current_schema
-from utils import const, score_utils, task_utils
+from utils import const, score_utils
+from task import utils
 from utils.conc_utils import async_thr
 from models.oracle.optimize import *
 
@@ -57,7 +58,7 @@ class DashboardHandler(PrivilegeReq):
                 filter(TaskManage.task_exec_scripts == const.DB_TASK_CAPTURE)
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(cmdb_ids))
-            tasks = await task_utils.get_task(
+            tasks = await utils.get_task(
                 session, task_q, execution_status=None)
             task_status = {
                 k: 0 for k in const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()

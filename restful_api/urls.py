@@ -8,10 +8,14 @@ from tornado.web import StaticFileHandler
 import settings
 
 dynamic_url_modules = [
+    # 需要启用模块URL的模块名
+
     "auth",
     "cmdb",
     "ticket",
     "oracle_cmdb",
+    "task",
+    "rule",
 ]
 
 urls = [

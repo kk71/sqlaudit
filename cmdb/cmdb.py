@@ -32,5 +32,5 @@ class CMDB(BaseModel):
     allow_online = Column("allow_online", Boolean, default=False)
 
     def build_connector(self, **kwargs):
-        """产生一个连接器"""
+        """产生一个当前纳管库的连接器"""
         raise NotImplementedError
