@@ -7,6 +7,8 @@ __all__ = [
     "RolePrivilege"
 ]
 
+from hashlib import md5
+
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
 from models.sqlalchemy import BaseModel
@@ -30,6 +32,11 @@ class User(BaseModel):
     last_login_failure_time = Column("last_login_failure_time", DateTime)
     comments = Column("comments", String)
     top_cmdb_ids = Column("top_cmdb_ids", Integer)
+
+    def set_password(self, password: str):
+        """更新md5密码"""
+        if password:
+            self.password = md5(password.encode("utf-8")).hexdigest()
 
 
 class Role(BaseModel):
