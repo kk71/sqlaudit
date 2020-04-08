@@ -1,14 +1,14 @@
-from .base import PrivilegeReq, AuthReq
+from .base import *
 from auth.const import *
 from auth.mail import *
 from auth.user import *
 from ..const import PRIVILEGE
 from utils.schema_utils import *
-from models.sqlalchemy import make_session, QueryEntity
-from restful_api.modules import as_view
+from models.sqlalchemy import *
+from restful_api.modules import *
 
 
-@as_view("sendlist", group="mail")
+@as_view("send_list", group="mail")
 class SendListHandler(PrivilegeReq):
 
     def get(self):
@@ -85,7 +85,7 @@ class SendListHandler(PrivilegeReq):
         self.resp_created("删除列表成功")
 
 
-@as_view("configsender", group="mail")
+@as_view("config_sender", group="mail")
 class ConfigSenderHandler(AuthReq):
 
     def get(self):
@@ -121,7 +121,7 @@ class ConfigSenderHandler(AuthReq):
             self.resp_created(mailserver.to_dict(), msg="修改发件人配置成功")
 
 
-@as_view("sendmail", group="mail")
+@as_view("send", group="mail")
 class SendMailHandler(AuthReq):
 
     def post(self):
@@ -142,7 +142,7 @@ class SendMailHandler(AuthReq):
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 
-@as_view("mailhist", group="mail")
+@as_view("history", group="mail")
 class MailHistory(AuthReq):
 
     def get(self):
@@ -160,7 +160,7 @@ class MailHistory(AuthReq):
 
         with make_session() as session:
 
-            users_data = session.query(User).with_entities(User.login_user, User.user_name)
+            users_data = session.query(User).with_entities(User.login_user, User.username)
             users_data = {x[0]: x[1] for x in users_data}
 
             mail_hist = session.query(SendMailHistory). \

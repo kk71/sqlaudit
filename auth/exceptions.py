@@ -10,3 +10,14 @@ class TokenExpiredException(AuthException):
     """token过期异常"""
     pass
 
+
+class AdminRequired(AuthException):
+    """仅限管理员操作"""
+    pass
+
+
+class PrivilegeRequired(AuthException):
+    """权限不足"""
+    pass
+
+

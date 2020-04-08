@@ -6,7 +6,7 @@ import importlib
 from glob import glob
 from pathlib import Path
 
-from prettytable import PrettyTable
+import prettytable
 
 import settings
 import restful_api.urls
@@ -35,12 +35,32 @@ def collect_dynamic_modules(module_names: [str]):
 
     if settings.URL_STATS:
         # 打印url信息
-        pt = PrettyTable(["group name", "url", "request handler"])
-        pt.align = 'l'
+        pt = prettytable.PrettyTable([
+            "group name", "url", "request methods", "request handler"])
+        pt.align = "l"
+        pt.hrules = prettytable.ALL
         for group_name, urls in restful_api.urls.verbose_structured_urls.items():
-            for url in urls:
-                pt.add_row((group_name, *url))
+            for url, methods, req_handler in urls:
+                methods_str = "\n".join([": ".join(i) for i in methods.items()]) \
+                    if methods.items() else " - "
+                pt.add_row((
+                    group_name,
+                    url,
+                    methods_str,
+                    req_handler
+                ))
         print(pt)
+
+
+def pick_enabled_request_method(request_handler: BaseReq) -> {str: str}:
+    """抓取request handler里启用的请求方法，以及docstring"""
+    ret = {}
+    for request_method in request_handler.SUPPORTED_METHODS:
+        the_method = getattr(request_handler, request_method.lower(), None)
+        if not the_method.__doc__:
+            continue
+        ret[request_method] = the_method.__doc__
+    return ret
 
 
 def as_view(route_rule: str = "", group: str = ""):
@@ -66,7 +86,7 @@ def as_view(route_rule: str = "", group: str = ""):
             (str(route), req_handler)
         )
         restful_api.urls.verbose_structured_urls[group].append(
-            (str(route), req_handler)
+            (str(route), pick_enabled_request_method(req_handler), req_handler)
         )
         return req_handler
 

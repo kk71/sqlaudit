@@ -12,10 +12,10 @@ from schema import SchemaError
 
 import settings
 from restful_api.base import *
-from utils.privilege_utils import *
+from auth.privilege_utils import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils.const import AdminRequired
+from ..exceptions import AdminRequired
 from .. import const
 
 

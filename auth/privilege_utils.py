@@ -10,12 +10,10 @@ __all__ = [
 from collections import defaultdict
 from typing import Union
 
-from utils.const import *
+from .const import *
+from .exceptions import *
 from models.sqlalchemy import *
-
-# PRIVILEGE_DICT = dict()
-# PRIVILEGE_DICT_TO_EXPIRE = 0
-# PRIVILEGE_DICT_TO_EXPIRE_MAX = 99
+from .user import *
 
 
 def get_role_of_user(login_user: Union[str, list, tuple]) -> defaultdict:
@@ -33,23 +31,6 @@ def get_role_of_user(login_user: Union[str, list, tuple]) -> defaultdict:
         for u, r_id in user_role_q:
             ret[u].add(r_id)
     return ret
-
-
-# def get_privilege_towards_user(login_user):
-#     global PRIVILEGE_DICT, PRIVILEGE_DICT_TO_EXPIRE
-#     if PRIVILEGE_DICT_TO_EXPIRE > PRIVILEGE_DICT_TO_EXPIRE_MAX:
-#         PRIVILEGE_DICT = dict()
-#         PRIVILEGE_DICT_TO_EXPIRE = 0
-#     try:
-#         r = PRIVILEGE_DICT[login_user]
-#         return r
-#     except KeyError:
-#         with make_session() as session:
-#             privilege_ids = [i[0] for i in session.query(RolePrivilege.privilege_id).
-#                 join(UserRole, RolePrivilege.role_id == UserRole.role_id).
-#                 filter(UserRole.login_user == login_user)]
-#         PRIVILEGE_DICT[login_user] = [PRIVILEGE.get_privilege_by_id(i) for i in privilege_ids if PRIVILEGE.get_privilege_by_id(i)]
-#         return PRIVILEGE_DICT[login_user]
 
 
 def get_privilege_towards_user(login_user):

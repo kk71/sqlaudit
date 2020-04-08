@@ -21,7 +21,7 @@ from sqlalchemy import or_
 import settings
 from utils.perf_utils import timing, r_cache
 from utils.schema_utils import *
-from utils.privilege_utils import *
+from auth.privilege_utils import *
 from utils.const import AdminRequired
 from utils.datetime_utils import *
 

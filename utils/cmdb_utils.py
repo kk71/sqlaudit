@@ -7,7 +7,8 @@ import cx_Oracle
 from models.sqlalchemy import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
-from utils import privilege_utils, score_utils
+from utils import score_utils
+from auth import privilege_utils
 from plain_db.oracleob import OracleOB
 
 import plain_db.oracleob
@@ -22,7 +23,7 @@ def get_current_cmdb(session, user_login, id_name="cmdb_id") -> [str]:
     :return: [cmdb_id或者connect_name, ...]
     """
     role_ids: list = list(privilege_utils.get_role_of_user(login_user=user_login).
-                        get(user_login, set([])))
+                          get(user_login, set([])))
     if id_name == "cmdb_id":
         return [i[0] for i in session.query(RoleDataPrivilege.cmdb_id.distinct()).
                 join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id).
@@ -74,7 +75,7 @@ def get_current_schema(
         q = session.query(RoleDataPrivilege.schema_name.distinct())
     if user_login:
         role_ids: list = list(privilege_utils.get_role_of_user(login_user=user_login).
-                          get(user_login, set([])))
+                              get(user_login, set([])))
         q = q.filter(RoleDataPrivilege.role_id.in_(role_ids))
     if cmdb_id:
         q = q.filter(RoleDataPrivilege.cmdb_id == cmdb_id)
