@@ -50,14 +50,14 @@ class OracleRelatedUserHandler(auth.restful_api.user.UserHandler):
 
                 qe = QueryEntity(OracleCMDB.connect_name,
                                  OracleCMDB.cmdb_id,
-                                 RoleCMDBSchema.schema_name,
-                                 RoleCMDBSchema.create_time,
-                                 RoleCMDBSchema.comments,
+                                 RoleOracleCMDBSchema.schema_name,
+                                 RoleOracleCMDBSchema.create_time,
+                                 RoleOracleCMDBSchema.comments,
                                  Role.role_name,
                                  Role.role_id)
                 role_cmdb = session.query(*qe). \
-                    join(OracleCMDB, RoleCMDBSchema.cmdb_id == OracleCMDB.cmdb_id). \
-                    join(Role, Role.role_id == RoleCMDBSchema.role_id)
+                    join(OracleCMDB, RoleOracleCMDBSchema.cmdb_id == OracleCMDB.cmdb_id). \
+                    join(Role, Role.role_id == RoleOracleCMDBSchema.role_id)
 
                 role_cmdb = [list(x) for x in role_cmdb]
                 role_cmdb = [b for b in role_cmdb for c in x['role'] if c['role_id'] in b]

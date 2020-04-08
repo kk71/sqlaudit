@@ -31,6 +31,11 @@ class CMDB(BaseModel):
     version = Column("version", String)
     allow_online = Column("allow_online", Boolean, default=False)
 
+    __mapper_args__ = {
+        'polymorphic_on': type,
+        'polymorphic_identity': 'CMDB'
+    }
+
     def build_connector(self, **kwargs):
         """产生一个当前纳管库的连接器"""
         raise NotImplementedError

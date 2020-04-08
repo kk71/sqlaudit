@@ -2,10 +2,10 @@
 
 __all__ = [
     "OracleCMDB",
-    "RoleCMDBSchema"
+    "RoleOracleCMDBSchema"
 ]
 
-from sqlalchemy import Column, String, Boolean,Integer
+from sqlalchemy import Column, String, Boolean, Integer
 
 from . import exceptions
 from cmdb.cmdb import CMDB
@@ -21,7 +21,11 @@ class OracleCMDB(CMDB):
     sid = Column("sid", String)
     service_name = Column("service_name", String)
 
-    def build_connector(self, **kwargs):
+    __mapper_args__ = {
+        'polymorphic_identity': 'OracleCMDB'
+    }
+
+    def build_connector(self, **kwargs) -> OraclePlainConnector:
         ret_params = [
             "ip_address", "port", "username", "password"
         ]
@@ -36,13 +40,12 @@ class OracleCMDB(CMDB):
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
 
 
-class RoleCMDBSchema(BaseModel):
-    """角色-oracle库-schema的绑定关系"""
-    __tablename__ = "role_cmdb_schema"
+class RoleOracleCMDBSchema(BaseModel):
+    """角色-oracle纳管库-schema的绑定关系"""
+    __tablename__ = "role_oracle_cmdb_schema"
 
-    id = Column("id", Integer)
+    id = Column("id", Integer, primary_key=True)
     role_id = Column("role_id", Integer)
     cmdb_id = Column("cmdb_id", Integer)
     schema_name = Column("schema_name", String)
     comments = Column("comments", String)
-

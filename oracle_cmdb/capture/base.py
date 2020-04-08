@@ -1,5 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "ObjectCapturingDoc",
+    "SchemaObjectCapturingDoc",
+    "SQLCapturingDoc"
+]
+
+from typing import NoReturn
+
 import core.capture
 from mongoengine import IntField, StringField, ObjectIdField
 
@@ -27,10 +35,10 @@ class ObjectCapturingDoc(
     }
 
     @classmethod
-    def post_captured(cls, **kwargs):
-        docs: ["ObjectCapturingDoc"] = kwargs.pop("docs")
-        cmdb_id: int = kwargs.pop("cmdb_id")
-        task_record_id: int = kwargs.pop("task_record_id")
+    def post_captured(cls, **kwargs) -> NoReturn:
+        docs: ["ObjectCapturingDoc"] = kwargs["docs"]
+        cmdb_id: int = kwargs["cmdb_id"]
+        task_record_id: int = kwargs["task_record_id"]
 
         for d in docs:
             d.from_dict({
@@ -52,11 +60,11 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
     }
 
     @classmethod
-    def post_captured(cls, **kwargs):
-        docs: ["SchemaObjectCapturingDoc"] = kwargs.pop("docs")
-        cmdb_id: int = kwargs.pop("cmdb_id")
-        task_record_id: int = kwargs.pop("task_record_id")
-        obj_owner: str = kwargs.pop("obj_owner")
+    def post_captured(cls, **kwargs) -> NoReturn:
+        docs: ["SchemaObjectCapturingDoc"] = kwargs["docs"]
+        cmdb_id: int = kwargs["cmdb_id"]
+        task_record_id: int = kwargs["task_record_id"]
+        obj_owner: str = kwargs.pop["obj_owner"]
 
         for d in docs:
             d.from_dict({

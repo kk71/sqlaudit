@@ -37,21 +37,21 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
         with make_session() as session:
             qe = QueryEntity(OracleCMDB.connect_name,
                              OracleCMDB.cmdb_id,
-                             RoleCMDBSchema.schema_name,
-                             RoleCMDBSchema.create_time,
-                             RoleCMDBSchema.comments,
+                             RoleOracleCMDBSchema.schema_name,
+                             RoleOracleCMDBSchema.create_time,
+                             RoleOracleCMDBSchema.comments,
                              Role.role_name,
                              Role.role_id)
             perm_datas = session.query(*qe). \
-                join(OracleCMDB, RoleCMDBSchema.cmdb_id == OracleCMDB.cmdb_id). \
-                join(Role, Role.role_id == RoleCMDBSchema.role_id)
+                join(OracleCMDB, RoleOracleCMDBSchema.cmdb_id == OracleCMDB.cmdb_id). \
+                join(Role, Role.role_id == RoleOracleCMDBSchema.role_id)
             if keyword:
                 perm_datas = self.query_keyword(perm_datas, keyword,
                                                 Role.role_name,
                                                 OracleCMDB.connect_name,
-                                                RoleCMDBSchema.schema_name)
+                                                RoleOracleCMDBSchema.schema_name)
             if role_id:
-                perm_datas = perm_datas.filter(RoleCMDBSchema.role_id == role_id)
+                perm_datas = perm_datas.filter(RoleOracleCMDBSchema.role_id == role_id)
             if cmdb_id:
                 perm_datas = perm_datas.filter(OracleCMDB.cmdb_id == cmdb_id)
             items, p = self.paginate(perm_datas, **p)
@@ -93,13 +93,13 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
                     print(available_schema)
                     session.rollback()
                     return self.resp_bad_req(msg=f"包含了无效的schema: {unavailable_schemas}")
-                old_rdps = session.query(RoleCMDBSchema). \
+                old_rdps = session.query(RoleOracleCMDBSchema). \
                     filter(
-                    RoleCMDBSchema.role_id == role_id,
-                    RoleCMDBSchema.cmdb_id == cmdb_id)
+                    RoleOracleCMDBSchema.role_id == role_id,
+                    RoleOracleCMDBSchema.cmdb_id == cmdb_id)
                 for old_rdp in old_rdps:
                     session.delete(old_rdp)
-                session.add_all([RoleCMDBSchema(
+                session.add_all([RoleOracleCMDBSchema(
                     cmdb_id=cmdb_id,
                     role_id=role_id,
                     schema_name=i
@@ -117,7 +117,7 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
         if not params["schema_name"]:
             params.pop("schema_name")
         with make_session() as session:
-            session.query(RoleCMDBSchema).filter_by(**params). \
+            session.query(RoleOracleCMDBSchema).filter_by(**params). \
                 delete(synchronize_session=False)
 
         self.resp_created(msg="删除成功")

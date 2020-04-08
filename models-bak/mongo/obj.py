@@ -202,7 +202,8 @@ class ObjTabSpace(CMDBCapture):
 
     @classmethod
     def command_to_execute(cls, obj_owner=None) -> str:
-        return """SELECT a.tablespace_name as tablespace_name,
+        return """
+        SELECT a.tablespace_name as tablespace_name,
        total,
        free,
        (total - free) as used,

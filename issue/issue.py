@@ -14,9 +14,9 @@ from models.mongoengine import *
 
 
 class Issue(
-    BaseDoc,
-    core.issue.BaseIssue,
-    metaclass=ABCTopLevelDocumentMetaclass):
+        BaseDoc,
+        core.issue.BaseIssue,
+        metaclass=ABCTopLevelDocumentMetaclass):
     """oracle issue"""
 
     cmdb_id = IntField(required=True)
