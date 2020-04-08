@@ -20,7 +20,7 @@ class AuthHandler(BaseReq):
 
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
-            "password": scm_unempty_str
+            "password": scm_unempty_str  # 此处需前端传来md5处理过的密码，而非明文
         }))
 
         with make_session() as session:

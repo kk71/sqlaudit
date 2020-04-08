@@ -1,18 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional
 from sqlalchemy.exc import IntegrityError
 
 from auth.user import Role, RolePrivilege,User,UserRole
 from .base import PrivilegeReq
 
-from utils.const import PRIVILEGE
+from ..const import PRIVILEGE
 from utils.schema_utils import *
 from models.sqlalchemy import make_session,QueryEntity
 from restful_api.modules import as_view
 
 
-@as_view("role", group="auth")
+@as_view(group="role")
 class RoleHandler(PrivilegeReq):
 
     def get(self):
@@ -21,7 +20,7 @@ class RoleHandler(PrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_ROLE_MANAGE)
 
         params = self.get_query_args(Schema({
-            Optional("keyword", default=None): scm_str,
+            scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
@@ -78,9 +77,9 @@ class RoleHandler(PrivilegeReq):
         params = self.get_json_args(Schema({
             "role_id": scm_int,
 
-            Optional("role_name"): scm_unempty_str,
-            Optional("comments"): scm_str,
-            Optional("privileges", default=None): [
+            scm_optional("role_name"): scm_unempty_str,
+            scm_optional("comments"): scm_str,
+            scm_optional("privileges", default=None): [
                 scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
         }))
         role_id = params.pop("role_id")
@@ -110,7 +109,7 @@ class RoleHandler(PrivilegeReq):
         self.resp_created(msg="finished.")
 
 
-@as_view("role", group="auth")
+@as_view("role_user", group="role")
 class RoleUserHandler(PrivilegeReq):
 
     def get(self):
@@ -119,9 +118,9 @@ class RoleUserHandler(PrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_ROLE_USER_MANAGE)
 
         params = self.get_query_args(Schema({
-            Optional("role_id", default=None): scm_int,
-            Optional("login_user", default=None): scm_unempty_str,
-            Optional("keyword", default=None): scm_str,
+            scm_optional("role_id", default=None): scm_int,
+            scm_optional("login_user", default=None): scm_unempty_str,
+            scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         p = self.pop_p(params)
@@ -129,7 +128,7 @@ class RoleUserHandler(PrivilegeReq):
 
         with make_session() as session:
             keys = QueryEntity(
-                User.user_name,
+                User.username,
                 UserRole.role_id,
                 Role.role_name,
                 User.login_user
@@ -139,7 +138,7 @@ class RoleUserHandler(PrivilegeReq):
                 join(User, UserRole.login_user == User.login_user)
             if keyword:
                 user_role = self.query_keyword(user_role, keyword,
-                                               User.user_name,
+                                               User.username,
                                                Role.role_name)
             items, p = self.paginate(user_role, **p)
             self.resp([keys.to_dict(i) for i in items])

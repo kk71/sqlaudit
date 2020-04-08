@@ -1,6 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from functools import reduce
 from collections import defaultdict
 
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +13,7 @@ from utils.schema_utils import *
 from ..const import PRIVILEGE
 
 
-@as_view("user", group="auth")
+@as_view(group="user")
 class UserHandler(AuthReq):
 
     @classmethod

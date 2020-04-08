@@ -1,18 +1,14 @@
-
-from schema import Schema, Optional
-
 from .base import PrivilegeReq, AuthReq
 from auth.const import *
 from auth.mail import *
 from auth.user import *
-
-from utils.const import PRIVILEGE
+from ..const import PRIVILEGE
 from utils.schema_utils import *
-from models.sqlalchemy import make_session,QueryEntity
+from models.sqlalchemy import make_session, QueryEntity
 from restful_api.modules import as_view
 
 
-@as_view("sendlist", group="auth")
+@as_view("sendlist", group="mail")
 class SendListHandler(PrivilegeReq):
 
     def get(self):
@@ -21,7 +17,7 @@ class SendListHandler(PrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_MAIL_SEND)
 
         params = self.get_query_args(Schema({
-            Optional("keyword", default=None): scm_str,
+            scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
@@ -67,7 +63,6 @@ class SendListHandler(PrivilegeReq):
             "mail_sender": [scm_str],  # 收件人
             "send_date": scm_one_of_choices(ALL_SEND_DATE),
             "send_time": scm_one_of_choices(ALL_SEND_TIME),
-            # "send_content_item": scm_unempty_str,
         }))
         mail_sender = params.pop("mail_sender")
         mail_sender = ";".join(mail_sender)
@@ -84,13 +79,13 @@ class SendListHandler(PrivilegeReq):
             "send_mail_id": scm_int
         }))
         with make_session() as session:
-            session.query(SendMailList).\
-                filter(SendMailList.send_mail_id == params['send_mail_id']).\
+            session.query(SendMailList). \
+                filter(SendMailList.send_mail_id == params['send_mail_id']). \
                 delete(synchronize_session=False)
         self.resp_created("删除列表成功")
 
 
-@as_view("configsender", group="auth")
+@as_view("configsender", group="mail")
 class ConfigSenderHandler(AuthReq):
 
     def get(self):
@@ -105,13 +100,13 @@ class ConfigSenderHandler(AuthReq):
     def patch(self):
         params = self.get_json_args(Schema({
             "mail_server_name": scm_unempty_str,
-            "ip_address":scm_unempty_str,
+            "ip_address": scm_unempty_str,
             'use_ssl': scm_bool,
             "port": scm_int,
             "username": scm_unempty_str,
             "password": scm_unempty_str,
             "status": scm_bool,
-            Optional("comments", default=None): scm_str
+            scm_optional("comments", default=None): scm_str
         }))
 
         with make_session() as session:
@@ -120,13 +115,13 @@ class ConfigSenderHandler(AuthReq):
                 session.query(MailServer). \
                     filter_by(mail_server_id=mailserver.mail_server_id).update(params)
             else:
-                mailserver=MailServer(**params)
+                mailserver = MailServer(**params)
                 session.add(mailserver)
                 session.commit()
             self.resp_created(mailserver.to_dict(), msg="修改发件人配置成功")
 
 
-@as_view("sendmail", group="auth")
+@as_view("sendmail", group="mail")
 class SendMailHandler(AuthReq):
 
     def post(self):
@@ -147,7 +142,7 @@ class SendMailHandler(AuthReq):
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 
-@as_view("mailhist", group="auth")
+@as_view("mailhist", group="mail")
 class MailHistory(AuthReq):
 
     def get(self):
@@ -155,7 +150,7 @@ class MailHistory(AuthReq):
         params = self.get_query_args(Schema({
             "send_mail_id": scm_int,
 
-            Optional("keyword", default=None): scm_str,
+            scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
@@ -188,7 +183,6 @@ class MailHistory(AuthReq):
                 if x['status'] == 1:
                     res = "成功"
 
-
                 if mail_list:  # 搜索的兼容性
                     data.append({
                         'title': mail_list[0]['title'],
@@ -196,7 +190,7 @@ class MailHistory(AuthReq):
                         'receiver': users_data[x["receiver"]],
                         'create_time': x['create_time'],
                         'status': res,
-                        "download_path":x['file_path']
+                        "download_path": x['file_path']
                     })
             data = sorted(data, key=lambda time: time['create_time'], reverse=True)
             data, p = self.paginate(data, **p)
