@@ -147,7 +147,6 @@ def calc_score_by(session, cmdb, perspective, score_by) -> dict:
 
 
 def get_latest_task_record_id(
-        session,
         cmdb_id: Union[list, int, None] = None,
         status: Union[bool, None] = True,
         task_start_date_gt: Union[datetime, callable, None] =
@@ -165,10 +164,11 @@ def get_latest_task_record_id(
     """
     if callable(task_start_date_gt):
         task_start_date_gt: Union[datetime, None] = task_start_date_gt()
-    sub_q = session. \
-        query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
-        join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
-        filter(TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
+    with make_session() as session:
+        sub_q = session. \
+            query(TaskExecHistory.id.label("id"), TaskManage.cmdb_id.label("cmdb_id")). \
+            join(TaskExecHistory, TaskExecHistory.connect_name == TaskManage.connect_name). \
+            filter(TaskManage.task_exec_scripts == DB_TASK_CAPTURE)
     if cmdb_id:
         if not isinstance(cmdb_id, (tuple, list)):
             cmdb_id = [cmdb_id]

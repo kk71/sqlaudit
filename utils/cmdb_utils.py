@@ -4,6 +4,8 @@ from typing import Union
 
 import cx_Oracle
 
+from cmdb.cmdb import CMDB
+from models.sqlalchemy import make_session
 from models.sqlalchemy import *
 from utils.datetime_utils import *
 from utils.perf_utils import *
@@ -12,26 +14,6 @@ from auth import privilege_utils
 from plain_db.oracleob import OracleOB
 
 import plain_db.oracleob
-
-
-def get_current_cmdb(session, user_login, id_name="cmdb_id") -> [str]:
-    """
-    获取某个用户可见的cmdb
-    :param session:
-    :param user_login:
-    :param id_name: 返回的唯一键值，默认是cmdb_id，亦可选择connect_name
-    :return: [cmdb_id或者connect_name, ...]
-    """
-    role_ids: list = list(privilege_utils.get_role_of_user(login_user=user_login).
-                          get(user_login, set([])))
-    if id_name == "cmdb_id":
-        return [i[0] for i in session.query(RoleDataPrivilege.cmdb_id.distinct()).
-                join(CMDB, CMDB.cmdb_id == RoleDataPrivilege.cmdb_id).
-                filter(RoleDataPrivilege.role_id.in_(role_ids))]
-    elif id_name == "connect_name":
-        return [i[0] for i in session.query(CMDB.connect_name.distinct()).
-                join(RoleDataPrivilege, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id).
-                filter(RoleDataPrivilege.role_id.in_(role_ids))]
 
 
 def get_current_schema(
@@ -116,45 +98,6 @@ def get_cmdb_available_schemas(cmdb_object) -> [str]:
     schemas = [x[0] for x in odb.select(sql, one=False)]
     # TODO 需要判断 cx_Oracle.DatabaseError
     return schemas
-
-
-@timing()
-def get_latest_cmdb_score(session, collect_month=1) -> dict:
-    """
-    查询纳管库最近一次评分信息
-    :param session:
-    :param collect_month: 评分时限(月内)
-    :return: {cmdb_id: StatsCMDBRate, ...}
-    """
-    task_record_ids = list(score_utils.get_latest_task_record_id(session).values())
-    all_cmdb_ids = QueryEntity.to_plain_list(session.query(CMDB.cmdb_id))
-    q = StatsCMDBRate.objects(
-        etl_date__gte=arrow.now().shift(months=-collect_month).datetime,
-        task_record_id__in=task_record_ids
-    )
-    cmdb_id_stats_cmdb_rate_pairs = {i.cmdb_id: i for i in q}
-    return {
-        cmdb_id: cmdb_id_stats_cmdb_rate_pairs.get(cmdb_id, StatsCMDBRate(cmdb_id=cmdb_id))
-        for cmdb_id in all_cmdb_ids  # 保证一定能取到
-    }
-
-
-def test_cmdb_connectivity(cmdb):
-    """
-    测试纳管数据库的连接性
-    :param cmdb:
-    :return:
-    """
-    conn = None
-    try:
-        dsn = cx_Oracle.makedsn(cmdb.ip_address, str(cmdb.port), cmdb.service_name)
-        # TODO default timeout is too long(60s)
-        conn = cx_Oracle.connect(cmdb.user_name, cmdb.password, dsn)
-    except Exception as e:
-        return {"connectivity": False, "info": str(e)}
-    finally:
-        conn and conn.close()
-    return {"connectivity": True, "info": ""}
 
 
 def get_cmdb_bound_schema(session, cmdb_or_cmdb_id: Union[object, int]):
