@@ -1,139 +1,57 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import jwt
-import arrow
 from functools import reduce
 from collections import defaultdict
-from schema import Schema, Optional
+
 from sqlalchemy.exc import IntegrityError
 
-from .base import AuthReq
-from auth.user import User, Role, UserRole, RolePrivilege
-
 import settings
-from cmdb.cmdb import CMDB
-from restful_api.base import BaseReq
+from models.sqlalchemy import *
+from .base import *
+from ..user import *
 from restful_api.modules import as_view
 from utils.schema_utils import *
-from utils.const import PRIVILEGE
-from models.sqlalchemy import make_session, QueryEntity
-from oracle_cmdb.cmdb import RoleDataPrivilege
-
-
-@as_view("user", group="auth")
-class AuthHandler(BaseReq):
-
-    def post(self):
-        """登录"""
-
-        params = self.get_json_args(Schema({
-            "login_user": scm_unempty_str,
-            "password": scm_unempty_str
-        }))
-
-        with make_session() as session:
-            if session.query(User).filter_by(login_user=params["login_user"]).count() == 1:
-                params["status"] = 1
-                user = session.query(User).filter_by(**params).first()
-                if not user:
-                    user = session.query(User).filter_by(login_user=params["login_user"]).first()
-                    user.last_login_failure_time = arrow.now().datetime
-                    user.login_retry_counts += 1
-                    session.add(user)
-                    return self.resp_bad_username_password(msg="请检查用户名密码，并确认该用户是启用状态。")
-                # login successfully
-                user.last_login_ip = self.request.remote_ip
-                user.login_counts = user.login_counts + 1
-                user.last_login_time = arrow.now().datetime
-                session.add(user)
-                token = jwt.encode(
-                    {
-                        "login_user": user.login_user,
-                        "timestamp": arrow.now().timestamp
-                    },
-                    key=settings.JWT_SECRET,
-                    algorithm=settings.JWT_ALGORITHM
-                )
-                content = user.to_dict()
-                content["token"] = token.decode("ascii")
-                return self.resp_created(content)
-            self.resp_bad_username_password(msg="请检查用户名密码，并确认该用户是启用状态。")
-
-
-@as_view("user", group="auth")
-class CurrentUserHandler(AuthReq):
-
-    def get(self):
-        """查看token的登录用户信息"""
-        with make_session() as session:
-            current_user_object = session.query(User). \
-                filter(User.login_user == self.current_user).first()
-            if not current_user_object:
-                return self.resp_unauthorized(msg="当前登录用户不存在。")
-            self.resp(current_user_object.to_dict())
+from ..const import PRIVILEGE
 
 
 @as_view("user", group="auth")
 class UserHandler(AuthReq):
 
+    @classmethod
+    def filter_user(cls, session, has_privilege: [str] = None) -> sqlalchemy_q:
+        """过滤用户列表"""
+        user_q = session.query(User)
+        if has_privilege:
+            login_users = [settings.ADMIN_LOGIN_USER]
+            login_user_privilege_id_dict = defaultdict(set)
+            qe = QueryEntity(User.login_user, RolePrivilege.privilege_id)
+            login_user_privilege_id = session.query(*qe). \
+                join(UserRole, User.login_user == UserRole.login_user). \
+                join(RolePrivilege, UserRole.role_id == RolePrivilege.role_id). \
+                filter(RolePrivilege.privilege_id.in_(has_privilege))
+            for login_user, privilege_id in login_user_privilege_id:
+                login_user_privilege_id_dict[login_user].add(privilege_id)
+            for login_user, privilege_ids in login_user_privilege_id_dict.items():
+                if privilege_ids == set(has_privilege):
+                    login_users.append(login_user)
+            user_q = user_q.filter(User.login_user.in_(login_users))
+        return user_q
+
     def get(self):
         """用户列表"""
         params = self.get_query_args(Schema({
-            Optional("has_privilege", default=None):
-                And(scm_dot_split_str, scm_subset_of_choices(PRIVILEGE.get_all_privilege_id())),
+            scm_optional("has_privilege", default=None): And(
+                scm_dot_split_str,
+                scm_subset_of_choices(PRIVILEGE.get_all_privilege_id())
+            ),
             **self.gen_p()
         }))
         p = self.pop_p(params)
         has_privilege = params.pop("has_privilege")
         with make_session() as session:
-            user_q = session.query(User)
-            if has_privilege:
-                login_users = [settings.ADMIN_LOGIN_USER]
-                login_user_privilege_id_dict = defaultdict(set)
-                qe = QueryEntity(User.login_user, RolePrivilege.privilege_id)
-                login_user_privilege_id = session.query(*qe). \
-                    join(UserRole, User.login_user == UserRole.login_user). \
-                    join(RolePrivilege, UserRole.role_id == RolePrivilege.role_id). \
-                    filter(RolePrivilege.privilege_id.in_(has_privilege))
-                for login_user, privilege_id in login_user_privilege_id:
-                    login_user_privilege_id_dict[login_user].add(privilege_id)
-                for login_user, privilege_ids in login_user_privilege_id_dict.items():
-                    if privilege_ids == set(has_privilege):
-                        login_users.append(login_user)
-                user_q = user_q.filter(User.login_user.in_(login_users))
+            user_q = self.filter_user(session, has_privilege)
             items, p = self.paginate(user_q, **p)
             to_ret = [i.to_dict() for i in items]
-            # TODO 这里给to_ret每个用户加上绑定的角色列表（包含角色id和角色名），
-            #  以及纳管库的信息列表（connect_name, cmdb_id）
-            for x in to_ret:
-                keys = QueryEntity(
-                    UserRole.role_id,
-                    Role.role_name,
-                    User.login_user
-                )
-                user_role = session.query(*keys). \
-                    join(Role, UserRole.role_id == Role.role_id). \
-                    join(User, UserRole.login_user == User.login_user)
-                user_role = [list(x) for x in user_role]
-                user_role = [y for y in user_role if x['login_user'] in y]
-                x['role'] = [{'role_id': a[0], 'role_name': a[1]} for a in user_role]
-
-                qe = QueryEntity(CMDB.connect_name,
-                                 CMDB.cmdb_id,
-                                 RoleDataPrivilege.schema_name,
-                                 RoleDataPrivilege.create_date,
-                                 RoleDataPrivilege.comments,
-                                 Role.role_name,
-                                 Role.role_id)
-                role_cmdb = session.query(*qe). \
-                    join(CMDB, RoleDataPrivilege.cmdb_id == CMDB.cmdb_id). \
-                    join(Role, Role.role_id == RoleDataPrivilege.role_id)
-
-                role_cmdb = [list(x) for x in role_cmdb]
-                role_cmdb = [b for b in role_cmdb for c in x['role'] if c['role_id'] in b]
-
-                x['cmdbs'] = reduce(lambda x, y: x if y in x else x + [y],
-                                    [[], ] + [{'connect_name': a[0], 'cmdb_id': a[1]} for a in role_cmdb])
             self.resp(to_ret, **p)
 
     def post(self):
@@ -142,10 +60,10 @@ class UserHandler(AuthReq):
             "login_user": scm_unempty_str,
             "user_name": scm_unempty_str,
             "password": scm_unempty_str,
-            "email": scm_unempty_str,
+            "email": scm_str,
             "mobile_phone": scm_str,
             "department": scm_str,
-            "status": scm_int,
+            "status": scm_bool,
         }))
         with make_session() as session:
             try:
@@ -161,13 +79,14 @@ class UserHandler(AuthReq):
         """修改用户"""
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
-            Optional("user_name"): scm_unempty_str,
-            Optional("old_password", default=None): scm_unempty_str,
-            Optional("password"): scm_unempty_str,
-            Optional("email"): scm_unempty_str,
-            Optional("mobile_phone"): scm_str,
-            Optional("department"): scm_str,
-            Optional("status"): scm_int,
+
+            scm_optional("user_name"): scm_unempty_str,
+            scm_optional("old_password", default=None): scm_unempty_str,
+            scm_optional("password"): scm_unempty_str,
+            scm_optional("email"): scm_unempty_str,
+            scm_optional("mobile_phone"): scm_str,
+            scm_optional("department"): scm_str,
+            scm_optional("status"): scm_int,
         }))
         old_password = params.pop("old_password")
 

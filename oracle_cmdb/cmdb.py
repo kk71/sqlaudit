@@ -2,7 +2,7 @@
 
 __all__ = [
     "OracleCMDB",
-    "RoleDataPrivilege"
+    "RoleCMDBSchema"
 ]
 
 from sqlalchemy import Column, String, Boolean,Integer
@@ -34,8 +34,9 @@ class OracleCMDB(CMDB):
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
 
 
-class RoleDataPrivilege(BaseModel):
-    """角色的数据权限"""
+class RoleCMDBSchema(BaseModel):
+    """角色-oracle库-schema的绑定关系"""
+    __tablename__ = "role_cmdb_schema"
 
     id = Column("id", Integer)
     role_id = Column("role_id", Integer)
