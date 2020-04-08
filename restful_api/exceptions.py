@@ -6,7 +6,8 @@ class BaseAPIException(Exception):
     pass
 
 
-class SchemaErrorWithMessageResponsed(BaseAPIException):
+class SchemaErrorWithMessage(BaseAPIException):
+    """schema处理的时候抛出异常"""
     pass
 
 

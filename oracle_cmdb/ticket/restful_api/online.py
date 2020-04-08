@@ -5,17 +5,17 @@ import traceback
 
 from cx_Oracle import DatabaseError
 
-import utils.const
 import ticket.const
 import ticket.restful_api.online
+from auth.const import PRIVILEGE
 from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from restful_api.modules import *
-# from utils import cmdb_utils
 from ..ticket import OracleTicket
 from ..sub_ticket import OracleSubTicket
 from ..analyse import OracleSubTicketAnalyse
+from ...cmdb import *
 
 
 @as_view("overview", group="ticket")
@@ -23,8 +23,9 @@ class OracleTicketOnlineOverviewHandler(
         ticket.restful_api.online.OnlineOverviewHandler):
 
     def get(self):
+        """oracle工单自助上线的页面数据"""
 
-        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
+        self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
 
         params = self.get_query_args(Schema({
             "duration": And(scm_unempty_str, scm_one_of_choices(("week", "month"))),
@@ -80,8 +81,9 @@ class OracleTicketOnlineExecuteHandler(
         ticket.restful_api.online.OnlineExecuteHandler):
 
     def post(self):
+        """oracle工单操作上线"""
 
-        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
+        self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
 
         params = self.get_json_args(Schema({
             "ticket_id": scm_unempty_str
@@ -92,7 +94,8 @@ class OracleTicketOnlineExecuteHandler(
             with make_session() as session:
                 the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
                 sub_ticket_q = OracleSubTicket.objects(ticket_id=the_ticket.ticket_id)
-                cmdb = session.query(CMDB).filter(CMDB.cmdb_id == the_ticket.cmdb_id).first()
+                cmdb = session.query(OracleCMDB).filter(
+                    OracleCMDB.cmdb_id == the_ticket.cmdb_id).first()
                 if not cmdb.allow_online:
                     return self.resp_forbidden("当前库不允许自助上线")
 
@@ -103,7 +106,7 @@ class OracleTicketOnlineExecuteHandler(
                 for sub_ticket in sub_ticket_q:
                     online_date = datetime.now()
                     start = time.time()
-                    u_p = ticket.to_dict(
+                    u_p = the_ticket.to_dict(
                         iter_if=lambda k, v: k in ("online_username", "online_password"),
                         iter_by=lambda k, v: getattr(cmdb,
                                                      {"online_username": "user_name",

@@ -15,7 +15,8 @@ from ..ticket import *
 class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     def get(self):
-        """获取上传的临时sql数据"""
+        """获取上传的临时sql脚本数据"""
+
         params = self.get_query_args(Schema({
             "script_id": scm_str,
             scm_optional("keyword", default=None): scm_str,
@@ -33,7 +34,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         self.resp([sql.to_dict() for sql in sqls], **p)
 
     def patch(self):
-        """编辑上传的临时sql数据"""
+        """编辑上传的临时sql脚本数据"""
+
         params = self.get_json_args(Schema({
             "statement_id": scm_str,
 

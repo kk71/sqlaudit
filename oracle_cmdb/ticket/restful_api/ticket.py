@@ -6,6 +6,7 @@ from restful_api.modules import *
 from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from ..ticket import OracleTicket
+from ...cmdb import *
 from .. import ticket_utils, task
 from ticket.task_name_utils import *
 
@@ -29,7 +30,8 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
         script_ids: list = params.pop("script_ids")
 
         with make_session() as session:
-            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == params["cmdb_id"]).first()
+            cmdb = session.query(OracleCMDB).filter(
+                OracleCMDB.cmdb_id == params["cmdb_id"]).first()
             if not ticket_utils.check_cmdb_privilege(cmdb):
                 return self.resp_forbidden(
                     msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"

@@ -15,7 +15,7 @@ from ..cmdb import *
 class RoleCMDBSchemaRelationHandler(PrivilegeReq):
 
     def get(self):
-        """角色-oracle库-schema的绑定关系查询"""
+        """数据权限：角色-oracle库-schema的绑定关系查询"""
 
         self.acquire(PRIVILEGE.PRIVILEGE_ROLE_DATA_PRIVILEGE)
 
@@ -58,7 +58,7 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
             self.resp([qe.to_dict(i) for i in perm_datas], **p)
 
     def patch(self):
-        """角色-oracle库-schema的绑定关系修改"""
+        """数据权限：角色-oracle库-schema的绑定关系修改"""
         params = self.get_json_args(Schema({
             "role_id": scm_gt0_int,
             "cmdbs": [
@@ -108,7 +108,7 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
         return self.resp_created(msg="分配权限成功")
 
     def delete(self):
-        """角色-oracle库-schema的绑定关系删除"""
+        """数据权限：角色-oracle库-schema的绑定关系删除"""
         params = self.get_json_args(Schema({
             'cmdb_id': scm_int,
             'role_id': scm_int,

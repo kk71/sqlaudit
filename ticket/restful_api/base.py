@@ -4,7 +4,7 @@ __all__ = [
     "TicketReq"
 ]
 
-import utils.const
+from auth.const import PRIVILEGE
 from models.mongoengine import *
 from utils.schema_utils import *
 from ..ticket import Ticket, const
@@ -23,11 +23,11 @@ class TicketReq(PrivilegeReq):
 
     def privilege_filter_ticket(self, q: mongoengine_qs) -> mongoengine_qs:
         """根据登录用户的权限过滤工单"""
-        if self.has(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
+        if self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
             # 超级权限，可看所有的工单
             pass
 
-        elif self.has(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
+        elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
             # 能看:自己提交的工单+指派给自己所在角色的工单+自己处理了的工单
             q = q.filter(
                 Q(submit_owner=self.current_user) |
@@ -43,11 +43,11 @@ class TicketReq(PrivilegeReq):
 
     def privilege_filter_sub_ticket(self, q: mongoengine_qs) -> mongoengine_qs:
         """根据登录用户的权限过滤子工单"""
-        if self.has(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
+        if self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_ADMIN):
             # 超级权限，可看所有子工单
             pass
 
-        elif self.has(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
+        elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
             # 能看:自己提交的子工单+指派给自己所在角色的子工单+自己处理过了的工单
             sq = Ticket.objects(
                 Q(submit_owner=self.current_user) |

@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from hashlib import md5
-
 import settings
 from models import init_models
 
@@ -10,6 +8,7 @@ from models import init_models
 init_models()
 
 from models.sqlalchemy import make_session
+from auth.user import User
 
 
 def main():
@@ -18,8 +17,9 @@ def main():
         default_password = "123456"
         admin = User(
             login_user=settings.ADMIN_LOGIN_USER,
-            user_name="系统管理员",
-            password=md5(default_password.encode("utf-8")).hexdigest())
+            username="系统管理员"
+        )
+        admin.set_password(default_password)
         session.add(admin)
     print(f"admin user named {settings.ADMIN_LOGIN_USER} created "
           f"with password {default_password}")

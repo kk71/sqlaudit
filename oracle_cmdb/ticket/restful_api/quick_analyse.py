@@ -16,7 +16,8 @@ from rule.rule_jar import *
 class QuickSQLAnalyse(AuthReq):
 
     def post(self):
-        """快速单条sql分析（仅静态）"""
+        """oracle快速SQL分析（仅静态规则）"""
+
         params = self.get_json_args(Schema({
             "sql_text": scm_unempty_str
         }))

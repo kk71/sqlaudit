@@ -4,7 +4,7 @@ import settings
 from os import path
 from collections import defaultdict
 
-import utils.const
+from auth.const import PRIVILEGE
 from ticket import const
 from .base import *
 from utils.schema_utils import *
@@ -12,7 +12,8 @@ from utils.datetime_utils import *
 from utils.conc_utils import AsyncTimeout
 from ..sub_ticket import SubTicket
 from ..ticket import Ticket
-from models.sqlalchemy import make_session
+from cmdb.cmdb import *
+from models.sqlalchemy import *
 from restful_api.modules import *
 
 
@@ -20,8 +21,9 @@ from restful_api.modules import *
 class ArchiveHandler(TicketReq):
 
     def get(self):
-        """线下工单的外层归档列表，按照日期，工单类型，审核结果来归档"""
-        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
+        """(DEPRECATED)线下工单的外层归档列表，按照日期，工单类型，审核结果来归档"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
             scm_optional("status", default=None): self.scm_status,
@@ -91,7 +93,7 @@ class TicketHandler(TicketReq):
     def get(self):
         """工单列表"""
 
-        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE)
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
             scm_optional("status"): self.scm_status,
@@ -148,8 +150,9 @@ class TicketHandler(TicketReq):
         raise NotImplementedError
 
     def patch(self):
-        """编辑工单状态"""
-        self.acquire(utils.const.PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
+        """编辑工单(通过拒绝，评价)"""
+
+        self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
 
         params = self.get_json_args(Schema({
             "ticket_id": scm_str,
@@ -168,6 +171,7 @@ class TicketHandler(TicketReq):
 
     def delete(self):
         """删除工单"""
+
         params = self.get_json_args(Schema({
             "ticket_id": scm_str
         }))
@@ -185,6 +189,7 @@ class TicketExportHandler(TicketReq):
 
     async def get(self):
         """导出工单"""
+
         params = self.get_query_args(Schema({
             "ticket_id": scm_unempty_str
         }))

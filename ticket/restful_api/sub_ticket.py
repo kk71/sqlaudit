@@ -90,7 +90,7 @@ class SubTicketHandler(TicketReq):
         self.resp([i.to_dict() for i in items], **p)
 
     def patch(self):
-        """编辑单个子工单"""
+        """编辑子工单"""
         params = self.get_json_args(Schema({
             "statement_id": scm_unempty_str,
 

@@ -16,6 +16,7 @@ class SQLPlanHandler(TicketReq):
 
     def get(self):
         """获取子工单单条sql语句的执行计划"""
+
         params = self.get_query_args(Schema({
             "statement_id": scm_unempty_str,
             scm_optional("plan_id"): scm_gt0_int
@@ -66,7 +67,8 @@ class SQLPlanHandler(TicketReq):
 class SubTicketIssueHandler(TicketReq):
 
     def patch(self):
-        """修改子工单内的规则，修改后重新计算工单的分数"""
+        """删除子工单内的issue，修改后重新计算工单的分数"""
+
         params = self.get_json_args(Schema({
             "statement_id": scm_unempty_str,
             "ticket_rule_name": scm_unempty_str,

@@ -25,7 +25,7 @@ class BaseReq(RequestHandler):
 
         def s(*args, **kwargs):
             self.resp_bad_req(msg=e)
-            raise exceptions.SchemaErrorWithMessageResponsed(e)
+            raise exceptions.SchemaErrorWithMessage(e)
 
         return s
 
