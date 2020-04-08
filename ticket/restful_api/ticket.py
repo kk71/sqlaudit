@@ -17,7 +17,6 @@ from models.sqlalchemy import *
 from restful_api.modules import *
 
 
-@as_view("archive", group="ticket")
 class ArchiveHandler(TicketReq):
 
     def get(self):

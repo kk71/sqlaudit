@@ -7,6 +7,7 @@ __all__ = [
 
 from sqlalchemy import Column, String, Boolean,Integer
 
+from . import exceptions
 from cmdb.cmdb import CMDB
 from models.sqlalchemy import BaseModel
 from .plain_db import OraclePlainConnector
@@ -29,7 +30,8 @@ class OracleCMDB(CMDB):
         elif self.service_name:
             ret_params.append("service_name")
         else:
-            assert 0
+            raise exceptions.OracleCMDBBadConfigured(
+                "neither sid nor service_name is set")
         return OraclePlainConnector(
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
 

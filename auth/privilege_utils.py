@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 from collections import defaultdict
-from typing import Union
 
 from .const import *
 from .exceptions import *

@@ -1,13 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema, Optional, And
+from schema import Optional
 from cx_Oracle import DatabaseError
 
 from .base import AuthReq, PrivilegeReq
 from models.oracle import *
 from utils.schema_utils import *
-from utils import cmdb_utils, const, task_utils, score_utils
-from utils.conc_utils import *
+from utils import cmdb_utils, const
+from task import utils
 from past import mkdata
 
 
@@ -49,7 +49,7 @@ class TaskHandler(PrivilegeReq):
             current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not self.is_admin():
                 task_q = task_q.filter(TaskManage.cmdb_id.in_(current_cmdb_ids))
-            ret = await task_utils.get_task(
+            ret = await utils.get_task(
                 session, task_q, execution_status=execution_status)
             items, p = self.paginate(ret, **p)
             self.resp(items, **p)
@@ -119,7 +119,7 @@ class FlushCeleryQ(AuthReq):
     def post(self):
         """清理待采集队列"""
         self.acquire_admin()
-        task_utils.flush_celery_q()
+        utils.flush_celery_q()
         self.resp_created(msg="已清理待采集队列")
 
 
