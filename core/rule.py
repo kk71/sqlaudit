@@ -40,9 +40,10 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
         """返回code的模板"""
         pass
 
+    @abc.abstractmethod
     def unique_key(self) -> tuple:
         """返回一个规则的唯一标识"""
-        return self.db_type, self.name
+        pass
 
 
 class BaseRuleJar(abc.ABC):

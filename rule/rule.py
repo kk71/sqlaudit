@@ -78,27 +78,30 @@ class Rule(
         core.rule.BaseRuleItem,
         metaclass=ABCTopLevelDocumentMetaclass):
     """规则"""
+    cmdb_id = IntField()  # 规则绑定到库
     name = StringField(required=True)
     desc = StringField(required=True)
     db_type = StringField(
         required=True,
         choices=utils.const.ALL_SUPPORTED_DB_TYPE,
         default=utils.const.DB_ORACLE)
-    entries = ListField(default=lambda: [], choices=const.ALL_RULE_ENTRIES)
+    entries = ListField(default=list, choices=const.ALL_RULE_ENTRIES)
     input_params = EmbeddedDocumentListField(RuleInputParams)
     output_params = EmbeddedDocumentListField(RuleOutputParams)
     code = StringField(required=True)
     status = BooleanField(default=True)
     summary = StringField()  # 比desc更详细的一个规则解说
-    solution = ListField(default=lambda: [])
+    solution = ListField(default=list)
     weight = FloatField(required=True)
     max_score = IntField()
-    level = IntField(choices=const.ALL_RULE_LEVELS)  # 规则等级
+    level = IntField(
+        default=const.RULE_LEVEL_WARNING,
+        choices=const.ALL_RULE_LEVELS)  # 规则等级
 
     meta = {
-        "collection": "ticket_rule",
+        "collection": "rule",
         'indexes': [
-            {'fields': ("db_type", "name"), 'unique': True},
+            {'fields': ("cmdb_id", "name"), 'unique': True},
             "name",
             "db_type",
             "entries",
@@ -167,6 +170,9 @@ code_hole.append(code)  # 务必加上这一句
         """
         return {i["name"]: i["value"]
                 for i in self.to_dict()["input_params"]}[param_name]
+
+    def unique_key(self) -> tuple:
+        return self.cmdb_id, self.name
 
     @staticmethod
     def construct_code(code: str) -> Callable:
