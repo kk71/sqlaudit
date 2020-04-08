@@ -79,7 +79,7 @@ class ObjTabInfo(SchemaObjectCapturingDoc):
         obj_owner: str = kwargs["obj_owner"]
         cmdb_connector: OraclePlainConnector = kwargs["cmdb_connector"]
 
-        phy_size: dict = cmdb_connector.select_dict(f"""
+        phy_size: [dict] = cmdb_connector.select_dict(f"""
     select segment_name, sum(t.bytes) / 1024 / 1024 as tab_space
     from dba_segments t
     where t.owner = '{obj_owner}'
