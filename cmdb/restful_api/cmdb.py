@@ -21,8 +21,10 @@ from auth.restful_api.base import AuthReq
 from ticket.ticket import Ticket
 from ticket.sub_ticket import SubTicket
 from oracle_cmdb.cmdb import RoleCMDBSchema
+from restful_api.modules import as_view
 
 
+@as_view("cmdb", group="cmdb")
 class CMDBHandler(AuthReq):
 
     async def get(self):
