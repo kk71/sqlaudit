@@ -10,7 +10,7 @@ from .base import *
 class CMDBRuleHandler(BaseRuleHandler):
 
     def get(self):
-        """墨盒规则列表"""
+        """库规则列表"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_gt0_int,
             scm_optional("status"): scm_bool,
@@ -21,49 +21,61 @@ class CMDBRuleHandler(BaseRuleHandler):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
 
-        rc_q = CMDBRule.objects(**params)
+        cr_q = CMDBRule.objects(**params)
         if keyword:
-            rc_q = self.query_keyword(rc_q, keyword,
+            cr_q = self.query_keyword(cr_q, keyword,
                                       "name", "desc", "db_type", "summary")
-        ret, p = self.paginate(rc_q, **p)
+        ret, p = self.paginate(cr_q, **p)
         self.resp([i.to_dict() for i in ret], **p)
 
     def post(self):
-        """新增墨盒规则"""
+        """新增库规则"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_gt0_int,
             **self.base_rule_schema_for_adding()
         }))
-        new_rc = CMDBRule(**params)
-        self.test_code(new_rc)
-        new_rc.save()
-        self.resp_created(new_rc.to_dict())
+        new_cr = CMDBRule(**params)
+        self.test_code(new_cr)
+        new_cr.save()
+        self.resp_created(new_cr.to_dict())
 
     def put(self):
-        """通用修改墨盒规则"""
+        """通用修改库规则"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_gt0_int,
             "name": scm_unempty_str,
+
             **self.base_rule_schema_for_whole_updating()
         }))
         cmdb_id = params.pop("cmdb_id")
         name = params.pop("name")
-        the_rc = CMDBRule.objects(cmdb_id=cmdb_id, name=name).first()
-        the_rc.from_dict(params)
-        self.test_code(the_rc)
-        the_rc.save()
-        self.resp_created(the_rc.to_dict())
+        the_cr = CMDBRule.objects(cmdb_id=cmdb_id, name=name).first()
+        the_cr.from_dict(params)
+        self.test_code(the_cr)
+        the_cr.save()
+        self.resp_created(the_cr.to_dict())
 
     def patch(self):
-        """修改墨盒规则(输入参数，输出参数，入口)"""
-        pass
+        """修改库规则(输入参数，输出参数，入口)"""
+        params = self.get_json_args(Schema({
+            "cmdb_id": scm_gt0_int,
+            "name": scm_unempty_str,
+
+            **self.base_rule_schema_for_special_updating()
+        }))
+        cmdb_id = params.pop("cmdb_id")
+        name = params.pop("name")
+        the_cr = CMDBRule.objects(cmdb_id=cmdb_id, name=name).first()
+        self.special_update(the_cr, **params)
+        self.save()
+        self.resp_created(the_cr.to_dict())
 
     def delete(self):
-        """删除墨盒规则"""
+        """删除库规则"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_gt0_int,
             "name": scm_unempty_str
         }))
-        the_rc = CMDBRule.objects(**params).first()
-        the_rc.delete()
+        the_cr = CMDBRule.objects(**params).first()
+        the_cr.delete()
         self.resp_created(msg="已删除")

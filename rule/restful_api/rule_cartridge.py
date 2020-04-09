@@ -45,6 +45,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         params = self.get_json_args(Schema({
             "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
             "name": scm_unempty_str,
+
             **self.base_rule_schema_for_whole_updating()
         }))
         db_type = params.pop("db_type")
@@ -58,6 +59,18 @@ class RuleCartridgeHandler(BaseRuleHandler):
     def patch(self):
         """修改墨盒规则(输入参数，输出参数，入口)"""
         pass
+        params = self.get_json_args(Schema({
+            "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
+            "name": scm_unempty_str,
+
+            **self.base_rule_schema_for_special_updating()
+        }))
+        db_type = params.pop("db_type")
+        name = params.pop("name")
+        the_cr = RuleCartridge.objects(db_type=db_type, name=name).first()
+        self.special_update(the_cr, **params)
+        self.save()
+        self.resp_created(the_cr.to_dict())
 
     def delete(self):
         """删除墨盒规则"""

@@ -1,8 +1,8 @@
-
 from utils import privilege_utils
 from models.sqlalchemy import make_session
 from cmdb.cmdb import CMDB
 from oracle_cmdb.cmdb import RoleCMDBSchema
+
 
 def get_current_cmdb(user_login, id_name="cmdb_id") -> [str]:
     """
