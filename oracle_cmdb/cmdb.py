@@ -5,6 +5,7 @@ __all__ = [
     "RoleOracleCMDBSchema"
 ]
 
+import cx_Oracle
 from sqlalchemy import Column, String, Boolean, Integer
 
 from . import exceptions
@@ -38,6 +39,32 @@ class OracleCMDB(CMDB):
                 "neither sid nor service_name is set")
         return OraclePlainConnector(
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
+
+    def get_available_schemas(self) -> [str]:
+        """获取可用的全部schema"""
+        sql = """
+            SELECT username
+            FROM dba_users
+            WHERE username  NOT IN (
+             'SYS', 'OUTLN', 'SYSTEM', 'CTXSYS', 'DBSNMP','DIP','ORACLE_OCM','APPQOSSYS','WMSYS','EXFSYS','CTXSYS','ANONYMOUS',
+             'LOGSTDBY_ADMINISTRATOR', 'ORDSYS','XDB','XS$NULL','SI_INFORMTN_SCHEMA','ORDDATA','OLAPSYS','MDDATA','SPATIAL_WFS_ADMIN_USR',
+             'ORDPLUGINS', 'OEM_MONITOR', 'WKSYS', 'WKPROXY','SPATIAL_CSW_ADMIN_USR','SPATIAL_CSW_ADMIN_USR','SYSMAN','MGMT_VIEW','FLOWS_FILES',
+             'WK_TEST', 'WKUSER', 'MDSYS', 'LBACSYS', 'DMSYS','APEX_030200','APEX_PUBLIC_USER','OWBSYS','OWBSYS_AUDIT','OSE$HTTP$ADMIN',
+             'WMSYS', 'OLAPDBA', 'OLAPSVR', 'OLAP_USER','SCOTT','AURORA$JIS$UTILITY$','BLAKE','JONES','ADAMS','CLARK','MTSSYS',
+             'OLAPSYS', 'EXFSYS', 'SYSMAN', 'MDDATA','AURORA$ORB$UNAUTHENTICATED', 'SI_INFORMTN_SCHEMA', 'XDB', 'ODM')
+            ORDER BY username ASC
+            """
+        schemas = [x[0] for x in self.build_connector().select(sql, one=False)]
+        # TODO 需要判断 cx_Oracle.DatabaseError
+        return schemas
+
+    def test_connectivity(self) -> bool:
+        """测试连接性"""
+        try:
+            self.build_connector()
+        except Exception as e:
+            return False
+        return True
 
 
 class RoleOracleCMDBSchema(BaseModel):

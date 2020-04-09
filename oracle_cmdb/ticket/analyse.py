@@ -12,7 +12,7 @@ from cx_Oracle import DatabaseError
 
 import ticket.const
 import ticket.exceptions
-import utils.const
+import cmdb.const
 import ticket.sub_ticket
 from models.mongoengine import *
 from plain_db.oracleob import *
@@ -25,7 +25,7 @@ from .sql_plan import OracleTicketSQLPlan
 class OracleSubTicketAnalyse(SubTicketAnalyse):
     """oracle子工单分析"""
 
-    db_type = utils.const.DB_ORACLE
+    db_type = cmdb.const.DB_ORACLE
 
     @staticmethod
     def sql_filter_annotation(sql):
@@ -129,7 +129,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
             ticket_id=str(self.ticket.ticket_id),
             task_name=self.ticket.task_name,
             cmdb_id=self.cmdb.cmdb_id,
-            db_type=utils.const.DB_ORACLE,
+            db_type=cmdb.const.DB_ORACLE,
             schema_name=self.schema_name,
             **single_sql
         )

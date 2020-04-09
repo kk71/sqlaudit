@@ -16,7 +16,7 @@ from schema import Or, SchemaError, Use
 
 import core.rule
 import core.issue
-import utils.const
+import cmdb.const
 from utils.schema_utils import *
 from . import exceptions
 from . import const
@@ -83,8 +83,8 @@ class BaseRule(
     desc = StringField(required=True)
     db_type = StringField(
         required=True,
-        choices=utils.const.ALL_SUPPORTED_DB_TYPE,
-        default=utils.const.DB_ORACLE)
+        choices=cmdb.const.ALL_DB_TYPE,
+        default=cmdb.const.DB_ORACLE)
     entries = ListField(default=list, choices=const.ALL_RULE_ENTRIES)
     input_params = EmbeddedDocumentListField(RuleInputParams)
     output_params = EmbeddedDocumentListField(RuleOutputParams)

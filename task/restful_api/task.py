@@ -4,7 +4,7 @@ from sqlalchemy.exc import DatabaseError
 
 from utils.schema_utils import *
 from auth.const import PRIVILEGE
-from utils import const, cmdb_utils
+from utils import const
 from task import utils
 from task.task import *
 from models.sqlalchemy import make_session
