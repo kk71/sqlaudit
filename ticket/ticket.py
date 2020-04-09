@@ -16,7 +16,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     ObjectIdField
 from bson.objectid import ObjectId
 
-import utils.const
+import cmdb.const
 from .parsed_sql import ParsedSQL
 from core.ticket import *
 from models.mongoengine import *
@@ -32,7 +32,7 @@ class TicketScript(
 
     script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
     script_name = StringField()
-    db_type = StringField(choices=utils.const.ALL_SUPPORTED_DB_TYPE)
+    db_type = StringField(choices=cmdb.const.ALL_DB_TYPE)
     sub_ticket_count = IntField(default=0)
 
     def __repr__(self):

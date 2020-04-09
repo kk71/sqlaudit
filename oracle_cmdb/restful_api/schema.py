@@ -1,9 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from restful_api.modules import *
-from auth.restful_api.base import *
-from utils.schema_utils import *
-from models.sqlalchemy import *
 from cmdb.restful_api.cmdb import *
 
 

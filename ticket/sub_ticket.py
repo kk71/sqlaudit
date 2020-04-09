@@ -1,5 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "SubTicket",
+    "SubTicketIssue"
+]
+
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, \
     EmbeddedDocument, DictField
@@ -10,7 +15,7 @@ from core.ticket import *
 from core.issue import *
 from models.mongoengine import *
 from .ticket import TicketScript
-from rule.rule import Rule
+from rule.rule import CMDBRule
 
 
 class SubTicketIssue(
@@ -31,7 +36,7 @@ class SubTicketIssue(
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def as_issue_of(self, the_rule: Rule, output_data: dict):
+    def as_issue_of(self, the_rule: CMDBRule, output_data: dict):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
         :param the_rule:
