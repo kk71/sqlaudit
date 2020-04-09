@@ -34,6 +34,18 @@ class BaseReq(RequestHandler):
         args = list(args) + [self._resp_em(e)]
         return Or(*args)
 
+    def scm_one_of_choices(self, choices):
+        return self.scm_or_with_error_msg(
+            scm_one_of_choices(choices),
+            e=f"should be one of {choices}"
+        )
+
+    def scm_subset_of_choices(self, choices):
+        return self.scm_or_with_error_msg(
+            scm_subset_of_choices(choices),
+            e=f"should be subset of {choices}"
+        )
+
     def get_json_args(self,
                       schema_object: Schema = None,
                       default_body: str = None) -> Union[dict, list, None]:

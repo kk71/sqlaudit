@@ -4,6 +4,7 @@ import arrow
 from schema import And, Use, Optional as scm_optional, Schema, SchemaError
 
 from utils import const
+from utils.ordered_set import OrderedSet
 
 __all__ = [
     "Schema",
@@ -25,7 +26,8 @@ __all__ = [
     "scm_datetime",
     "scm_bool",
     "scm_optional",
-    "scm_raise_error"
+    "scm_raise_error",
+    "scm_deduplicated_list",
 ]
 
 
@@ -70,3 +72,6 @@ scm_bool = Use(lambda x: x not in (0, "0", False))
 scm_datetime = Use(lambda x: arrow.get(x, const.COMMON_DATETIME_FORMAT).datetime)
 scm_date = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).date())
 scm_date_end = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).shift(days=+1).date())
+
+# for list/set
+scm_deduplicated_list = Use(lambda x: list(OrderedSet(x)))
