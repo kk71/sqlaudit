@@ -1,14 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from typing import Callable
+__all__ = [
+    "BaseRuleHandler"
+]
 
 from schema import Use
 
 import cmdb.const
 import rule.const
+from .. import exceptions
 from auth.restful_api.base import *
 from utils.schema_utils import *
-from ..rule import BaseRule, RuleInputParams, RuleOutputParams
+from ..rule import RuleInputParams, RuleOutputParams
 
 
 class BaseRuleHandler(AuthReq):
@@ -55,9 +58,10 @@ class BaseRuleHandler(AuthReq):
         )
 
     @staticmethod
-    def scm_rule_params_list(params) -> Callable:
-        """参数列表"""
-        return
+    def scm_list_of_dict_duplication(x):
+        if not len({i["name"] for i in x}) == len(x):
+            scm_raise_error("参数name重复")
+        return True
 
     def base_rule_schema_for_whole_updating(self) -> dict:
         """整体更新"""
@@ -69,8 +73,10 @@ class BaseRuleHandler(AuthReq):
                 cmdb.const.ALL_DB_TYPE),
             scm_optional("entries"): self.scm_subset_of_choices(
                 rule.const.ALL_RULE_ENTRIES),
-            scm_optional("input_params"): [self.scm_rule_input_params()],
-            scm_optional("output_params"): [self.scm_rule_output_params()],
+            scm_optional("input_params"): And(
+                self.scm_list_of_dict_duplication, self.scm_rule_input_params()),
+            scm_optional("output_params"): And(
+                self.scm_list_of_dict_duplication, self.scm_rule_output_params()),
             scm_optional("code"): scm_unempty_str,
             scm_optional("status"): scm_bool,
             scm_optional("summary"): scm_str,
@@ -92,8 +98,8 @@ class BaseRuleHandler(AuthReq):
             **keys_available_for_updating
         }
 
-    def base_rule_schema_for_partly_updating(self) -> dict:
-        """更新部分参数"""
+    def base_rule_schema_for_special_updating(self) -> dict:
+        """特殊更新参数"""
         return {
             # 用于更新的schema。不包含查询字段
 
@@ -113,3 +119,9 @@ class BaseRuleHandler(AuthReq):
                 scm_optional("delete"): self.scm_rule_output_params(),
             }
         }
+
+    def test_code(self, a_rule_item):
+        try:
+            a_rule_item.test()
+        except exceptions.RuleCodeInvalidException:
+            return self.resp_bad_req(msg="规则代码错误")
