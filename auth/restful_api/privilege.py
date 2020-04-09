@@ -1,15 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Or
-
 from .base import PrivilegeReq
 from auth.user import *
-from utils.cmdb_utils import *
 from ..const import PRIVILEGE
 from utils.schema_utils import *
-from cmdb.cmdb import *
-from models.sqlalchemy import make_session, QueryEntity
-from restful_api.modules import as_view
+from models.sqlalchemy import *
+from restful_api.modules import *
 
 
 @as_view("", group="privilege")

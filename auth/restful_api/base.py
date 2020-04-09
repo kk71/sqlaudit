@@ -12,11 +12,9 @@ from schema import SchemaError
 
 import settings
 from restful_api.base import *
-from auth.privilege_utils import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from ..exceptions import AdminRequired
-from .. import const
+from .. import exceptions, const, utils
 
 
 class AuthReq(BaseReq):
@@ -44,13 +42,13 @@ class AuthReq(BaseReq):
             }).validate(payload)
             # 验证token的超时
             if now_timestamp - data["timestamp"] > settings.JWT_EXPIRE_SEC:
-                raise const.TokenExpiredException
+                raise exceptions.TokenExpiredException
             self.current_user: str = data["login_user"]
         except SchemaError:
             self.current_user = None
             self.resp_bad_req(msg="请求的token payload结构错误。")
             return
-        except const.TokenExpiredException:
+        except exceptions.TokenExpiredException:
             self.current_user = None
             self.resp_unauthorized(msg="请重新登录。")
             return
@@ -67,7 +65,7 @@ class AuthReq(BaseReq):
         """如果不是admin就报错"""
         if not self.is_admin():
             self.resp_forbidden(msg="仅限管理员操作。")
-            raise AdminRequired
+            raise exceptions.AdminRequired
 
 
 class PrivilegeReq(AuthReq):
@@ -80,7 +78,7 @@ class PrivilegeReq(AuthReq):
         """judge what privilege is not present for current user"""
         if self.is_admin():
             return set()  # 如果是admin用户，则认为任何权限都是拥有的
-        privilege_list = get_privilege_towards_user(self.current_user)
+        privilege_list = utils.privilege_towards_user(self.current_user)
         return set(args) - set(privilege_list)
 
     def has(self, *args):
@@ -94,10 +92,14 @@ class PrivilegeReq(AuthReq):
         unavailable_privileges = self.should_have(*args)
         if unavailable_privileges:
             unavailable_privileges_names = ", ".join([
-                PRIVILEGE.privilege_to_dict(i)["name"] for i in unavailable_privileges])
+                const.PRIVILEGE.privilege_to_dict(i)["name"]
+                for i in unavailable_privileges
+            ])
             self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
-            raise PrivilegeRequired
+            raise exceptions.PrivilegeRequired
 
     def current_roles(self) -> list:
         """returns role_ids to current user"""
-        return list(get_role_of_user(self.current_user).get(self.current_user, set([])))
+        return list(
+            utils.role_of_user(self.current_user).get(self.current_user, set([]))
+        )

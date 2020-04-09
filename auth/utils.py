@@ -2,6 +2,7 @@
 
 __all__ = [
     "role_of_user",
+    "privilege_towards_user"
 ]
 
 from typing import Union
