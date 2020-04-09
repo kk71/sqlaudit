@@ -18,11 +18,9 @@ import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy import Column, DateTime
 
+
 # TODO must initiate models first!
 from . import Session, base
-
-base = object
-
 
 from sqlalchemy.orm.query import Query as sqlalchemy_q
 from utils import const
