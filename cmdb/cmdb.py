@@ -32,7 +32,7 @@ class CMDB(BaseModel):
     allow_online = Column("allow_online", Boolean, default=False)
 
     __mapper_args__ = {
-        'polymorphic_on': type,
+        'polymorphic_on': cmdb_id,
         'polymorphic_identity': 'CMDB'
     }
 
