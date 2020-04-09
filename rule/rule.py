@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "RuleCartridge"
+    "RuleCartridge",
     "CMDBRule",
     "RuleInputParams",
     "RuleOutputParams",
@@ -256,7 +256,7 @@ code_hole.append(code)  # 务必加上这一句
 
 
 class RuleCartridge(BaseRule):
-    """规则仓库"""
+    """规则墨盒"""
 
     meta = {
         "collection": "rule_cartridge",
