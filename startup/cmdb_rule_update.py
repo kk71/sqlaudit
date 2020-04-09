@@ -2,4 +2,5 @@
 
 
 def main():
+    """update cartridge rules to cmdb"""
     pass

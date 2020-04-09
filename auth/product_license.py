@@ -4,7 +4,6 @@
 import json
 import time
 import base64
-import os.path
 from functools import wraps
 
 from Cryptodome.PublicKey import RSA

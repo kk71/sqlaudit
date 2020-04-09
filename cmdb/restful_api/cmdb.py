@@ -1,26 +1,30 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import operator
-from sqlalchemy import or_
 from functools import reduce
 from collections import defaultdict
 
-from cmdb.cmdb import CMDB
+from sqlalchemy import or_
 
+from ..cmdb import *
 from utils.const import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import make_session, QueryEntity
 from task.task import Task
 from auth.user import *
-from auth.restful_api.base import AuthReq,PrivilegeReq
+from auth.restful_api.base import AuthReq, PrivilegeReq
 from ticket.ticket import Ticket
 from ticket.sub_ticket import SubTicket
 from restful_api.modules import as_view
 
 
-@as_view(group="cmdb")
 class CMDBHandler(AuthReq):
+
+    def gen_current(self):
+        """是否仅返回当前登录用户纳管的库,如果是admin则返回所有"""
+        return {
+            scm_optional("current", default=not self.is_admin()): scm_bool
+        }
 
     async def get(self):
         """查询纳管数据库列表"""
@@ -38,7 +42,8 @@ class CMDBHandler(AuthReq):
             scm_optional("keyword", default=None): scm_str,
 
             # 排序
-            scm_optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS)),
+            scm_optional("sort", default=SORT_DESC): And(
+                scm_str, scm_one_of_choices(ALL_SORTS)),
 
             **self.gen_p(),
         }))
@@ -147,7 +152,6 @@ class CMDBHandler(AuthReq):
                         for c in role_user
                     ]
                 )
-
             self.resp(ret, **p)
 
     def post(self):
@@ -180,11 +184,11 @@ class CMDBHandler(AuthReq):
         }))
         params["create_owner"] = self.current_user
         with make_session() as session:
-            cmdb_count=len(session.query(CMDB).all())
+            cmdb_count = len(session.query(CMDB).all())
             license_key = SqlAuditLicenseKeyManager.latest_license_key()
             license_key_ins = SqlAuditLicenseKey.decode(license_key)
             if cmdb_count:
-                if operator.ge(cmdb_count, license_key_ins.database_counts):
+                if cmdb_count >= license_key_ins.database_counts:
                     return self.resp_forbidden(msg="纳管库数量已到上线")
 
             new_cmdb = CMDB(**params)
@@ -221,7 +225,7 @@ class CMDBHandler(AuthReq):
                     "cmdb_id"
                 ))
 
-                new_task = Task(task_exec_scripts=task_type,**task_dict)
+                new_task = Task(task_exec_scripts=task_type, **task_dict)
                 session.add(new_task)
             session.commit()
             session.refresh(new_cmdb)
@@ -337,7 +341,8 @@ class CMDBAggregationHandler(PrivilegeReq):
         params = self.get_query_args(Schema({
             "key": And(
                 scm_dot_split_str,
-                self.scm_subset_of_choices(["connect_name", "group_name"])
+                self.scm_subset_of_choices([
+                    "connect_name", "group_name", "business_name"])
             )
         }))
         key = params.pop("key")
@@ -353,4 +358,3 @@ class CMDBAggregationHandler(PrivilegeReq):
                     ret[k].add(qr[i])
             ret = {k: list(v) for k, v in ret.items()}
             self.resp(ret)
-
