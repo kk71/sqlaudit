@@ -12,6 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, String, Integer, Boolean, Sequence, Float
 from sqlalchemy.dialects.oracle import DATE
+from prettytable import PrettyTable
 
 from utils.datetime_utils import *
 
@@ -38,6 +39,11 @@ ORACLE_PASSWORD = env_get("ORACLE_PASSWORD", "v1g2m60id2499yz")
 ORACLE_PORT = env_get("ORACLE_PORT", "1521")
 ORACLE_SID = env_get("ORACLE_SID", "sqlaudit")
 ORACLE_SERVICE_NAME = env_get("ORACLE_SERVICE_NAME", "sqlaudit")
+
+pt = PrettyTable(["environment variable", "default", "final", "different"])
+for r in ALL_ENV_VARS:
+    pt.add_row(r)
+print(pt)
 
 
 # make connect to old oracle
