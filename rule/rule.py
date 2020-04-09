@@ -1,7 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "Rule",
+    "RuleCartridge"
+    "CMDBRule",
     "RuleInputParams",
     "RuleOutputParams",
 ]
@@ -73,12 +74,11 @@ class RuleOutputParams(RuleParams):
     optional = BooleanField()
 
 
-class Rule(
+class BaseRule(
         BaseDoc,
         core.rule.BaseRuleItem,
         metaclass=ABCTopLevelDocumentMetaclass):
     """规则"""
-    cmdb_id = IntField()  # 规则绑定到库
     name = StringField(required=True)
     desc = StringField(required=True)
     db_type = StringField(
@@ -99,22 +99,22 @@ class Rule(
         choices=const.ALL_RULE_LEVELS)  # 规则等级
 
     meta = {
-        "collection": "rule",
+        "abstract": True,
         'indexes': [
-            {'fields': ("cmdb_id", "name"), 'unique': True},
             "name",
             "db_type",
             "entries",
-            "status"
+            "status",
+            "level"
         ],
     }
 
     def __init__(self, *args, **kwargs):
-        super(Rule, self).__init__(*args, **kwargs)
+        super(BaseRule, self).__init__(*args, **kwargs)
         self._code: Union[Callable, None] = None
 
     def __str__(self):
-        return "<Rule " + "-".join(
+        return f"<{self.__class__} " + "-".join(
             [str(i) for i in self.unique_key() if i is not None] +
             [str(self.entries)]
         ) + ">"
@@ -172,7 +172,7 @@ code_hole.append(code)  # 务必加上这一句
                 for i in self.to_dict()["input_params"]}[param_name]
 
     def unique_key(self) -> tuple:
-        return self.cmdb_id, self.name
+        return self.db_type, self.name
 
     @staticmethod
     def construct_code(code: str) -> Callable:
@@ -253,3 +253,31 @@ code_hole.append(code)  # 务必加上这一句
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.objects.filter(status=True).filter(*args, **kwargs)
+
+
+class RuleCartridge(BaseRule):
+    """规则仓库"""
+
+    meta = {
+        "collection": "rule_cartridge",
+        "indexes": [
+            {'fields': ("db_type", "name"), 'unique': True},
+        ]
+    }
+
+
+class CMDBRule(BaseRule):
+    """纳管库规则"""
+
+    cmdb_id = IntField(required=True, null=False)
+
+    meta = {
+        "collection": "cmdb_rule",
+        "indexes": [
+            {'fields': ("cmdb_id", "name"), 'unique': True},
+            "cmdb_id"
+        ]
+    }
+
+    def unique_key(self) -> tuple:
+        return self.cmdb_id, self.name

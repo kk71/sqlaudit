@@ -11,7 +11,7 @@ from auth.user import *
 from ..cmdb import *
 
 
-@as_view("role_cmdb_schema", group="role")
+@as_view("cmdb_schema", group="role")
 class RoleCMDBSchemaRelationHandler(PrivilegeReq):
 
     def get(self):

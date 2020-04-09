@@ -1,12 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import arrow
 import operator
-import cx_Oracle
 from sqlalchemy import or_
 from functools import reduce
 from collections import defaultdict
-from schema import Schema, Optional
 
 from cmdb.cmdb import CMDB
 from cmdb.available_cmdb_schemas_utils import *
@@ -26,31 +23,29 @@ from auth.user import *
 from auth.restful_api.base import AuthReq,PrivilegeReq
 from ticket.ticket import Ticket
 from ticket.sub_ticket import SubTicket
-from oracle_cmdb.cmdb import RoleCMDBSchema
-from oracle_cmdb.rate import OracleRatingSchema
 from restful_api.modules import as_view
 
 
-@as_view("cmdb", group="cmdb")
+@as_view(group="cmdb")
 class CMDBHandler(AuthReq):
 
     async def get(self):
         """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
             # 只返回当前登录用户可见的cmdb
-            Optional("current", default=not self.is_admin()): scm_bool,
+            scm_optional("current", default=not self.is_admin()): scm_bool,
 
             # 精确匹配
-            Optional("cmdb_id"): scm_int,
-            Optional("connect_name"): scm_unempty_str,
-            Optional("group_name"): scm_unempty_str,
-            Optional("business_name"): scm_unempty_str,
+            scm_optional("cmdb_id"): scm_int,
+            scm_optional("connect_name"): scm_unempty_str,
+            scm_optional("group_name"): scm_unempty_str,
+            scm_optional("business_name"): scm_unempty_str,
 
             # 模糊匹配多个字段
-            Optional("keyword", default=None): scm_str,
+            scm_optional("keyword", default=None): scm_str,
 
             # 排序
-            Optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS)),
+            scm_optional("sort", default=SORT_DESC): And(scm_str, scm_one_of_choices(ALL_SORTS)),
 
             **self.gen_p(),
         }))
@@ -168,7 +163,7 @@ class CMDBHandler(AuthReq):
             "connect_name": scm_unempty_str,
             "group_name": scm_str,
             "business_name": scm_str,
-            Optional("machine_room"): scm_int,
+            scm_optional("machine_room"): scm_int,
             "database_type": scm_int,
             "server_name": scm_str,
             "ip_address": scm_unempty_str,
@@ -176,19 +171,19 @@ class CMDBHandler(AuthReq):
             "service_name": scm_str,
             "user_name": scm_unempty_str,
             "password": scm_unempty_str,
-            Optional("status", default=True): scm_bool,
-            Optional("is_collect", default=True): scm_bool,
-            Optional("auto_sql_optimized", default=True): scm_bool,
-            Optional("domain_env"): scm_int,
-            Optional("is_rac"): scm_bool,
-            Optional("white_list_status"): scm_bool,
-            Optional("while_list_rule_counts"): scm_int,
+            scm_optional("status", default=True): scm_bool,
+            scm_optional("is_collect", default=True): scm_bool,
+            scm_optional("auto_sql_optimized", default=True): scm_bool,
+            scm_optional("domain_env"): scm_int,
+            scm_optional("is_rac"): scm_bool,
+            scm_optional("white_list_status"): scm_bool,
+            scm_optional("while_list_rule_counts"): scm_int,
             "db_model": scm_unempty_str,
             "baseline": scm_int,
             "is_pdb": scm_bool,
             "version": scm_unempty_str,
-            Optional("sid"): scm_str,
-            Optional("allow_online", default=False): scm_bool
+            scm_optional("sid"): scm_str,
+            scm_optional("allow_online", default=False): scm_bool
         }))
         params["create_owner"] = self.current_user
         with make_session() as session:
@@ -244,28 +239,28 @@ class CMDBHandler(AuthReq):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_unempty_str,
 
-            Optional("ip_address"): scm_unempty_str,
-            Optional("port"): scm_int,
-            Optional("service_name"): scm_str,
-            Optional("group_name"): scm_str,
-            Optional("business_name"): scm_str,
-            Optional("machine_room"): scm_str,
-            Optional("database_type"): scm_unempty_str,
-            Optional("server_name"): scm_str,
-            Optional("user_name"): scm_unempty_str,
-            Optional("password"): scm_unempty_str,
-            Optional("is_collect"): scm_bool,
-            Optional("status"): scm_bool,
-            Optional("auto_sql_optimized"): scm_bool,
-            Optional("domain_env"): scm_int,
-            Optional("is_rac"): scm_bool,
-            Optional("white_list_status"): scm_bool,
-            Optional("db_model"): scm_unempty_str,
-            Optional("baseline"): scm_int,
-            Optional("is_pdb"): scm_bool,
-            Optional("version"): scm_unempty_str,
-            Optional("sid"): scm_str,
-            Optional("allow_online"): scm_bool  # 这个字段只有admin可以修改
+            scm_optional("ip_address"): scm_unempty_str,
+            scm_optional("port"): scm_int,
+            scm_optional("service_name"): scm_str,
+            scm_optional("group_name"): scm_str,
+            scm_optional("business_name"): scm_str,
+            scm_optional("machine_room"): scm_str,
+            scm_optional("database_type"): scm_unempty_str,
+            scm_optional("server_name"): scm_str,
+            scm_optional("user_name"): scm_unempty_str,
+            scm_optional("password"): scm_unempty_str,
+            scm_optional("is_collect"): scm_bool,
+            scm_optional("status"): scm_bool,
+            scm_optional("auto_sql_optimized"): scm_bool,
+            scm_optional("domain_env"): scm_int,
+            scm_optional("is_rac"): scm_bool,
+            scm_optional("white_list_status"): scm_bool,
+            scm_optional("db_model"): scm_unempty_str,
+            scm_optional("baseline"): scm_int,
+            scm_optional("is_pdb"): scm_bool,
+            scm_optional("version"): scm_unempty_str,
+            scm_optional("sid"): scm_str,
+            scm_optional("allow_online"): scm_bool  # 这个字段只有admin可以修改
         }))
         cmdb_id = params.pop("cmdb_id")
 
@@ -341,7 +336,7 @@ class CMDBHandler(AuthReq):
             self.resp(resp)
 
 
-@as_view(group="cmdb")
+@as_view("aggregation", group="cmdb")
 class CMDBAggregationHandler(PrivilegeReq):
 
     def get(self):
@@ -377,15 +372,15 @@ class SchemaHandler(AuthReq):
         HEALTH_USER_CONFIG = "health_user_config"
 
         params = self.get_query_args(Schema({
-            Optional("cmdb_id", default=None): scm_int,
-            Optional("connect_name", default=None): scm_unempty_str,
-            Optional("current", default=not self.is_admin()): scm_bool,
-            Optional("divide_by", default=None): scm_one_of_choices((
+            scm_optional("cmdb_id", default=None): scm_int,
+            scm_optional("connect_name", default=None): scm_unempty_str,
+            scm_optional("current", default=not self.is_admin()): scm_bool,
+            scm_optional("divide_by", default=None): scm_one_of_choices((
                 DATA_PRIVILEGE,  # 以login_user区分当前库的数据权限（绑定、未绑定）
                 HEALTH_USER_CONFIG  # 以login_user区分当前库的评分权限（绑定、未绑定）
             )),  # 指定分开返回的类型
-            Optional("login_user", default=None): scm_str,
-            Optional("role_id", default=None): scm_gt0_int,
+            scm_optional("login_user", default=None): scm_str,
+            scm_optional("role_id", default=None): scm_gt0_int,
         }))
         cmdb_id = params.pop("cmdb_id")
         connect_name = params.pop("connect_name")
@@ -472,13 +467,13 @@ class SchemaHandler(AuthReq):
                 self.resp(all_schemas)
 
 
-@as_view(group="cmdb")
+@as_view("score_trend", group="cmdb")
 class CMDBHealthTrendHandler(AuthReq):
 
     def post(self):
         """健康评分趋势图"""
         params = self.get_json_args(Schema({
-            Optional("cmdb_id_list", default=()): list
+            scm_optional("cmdb_id_list", default=()): list
         }), default_body="{}")
         now = arrow.now()
         cmdb_id_list = params.pop("cmdb_id_list")
@@ -523,106 +518,4 @@ class CMDBHealthTrendHandler(AuthReq):
                 "fields": list(fields),
                 "base_line": base_line
             })
-
-@as_view(group="cmdb")
-class RankingConfigHandler(AuthReq):
-
-    def get(self):
-        """获取需要评分的数据库列表"""
-        params = self.get_query_args(Schema({
-            Optional("keyword", default=None): scm_str,
-            **self.gen_p()
-        }))
-        p = self.pop_p(params)
-        keyword = params.pop("keyword")
-        del params
-
-        with make_session() as session:
-            qe = QueryEntity(
-                CMDB.cmdb_id,
-                OracleRatingSchema.schema,
-                OracleRatingSchema.weight
-            )
-            # TODO
-            rankings = session. \
-                query(*qe). \
-                join(CMDB, OracleRatingSchema.database_name == CMDB.connect_name)
-            if keyword:
-                rankings = self.query_keyword(rankings, keyword,
-                                              CMDB.connect_name,
-                                              OracleRatingSchema.username)
-            items, p = self.paginate(rankings, **p)
-            self.resp(sorted([qe.to_dict(i) for i in items], key=lambda k: k["database_name"]), **p)
-
-    def post(self):
-        """以库为单位修改(增删)评分权重"""
-        params = self.get_json_args(Schema({
-            "cmdb_id": scm_int,
-            "schema_names": [scm_unempty_str]
-        }))
-        cmdb_id = params.pop("cmdb_id")
-        schema_names = set(params.pop("schema_names"))
-        del params
-
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
-            try:
-                schemas = get_cmdb_available_schemas(cmdb)
-            except cx_Oracle.DatabaseError as err:
-                print(err)
-                return self.resp_bad_req(msg="无法连接到目标主机")
-            schema_delta_not_existed = schema_names - set(schemas)
-            if schema_delta_not_existed:
-                print(schemas)
-                return self.resp_bad_req(
-                    msg="给出的schema中包含该库不存在的schema："
-                        f"{', '.join([i for i in schema_delta_not_existed])}")
-            qe = QueryEntity(OracleRatingSchema.schema)
-            schema_names_current = qe.to_plain_list(
-                session.query(*qe).filter(
-                    OracleRatingSchema.database_name == cmdb.connect_name))
-            schema_names_current = set(schema_names_current)
-            schema_names_to_delete = schema_names_current.difference(schema_names)
-            schema_names_to_add = schema_names.difference(schema_names_current)
-            session.query(OracleRatingSchema).filter(
-                OracleRatingSchema.database_name == cmdb.connect_name,
-                OracleRatingSchema.schema.in_(list(schema_names_to_delete))
-            ).delete(synchronize_session='fetch')
-            session.add_all([OracleRatingSchema(
-                database_name=cmdb.connect_name,
-                username=i,
-                weight=1.0
-            ) for i in schema_names_to_add])
-        self.resp_created(msg="评分配置成功")
-
-    def patch(self):
-        """以cmdb-schema为单位修改评分权重"""
-        params = self.get_json_args(Schema({
-            "cmdb_id": scm_int,
-            "username": scm_unempty_str,
-            "weight": self.scm_with_em(And(scm_float, lambda x: x <= 1), e="权重不可大于1")
-        }))
-        cmdb_id = params.pop("cmdb_id")
-        schema_name = params.pop("username")
-
-        with make_session() as session:
-            cmdb = session.query(CMDB).filter(CMDB.cmdb_id == cmdb_id).first()
-            session.query(OracleRatingSchema).filter_by(
-                database_name=cmdb.connect_name,
-                username=schema_name,
-            ).update(params)
-        self.resp_created(msg="评分配置更新成功")
-
-    def delete(self):
-        """删除需要评分的库"""
-        params = self.get_json_args(Schema({
-            'database_name': scm_unempty_str,
-            'username': scm_unempty_str
-        }))
-        with make_session() as session:
-            session.query(OracleRatingSchema). \
-                filter_by(**params).delete(synchronize_session=False)
-        self.resp_created("删除评分schema成功")
-
-
 
