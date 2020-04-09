@@ -57,7 +57,7 @@ Session = sessionmaker(bind=engine)
 
 
 @contextmanager
-def make_session():
+def make_oracle_session():
     session = Session()
     try:
         yield session
