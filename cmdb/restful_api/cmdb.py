@@ -344,7 +344,7 @@ class CMDBAggregationHandler(PrivilegeReq):
         params = self.get_query_args(Schema({
             "key": And(
                 scm_dot_split_str,
-                scm_subset_of_choices(["connect_name", "group_name", "business_name"])
+                self.scm_subset_of_choices(["connect_name", "group_name"])
             )
         }))
         key = params.pop("key")
