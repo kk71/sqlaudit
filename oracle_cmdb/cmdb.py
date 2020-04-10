@@ -5,9 +5,9 @@ __all__ = [
     "RoleOracleCMDBSchema"
 ]
 
-import cx_Oracle
 from sqlalchemy import Column, String, Boolean, Integer
 
+import cmdb.const
 from . import exceptions
 from cmdb.cmdb import CMDB
 from models.sqlalchemy import BaseModel
@@ -23,7 +23,7 @@ class OracleCMDB(CMDB):
     service_name = Column("service_name", String)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'OracleCMDB'
+        'polymorphic_identity': cmdb.const.DB_ORACLE
     }
 
     def build_connector(self, **kwargs) -> OraclePlainConnector:

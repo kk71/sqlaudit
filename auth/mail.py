@@ -17,7 +17,8 @@ class MailServer(BaseModel):
     """邮件服务器配置"""
     __tablename__ = "mail_server"
 
-    mail_server_id = Column("mail_server_id", Integer, primary_key=True)
+    mail_server_id = Column(
+        "mail_server_id", Integer, primary_key=True, autoincrement=True)
     mail_server_name = Column("mail_server_name", String)
     ip_address = Column("ip_address", String)
     protocol = Column("protocol", String)
@@ -33,7 +34,8 @@ class SendMailList(BaseModel):
     """需要发送邮件的用户"""
     __tablename__ = "send_mail_list"
 
-    send_mail_id = Column("send_mail_id", Integer, primary_key=True)
+    send_mail_id = Column(
+        "send_mail_id", Integer, primary_key=True, autoincrement=True)
     title = Column("title", String)
     contents = Column("contents", String)
     mail_sender = Column("mail_sender", String)
@@ -49,7 +51,7 @@ class SendMailHistory(BaseModel):
     """邮件发送历史"""
     __tablename__ = "send_mail_hist"
 
-    id = Column("id", Integer, primary_key=True)
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
     send_mail_list_id = Column("send_mail_list_id", Integer)
     receiver = Column("receiver", String)
     file_path = Column("file_path", String)

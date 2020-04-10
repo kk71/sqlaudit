@@ -14,7 +14,8 @@ class CMDB(BaseModel):
 
     __tablename__ = "cmdb"
 
-    cmdb_id = Column("cmdb_id", Integer, primary_key=True)
+    cmdb_id = Column(
+        "cmdb_id", Integer, primary_key=True, autoincrement=True)
     connect_name = Column("connect_name", String)
     db_type = Column("db_type", String)
     group_name = Column("group_name", String)
@@ -32,8 +33,7 @@ class CMDB(BaseModel):
     allow_online = Column("allow_online", Boolean, default=False)
 
     __mapper_args__ = {
-        'polymorphic_on': cmdb_id,
-        'polymorphic_identity': 'CMDB'
+        'polymorphic_on': db_type
     }
 
     def build_connector(self, **kwargs):

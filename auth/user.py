@@ -43,7 +43,7 @@ class Role(BaseModel):
     """角色"""
     __tablename__ = "role"
 
-    role_id = Column("role_id", Integer, primary_key=True)
+    role_id = Column("role_id", Integer, primary_key=True, autoincrement=True)
     role_name = Column("role_name", String)
     comments = Column("comments", String)
 
@@ -52,7 +52,7 @@ class UserRole(BaseModel):
     """用户角色绑定关系"""
     __tablename__ = "user_role"
 
-    id = Column("id", Integer, primary_key=True)
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
     login_user = Column("login_user", String, primary_key=True)
     role_id = Column("role_id", Integer, primary_key=True)
 
@@ -61,7 +61,7 @@ class RolePrivilege(BaseModel):
     """角色权限绑定关系"""
     __tablename__ = "role_privilege"
 
-    id = Column("id", Integer, primary_key=True)
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
     role_id = Column("role_id", Integer)
     privilege_type = Column("privilege_type", Integer)
     privilege_id = Column("privilege_id", Integer)
