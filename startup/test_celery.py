@@ -3,8 +3,8 @@
 from models import init_models
 init_models()
 
-from task.tasks import Emm
+from task.tasks import ATestTask
 
 
 def main():
-    Emm.delay()
+    ATestTask.shoot()

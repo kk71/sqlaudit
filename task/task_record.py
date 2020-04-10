@@ -1,15 +1,16 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
+
 from sqlalchemy import Column, Integer, String, DateTime
 
 from core.task import BaseTaskRecord
 from models.sqlalchemy import BaseModel, ABCDeclarativeMeta
-from task import const
+from . import const
 
 
 class TaskRecord(
-    BaseModel,
-    BaseTaskRecord,
-    metaclass=ABCDeclarativeMeta):
+        BaseModel,
+        BaseTaskRecord,
+        metaclass=ABCDeclarativeMeta):
     """任务运行记录"""
     __tablename__ = "task_record"
 
