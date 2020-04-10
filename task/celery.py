@@ -1,14 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__ALL__ = [
-    "celery"
-]
-
 from celery import Celery
 
-# initiate celery application
-# usage: wherever you want add task, import celery below
+from . import celery_conf
 
-celery = Celery(__name__)
-celery.config_from_object("celery_conf")
+celery_app = Celery(__name__)
+celery_app.config_from_object(celery_conf)
 

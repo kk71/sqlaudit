@@ -10,7 +10,7 @@ from utils.const import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import make_session, QueryEntity
-from task.task import Task
+from ..task import CMDBTask
 from auth.user import *
 from auth.restful_api.base import AuthReq, PrivilegeReq
 from ticket.ticket import Ticket
@@ -225,7 +225,7 @@ class CMDBHandler(AuthReq):
                     "cmdb_id"
                 ))
 
-                new_task = Task(task_exec_scripts=task_type, **task_dict)
+                new_task = CMDBTask(task_exec_scripts=task_type, **task_dict)
                 session.add(new_task)
             session.commit()
             session.refresh(new_cmdb)
@@ -282,7 +282,7 @@ class CMDBHandler(AuthReq):
             the_cmdb.from_dict(params)
 
             # 同步更新全部任务的数据库字段信息
-            session.query(Task).filter_by(cmdb_id=the_cmdb.cmdb_id).update(
+            session.query(CMDBTask).filter_by(cmdb_id=the_cmdb.cmdb_id).update(
                 the_cmdb.to_dict(iter_if=lambda k, v: k in (
                     "connect_name",
                     "group_name",
@@ -297,10 +297,10 @@ class CMDBHandler(AuthReq):
 
             # 更新采集开关
             if the_cmdb.is_collect:
-                session.query(Task).filter_by(cmdb_id=the_cmdb.cmdb_id). \
+                session.query(CMDBTask).filter_by(cmdb_id=the_cmdb.cmdb_id). \
                     update({"task_status": True})
             else:
-                session.query(Task).filter_by(cmdb_id=the_cmdb.cmdb_id). \
+                session.query(CMDBTask).filter_by(cmdb_id=the_cmdb.cmdb_id). \
                     update({"task_status": False})
 
             session.add(the_cmdb)
@@ -316,7 +316,7 @@ class CMDBHandler(AuthReq):
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
-            session.query(Task).filter_by(**params).delete(synchronize_session=False)
+            session.query(CMDBTask).filter_by(**params).delete(synchronize_session=False)
             session.query(RoleCMDBSchema).filter_by(**params).delete(synchronize_session=False)
             Ticket.objects().filter_by(**params).delete()
             SubTicket.objects(**params).delete()

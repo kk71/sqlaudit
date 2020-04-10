@@ -113,3 +113,28 @@ class SQLCapturingDoc(BaseDoc):
                 AND to_date('{dt_to_str(end_time)}','yyyy-mm-dd hh24:mi:ss'))"""
         ret = cmdb_connector.execute(sql)
         return ret[0][0], ret[0][1]
+
+    @classmethod
+    def query_snap_id_today(
+            cls,
+            cmdb_connector: OraclePlainConnector,
+            now: arrow) -> (int, int):
+        """查询今日从0点至今的snap_id"""
+        return cls.query_snap_id(
+            cmdb_connector,
+            start_time=now.date(),
+            end_time=now
+        )
+
+    @classmethod
+    def query_snap_id_yesterday(
+            cls,
+            cmdb_connector: OraclePlainConnector,
+            now: arrow) -> (int, int):
+        """查询昨日0点至今日0点的snap_id"""
+        return cls.query_snap_id(
+            cmdb_connector,
+            start_time=now.shift(days=-1).date,
+            end_time=now.date()
+        )
+

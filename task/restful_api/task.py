@@ -36,21 +36,21 @@ class TaskHandler(PrivilegeReq):
         execution_status = params.pop("execution_status")
         del params
         with make_session() as session:
-            task_q = session.query(Task)
+            task_q = session.query(CMDBTask)
             if connect_name:
-                task_q = task_q.filter(Task.connect_name == connect_name)
+                task_q = task_q.filter(CMDBTask.connect_name == connect_name)
             if task_exec_scripts:
-                task_q = task_q.filter(Task.task_exec_scripts == task_exec_scripts)
+                task_q = task_q.filter(CMDBTask.task_exec_scripts == task_exec_scripts)
             if keyword:
                 task_q = self.query_keyword(task_q, keyword,
-                                            Task.connect_name,
-                                            Task.group_name,
-                                            Task.business_name,  # TODO
-                                            Task.server_name,
-                                            Task.ip_address)
+                                            CMDBTask.connect_name,
+                                            CMDBTask.group_name,
+                                            CMDBTask.business_name,  # TODO
+                                            CMDBTask.server_name,
+                                            CMDBTask.ip_address)
             current_cmdb_ids = cmdb_utils.get_current_cmdb(session, self.current_user)
             if not self.is_admin():
-                task_q = task_q.filter(Task.cmdb_id.in_(current_cmdb_ids))
+                task_q = task_q.filter(CMDBTask.cmdb_id.in_(current_cmdb_ids))
             ret = await utils.get_task(
                 session, task_q, execution_status=execution_status)
             items, p = self.paginate(ret, **p)
@@ -71,7 +71,7 @@ class TaskHandler(PrivilegeReq):
         }))
         task_id = params.pop("task_id")
         with make_session() as session:
-            session.query(Task).filter_by(task_id=task_id).update(params)
+            session.query(CMDBTask).filter_by(task_id=task_id).update(params)
             self.resp_created()
 
 

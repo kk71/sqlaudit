@@ -1,44 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = [
-    "BaseTask",
-    "register_task"
-]
-
-from kombu import Exchange, Queue
-
-from utils.datetime_utils import *
-from . import const, celery_conf
-from .celery import celery_app
+from .task import *
 
 
-def add_task(task_type: str, module_to_import: str):
-    """增加任务"""
-    celery_conf.task_routes.update({
-        task_type: {'queue': task_type, 'routing_key': task_type}
-    })
-    celery_conf.task_queues.add(
-        Queue(task_type, Exchange(task_type), routing_key=task_type)
-    )
-    celery_conf.imports.append(module_to_import)
+@register_task("emm")
+class Emm(BaseTask):
 
-
-def register_task(task_type: str):
-    def inner(task_class):
-        task_class.name = task_type
-        task_class.task_type = task_type
-        add_task(task_type, task_class.__module__)
-        celery_app.register_task(task_class())
-        return celery_app.tasks[task_class.name]
-
-    return inner
-
-
-class BaseTask(celery_app.Task):
     # 任务类型
     name = task_type = None
 
-    def run(self, task_record_id: int = None, **kwargs):
+    def run(self, task_record_id: int=None, **kwargs):
         print("run")
         assert 0
 
@@ -74,3 +45,4 @@ class BaseTask(celery_app.Task):
         #     task_record_id = task_record.task_record_id
         #     cls.delay(task_record_id, **kwargs)
         pass
+
