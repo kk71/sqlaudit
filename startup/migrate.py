@@ -66,7 +66,7 @@ def main():
                 x['create_time'] = x.pop('create_date')
                 x['username'] = x.pop('user_name')
                 x['db_type'] = cmdb.const.DB_ORACLE
-                x.pop("database")
+                x.pop("database_type")
                 m_oracle_cmdb = OracleCMDB(**x)
                 m_session.add(m_oracle_cmdb)
                 # TODO 任务也需要迁移过来
