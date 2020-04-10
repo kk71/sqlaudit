@@ -34,7 +34,9 @@ def register_task(task_type: str):
         task_class.task_type = task_type
         add_task(task_type, task_class.__module__)
         celery_app.register_task(task_class())
-        return celery_app.tasks[task_class.name]
+        task_instance = celery_app.tasks[task_class.name]
+        task_class.task_instance = task_instance
+        return task_instance
 
     return inner
 
@@ -48,6 +50,7 @@ class BaseTask(celery_app.Task):
     # name用于celery标识任务的名称，本质就是task_type
 
     def run(self, task_record_id: int = None, **kwargs):
+        print("run")
         self.task_record_id = task_record_id
         with make_session() as session:
             task_record = session.query(TaskRecord). \
@@ -91,4 +94,4 @@ class BaseTask(celery_app.Task):
             session.add(task_record)
             session.commit()
             task_record_id = task_record.task_record_id
-        cls.delay(task_record_id, **kwargs)
+        cls.task_instance.delay(task_record_id, **kwargs)
