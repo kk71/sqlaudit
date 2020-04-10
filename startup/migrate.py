@@ -5,7 +5,8 @@ from utils.migrate_from_oracle import make_oracle_session
 from utils.migrate_from_oracle import User as OUser, UserRole as OUserRole, \
     RolePrivilege as ORolePrivilege, Role as ORole, CMDB as OCMDB, \
     RoleDataPrivilege as ORoleDataPrivilege, \
-    DataHealthUserConfig as ODataHealthUserConfig
+    DataHealthUserConfig as ODataHealthUserConfig,\
+    TaskManage as OTaskManage
 
 # new mysql data
 from models import init_models
@@ -28,6 +29,7 @@ def main():
         o_role_privilege = o_session.query(ORolePrivilege)
         o_role = o_session.query(ORole)
         o_cmdb = o_session.query(OCMDB)
+        o_task_manage=o_session.query(OTaskManage)
         o_role_data_privilege = o_session.query(ORoleDataPrivilege)
         o_data_health_user = o_session.query(ODataHealthUserConfig)
 
@@ -69,7 +71,26 @@ def main():
                 x.pop("database_type")
                 m_oracle_cmdb = OracleCMDB(**x)
                 m_session.add(m_oracle_cmdb)
-                # TODO 任务也需要迁移过来
+            for x in o_task_manage:
+                x = x.to_dict()
+                x['create_time'] = x.pop('task_create_date')
+                x['db_type'] = cmdb.const.DB_ORACLE
+                x.pop('database_type')
+                x['schedule_time'] = x.pop('task_schedule_date')
+                x['exec_count'] = x.pop('task_exec_counts')
+                x['last_exec_success_time'] = x.pop('last_task_exec_succ_date')
+                x['id'] = x.pop('task_id')
+                x['status'] = x.pop('task_status')
+                x['exec_success_count'] = x.pop('task_exec_success_count')
+                x['frequency'] = x.pop('task_exec_frequency')
+                x.pop('port')
+                x.pop('business_name')
+                x.pop('ip_address')
+                x.pop('task_exec_scripts')
+                x.pop('server_name')
+                x.pop('machine_room')
+                m_task=Task(**x)
+                m_session.add(m_task)
             for x in o_role_data_privilege:
                 x = x.to_dict()
                 x.pop('id')
