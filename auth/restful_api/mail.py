@@ -110,15 +110,15 @@ class ConfigSenderHandler(AuthReq):
         }))
 
         with make_session() as session:
-            mailserver = session.query(MailServer).first()
-            if mailserver:
+            mail_server = session.query(MailServer).first()
+            if mail_server:
                 session.query(MailServer). \
-                    filter_by(mail_server_id=mailserver.mail_server_id).update(params)
+                    filter_by(mail_server_id=mail_server.mail_server_id).update(params)
             else:
-                mailserver = MailServer(**params)
-                session.add(mailserver)
+                mail_server = MailServer(**params)
+                session.add(mail_server)
                 session.commit()
-            self.resp_created(mailserver.to_dict(), msg="修改发件人配置成功")
+            self.resp_created(mail_server.to_dict(), msg="修改发件人配置成功")
 
 
 @as_view("send", group="mail")

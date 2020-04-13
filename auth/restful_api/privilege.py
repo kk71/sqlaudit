@@ -8,8 +8,8 @@ from models.sqlalchemy import *
 from restful_api.modules import *
 
 
-@as_view("", group="privilege")
-class SystemPrivilegeHandler(PrivilegeReq):
+@as_view(group="privilege")
+class PrivilegeHandler(PrivilegeReq):
 
     def get(self):
         """权限列表"""

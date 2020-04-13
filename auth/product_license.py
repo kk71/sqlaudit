@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# pycryptodomex==3.7.3
-
 import json
 import time
 import base64

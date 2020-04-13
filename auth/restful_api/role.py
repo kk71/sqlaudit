@@ -2,12 +2,11 @@
 
 from sqlalchemy.exc import IntegrityError
 
-from auth.user import Role, RolePrivilege,User,UserRole
+from auth.user import *
 from .base import PrivilegeReq
-
 from ..const import PRIVILEGE
 from utils.schema_utils import *
-from models.sqlalchemy import make_session,QueryEntity
+from models.sqlalchemy import *
 from restful_api.modules import as_view
 
 
@@ -37,10 +36,14 @@ class RoleHandler(PrivilegeReq):
             for i in items:
                 r = i.to_dict()
                 r.update({
-                    "privileges": [PRIVILEGE.privilege_to_dict(
-                        PRIVILEGE.get_privilege_by_id(j.privilege_id)
-                    ) for j in session.query(RolePrivilege).filter_by(role_id=r["role_id"])
-                        if PRIVILEGE.get_privilege_by_id(j.privilege_id)]
+                    "privileges": [
+                        PRIVILEGE.privilege_to_dict(
+                            PRIVILEGE.get_privilege_by_id(j.privilege_id)
+                        )
+                        for j in session.query(RolePrivilege).filter_by(
+                            role_id=r["role_id"])
+                        if PRIVILEGE.get_privilege_by_id(j.privilege_id)
+                    ]
                 })
                 ret.append(r)
             self.resp(ret, **p)
@@ -62,11 +65,13 @@ class RoleHandler(PrivilegeReq):
             session.add(role)
             session.commit()
             session.refresh(role)
-            session.bulk_save_objects([RolePrivilege(
-                role_id=role.role_id,
-                privilege_id=i["id"],
-                privilege_type=i["type"]
-            ) for i in privileges])
+            session.add_all([
+                RolePrivilege(
+                    role_id=role.role_id,
+                    privilege_id=i["id"],
+                    privilege_type=i["type"]
+                ) for i in privileges
+            ])
             self.resp_created({
                 **role.to_dict(),
                 "privileges": privileges
@@ -80,13 +85,19 @@ class RoleHandler(PrivilegeReq):
             scm_optional("role_name"): scm_unempty_str,
             scm_optional("comments"): scm_str,
             scm_optional("privileges", default=None): [
-                scm_one_of_choices(PRIVILEGE.get_all_privilege_id())]
+                scm_one_of_choices(PRIVILEGE.get_all_privilege_id())
+            ]
         }))
         role_id = params.pop("role_id")
         privileges = params.pop("privileges")
+
         if privileges:
-            privileges = [PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
-                          for i in privileges if PRIVILEGE.get_privilege_by_id(i)]
+            privileges = [
+                PRIVILEGE.privilege_to_dict(PRIVILEGE.get_privilege_by_id(i))
+                for i in privileges
+                if PRIVILEGE.get_privilege_by_id(i)
+            ]
+
         with make_session() as session:
             role = session.query(Role).filter_by(role_id=role_id).first()
             if not role:
@@ -105,7 +116,6 @@ class RoleHandler(PrivilegeReq):
                     privilege_id=i["id"],
                     privilege_type=i["type"]
                 ) for i in privileges])
-                session.commit()
         self.resp_created(msg="finished.")
 
 
@@ -146,7 +156,7 @@ class RoleUserHandler(PrivilegeReq):
     def post(self):
         """用户绑定角色"""
         params = self.get_json_args(Schema({
-            "role_id": scm_int,
+            "role_id": scm_gt0_int,
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
@@ -166,6 +176,6 @@ class RoleUserHandler(PrivilegeReq):
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
-            session.query(UserRole).filter_by(**params).\
+            session.query(UserRole).filter_by(**params). \
                 delete(synchronize_session=False)
         self.resp_created(msg="deleted")
