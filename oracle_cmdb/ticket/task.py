@@ -11,7 +11,6 @@ import ticket.const
 import ticket.exceptions
 import rule.const
 import utils.const
-from task.celery import *
 from models.sqlalchemy import make_session
 from .analyse import OracleSubTicketAnalyse
 from .ticket import OracleTicket
@@ -21,7 +20,6 @@ from .single_sql import SingleSQL
 from rule.rule_jar import RuleJar
 
 
-@celery.task
 def ticket_analyse(ticket_id: str, script_ids: [str]):
     """
     诊断线下工单
