@@ -50,7 +50,7 @@ class BaseTask(celery_app.Task):
     # name字段是celery预留的，task_type是项目字段
     # name用于celery标识任务的名称，本质就是task_type
 
-    def run(self, task_record_id: int = None, **kwargs):
+    def run(self, task_record_id: int, **kwargs):
         self.task_record_id = task_record_id
         print(f"going to run {self.task_type}: {self.task_record_id} ...")
         with make_session() as session:
