@@ -29,5 +29,5 @@ task_queues = set()
 
 PACKAGES_TO_SEARCH_FOR_TASKS = (
     "task",
-    # "oracle_cmdb"
+    "oracle_cmdb"
 )

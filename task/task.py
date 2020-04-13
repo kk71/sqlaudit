@@ -51,8 +51,8 @@ class BaseTask(celery_app.Task):
     # name用于celery标识任务的名称，本质就是task_type
 
     def run(self, task_record_id: int = None, **kwargs):
-        print(f"going to run {self.task_type}: {self.task_record_id} ...")
         self.task_record_id = task_record_id
+        print(f"going to run {self.task_type}: {self.task_record_id} ...")
         with make_session() as session:
             task_record = session.query(TaskRecord). \
                 filter_by(task_record_id=self.task_record_id).first()
@@ -78,7 +78,7 @@ class BaseTask(celery_app.Task):
                 filter_by(task_record_id=self.task_record_id).first()
             task_record.status = const.TASK_DONE
             task_record.end_time = arrow.now().datetime
-            task_record.output = pickle.dumps(retval)
+            task_record.output = pickle.dumps(retval, protocol=0).decode()
             session.add(task_record)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -99,7 +99,7 @@ class BaseTask(celery_app.Task):
                 task_type=cls.task_type,
                 task_name=const.ALL_TASK_TYPE_CHINESE[cls.task_type],
                 start_time=arrow.now().datetime,
-                input=pickle.dumps(kwargs)
+                input=pickle.dumps(kwargs, protocol=0).decode()
             )
             session.add(task_record)
             session.commit()
