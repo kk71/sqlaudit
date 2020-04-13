@@ -10,7 +10,7 @@ from utils.const import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import make_session, QueryEntity
-from ..task import CMDBTask
+from ..cmdb_task import CMDBTask
 from auth.user import *
 from auth.restful_api.base import AuthReq, PrivilegeReq
 from ticket.ticket import Ticket
@@ -29,9 +29,6 @@ class CMDBHandler(AuthReq):
     async def get(self):
         """查询纳管数据库列表"""
         params = self.get_query_args(Schema({
-            # 只返回当前登录用户可见的cmdb
-            scm_optional("current", default=not self.is_admin()): scm_bool,
-
             # 精确匹配
             scm_optional("cmdb_id"): scm_int,
             scm_optional("connect_name"): scm_unempty_str,
@@ -40,6 +37,9 @@ class CMDBHandler(AuthReq):
 
             # 模糊匹配多个字段
             scm_optional("keyword", default=None): scm_str,
+
+            # 只返回当前登录用户可见的cmdb
+            **self.gen_current(),
 
             # 排序
             scm_optional("sort", default=SORT_DESC): And(

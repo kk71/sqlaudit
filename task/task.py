@@ -5,13 +5,14 @@ __all__ = [
     "register_task"
 ]
 
+import pickle
 import traceback
 
 from kombu import Exchange, Queue
 
 from utils.datetime_utils import *
 from models.sqlalchemy import *
-from . import const, celery_conf
+from . import celery_conf
 from .celery import celery_app
 from .task_record import *
 
@@ -50,17 +51,25 @@ class BaseTask(celery_app.Task):
     # name用于celery标识任务的名称，本质就是task_type
 
     def run(self, task_record_id: int = None, **kwargs):
-        print("run")
+        print(f"going to run {self.task_type}: {self.task_record_id} ...")
         self.task_record_id = task_record_id
         with make_session() as session:
             task_record = session.query(TaskRecord). \
                 filter_by(task_record_id=self.task_record_id).first()
             task_record.status = const.TASK_RUNNING
             session.add(task_record)
+        return self.task(task_record_id, **kwargs)
 
     @classmethod
     def task(cls, task_record_id: int, **kwargs):
-        # 重写该方法以实现任务的实际功能
+        """
+        重写该方法以实现任务的实际功能
+        TODO 该方法写成静态，是为了和celery脱离关系，
+            使得必要时可以静态运行任务而不需要队列
+        :param task_record_id:
+        :param kwargs:
+        :return:
+        """
         raise NotImplementedError
 
     def on_success(self, retval, task_id, args, kwargs):
@@ -69,6 +78,7 @@ class BaseTask(celery_app.Task):
                 filter_by(task_record_id=self.task_record_id).first()
             task_record.status = const.TASK_DONE
             task_record.end_time = arrow.now().datetime
+            task_record.output = pickle.dumps(retval)
             session.add(task_record)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -83,15 +93,19 @@ class BaseTask(celery_app.Task):
             session.add(task_record)
 
     @classmethod
-    def shoot(cls, **kwargs):
+    def _shoot(cls, **kwargs) -> int:
         with make_session() as session:
             task_record = TaskRecord(
                 task_type=cls.task_type,
                 task_name=const.ALL_TASK_TYPE_CHINESE[cls.task_type],
                 start_time=arrow.now().datetime,
-                meta_info=str(kwargs)[:4999]
+                input=pickle.dumps(kwargs)
             )
             session.add(task_record)
             session.commit()
-            task_record_id = task_record.task_record_id
+            return task_record.task_record_id
+
+    @classmethod
+    def shoot(cls, **kwargs):
+        task_record_id = cls._shoot(**kwargs)
         cls.task_instance.delay(task_record_id, **kwargs)

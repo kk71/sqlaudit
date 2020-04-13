@@ -10,5 +10,8 @@ print(celery_conf.task_queues)
 print(celery_conf.task_routes)
 
 celery.celery_app.config_from_object(celery_conf)
-print(celery.celery_app.tasks)
+all_tasks = " - "
+if celery.celery_app.tasks:
+    all_tasks = ", ".join(celery.celery_app.tasks)
+print("all tasks: \n" + all_tasks)
 

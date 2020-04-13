@@ -18,11 +18,10 @@ class TaskRecord(
         "task_record_id", Integer, primary_key=True, autoincrement=True)
     task_type = Column("task_type", String)
     task_name = Column("task_name", String)
-    cmdb_id = Column("cmdb_id", Integer)
-    connect_name = Column("connect_name", String)
     start_time = Column("start_time", DateTime)
     end_time = Column("end_time", DateTime)
     status = Column("status", Integer, default=const.TASK_PENDING)
-    operator = Column("operator", String)
-    meta_info = Column("meta_info", String)  # 附加信息
-    error_info = Column("error_info", String)  # 报错信息
+    operator = Column("operator", String, nullable=True)
+    input = Column("input", String, nullable=True)  # 输入信息的pickle
+    output = Column("output", String, nullable=True)  # 输出信息的pickle
+    error_info = Column("error_info", String, default="")  # 报错信息

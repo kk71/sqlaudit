@@ -1,24 +1,37 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+__all__ = [
+    "BaseCMDBTask"
+]
 
-from models.sqlalchemy import BaseModel
+import task.const
+from models.sqlalchemy import *
+from task.task import BaseTask
+from .cmdb_task import *
 
 
-class CMDBTask(BaseModel):
-    """纳管库任务"""
-    __tablename__ = "cmdb_task"
+class BaseCMDBTask(BaseTask):
 
-    id = Column("id", Integer, primary_key=True)
-    task_type = Column("task_type", String)
-    task_name = Column("task_name", String)
-    cmdb_id = Column("cmdb_id", Integer)
-    connect_name = Column("connect_name", String)
-    group_name = Column("group_name", String)
-    db_type = Column("db_type", String)
-    status = Column("status", Boolean, default=True)  # 启用或者禁用
-    schedule_time = Column("schedule_time", String, default="22:00")
-    frequency = Column("frequency", Integer, default=60*60*24)  # 单位分钟
-    exec_count = Column("exec_count", Integer, default=0)
-    exec_success_count = Column("exec_success_count", Integer, default=0)
-    last_exec_success_time = Column("last_exec_success_time", DateTime)
+    """针对纳管库的任务（定时任务，周期任务）"""
+
+    @classmethod
+    def shoot(cls, **kwargs):
+        task_id: int = kwargs["task_id"]
+        operator: str = kwargs["operator"]
+
+        task_record_id = cls._shoot(**kwargs)
+        with make_session() as session:
+            cmdb_task = session.query(CMDBTask).filter_by(task_id=task_id).first()
+            cmdb_task_record = CMDBTaskRecord(
+                task_record_id=task_record_id,
+                cmdb_task_id=cmdb_task.id,
+                task_type=cls.task_type,
+                task_name=task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
+                    cls.task_type],
+                cmdb_id=cmdb_task.cmdb_id,
+                connect_name=cmdb_task.connect_name,
+                group_name=cmdb_task.group_name,
+                operator=operator
+            )
+            session.add(cmdb_task_record)
+        cls.task_instance.delay(task_record_id, **kwargs)

@@ -15,7 +15,8 @@ class RuleCartridgeHandler(BaseRuleHandler):
         params = self.get_query_args(Schema({
             scm_optional("db_type"): self.scm_one_of_choices(
                 cmdb.const.ALL_DB_TYPE),
-            scm_optional("status"): scm_bool,
+            scm_optional("db_model"): self.scm_one_of_choices(
+                cmdb.const.ALL_DB_MODEL),
 
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
@@ -33,6 +34,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
     def post(self):
         """新增墨盒规则"""
         params = self.get_json_args(Schema({
+            "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             **self.base_rule_schema_for_adding()
         }))
         new_rc = RuleCartridge(**params)
@@ -44,6 +46,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         """通用修改墨盒规则"""
         params = self.get_json_args(Schema({
             "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
+            "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             "name": scm_unempty_str,
 
             **self.base_rule_schema_for_whole_updating()
@@ -61,6 +64,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         pass
         params = self.get_json_args(Schema({
             "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
+            "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             "name": scm_unempty_str,
 
             **self.base_rule_schema_for_special_updating()
@@ -76,6 +80,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         """删除墨盒规则"""
         params = self.get_json_args(Schema({
             "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
+            "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             "name": scm_unempty_str
         }))
         the_rc = RuleCartridge.objects(**params).first()

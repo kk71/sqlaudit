@@ -258,12 +258,18 @@ code_hole.append(code)  # 务必加上这一句
 class RuleCartridge(BaseRule):
     """规则墨盒"""
 
+    db_model = IntField(
+        required=True, null=False, choices=cmdb.const.ALL_DB_MODEL)
+
     meta = {
         "collection": "rule_cartridge",
         "indexes": [
-            {'fields': ("db_type", "name"), 'unique': True},
+            {'fields': ("db_type", "db_model", "name"), 'unique': True},
         ]
     }
+
+    def unique_key(self) -> tuple:
+        return self.db_type, self.db_model, self.name
 
 
 class CMDBRule(BaseRule):
