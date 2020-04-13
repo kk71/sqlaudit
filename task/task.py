@@ -89,7 +89,7 @@ class BaseTask(celery_app.Task):
                 filter_by(task_record_id=self.task_record_id).first()
             task_record.status = const.TASK_FAILED
             task_record.end_time = arrow.now().datetime
-            task_record.error_info = failure_info
+            task_record.error_info = failure_info[-4999:]
             session.add(task_record)
 
     @classmethod
