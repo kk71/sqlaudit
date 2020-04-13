@@ -10,7 +10,6 @@ from sqlalchemy import Column, String, Boolean, Integer
 import cmdb.const
 from . import exceptions
 from cmdb.cmdb import CMDB
-from models.sqlalchemy import BaseModel
 from .plain_db import OraclePlainConnector
 
 
@@ -58,6 +57,17 @@ class OracleCMDB(CMDB):
         # TODO 需要判断 cx_Oracle.DatabaseError
         return schemas
 
+    def get_bound_schemas(self, session) -> [str]:
+        """获取当前纳管库全部涉及到的schema（评分schema+纳管schema的合集）"""
+        from .auth.role import RoleOracleCMDBSchema
+        from .rate import OracleRatingSchema
+        return list({
+            *session.query(RoleOracleCMDBSchema.schema_name).filter_by(
+                cmdb_id=self.cmdb_id),
+            *session.query(OracleRatingSchema.schema_name).filter_by(
+                cmdb_id=self.cmdb_id)
+        })
+
     def test_connectivity(self) -> bool:
         """测试连接性"""
         try:
@@ -66,13 +76,3 @@ class OracleCMDB(CMDB):
             return False
         return True
 
-
-class RoleOracleCMDBSchema(BaseModel):
-    """角色-oracle纳管库-schema的绑定关系"""
-    __tablename__ = "role_oracle_cmdb_schema"
-
-    id = Column("id", Integer, primary_key=True)
-    role_id = Column("role_id", Integer)
-    cmdb_id = Column("cmdb_id", Integer)
-    schema_name = Column("schema_name", String)
-    comments = Column("comments", String)

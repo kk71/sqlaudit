@@ -16,21 +16,20 @@ class BaseCMDBTask(BaseTask):
     """针对纳管库的任务（定时任务，周期任务）"""
 
     def run(self, task_record_id: int, **kwargs):
-        self.cmdb_task_id = kwargs.pop("cmdb_task_id")
-        self.cmdb_id = kwargs.pop("cmdb_id")
+        self.cmdb_task_id = kwargs["cmdb_task_id"]
+
         print(f"*** going to run cmdb capture task "
-              f"with cmdb_task_id({self.cmdb_task_id}), cmdb_id({self.cmdb_id}) ...")
-        super(BaseCMDBTask, self).run(
-            task_record_id, cmdb_task_id=self.cmdb_task_id, **kwargs)
+              f"with cmdb_task_id({self.cmdb_task_id}) ...")
+        super(BaseCMDBTask, self).run(task_record_id, **kwargs)
 
     @classmethod
     def shoot(cls, **kwargs):
-        task_id: int = kwargs["task_id"]
+        cmdb_task_id: int = kwargs["cmdb_task_id"]
         operator: str = kwargs["operator"]
 
         task_record_id = cls._shoot(**kwargs)
         with make_session() as session:
-            cmdb_task = session.query(CMDBTask).filter_by(id=task_id).first()
+            cmdb_task = session.query(CMDBTask).filter_by(id=cmdb_task_id).first()
             cmdb_task_record = CMDBTaskRecord(
                 task_record_id=task_record_id,
                 cmdb_task_id=cmdb_task.id,
@@ -43,9 +42,7 @@ class BaseCMDBTask(BaseTask):
                 operator=operator
             )
             session.add(cmdb_task_record)
-            cmdb_task_id = cmdb_task.id
-        cls.task_instance.delay(
-            task_record_id, cmdb_task_id=cmdb_task_id, **kwargs)
+        cls.task_instance.delay(task_record_id, **kwargs)
 
     def on_success(self, retval, task_id, args, kwargs):
         super(BaseCMDBTask, self).on_success(retval, task_id, args, kwargs)

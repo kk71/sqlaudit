@@ -15,5 +15,5 @@ class OracleRatingSchema(BaseModel):
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     cmdb_id = Column("cmdb_id", Integer)
-    schema = Column("schema", String)
+    schema_name = Column("schema_name", String)
     weight = Column("weight", DECIMAL, default=1)

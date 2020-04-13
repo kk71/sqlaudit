@@ -7,4 +7,4 @@ from oracle_cmdb.tasks.cmdb_capture import *
 
 
 def main():
-    OracleCMDBCaptureTask.shoot(task_id=1991, cmdb_id=2526, operator="123")
+    OracleCMDBCaptureTask.shoot(cmdb_task_id=1991, operator="123")
