@@ -115,7 +115,7 @@ def main():
             for the_cmdb_id, the_schema, the_weight in o_data_health_user:
                 m_session.add(OracleRatingSchema(
                     cmdb_id=the_cmdb_id,
-                    schema=the_schema,
+                    schema_name=the_schema,
                     weight=the_weight
                 ))
             m_session.commit()
