@@ -32,7 +32,7 @@ def env_get(k, default, parser=None):
 
 # oracle connection settings
 
-WEB_IP = env_get("WEB_IP", "192.0.0.9")
+WEB_IP = env_get("WEB_IP", "193.0.0.9")
 ORM_ECHO = env_get("ORM_ECHO", False, int)
 ORACLE_IP = env_get("ORACLE_IP", WEB_IP)
 ORACLE_USERNAME = env_get("ORACLE_USERNAME", "isqlaudit")

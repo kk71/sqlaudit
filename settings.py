@@ -28,7 +28,7 @@ def env_get(k, default, parser=None):
 DEBUG = True
 API_DOC = env_get("API_DOC", 0, int)
 URL_STATS = env_get("URL_STATS", 0, int)
-WEB_IP = env_get("WEB_IP", "192.0.0.9")
+WEB_IP = env_get("WEB_IP", "193.0.0.9")
 WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1")
@@ -47,7 +47,7 @@ CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change cli
 VERSION_FILE = path.join(SETTINGS_FILE_DIR, "version.json")
 
 
-REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "192.0.0.3")
+REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "193.0.0.3")
 
 # celery broker & backend settings
 # for celery other settings, please refer to celery_conf.py
@@ -65,7 +65,7 @@ REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND
 
 # mongodb server settings
 
-MONGO_SERVER = env_get("MONGO_IP", "192.0.0.2")
+MONGO_SERVER = env_get("MONGO_IP", "193.0.0.2")
 MONGO_PORT = env_get("MONGO_PORT", 27017, int)
 MONGO_USER = env_get("MONGO_USER", "sqlreview")
 MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
@@ -93,7 +93,7 @@ LOG_DEFAULT_PATH = "/tmp/"
 # oracle connection settings
 
 ORM_ECHO = env_get("ORM_ECHO", False, int)
-MYSQL_IP = env_get("MYSQL_IP", "192.0.0.4")
+MYSQL_IP = env_get("MYSQL_IP", "193.0.0.4")
 MYSQL_PORT = env_get("MYSQL_PORT", 3306, int)
 MYSQL_USERNAME = env_get("MYSQL_USERNAME", "isqlaudit")
 MYSQL_PASSWORD = env_get("MYSQL_PASSWORD", "v1g2m60id2499yz")
