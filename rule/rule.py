@@ -193,7 +193,7 @@ code_hole.append(code)  # 务必加上这一句
         """仅生成code函数，不缓存。并且执行规则输入参数每个参数的验证。"""
         print(f"* validating input params of {str(self)}...")
         for input_param in self.input_params:
-            input_param.validate_data_type()
+            input_param.validate_input_data()
         if getattr(self, "_code", None):
             delattr(self, "_code")
         print(f"* generating code for {str(self)} (test only)...")
@@ -258,7 +258,7 @@ code_hole.append(code)  # 务必加上这一句
 class RuleCartridge(BaseRule):
     """规则墨盒"""
 
-    db_model = IntField(
+    db_model = StringField(
         required=True, null=False, choices=cmdb.const.ALL_DB_MODEL)
 
     meta = {

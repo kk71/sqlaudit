@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from mongoengine import NotUniqueError
+
 import cmdb.const
 from restful_api.modules import *
 from utils.schema_utils import *
@@ -39,7 +41,10 @@ class RuleCartridgeHandler(BaseRuleHandler):
         }))
         new_rc = RuleCartridge(**params)
         self.test_code(new_rc)
-        new_rc.save()
+        try:
+            new_rc.save()
+        except NotUniqueError:
+            return self.resp_bad_req(msg=f"{new_rc.unique_key()} 已存在")
         self.resp_created(new_rc.to_dict())
 
     def put(self):
@@ -53,7 +58,12 @@ class RuleCartridgeHandler(BaseRuleHandler):
         }))
         db_type = params.pop("db_type")
         name = params.pop("name")
-        the_rc = RuleCartridge.objects(db_type=db_type, name=name).first()
+        db_model = params.pop("db_model")
+
+        the_rc = RuleCartridge.objects(
+            db_type=db_type,
+            name=name,
+            db_model=db_model).first()
         the_rc.from_dict(params)
         self.test_code(the_rc)
         the_rc.save()
@@ -71,7 +81,13 @@ class RuleCartridgeHandler(BaseRuleHandler):
         }))
         db_type = params.pop("db_type")
         name = params.pop("name")
-        the_cr = RuleCartridge.objects(db_type=db_type, name=name).first()
+        db_model = params.pop("db_model")
+
+        the_cr = RuleCartridge.objects(
+            db_type=db_type,
+            name=name,
+            db_model=db_model
+        ).first()
         self.special_update(the_cr, **params)
         self.save()
         self.resp_created(the_cr.to_dict())
@@ -84,5 +100,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
             "name": scm_unempty_str
         }))
         the_rc = RuleCartridge.objects(**params).first()
+        if not the_rc:
+            return self.resp_bad_req(msg=f"{params}规则未找到")
         the_rc.delete()
         self.resp_created(msg="已删除")

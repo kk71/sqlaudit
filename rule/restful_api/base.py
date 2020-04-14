@@ -11,7 +11,8 @@ import rule.const
 from .. import exceptions
 from auth.restful_api.base import *
 from utils.schema_utils import *
-from ..rule import RuleInputParams, RuleOutputParams, BaseRule
+from ..rule import RuleInputParams, RuleOutputParams
+from ..rule import BaseRule
 
 
 class BaseRuleHandler(AuthReq):
@@ -51,6 +52,7 @@ class BaseRuleHandler(AuthReq):
                 rip.validate_input_data()
             except exceptions.RuleCodeInvalidParamTypeException:
                 return self.resp_bad_req(f"输入参数值与类型不匹配: {x}")
+            return rip
 
         return Use(_scm)
 
@@ -79,9 +81,9 @@ class BaseRuleHandler(AuthReq):
             scm_optional("entries"): self.scm_subset_of_choices(
                 rule.const.ALL_RULE_ENTRIES),
             scm_optional("input_params"): And(
-                self.scm_list_of_dict_duplication, self.scm_rule_input_params()),
+                self.scm_list_of_dict_duplication, [self.scm_rule_input_params()]),
             scm_optional("output_params"): And(
-                self.scm_list_of_dict_duplication, self.scm_rule_output_params()),
+                self.scm_list_of_dict_duplication, [self.scm_rule_output_params()]),
             scm_optional("code"): scm_unempty_str,
             scm_optional("status"): scm_bool,
             scm_optional("summary"): scm_str,

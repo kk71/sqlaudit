@@ -24,7 +24,6 @@ class BaseReq(RequestHandler):
         """return error message if a schema validation failed."""
 
         def s(*args, **kwargs):
-            self.resp_bad_req(msg=e)
             raise exceptions.SchemaErrorWithMessage(e)
 
         return s

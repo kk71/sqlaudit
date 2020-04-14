@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from mongoengine import NotUniqueError
+
 from restful_api.modules import *
 from utils.schema_utils import *
 from ..rule import CMDBRule
@@ -36,7 +38,10 @@ class CMDBRuleHandler(BaseRuleHandler):
         }))
         new_cr = CMDBRule(**params)
         self.test_code(new_cr)
-        new_cr.save()
+        try:
+            new_cr.save()
+        except NotUniqueError:
+            return self.resp_bad_req(msg=f"{new_cr.unique_key()} 已存在")
         self.resp_created(new_cr.to_dict())
 
     def put(self):
@@ -77,5 +82,7 @@ class CMDBRuleHandler(BaseRuleHandler):
             "name": scm_unempty_str
         }))
         the_cr = CMDBRule.objects(**params).first()
+        if not the_cr:
+            return self.resp_bad_req(msg=f"{params}规则未找到")
         the_cr.delete()
         self.resp_created(msg="已删除")
