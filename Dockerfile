@@ -6,7 +6,7 @@ MAINTAINER bill
 WORKDIR /project
 COPY requirements.txt /tmp
 COPY files /tmp/
-RUN     pip install --no-cache-dir -r /tmp/requirements.txt && \
+RUN     pip install --no-cache-dir -r /tmp/requirements.txt --index-url https://pypi.doubanio.com/simple/ --trusted-host pypi.doubanio.com && \
         apt-get update && \
         apt-get install libaio1 && \
         apt-get clean && \

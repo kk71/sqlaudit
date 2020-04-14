@@ -289,3 +289,21 @@ class BaseReq(RequestHandler):
             deduplicate_list.append(pair)
         deduplicate_list.reverse()
         return deduplicate_list
+
+    @classmethod
+    def test_case(cls,
+                  method: Callable,
+                  headers=None,
+                  query_string=None,
+                  json_body=None,
+                  files=None) -> NoReturn:
+        """
+        生成测试参数
+        :param method:
+        :param headers: 请求方法的引用（cls.get, cls.post, ...）
+        :param query_string:
+        :param json_body:
+        :param files: {"filename": <byte of the file>, ...}
+        :return:
+        """
+        return

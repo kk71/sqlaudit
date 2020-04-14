@@ -26,6 +26,7 @@ def env_get(k, default, parser=None):
 # web server settings
 
 DEBUG = True
+API_DOC = env_get("API_DOC", 0, int)
 URL_STATS = env_get("URL_STATS", 0, int)
 WEB_IP = env_get("WEB_IP", "192.0.0.9")
 WEB_PORT = env_get("WEB_PORT", 8000)

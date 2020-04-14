@@ -1,8 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleCMDB",
-    "RoleOracleCMDBSchema"
+    "OracleCMDB"
 ]
 
 from sqlalchemy import Column, String, Boolean, Integer
