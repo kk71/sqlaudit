@@ -19,11 +19,13 @@ from models.sqlalchemy import make_session
 from auth.user import *
 from oracle_cmdb.cmdb import *
 from oracle_cmdb.rate import *
+from oracle_cmdb.auth.role import *
 from cmdb.cmdb_task import *
 
 
 def main():
     """ONLY RUN ONCE!! oracle data migrate to mysql"""
+
     with make_oracle_session() as o_session:
         o_user_q = o_session.query(OUser)
         o_user_role_q = o_session.query(OUserRole)
