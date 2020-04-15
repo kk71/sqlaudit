@@ -68,8 +68,7 @@ class BaseCMDBHandler(AuthReq):
             # 获取纳管库的评分
             all_db_data_health = get_latest_cmdb_score().values()
             if current:
-                current_cmdb_ids: list = await async_thr(
-                    get_current_cmdb, self.current_user)
+                current_cmdb_ids: list = get_current_cmdb(self.current_user)
                 q = q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
                 all_db_data_health = [
                     stats_cmdb_rate
