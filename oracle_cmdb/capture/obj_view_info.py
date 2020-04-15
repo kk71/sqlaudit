@@ -6,9 +6,10 @@ __all__ = [
 
 from mongoengine import StringField
 
-from .base import *
+from .base import SchemaObjectCapturingDoc
 
 
+@SchemaObjectCapturingDoc.need_collect()
 class ObjViewInfo(SchemaObjectCapturingDoc):
     """视图信息"""
 

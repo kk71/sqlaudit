@@ -8,10 +8,11 @@ from typing import NoReturn
 
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
-from .base import *
+from .base import SchemaObjectCapturingDoc
 from ..plain_db import OraclePlainConnector
 
 
+@SchemaObjectCapturingDoc.need_collect()
 class ObjPartTabParent(SchemaObjectCapturingDoc):
     """分区表父"""
 

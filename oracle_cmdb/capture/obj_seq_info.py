@@ -8,9 +8,10 @@ from typing import NoReturn
 
 from mongoengine import StringField, IntField
 
-from .base import *
+from .base import SchemaObjectCapturingDoc
 
 
+@SchemaObjectCapturingDoc.need_collect()
 class ObjSeqInfo(SchemaObjectCapturingDoc):
     """序列信息"""
 

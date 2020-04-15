@@ -6,9 +6,10 @@ __all__ = [
 
 from mongoengine import StringField, IntField, FloatField, DynamicField
 
-from .base import *
+from .base import SchemaObjectCapturingDoc
 
 
+@SchemaObjectCapturingDoc.need_collect()
 class ObjTabCol(SchemaObjectCapturingDoc):
     """表列信息"""
 

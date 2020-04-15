@@ -1,11 +1,17 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "SQLPlan"
+]
+
+from typing import NoReturn
+
 from mongoengine import StringField, IntField
 
-from ..plain_db import *
 from .base import TwoDaysSQLCapturingDoc
 
 
+@TwoDaysSQLCapturingDoc.need_collect()
 class SQLPlan(TwoDaysSQLCapturingDoc):
     """纳管库sql执行计划"""
 
@@ -42,17 +48,10 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
     time = StringField()
 
     @classmethod
-    def capture_sql(cls,
-                    cmdb_id: int,
-                    task_record_id: str,
-                    cmdb_connector: OraclePlainConnector,
-                    schema_name: str,
-                    sql_id: str,
-                    **kwargs):
+    def simple_capture(cls, **kwargs) -> str:
+        sql_id: str = kwargs["sql_id"]
         plan_hash_value: int = kwargs["plan_hash_value"]
-        two_days_capture: str = kwargs["two_days_capture"]
-
-        records = cmdb_connector.select_dict(f"""
+        return f"""
 SELECT
     p.sql_id,
     p.plan_hash_value,
@@ -60,7 +59,6 @@ SELECT
     p.depth,
     p.parent_id,
     p.operation,
-    // lpad(' ', p.depth) || p.operation operation_display,
     p.options,
     p.object_node,
     p.object_owner,
@@ -133,17 +131,16 @@ FROM
         WHERE
             rn = 1
     ) p
-""")
-        for record in records:
-            new_doc = cls(
-                cmdb_id=cmdb_id,
-                task_record_id=task_record_id,
-                two_days_capture=two_days_capture,
-                **record
-            )
-            if new_doc.operation:
-                new_doc.operation_display = " " * new_doc.depth + new_doc.operation
-                if new_doc.options:
-                    new_doc.operation_display_with_options = \
-                        new_doc.operation_display + " " + new_doc.options
-            yield new_doc
+"""
+
+    @classmethod
+    def post_captured(cls, **kwargs) -> NoReturn:
+        docs: [cls] = kwargs["docs"]
+
+        TwoDaysSQLCapturingDoc.post_captured(**kwargs)
+        for doc in docs:
+            if doc.operation:
+                doc.operation_display = " " * doc.depth + doc.operation
+                if doc.options:
+                    doc.operation_display_with_options = \
+                        doc.operation_display + " " + doc.options

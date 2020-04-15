@@ -10,6 +10,8 @@ class BaseCaptureItem(abc.ABC):
     cmdb_id = None  # 纳管库id
     task_record_id = None  # 任务id
 
+    MODELS = []  # 需要采集的models
+
     @classmethod
     def simple_capture(cls, **kwargs) -> str:
         """简单采集行为"""
@@ -21,9 +23,21 @@ class BaseCaptureItem(abc.ABC):
         pass
 
     @classmethod
+    def capture(cls, model_to_capture, **kwargs):
+        """采集"""
+        pass
+
+    @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
         """采集后对采到的数据做简单的修正，例如添加辅助字段，修正数据类型等"""
         pass
+
+    @classmethod
+    def need_collect(cls):
+        def inner(model):
+            cls.MODELS.append(model)
+            return model
+        return inner
 
 
 class BaseCapture(abc.ABC):

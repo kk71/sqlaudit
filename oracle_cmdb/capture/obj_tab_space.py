@@ -8,9 +8,10 @@ from typing import NoReturn
 
 from mongoengine import StringField, FloatField
 
-from .base import *
+from .base import ObjectCapturingDoc
 
 
+@ObjectCapturingDoc.need_collect()
 class ObjTabSpace(ObjectCapturingDoc):
     """表空间信息"""
 

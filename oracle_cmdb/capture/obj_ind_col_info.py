@@ -7,9 +7,10 @@ __all__ = [
 
 from mongoengine import StringField, IntField
 
-from .base import *
+from .base import SchemaObjectCapturingDoc
 
 
+@SchemaObjectCapturingDoc.need_collect()
 class ObjIndColInfo(SchemaObjectCapturingDoc):
     """索引列信息"""
 

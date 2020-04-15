@@ -1,24 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["need_collect"]
-
 import importlib
-from typing import Union
 from glob import glob
 from pathlib import Path
 from os import path
 
 import settings
-from .base import *
 
 # 当前文件的所在目录
 CURRENT_DIR = path.dirname(path.realpath(__file__))
-
-CMDB_MODELS_TO_COLLECT = []
-
-SCHEMA_OBJ_MODELS_TO_COLLECT = []
-
-SQL_MODELS_TO_COLLECT = []
 
 
 def collect_dynamic_modules():
@@ -39,20 +29,3 @@ def collect_dynamic_modules():
         py_file_dot_split = [i for i in relative_path.split("/") if i]
         py_file_path_for_importing = ".".join(py_file_dot_split)[:-3]
         importlib.import_module(f"{py_file_path_for_importing}")
-
-
-def need_collect(collecting_model: Union[SQLCapturingDoc,
-                                         ObjectCapturingDoc,
-                                         SchemaObjectCapturingDoc]):
-    """需要采集的对象"""
-
-    # object的两种采集model，判断的顺序很重要
-    if isinstance(collecting_model, SchemaObjectCapturingDoc):
-        SQL_MODELS_TO_COLLECT.append(collecting_model)
-    elif isinstance(collecting_model, ObjectCapturingDoc):
-        SQL_MODELS_TO_COLLECT.append(collecting_model)
-    elif isinstance(collecting_model, SQLCapturingDoc):
-        SQL_MODELS_TO_COLLECT.append(collecting_model)
-    else:
-        assert 0
-    return collecting_model
