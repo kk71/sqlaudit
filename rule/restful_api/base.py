@@ -4,7 +4,7 @@ __all__ = [
     "BaseRuleHandler"
 ]
 
-from schema import Use
+from schema import Use, Or
 
 import cmdb.const
 import rule.const
@@ -80,10 +80,14 @@ class BaseRuleHandler(AuthReq):
                 cmdb.const.ALL_DB_TYPE),
             scm_optional("entries"): self.scm_subset_of_choices(
                 rule.const.ALL_RULE_ENTRIES),
-            scm_optional("input_params"): And(
-                self.scm_list_of_dict_duplication, [self.scm_rule_input_params()]),
-            scm_optional("output_params"): And(
-                self.scm_list_of_dict_duplication, [self.scm_rule_output_params()]),
+            scm_optional("input_params"): Or(
+                [],
+                And(self.scm_list_of_dict_duplication, [self.scm_rule_input_params()]),
+            ),
+            scm_optional("output_params"): Or(
+                [],
+                And(self.scm_list_of_dict_duplication, [self.scm_rule_output_params()]),
+            ),
             scm_optional("code"): scm_unempty_str,
             scm_optional("status"): scm_bool,
             scm_optional("summary"): scm_str,

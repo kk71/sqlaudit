@@ -3,7 +3,8 @@
 __all__ = [
     "ObjectCapturingDoc",
     "SchemaObjectCapturingDoc",
-    "SQLCapturingDoc"
+    "SQLCapturingDoc",
+    "TwoDaysSQLCapturingDoc"
 ]
 
 from typing import NoReturn
@@ -14,7 +15,7 @@ from mongoengine import IntField, StringField, ObjectIdField
 from models.mongoengine import *
 from utils.datetime_utils import *
 from ..plain_db import OraclePlainConnector
-from .. import exceptions
+from .. import exceptions, const
 
 
 class ObjectCapturingDoc(
@@ -78,8 +79,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
 class SQLCapturingDoc(BaseDoc):
     """sql采集"""
 
-    _id = ObjectIdField()
-    cmdb_id = IntField()
+    cmdb_id = IntField(required=True)
     task_record_id = IntField(required=True)
 
     meta = {
@@ -167,5 +167,22 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             NULL, NULL, NULL))""")
 
     @classmethod
-    def capture_sql(cls, schema_name: str, sql_id: str, **kwargs):
+    def capture_sql(cls,
+                    cmdb_connector: OraclePlainConnector,
+                    schema_name: str,
+                    sql_id: str,
+                    **kwargs):
         raise NotImplementedError
+
+
+class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
+    """采集两天的sql数据"""
+
+    two_days_capture = StringField(choices=const.ALL_TWO_DAYS_CAPTURE)
+
+    meta = {
+        "indexes": [
+            "two_days_capture"
+        ]
+    }
+

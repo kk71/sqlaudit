@@ -6,6 +6,7 @@ __all__ = [
 
 
 import os
+from typing import Union
 
 import cx_Oracle
 
@@ -50,23 +51,21 @@ class OraclePlainConnector:
     def update(self, sql, params=None):
         self.insert(sql, params)
 
-    def select_dict(self, sql, params=None, one=True):
+    def select_dict(self, sql, params=None, one=True) -> Union[list, dict]:
         params = params or []
         self.cursor.execute(sql, params)
         fields = [x[0].lower() for x in self.cursor.description]
-        data = (self.cursor.fetchone() or ()) if one else self.cursor.fetchall()
-
-        data = data or ()
-        if isinstance(data, tuple):
+        if one:
+            data = self.cursor.fetchone() or ()
             return dict(zip(fields, data))
-
-        # Else is a list, fetchall()
-        return [dict(zip(fields, item)) for item in data]
+        else:
+            data = self.cursor.fetchall()
+            return [dict(zip(fields, item)) for item in data]
 
     def select(self, sql, params=None, one=True):
         params = params or []
         self.cursor.execute(sql, params)
-        return (self.cursor.fetchone() or ()) if one else self.cursor.fetchall()
+        return self.cursor.fetchone() or () if one else self.cursor.fetchall()
 
     def delete(self, sql, params=None):
         self.insert(sql, params)
