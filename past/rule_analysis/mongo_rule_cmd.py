@@ -310,19 +310,25 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
     sql_collection = mongo_client.get_collection(sql)
     found_items = sql_collection.find({
         "OPERATION": "TABLE ACCESS",
+        "OBJECT_TYPE": "TABLE",
         "OPTIONS": "FULL",
         "USERNAME": username,
         etl_date_key: etl_date
     })
+    from models.mongo.obj import ObjTabInfo
     for x in found_items:
-        yield {
-            "SQL_ID": x["SQL_ID"],
-            "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-            "OBJECT_NAME": x["OBJECT_NAME"],
-            "ID": x["ID"],
-            "COST": x["COST"],
-            "COUNT": ""
-        }
+        table_q = ObjTabInfo.objects(
+            table_name=x["TABLE_NAME"], schema_name=x["USERNAME"])
+        for tab in table_q:
+            if tab.phy_size_mb > table_phy_size:
+                yield {
+                    "SQL_ID": x["SQL_ID"],
+                    "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                    "OBJECT_NAME": x["OBJECT_NAME"],
+                    "ID": x["ID"],
+                    "COST": x["COST"],
+                    "COUNT": ""
+                }
 
 
 @timing()
