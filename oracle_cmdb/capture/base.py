@@ -183,6 +183,7 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
     two_days_capture = StringField(choices=const.ALL_TWO_DAYS_CAPTURE)
 
     meta = {
+        'abstract': True,
         "indexes": [
             "two_days_capture"
         ]
