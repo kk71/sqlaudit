@@ -46,12 +46,11 @@ class BaseRuleHandler(AuthReq):
     def scm_rule_input_params(self) -> Use:
         """验证输入参数"""
         def _scm(x):
-            rip = RuleInputParams(
-                **Schema(self._rule_input_params()).validate(x)
-            )
+            rough_validated: dict = Schema(
+                self._rule_input_params()).validate(x)
             try:
                 # 假设前端传来的value都是文本，尝试帮前端转换成对应的数据
-                data_type = rip["data_type"]
+                data_type = rough_validated["data_type"]
                 if data_type == const.RULE_PARAM_TYPE_STR:
                     scm_data_type = scm_str
                 elif data_type == const.RULE_PARAM_TYPE_INT:
@@ -64,12 +63,13 @@ class BaseRuleHandler(AuthReq):
                     scm_data_type = Or(list, scm_dot_split_str, scm_dot_split_int)
                 else:
                     assert 0
-                rip = Schema({
+                validated: dict = Schema({
                     "value": scm_data_type,
                     scm_optional(object): object
-                }).validate(rip)
+                }).validate(rough_validated)
             except:
                 return self.resp_bad_req(f"输入参数值与类型不匹配，并且自动转换失败: {x}")
+            rip = RuleInputParams(**validated)
             try:
                 rip.validate_input_data()
             except exceptions.RuleCodeInvalidParamTypeException:
