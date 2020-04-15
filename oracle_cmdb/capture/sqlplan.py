@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from mongoengine import StringField, IntField, FloatField, DateField
+from mongoengine import StringField, IntField
 
 from ..plain_db import *
 from .base import TwoDaysSQLCapturingDoc
@@ -43,11 +43,15 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
 
     @classmethod
     def capture_sql(cls,
+                    cmdb_id: int,
+                    task_record_id: str,
                     cmdb_connector: OraclePlainConnector,
                     schema_name: str,
                     sql_id: str,
                     **kwargs):
         plan_hash_value: int = kwargs["plan_hash_value"]
+        two_days_capture: str = kwargs["two_days_capture"]
+
         records = cmdb_connector.select_dict(f"""
 SELECT
     p.sql_id,
@@ -132,26 +136,14 @@ FROM
 """)
         for record in records:
             new_doc = cls(
-
+                cmdb_id=cmdb_id,
+                task_record_id=task_record_id,
+                two_days_capture=two_days_capture,
                 **record
             )
-            for i in range(len(value)):
-                temp_dict.update({
-                    columns[i]: value[i],
-                    'USERNAME': username,
-                    'ETL_DATE': self.capture_time,
-                    'IPADDR': self.ipaddress,
-                    'DB_SID': self.sid,
-                    'record_id': "##".join([str(self.record_id), username]),
-                    'cmdb_id': self.cmdb_id,
-                })
-            if temp_dict.get("COST") == 18446744073709551615:
-                temp_dict["COST"] = str(int(temp_dict["COST"]))
-            if temp_dict.get("POSITION", None) == 18446744073709551615:
-                temp_dict["POSITION"] = str(int(temp_dict["POSITION"]))
-            if temp_dict.get("CPU_COST", None) == 18446744073709551615:
-                temp_dict["CPU_COST"] = str(int(temp_dict["CPU_COST"]))
-            if temp_dict.get("BYTES", None) == 18446744073709551615:
-                temp_dict["BYTES"] = str(int(temp_dict["BYTES"]))
-            if temp_dict.get("CARDINALITY", None) == 18446744073709551615:
-                temp_dict["CARDINALITY"] = str(int(temp_dict["CARDINALITY"]))
+            if new_doc.operation:
+                new_doc.operation_display = " " * new_doc.depth + new_doc.operation
+                if new_doc.options:
+                    new_doc.operation_display_with_options = \
+                        new_doc.operation_display + " " + new_doc.options
+            yield new_doc

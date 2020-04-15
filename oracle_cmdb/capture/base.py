@@ -168,6 +168,8 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
 
     @classmethod
     def capture_sql(cls,
+                    cmdb_id: int,
+                    task_record_id: str,
                     cmdb_connector: OraclePlainConnector,
                     schema_name: str,
                     sql_id: str,

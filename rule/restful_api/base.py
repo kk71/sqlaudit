@@ -12,6 +12,7 @@ from .. import exceptions
 from auth.restful_api.base import *
 from utils.schema_utils import *
 from ..rule import RuleInputParams, RuleOutputParams
+from .. import const
 from ..rule import BaseRule
 
 
@@ -29,8 +30,21 @@ class BaseRuleHandler(AuthReq):
     def _rule_input_params(self) -> dict:
         """输入参数"""
         ret = self._rule_params()
+        data_type = ret["data_type"]
+        if data_type == const.RULE_PARAM_TYPE_STR:
+            data_type = scm_str
+        elif data_type == const.RULE_PARAM_TYPE_INT:
+            data_type = scm_int
+        elif data_type == const.RULE_PARAM_TYPE_FLOAT:
+            data_type = scm_float
+        elif data_type == const.RULE_PARAM_TYPE_NUM:
+            data_type = scm_num
+        elif data_type == const.RULE_PARAM_TYPE_LIST:
+            data_type = Or(list, scm_dot_split_str, scm_dot_split_int)
+        else:
+            assert 0
         ret.update({
-            "value": object
+            "value": data_type
         })
         return ret
 
