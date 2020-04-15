@@ -318,17 +318,18 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
     from models.mongo.obj import ObjTabInfo
     for x in found_items:
         table_q = ObjTabInfo.objects(
-            table_name=x["TABLE_NAME"], schema_name=x["USERNAME"])
+            table_name=x["OBJECT_NAME"], schema_name=x["USERNAME"])
         for tab in table_q:
             if tab.phy_size_mb > table_phy_size:
-                yield {
-                    "SQL_ID": x["SQL_ID"],
-                    "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-                    "OBJECT_NAME": x["OBJECT_NAME"],
-                    "ID": x["ID"],
-                    "COST": x["COST"],
-                    "COUNT": ""
-                }
+                if tab.num_rows > table_row_num:
+                    yield {
+                        "SQL_ID": x["SQL_ID"],
+                        "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                        "OBJECT_NAME": x["OBJECT_NAME"],
+                        "ID": x["ID"],
+                        "COST": x["COST"],
+                        "COUNT": ""
+                    }
 
 
 @timing()
