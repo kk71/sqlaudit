@@ -228,4 +228,5 @@ class BaseRuleHandler(AuthReq):
         try:
             a_rule_item.test()
         except exceptions.RuleCodeInvalidException:
-            return self.resp_bad_req(msg="规则代码错误")
+            self.resp_bad_req(msg="规则代码错误")
+            raise exceptions.RuleCodeInvalidParamTypeException
