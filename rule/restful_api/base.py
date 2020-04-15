@@ -30,21 +30,8 @@ class BaseRuleHandler(AuthReq):
     def _rule_input_params(self) -> dict:
         """输入参数"""
         ret = self._rule_params()
-        data_type = ret["data_type"]
-        if data_type == const.RULE_PARAM_TYPE_STR:
-            data_type = scm_str
-        elif data_type == const.RULE_PARAM_TYPE_INT:
-            data_type = scm_int
-        elif data_type == const.RULE_PARAM_TYPE_FLOAT:
-            data_type = scm_float
-        elif data_type == const.RULE_PARAM_TYPE_NUM:
-            data_type = scm_num
-        elif data_type == const.RULE_PARAM_TYPE_LIST:
-            data_type = Or(list, scm_dot_split_str, scm_dot_split_int)
-        else:
-            assert 0
         ret.update({
-            "value": data_type
+            "value": object  # 这个地方具体在后面验证
         })
         return ret
 
@@ -62,6 +49,27 @@ class BaseRuleHandler(AuthReq):
             rip = RuleInputParams(
                 **Schema(self._rule_input_params()).validate(x)
             )
+            try:
+                # 假设前端传来的value都是文本，尝试帮前端转换成对应的数据
+                data_type = rip["data_type"]
+                if data_type == const.RULE_PARAM_TYPE_STR:
+                    scm_data_type = scm_str
+                elif data_type == const.RULE_PARAM_TYPE_INT:
+                    scm_data_type = scm_int
+                elif data_type == const.RULE_PARAM_TYPE_FLOAT:
+                    scm_data_type = scm_float
+                elif data_type == const.RULE_PARAM_TYPE_NUM:
+                    scm_data_type = scm_num
+                elif data_type == const.RULE_PARAM_TYPE_LIST:
+                    scm_data_type = Or(list, scm_dot_split_str, scm_dot_split_int)
+                else:
+                    assert 0
+                rip = Schema({
+                    "value": scm_data_type,
+                    scm_optional(object): object
+                }).validate(rip)
+            except:
+                return self.resp_bad_req(f"输入参数值与类型不匹配，并且自动转换失败: {x}")
             try:
                 rip.validate_input_data()
             except exceptions.RuleCodeInvalidParamTypeException:
