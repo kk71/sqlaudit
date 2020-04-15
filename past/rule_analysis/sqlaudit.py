@@ -95,7 +95,7 @@ class SqlAudit(object):
 
             # 替换掉用户自定义的参数
             for parm in input_parms:
-                rule_cmd = rule_cmd.replace("@" + parm["parm_name"] + "@", parm["parm_value"])
+                rule_cmd = rule_cmd.replace("@" + parm["parm_name"] + "@", str(parm["parm_value"]))
 
             # 替换掉默认参数
             rule_cmd = rule_cmd.replace("@username@", self.username).\
