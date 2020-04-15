@@ -20,7 +20,8 @@ from . import exceptions
 class BaseReq(RequestHandler):
     """base request handler"""
 
-    def _resp_em(self, e):
+    @staticmethod
+    def _resp_em(e):
         """return error message if a schema validation failed."""
 
         def s(*args, **kwargs):
@@ -28,19 +29,22 @@ class BaseReq(RequestHandler):
 
         return s
 
-    def scm_or_with_error_msg(self, *args, e):
+    @classmethod
+    def scm_or_with_error_msg(cls, *args, e):
         """按照Or的顺序执行schema，如果都失败了，则返回400，msg为e"""
-        args = list(args) + [self._resp_em(e)]
+        args = list(args) + [cls._resp_em(e)]
         return Or(*args)
 
-    def scm_one_of_choices(self, choices):
-        return self.scm_or_with_error_msg(
+    @classmethod
+    def scm_one_of_choices(cls, choices):
+        return cls.scm_or_with_error_msg(
             scm_one_of_choices(choices),
             e=f"should be one of {choices}"
         )
 
-    def scm_subset_of_choices(self, choices):
-        return self.scm_or_with_error_msg(
+    @classmethod
+    def scm_subset_of_choices(cls, choices):
+        return cls.scm_or_with_error_msg(
             scm_subset_of_choices(choices),
             e=f"should be subset of {choices}"
         )
@@ -289,20 +293,20 @@ class BaseReq(RequestHandler):
         deduplicate_list.reverse()
         return deduplicate_list
 
-    @classmethod
-    def test_case(cls,
-                  method: Callable,
-                  headers=None,
-                  query_string=None,
-                  json_body=None,
-                  files=None) -> NoReturn:
-        """
-        生成测试参数
-        :param method:
-        :param headers: 请求方法的引用（cls.get, cls.post, ...）
-        :param query_string:
-        :param json_body:
-        :param files: {"filename": <byte of the file>, ...}
-        :return:
-        """
-        return
+    # @classmethod
+    # def test_case(cls,
+    #               method: Callable,
+    #               headers=None,
+    #               query_string=None,
+    #               json_body=None,
+    #               files=None) -> NoReturn:
+    #     """
+    #     生成测试参数
+    #     :param method:
+    #     :param headers: 请求方法的引用（cls.get, cls.post, ...）
+    #     :param query_string:
+    #     :param json_body:
+    #     :param files: {"filename": <byte of the file>, ...}
+    #     :return:
+    #     """
+    #     return

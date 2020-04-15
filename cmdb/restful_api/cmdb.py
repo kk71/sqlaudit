@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "BaseCMDBHandler"
+]
+
 from functools import reduce
 from collections import defaultdict
 
@@ -9,16 +13,15 @@ from ..cmdb import *
 from utils.const import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
-from models.sqlalchemy import make_session, QueryEntity
-from ..cmdb_task import CMDBTask
+from models.sqlalchemy import *
+from ..cmdb_task import *
 from auth.user import *
-from auth.restful_api.base import AuthReq, PrivilegeReq
-from ticket.ticket import Ticket
+from auth.restful_api.base import *
+from ticket.ticket import *
 from ticket.sub_ticket import SubTicket
-from restful_api.modules import as_view
 
 
-class CMDBHandler(AuthReq):
+class BaseCMDBHandler(AuthReq):
 
     def gen_current(self):
         """是否仅返回当前登录用户纳管的库,如果是admin则返回所有"""
@@ -26,11 +29,10 @@ class CMDBHandler(AuthReq):
             scm_optional("current", default=not self.is_admin()): scm_bool
         }
 
-    async def get(self):
-        """查询纳管数据库列表"""
+    def get_queryset(self, session):
         params = self.get_query_args(Schema({
             # 精确匹配
-            scm_optional("cmdb_id"): scm_int,
+            scm_optional("cmdb_id"): scm_gt0_int,
             scm_optional("connect_name"): scm_unempty_str,
             scm_optional("group_name"): scm_unempty_str,
             scm_optional("business_name"): scm_unempty_str,
@@ -39,30 +41,30 @@ class CMDBHandler(AuthReq):
             scm_optional("keyword", default=None): scm_str,
 
             # 只返回当前登录用户可见的cmdb
-            **self.gen_current(),
+            ** self.gen_current(),
 
             # 排序
             scm_optional("sort", default=SORT_DESC): And(
-                scm_str, scm_one_of_choices(ALL_SORTS)),
+                scm_str, self.scm_one_of_choices(ALL_SORTS)),
 
-            **self.gen_p(),
-        }))
+            ** self.gen_p()
+        }, ignore_extra_keys=True))
         keyword = params.pop("keyword")
         current = params.pop("current")
         sort = params.pop("sort")
         p = self.pop_p(params)
 
-        with make_session() as session:
-            q = session.query(CMDB).filter_by(**params)
-            if keyword:
-                q = self.query_keyword(q, keyword,
-                                       CMDB.cmdb_id,
-                                       CMDB.connect_name,
-                                       CMDB.group_name,
-                                       CMDB.business_name,
-                                       CMDB.server_name,
-                                       CMDB.ip_address
-                                       )
+        q = session.query(CMDB).filter_by(**params)
+        if keyword:
+            q = self.query_keyword(q, keyword,
+                                    CMDB.cmdb_id,
+                                    CMDB.connect_name,
+                                    CMDB.group_name,
+                                    CMDB.business_name,
+                                    CMDB.server_name,
+                                    CMDB.ip_address)
+            return q, p, current, sort
+
             # 获取纳管库的评分
             all_db_data_health = get_latest_cmdb_score().values()
             if current:
@@ -329,11 +331,10 @@ class CMDBHandler(AuthReq):
         }))
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(**params).first()
-            resp = await async_thr(test_cmdb_connectivity, cmdb)
+            resp = await async_thr(cmdb.test_cmdb_connectivity)
             self.resp(resp)
 
 
-@as_view("aggregation", group="cmdb")
 class CMDBAggregationHandler(PrivilegeReq):
 
     def get(self):

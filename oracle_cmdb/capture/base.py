@@ -14,6 +14,7 @@ from mongoengine import IntField, StringField, ObjectIdField
 from models.mongoengine import *
 from utils.datetime_utils import *
 from ..plain_db import OraclePlainConnector
+from .. import exceptions
 
 
 class ObjectCapturingDoc(
@@ -112,7 +113,18 @@ class SQLCapturingDoc(BaseDoc):
                 to_date('{dt_to_str(start_time)}','yyyy-mm-dd hh24:mi:ss')
                 AND to_date('{dt_to_str(end_time)}','yyyy-mm-dd hh24:mi:ss'))"""
         ret = cmdb_connector.execute(sql)
-        return ret[0][0], ret[0][1]
+        if not ret or len(ret) != 2:
+            raise exceptions.OracleSQLInvalidSnapId
+        s, e = ret[0][0], ret[0][1]
+        if not s or not e or s == "None":
+            raise exceptions.OracleSQLInvalidSnapId
+        try:
+            s, e = int(s), int(e)
+        except:
+            raise exceptions.OracleSQLInvalidSnapId
+        if s == e:
+            s = e - 1
+        return s, e
 
     @classmethod
     def query_snap_id_today(
@@ -138,3 +150,22 @@ class SQLCapturingDoc(BaseDoc):
             end_time=now.date()
         )
 
+    @classmethod
+    def query_sql_set(
+            cls,
+            cmdb_connector: OraclePlainConnector,
+            schema_name: str,
+            beg_snap: int,
+            end_snap: int,
+            parameter: str) -> [dict]:
+        return cmdb_connector.select_dict(f"""
+SELECT sql_id,
+plan_hash_value,
+parsing_schema_name
+FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
+            'parsing_schema_name=''{schema_name}''', NULL, '{parameter}', NULL,
+            NULL, NULL, NULL))""")
+
+    @classmethod
+    def capture_sql(cls, schema_name: str, sql_id: str, **kwargs):
+        raise NotImplementedError
