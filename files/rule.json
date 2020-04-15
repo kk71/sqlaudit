@@ -11,7 +11,7 @@
                 "parm_value": 7
             }
         ],
-        "max_score": 5,
+        "max_score": 9,
         "output_parms": [
             {
                 "parm_name": "table_name",
@@ -33,7 +33,7 @@
         "solution": [
             "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
         ],
-        "weight": 0.5,
+        "weight": 12.0,
         "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
@@ -82,7 +82,7 @@
             "按需定义字段长度"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": "",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -161,7 +161,7 @@
         "db_model": "OLTP",
         "exclude_obj_type": "PROCEDURE",
         "input_parms": [],
-        "max_score": 3,
+        "max_score": 9,
         "output_parms": [
             {
                 "parm_desc": "存储过程名称",
@@ -176,14 +176,14 @@
         "rule_name": "USE_PROCEDURE",
         "rule_complexity": "simple",
         "rule_cmd": "select object_name, object_type from dba_objects where object_type = 'PROCEDURE' and owner = '@username@' order by object_type",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "存储过程,将影响数据库的异构迁移能力,并存在代码维护性较差等原因。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
             "用应用端程序实现将存储过程"
         ],
-        "weight": 3.0,
+        "weight": 12.0,
         "obj_info_type": "PROCEDURE",
         "output_datas": [],
         "sql_type": null,
@@ -231,7 +231,7 @@
         "db_model": "OLTP",
         "exclude_obj_type": "COLUMN",
         "input_parms": [],
-        "max_score": 3,
+        "max_score": 9,
         "output_parms": [
             {
                 "parm_desc": "表名",
@@ -261,8 +261,8 @@
         "solution": [
             "删除不必要的索引"
         ],
-        "weight": 0.3,
-        "obj_info_type": "TABLE",
+        "weight": 12.0,
+        "obj_info_type": "INDEX",
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -439,7 +439,7 @@
         "rule_name": "COUNT_SUMPART_SINGLE_TAB",
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, count(1)  from DBA_TAB_PARTITIONS t where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name having count(1) >= @part_tab_num@",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "分区表中分区数量过多,将导致整体维护成本过高,可调整分区粒度。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -861,7 +861,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1072,7 +1072,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1188,7 +1188,7 @@
             "12.统计信息不准确数据批量加载程序触发收集统计信息"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1281,7 +1281,7 @@
             "2.统计信息不准确,手工收集统计信息"
         ],
         "weight": 0.1,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1446,7 +1446,7 @@
             "索引列的先后顺序是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "INDEX",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1553,7 +1553,7 @@
             "SQL逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "obj_info_type": "INDEX",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1649,7 +1649,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1748,7 +1748,7 @@
             "建议减少表关联,业务逻辑sql改写"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1861,7 +1861,7 @@
             "取消表、索引、sql中的并行设置"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -1954,7 +1954,7 @@
             "2.选择合适的字段类型"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2042,7 +2042,7 @@
             "视图不能展开,复杂视图拆解、改写"
         ],
         "weight": 0.5,
-        "obj_info_type": "VIEW",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2118,7 +2118,7 @@
             "2.SQL执行次数是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2242,7 +2242,7 @@
             "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2446,7 +2446,7 @@
             "改写sql逻辑减少表关联的数量"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2743,7 +2743,7 @@
             "2.SQL执行次数是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2818,7 +2818,7 @@
             "对sql执行次数评估是否合理,能否优化"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2893,7 +2893,7 @@
             "对sql执行次数评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -2992,7 +2992,7 @@
             "对sql消耗资源评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3275,7 +3275,7 @@
             "对sql消耗资源评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -3603,7 +3603,7 @@
             "强选择性谓词使用绑定变量写法"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -4937,7 +4937,7 @@
             "12.统计信息不准确数据批量加载程序触发收集统计信息"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5033,7 +5033,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5140,7 +5140,7 @@
             "sql逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "obj_info_type": "INDEX",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5344,7 +5344,7 @@
             "索引列的先后顺序是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "INDEX",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5555,7 +5555,7 @@
             "分区键设计是否合理"
         ],
         "weight": 0.5,
-        "obj_info_type": "PART_TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5742,7 +5742,7 @@
             "视图不能展开,复杂视图拆解、改写"
         ],
         "weight": 0.5,
-        "obj_info_type": "VIEW",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5810,7 +5810,7 @@
             "取消表、索引、sql中的并行设置"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5903,7 +5903,7 @@
             "2.统计信息不准确,手工收集统计信息"
         ],
         "weight": 0.1,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -5996,7 +5996,7 @@
             "2.选择合适的字段类型"
         ],
         "weight": 0.5,
-        "obj_info_type": "TABLE",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6200,7 +6200,7 @@
             "改写sql逻辑减少表关联的数量"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6275,7 +6275,7 @@
             "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6351,7 +6351,7 @@
             "2.SQL执行次数是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6427,7 +6427,7 @@
             "2.SQL执行次数是否合理"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6502,7 +6502,7 @@
             "对sql执行次数评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6657,7 +6657,7 @@
             "对sql消耗资源评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -6787,7 +6787,7 @@
             "对sql执行次数评估是否合理,能否优化"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7143,7 +7143,7 @@
             "对sql消耗资源评估是否合理,能否优化"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7213,7 +7213,7 @@
             "强选择性谓词使用绑定变量写法"
         ],
         "weight": 0.1,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7325,7 +7325,7 @@
             "合理设计分区索引"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
@@ -7349,7 +7349,7 @@
             "合理设计分区索引"
         ],
         "weight": 1.0,
-        "obj_info_type": "",
+        "obj_info_type": null,
         "output_datas": [],
         "sql_type": null,
         "ddl_type": null
