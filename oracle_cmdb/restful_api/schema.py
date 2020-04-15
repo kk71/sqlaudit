@@ -1,6 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from cmdb.restful_api.cmdb import *
+from ..cmdb import *
+from utils.schema_utils import *
+from restful_api.modules import *
+from models.sqlalchemy import *
+from auth.restful_api.base import *
 
 
 @as_view("rating", group="cmdb")
