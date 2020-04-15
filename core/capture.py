@@ -34,6 +34,7 @@ class BaseCaptureItem(abc.ABC):
 
     @classmethod
     def need_collect(cls):
+        """装饰需要采集的model"""
         def inner(model):
             cls.MODELS.append(model)
             return model
