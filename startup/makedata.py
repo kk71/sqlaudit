@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from os import path
-
 import click
 
 from models import init_models
@@ -10,15 +8,19 @@ from models import init_models
 
 init_models()
 
+import cmdb.const
+from oracle_cmdb.tasks.cmdb_capture import *
+
 
 @click.argument("task_id", type=click.INT, required=True)
-@click.option("--schema", help="schema(s) to collect", default=None, type=click.STRING)
-@click.option("--q", help="use celery or not", default=True, type=click.BOOL)
-def main(task_id, schema, q):
-    """manually send a message to queue for running sql analysis"""
+def main(task_id):
+    """manually start a capture"""
     if not task_id:
-        print("task_id is required.")
+        print("task_id is required. ")
+        print("If you don't know the task_id to some cmdb,"
+              " use './app.sh cmdb-task'.")
         return
-    print(f"task_id={task_id} schema={schema} use_queue={q}")
-    past.mkdata.run(task_id, schema, q, operator=path.split(__file__)[1])
-
+    OracleCMDBCaptureTask.shoot(
+        cmdb_task_id=int(task_id),
+        operator=cmdb.const.CMDB_TASK_OPERATOR_CLI
+    )
