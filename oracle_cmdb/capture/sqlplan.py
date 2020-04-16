@@ -139,11 +139,16 @@ FROM
 
         TwoDaysSQLCapturingDoc.post_captured(**kwargs)
         for doc in docs:
-            doc.cost = str(int(doc.cost))
-            doc.position = str(int(doc.position))
-            doc.cpu_cost = str(int(doc.cpu_cost))
-            doc.the_bytes = str(int(doc.the_bytes))
-            doc.cardinality = str(int(doc.cardinality))
+            if doc.cost:
+                doc.cost = str(int(doc.cost))
+            if doc.position:
+                doc.position = str(int(doc.position))
+            if doc.cpu_cost:
+                doc.cpu_cost = str(int(doc.cpu_cost))
+            if doc.the_bytes:
+                doc.the_bytes = str(int(doc.the_bytes))
+            if doc.cardinality:
+                doc.cardinality = str(int(doc.cardinality))
             if doc.operation:
                 doc.operation_display = " " * doc.depth + doc.operation
                 if doc.options:
