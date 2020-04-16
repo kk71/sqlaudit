@@ -61,10 +61,18 @@ class OracleCMDB(CMDB):
         from .auth.role import RoleOracleCMDBSchema
         from .rate import OracleRatingSchema
         return list({
-            *session.query(RoleOracleCMDBSchema.schema_name).filter_by(
-                cmdb_id=self.cmdb_id),
-            *session.query(OracleRatingSchema.schema_name).filter_by(
-                cmdb_id=self.cmdb_id)
+            *[
+                i[0]
+                for i in session.query(
+                    RoleOracleCMDBSchema.schema_name).filter_by(
+                    cmdb_id=self.cmdb_id)
+            ],
+            *[
+                i[0]
+                for i in session.query(
+                    OracleRatingSchema.schema_name).filter_by(
+                    cmdb_id=self.cmdb_id)
+            ]
         })
 
     def test_connectivity(self) -> bool:

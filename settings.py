@@ -45,6 +45,7 @@ TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.5, float)
 ADMIN_LOGIN_USER = "admin"
 CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
 VERSION_FILE = path.join(SETTINGS_FILE_DIR, "version.json")
+ECHO_SQL_WHEN_FAIL = env_get("ECHO_SQL_WHEN_FAIL", 1, int)
 
 
 REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "193.0.0.3")

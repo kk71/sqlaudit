@@ -12,6 +12,8 @@ import cx_Oracle
 
 os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
 
+import settings
+
 
 class OraclePlainConnector:
 
@@ -34,7 +36,8 @@ class OraclePlainConnector:
         self.conn = cx_Oracle.connect(self.username, self.password, self.dsn)
         self.cursor = self.conn.cursor()
 
-    def insert(self, sql, params=None):
+    def modify(self, sql, params=None):
+        """DML语句修改数据时请使用该方法"""
         params = params or []
         try:
             print(sql, params)
@@ -46,12 +49,18 @@ class OraclePlainConnector:
 
     def execute(self, sql, params=None):
         params = params or []
-        self.cursor.execute(sql, params)
-
-    def update(self, sql, params=None):
-        self.insert(sql, params)
+        try:
+            self.cursor.execute(sql, params)
+        except Exception as e:
+            if settings.ECHO_SQL_WHEN_FAIL:
+                print(f"""============================
+Oracle CMDB sql execution failed at: 
+{sql}
+============================""")
+            raise e
 
     def select_dict(self, sql, params=None, one=True) -> Union[list, dict]:
+        """select语句返回字典形式，key全部小写"""
         params = params or []
         self.cursor.execute(sql, params)
         fields = [x[0].lower() for x in self.cursor.description]
@@ -62,13 +71,11 @@ class OraclePlainConnector:
             data = self.cursor.fetchall()
             return [dict(zip(fields, item)) for item in data]
 
-    def select(self, sql, params=None, one=True):
+    def select(self, sql, params=None, one=True) -> [tuple]:
+        """select语句返回列表元组形式"""
         params = params or []
         self.cursor.execute(sql, params)
         return self.cursor.fetchone() or () if one else self.cursor.fetchall()
-
-    def delete(self, sql, params=None):
-        self.insert(sql, params)
 
     def close(self):
         self.cursor.close()
