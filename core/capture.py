@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "BaseCaptureItem"
+]
+
 import abc
 from typing import NoReturn
 
@@ -43,14 +47,3 @@ class BaseCaptureItem(abc.ABC):
             cls.MODELS.append(model)
             return model
         return inner
-
-
-class BaseCapture(abc.ABC):
-    """基础采集"""
-
-    # 采集目标
-    capture_items: (BaseCaptureItem,) = ()
-
-    def run(self):
-        """启动采集"""
-        return

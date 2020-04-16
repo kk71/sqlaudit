@@ -266,27 +266,25 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
                         show_lable_in_schema_print=True
                 ) as schema_counter_yesterday:
                     for a_schema in schemas:
-                        today_captured = cls._schema_sql_capture(
+                        common_params = dict(
                             a_schema=a_schema,
-                            snap_id_s=today_snap_id_s,
-                            snap_id_e=today_snap_id_e,
                             cmdb_conn=cmdb_conn,
                             m=m,
                             cmdb_id=cmdb_id,
                             task_record_id=task_record_id,
                             cmdb_connector=cmdb_conn,
+                        )
+                        today_captured = cls._schema_sql_capture(
+                            **common_params,
+                            snap_id_s=today_snap_id_s,
+                            snap_id_e=today_snap_id_e,
                             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY
                         )
                         schema_counter_today(a_schema, today_captured)
                         yesterday_captured = cls._schema_sql_capture(
-                            a_schema=a_schema,
+                            **common_params,
                             snap_id_s=yesterday_snap_id_s,
                             snap_id_e=yesterday_snap_id_e,
-                            cmdb_conn=cmdb_conn,
-                            m=m,
-                            cmdb_id=cmdb_id,
-                            task_record_id=task_record_id,
-                            cmdb_connector=cmdb_conn,
                             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY
                         )
                         schema_counter_yesterday(a_schema, yesterday_captured)
