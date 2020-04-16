@@ -15,10 +15,10 @@ from .base import ObjectCapturingDoc
 class ObjTabSpace(ObjectCapturingDoc):
     """表空间信息"""
 
-    tablespace_name = StringField(required=True)
-    total = FloatField(help_text="bytes", required=True)
-    free = FloatField(help_text="bytes", required=True)
-    used = FloatField(help_text="bytes", required=True)
+    tablespace_name = StringField(null=True)
+    total = FloatField(help_text="bytes", null=True)
+    free = FloatField(help_text="bytes", null=True)
+    used = FloatField(help_text="bytes", null=True)
     usage_ratio = FloatField()
 
     meta = {

@@ -14,10 +14,10 @@ from .base import SQLCapturingDoc
 class SQLText(SQLCapturingDoc):
     """纳管库sql文本信息"""
 
-    dbid = IntField(required=True)
-    sql_id = StringField(required=True)
-    short_sql_text = StringField(required=True)
-    longer_sql_text = StringField(required=True)
+    dbid = IntField(null=True)
+    sql_id = StringField(null=True)
+    short_sql_text = StringField(null=True)
+    longer_sql_text = StringField(null=True)
 
     meta = {
         "collection": "sqltext",

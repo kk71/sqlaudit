@@ -16,19 +16,19 @@ from ..plain_db import OraclePlainConnector
 class ObjPartTabParent(SchemaObjectCapturingDoc):
     """分区表父"""
 
-    owner = StringField(required=True)
-    table_name = StringField(required=True)
-    object_id = IntField(required=True)
-    data_object_id = IntField(required=True)
-    partitioning_type = StringField(required=True)
-    column_name = StringField(required=True)
-    partitioning_key_count = IntField(required=True)
-    partition_count = IntField(required=True)
-    sub_partitioning_key_count = IntField(required=True)
-    sub_partitioning_type = StringField(required=True)
-    last_ddl_time = DateTimeField(required=True)
-    part_role = StringField(required=True)
-    phy_size_mb = FloatField(required=True)
+    owner = StringField(null=True)
+    table_name = StringField(null=True)
+    object_id = IntField(null=True)
+    data_object_id = IntField(null=True)
+    partitioning_type = StringField(null=True)
+    column_name = StringField(null=True)
+    partitioning_key_count = IntField(null=True)
+    partition_count = IntField(null=True)
+    sub_partitioning_key_count = IntField(null=True)
+    sub_partitioning_type = StringField(null=True)
+    last_ddl_time = DateTimeField(null=True)
+    part_role = StringField(null=True)
+    phy_size_mb = FloatField(null=True)
 
     meta = {
         "collection": "obj_part_tab_parent",

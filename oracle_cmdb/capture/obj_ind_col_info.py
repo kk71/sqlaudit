@@ -14,12 +14,12 @@ from .base import SchemaObjectCapturingDoc
 class ObjIndColInfo(SchemaObjectCapturingDoc):
     """索引列信息"""
 
-    index_owner = StringField(required=True)
-    index_name = StringField(required=True)
-    table_owner = StringField(required=True)
-    table_name = StringField(required=True)
-    column_name = StringField(required=True)
-    column_position = IntField(required=True)
+    index_owner = StringField(null=True)
+    index_name = StringField(null=True)
+    table_owner = StringField(null=True)
+    table_name = StringField(null=True)
+    column_name = StringField(null=True)
+    column_position = IntField(null=True)
 
     meta = {
         "collection": "obj_ind_col_info",

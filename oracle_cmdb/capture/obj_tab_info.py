@@ -16,21 +16,21 @@ from ..plain_db import OraclePlainConnector
 class ObjTabInfo(SchemaObjectCapturingDoc):
     """表信息"""
 
-    owner = StringField(required=True)
-    table_name = StringField(required=True)
-    table_type = StringField(required=True)
-    object_type = StringField(required=True)
-    iot_name = StringField(required=True)
-    num_rows = IntField(required=True)
-    blocks = IntField(required=True)
-    avg_row_len = IntField(required=True)
-    last_analysed = DateTimeField(required=True)
-    last_ddl_time = DateTimeField(required=True)
-    chain_cnt = IntField(required=True)
-    partitioned = StringField(required=True)
-    hwm_stat = IntField(required=True)
-    compression = StringField(required=True)
-    phy_size_mb = FloatField(required=True)
+    owner = StringField(null=True)
+    table_name = StringField(null=True)
+    table_type = StringField(null=True)
+    object_type = StringField(null=True)
+    iot_name = StringField(null=True)
+    num_rows = IntField(null=True)
+    blocks = IntField(null=True)
+    avg_row_len = IntField(null=True)
+    last_analysed = DateTimeField(null=True)
+    last_ddl_time = DateTimeField(null=True)
+    chain_cnt = IntField(null=True)
+    partitioned = StringField(null=True)
+    hwm_stat = IntField(null=True)
+    compression = StringField(null=True)
+    phy_size_mb = FloatField(null=True)
 
     meta = {
         "collection": "obj_tab_info",
