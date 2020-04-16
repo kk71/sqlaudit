@@ -16,9 +16,9 @@ from oracle_cmdb.plain_db import OraclePlainConnector
 
 
 class ObjectCapturingDoc(
-        BaseDoc,
-        core.capture.BaseCaptureItem,
-        metaclass=ABCTopLevelDocumentMetaclass):
+    BaseDoc,
+    core.capture.BaseCaptureItem,
+    metaclass=ABCTopLevelDocumentMetaclass):
     """对象采集"""
 
     _id = ObjectIdField()
@@ -116,7 +116,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data("object") as schema_counter:
+            with schema_no_data(m.__doc__) as schema_counter:
                 for a_schema in schemas:
                     sql_to_run = m.simple_capture(obj_owner=a_schema)
                     docs = [

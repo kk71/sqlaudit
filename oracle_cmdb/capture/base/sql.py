@@ -20,9 +20,9 @@ from utils.datetime_utils import dt_to_str
 
 
 class SQLCapturingDoc(
-        BaseDoc,
-        core.capture.BaseCaptureItem,
-        metaclass=ABCTopLevelDocumentMetaclass):
+    BaseDoc,
+    core.capture.BaseCaptureItem,
+    metaclass=ABCTopLevelDocumentMetaclass):
     """采集sql数据"""
 
     cmdb_id = IntField(required=True)
@@ -194,7 +194,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data("sql") as schema_counter:
+            with schema_no_data(m.__doc__) as schema_counter:
                 for a_schema in schemas:
                     captured_num = cls._schema_sql_capture(
                         a_schema=a_schema,
@@ -203,7 +203,8 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
                         cmdb_conn=cmdb_conn,
                         m=m,
                         cmdb_id=cmdb_id,
-                        task_record_id=task_record_id
+                        task_record_id=task_record_id,
+                        cmdb_connector=cmdb_conn
                     )
                     schema_counter(a_schema, captured_num)
 
@@ -250,8 +251,14 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data("sql(today)") as schema_counter_today:
-                with schema_no_data("sql(yesterday)") as schema_counter_yesterday:
+            with schema_no_data(
+                    f"{m.__doc__}-today",
+                    show_lable_in_schema_print=True
+            ) as schema_counter_today:
+                with schema_no_data(
+                        f"{m.__doc__}-yesterday",
+                        show_lable_in_schema_print=True
+                ) as schema_counter_yesterday:
                     for a_schema in schemas:
                         today_captured = cls._schema_sql_capture(
                             a_schema=a_schema,
@@ -261,6 +268,7 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
                             m=m,
                             cmdb_id=cmdb_id,
                             task_record_id=task_record_id,
+                            cmdb_connector=cmdb_conn,
                             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY
                         )
                         schema_counter_today(a_schema, today_captured)
@@ -272,6 +280,7 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
                             m=m,
                             cmdb_id=cmdb_id,
                             task_record_id=task_record_id,
+                            cmdb_connector=cmdb_conn,
                             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY
                         )
                         schema_counter_yesterday(a_schema, yesterday_captured)
