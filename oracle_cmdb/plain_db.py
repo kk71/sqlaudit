@@ -53,7 +53,7 @@ class OraclePlainConnector:
             self.cursor.execute(sql, params)
         except Exception as e:
             if settings.ECHO_SQL_WHEN_FAIL:
-                print(f"""============================
+                print(f"""\n============================
 Oracle CMDB sql execution failed at: 
 {sql}
 ============================""")

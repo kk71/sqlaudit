@@ -63,7 +63,7 @@ class SQLCapturingDoc(
           AND (end_interval_time BETWEEN
                 to_date('{dt_to_str(start_time)}','yyyy-mm-dd hh24:mi:ss')
                 AND to_date('{dt_to_str(end_time)}','yyyy-mm-dd hh24:mi:ss'))"""
-        ret = cmdb_connector.execute(sql)
+        ret: [tuple] = cmdb_connector.select(sql)
         if not ret or len(ret) != 2:
             raise exceptions.OracleSQLInvalidSnapId(f"{len(ret)=}")
         s, e = ret[0][0], ret[0][1]
