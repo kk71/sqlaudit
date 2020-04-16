@@ -47,6 +47,14 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
     access_predicates = StringField()
     time = StringField()
 
+    meta = {
+        "collection": "sqlplan",
+        "indexes": [
+            "sql_id",
+            "plan_hash_value",
+        ]
+    }
+
     @classmethod
     def simple_capture(cls, **kwargs) -> str:
         sql_id: str = kwargs["sql_id"]

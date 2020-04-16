@@ -20,12 +20,13 @@ from utils.datetime_utils import dt_to_str
 
 
 class SQLCapturingDoc(
-    BaseDoc,
-    core.capture.BaseCaptureItem,
-    metaclass=ABCTopLevelDocumentMetaclass):
+        BaseDoc,
+        core.capture.BaseCaptureItem,
+        metaclass=ABCTopLevelDocumentMetaclass):
     """采集sql数据"""
 
     cmdb_id = IntField(required=True)
+    schema_name = StringField(required=True)
     task_record_id = IntField(required=True)
 
     meta = {
@@ -128,11 +129,13 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
     def post_captured(cls, **kwargs) -> NoReturn:
         docs: [cls] = kwargs["docs"]
         cmdb_id: int = kwargs["cmdb_id"]
+        schema_name: str = kwargs["schema_name"]
         task_record_id: int = kwargs["task_record_id"]
 
         for doc in docs:
             doc.cmdb_id = cmdb_id
             doc.task_record_id = task_record_id
+            doc.schema_name = schema_name
 
     @classmethod
     def _schema_sql_capture(cls,
@@ -163,7 +166,9 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             sql_to_run = m.simple_capture(
                 sql_id=sql_id,
                 plan_hash_value=plan_hash_value,
-                schema_name=parsing_schema_name
+                schema_name=parsing_schema_name,
+                snap_id_s=snap_id_s,
+                snap_id_e=snap_id_e,
             )
             docs += [
                 m(**c)
