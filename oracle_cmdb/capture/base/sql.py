@@ -99,7 +99,7 @@ class SQLCapturingDoc(
         """查询昨日0点至今日0点的snap_id"""
         return cls.query_snap_id(
             cmdb_connector,
-            start_time=now.shift(days=-1).date,
+            start_time=now.shift(days=-1).date(),
             end_time=now.date()
         )
 
