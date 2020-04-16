@@ -140,8 +140,6 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
     @classmethod
     def _schema_sql_capture(cls,
                             a_schema: str,
-                            snap_id_s: int,
-                            snap_id_e: int,
                             m: "SQLCapturingDoc",
                             **kwargs) -> int:
         """
@@ -154,6 +152,8 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         :return: 采集到的sql数量
         """
         cmdb_connector: OraclePlainConnector = kwargs["cmdb_connector"]
+        snap_id_s: int = kwargs["snap_id_s"]
+        snap_id_e: int = kwargs["snap_id_e"]
 
         docs = []
         sql_set = cls.query_sql_set(
