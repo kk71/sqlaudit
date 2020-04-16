@@ -4,7 +4,7 @@ __all__ = [
     "OracleCMDB"
 ]
 
-from sqlalchemy import Column, String, Boolean, Integer
+from sqlalchemy import Column, String, Boolean
 
 import cmdb.const
 from . import exceptions

@@ -6,7 +6,7 @@ __all__ = [
 
 from sqlalchemy import Column, String, Integer, Boolean
 
-from models.sqlalchemy import BaseModel
+from models.sqlalchemy import *
 
 
 class CMDB(BaseModel):
@@ -39,3 +39,10 @@ class CMDB(BaseModel):
     def build_connector(self, **kwargs):
         """产生一个当前纳管库的连接器"""
         raise NotImplementedError
+
+    @classmethod
+    def build_connector_by_cmdb_id(cls, cmdb_id: int):
+        """用cmdb_id创建纳管库的连接"""
+        with make_session() as session:
+            the_cmdb = session.query(cls).filter_by(cmdb_id=cmdb_id).first()
+            return the_cmdb.build_connector()
