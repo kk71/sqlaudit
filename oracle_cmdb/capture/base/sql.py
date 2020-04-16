@@ -176,6 +176,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             ]
             m.post_captured(
                 docs=docs,
+                schema_name=a_schema,
                 **kwargs
             )
         if not docs:
