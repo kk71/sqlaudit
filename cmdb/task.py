@@ -18,7 +18,7 @@ class BaseCMDBTask(BaseTask):
     def run(self, task_record_id: int, **kwargs):
         self.cmdb_task_id = kwargs["cmdb_task_id"]
 
-        print(f"===============================\n"
+        print(f"\n===============================\n"
               f"going to run cmdb capture task\n"
               f"cmdb_task_id({self.cmdb_task_id})\n"
               f"===============================")

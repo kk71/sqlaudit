@@ -10,6 +10,7 @@ from typing import NoReturn
 from mongoengine import ObjectIdField, IntField, StringField
 
 import core.capture
+from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
 from oracle_cmdb.plain_db import OraclePlainConnector
 
@@ -115,20 +116,21 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            for a_schema in schemas:
-                sql_to_run = m.simple_capture(obj_owner=a_schema)
-                docs = [
-                    m(**c)
-                    for c in cmdb_conn.select_dict(sql_to_run)]
-                if not docs:
-                    print(f"no data captured in {a_schema}.")
-                    continue
-                m.post_captured(
-                    cmdb_id=cmdb_id,
-                    task_record_id=task_record_id,
-                    obj_owner=a_schema,
-                    docs=docs,
-                    cmdb_connector=cmdb_conn
-                )
-                docs_inserted = m.objects.insert(docs)
-                print(f"{len(docs_inserted)} captured in {a_schema}.")
+            with schema_no_data("object") as schema_counter:
+                for a_schema in schemas:
+                    sql_to_run = m.simple_capture(obj_owner=a_schema)
+                    docs = [
+                        m(**c)
+                        for c in cmdb_conn.select_dict(sql_to_run)]
+                    if not docs:
+                        schema_counter(a_schema, 0)
+                        continue
+                    m.post_captured(
+                        cmdb_id=cmdb_id,
+                        task_record_id=task_record_id,
+                        obj_owner=a_schema,
+                        docs=docs,
+                        cmdb_connector=cmdb_conn
+                    )
+                    docs_inserted = m.objects.insert(docs)
+                    schema_counter(a_schema, len(docs_inserted))

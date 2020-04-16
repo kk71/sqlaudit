@@ -12,6 +12,7 @@ import arrow
 from mongoengine import IntField, StringField
 
 import core.capture
+from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
 from oracle_cmdb import exceptions, const
 from oracle_cmdb.plain_db import OraclePlainConnector
@@ -64,14 +65,15 @@ class SQLCapturingDoc(
                 AND to_date('{dt_to_str(end_time)}','yyyy-mm-dd hh24:mi:ss'))"""
         ret = cmdb_connector.execute(sql)
         if not ret or len(ret) != 2:
-            raise exceptions.OracleSQLInvalidSnapId
+            raise exceptions.OracleSQLInvalidSnapId(f"{len(ret)=}")
         s, e = ret[0][0], ret[0][1]
         if not s or not e or s == "None":
-            raise exceptions.OracleSQLInvalidSnapId
+            raise exceptions.OracleSQLInvalidSnapId(f"{s=}, {e=}")
         try:
             s, e = int(s), int(e)
-        except:
-            raise exceptions.OracleSQLInvalidSnapId
+        except Exception:
+            raise exceptions.OracleSQLInvalidSnapId(
+                f"integer convert failed: {s=}, {e=}")
         if s == e:
             s = e - 1
         print(f"snap_id between {s} and {e}")
@@ -138,7 +140,16 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
                             snap_id_s: int,
                             snap_id_e: int,
                             m: "SQLCapturingDoc",
-                            **kwargs):
+                            **kwargs) -> int:
+        """
+        单个schema的sql采集
+        :param a_schema:
+        :param snap_id_s:
+        :param snap_id_e:
+        :param m: 采集的model
+        :param kwargs:
+        :return: 采集到的sql数量
+        """
         cmdb_connector: OraclePlainConnector = kwargs["cmdb_connector"]
 
         docs = []
@@ -163,10 +174,9 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
                 **kwargs
             )
         if not docs:
-            print(f"no sql captured in {a_schema}.")
-            return
+            return 0
         docs_inserted = m.objects.insert(docs)
-        print(f"{len(docs_inserted)} captured in {a_schema}.")
+        return len(docs_inserted)
 
     @classmethod
     def capture(cls, model_to_capture: ["SQLCapturingDoc"] = None, **kwargs):
@@ -184,16 +194,18 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            for a_schema in schemas:
-                cls._schema_sql_capture(
-                    a_schema=a_schema,
-                    snap_id_s=snap_id_s,
-                    snap_id_e=snap_id_e,
-                    cmdb_conn=cmdb_conn,
-                    m=m,
-                    cmdb_id=cmdb_id,
-                    task_record_id=task_record_id
-                )
+            with schema_no_data("sql") as schema_counter:
+                for a_schema in schemas:
+                    captured_num = cls._schema_sql_capture(
+                        a_schema=a_schema,
+                        snap_id_s=snap_id_s,
+                        snap_id_e=snap_id_e,
+                        cmdb_conn=cmdb_conn,
+                        m=m,
+                        cmdb_id=cmdb_id,
+                        task_record_id=task_record_id
+                    )
+                    schema_counter(a_schema, captured_num)
 
 
 class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
@@ -238,24 +250,28 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
             i += 1
             total = len(model_to_capture)
             print(f"* running {i} of {total}: {m.__doc__}")
-            for a_schema in schemas:
-                cls._schema_sql_capture(
-                    a_schema=a_schema,
-                    snap_id_s=today_snap_id_s,
-                    snap_id_e=today_snap_id_e,
-                    cmdb_conn=cmdb_conn,
-                    m=m,
-                    cmdb_id=cmdb_id,
-                    task_record_id=task_record_id,
-                    two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY
-                )
-                cls._schema_sql_capture(
-                    a_schema=a_schema,
-                    snap_id_s=yesterday_snap_id_s,
-                    snap_id_e=yesterday_snap_id_e,
-                    cmdb_conn=cmdb_conn,
-                    m=m,
-                    cmdb_id=cmdb_id,
-                    task_record_id=task_record_id,
-                    two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY
-                )
+            with schema_no_data("sql(today)") as schema_counter_today:
+                with schema_no_data("sql(yesterday)") as schema_counter_yesterday:
+                    for a_schema in schemas:
+                        today_captured = cls._schema_sql_capture(
+                            a_schema=a_schema,
+                            snap_id_s=today_snap_id_s,
+                            snap_id_e=today_snap_id_e,
+                            cmdb_conn=cmdb_conn,
+                            m=m,
+                            cmdb_id=cmdb_id,
+                            task_record_id=task_record_id,
+                            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY
+                        )
+                        schema_counter_today(a_schema, today_captured)
+                        yesterday_captured = cls._schema_sql_capture(
+                            a_schema=a_schema,
+                            snap_id_s=yesterday_snap_id_s,
+                            snap_id_e=yesterday_snap_id_e,
+                            cmdb_conn=cmdb_conn,
+                            m=m,
+                            cmdb_id=cmdb_id,
+                            task_record_id=task_record_id,
+                            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY
+                        )
+                        schema_counter_yesterday(a_schema, yesterday_captured)
