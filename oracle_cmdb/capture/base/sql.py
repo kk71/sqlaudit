@@ -64,8 +64,8 @@ class SQLCapturingDoc(
                 to_date('{dt_to_str(start_time)}','yyyy-mm-dd hh24:mi:ss')
                 AND to_date('{dt_to_str(end_time)}','yyyy-mm-dd hh24:mi:ss'))"""
         ret: [tuple] = cmdb_connector.select(sql)
-        if not ret or len(ret) != 2:
-            raise exceptions.OracleSQLInvalidSnapId(f"{len(ret)=}")
+        if not ret or len(ret) != 1 or len(ret[0]) != 2:
+            raise exceptions.OracleSQLInvalidSnapId(f"{ret=}")
         s, e = ret[0][0], ret[0][1]
         if not s or not e or s == "None":
             raise exceptions.OracleSQLInvalidSnapId(f"{s=}, {e=}")
