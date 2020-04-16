@@ -13,7 +13,11 @@ def init_models():
         host=settings.MONGO_SERVER,
         port=settings.MONGO_PORT,
         username=settings.MONGO_USER,
-        password=settings.MONGO_PASSWORD
+        password=settings.MONGO_PASSWORD,
+
+        # this parameter should be passed to pymongo
+        # since pymongo's connection isn't thread safe
+        connect=False
     )
 
     # connect to oracle

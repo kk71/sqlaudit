@@ -14,7 +14,7 @@ def main():
     with make_session() as session:
         task_q = session.query(
             *(qe := QueryEntity(
-                CMDBTask.task_id,
+                CMDBTask.id,
                 CMDBTask.task_type,
                 CMDBTask.task_name,
                 CMDBTask.cmdb_id,
