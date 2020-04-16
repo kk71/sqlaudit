@@ -59,7 +59,7 @@ Oracle CMDB sql execution failed at:
 ============================""")
             raise e
 
-    def select_dict(self, sql, params=None, one=True) -> Union[list, dict]:
+    def select_dict(self, sql, params=None, one=False) -> Union[list, dict]:
         """select语句返回字典形式，key全部小写"""
         params = params or []
         self.cursor.execute(sql, params)
@@ -71,7 +71,7 @@ Oracle CMDB sql execution failed at:
             data = self.cursor.fetchall()
             return [dict(zip(fields, item)) for item in data]
 
-    def select(self, sql, params=None, one=True) -> [tuple]:
+    def select(self, sql, params=None, one=False) -> [tuple]:
         """select语句返回列表元组形式"""
         params = params or []
         self.cursor.execute(sql, params)

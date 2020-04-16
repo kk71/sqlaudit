@@ -61,7 +61,7 @@ class ObjectCapturingDoc(
             sql_to_run = m.simple_capture()
             docs = [
                 m(**c)
-                for c in cmdb_conn.select_dict(sql_to_run, one=False)]
+                for c in cmdb_conn.select_dict(sql_to_run)]
             if not docs:
                 print("no data captured.")
                 continue
@@ -119,7 +119,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
                 sql_to_run = m.simple_capture(obj_owner=a_schema)
                 docs = [
                     m(**c)
-                    for c in cmdb_conn.select_dict(sql_to_run, one=False)]
+                    for c in cmdb_conn.select_dict(sql_to_run)]
                 if not docs:
                     print(f"no data captured in {a_schema}.")
                     continue

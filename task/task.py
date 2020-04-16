@@ -52,7 +52,9 @@ class BaseTask(celery_app.Task):
 
     def run(self, task_record_id: int, **kwargs):
         self.task_record_id = task_record_id
-        print(f"going to run {self.task_type}: {self.task_record_id} ...")
+        print(f"===============================\n"
+              f"going to run {self.task_type}: {self.task_record_id}\n"
+              f"===============================")
         with make_session() as session:
             task_record = session.query(TaskRecord). \
                 filter_by(task_record_id=self.task_record_id).first()

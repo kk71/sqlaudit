@@ -156,7 +156,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             )
             docs += [
                 m(**c)
-                for c in cmdb_connector.select_dict(sql_to_run, one=False)
+                for c in cmdb_connector.select_dict(sql_to_run)
             ]
             m.post_captured(
                 docs=docs,
