@@ -53,13 +53,7 @@ class SQLCapturingDoc(
             cmdb_connector: OraclePlainConnector,
             start_time: datetime,
             end_time: datetime) -> (int, int):
-        """
-        获取可用的snap_id
-        :param cmdb_connector:
-        :param start_time:
-        :param end_time:
-        :return:
-        """
+        """获取可用的snapshot id"""
         sql = f"""
         SELECT min(snap_id),
         max(snap_id)
@@ -175,7 +169,9 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         print(f"{len(docs_inserted)} captured in {a_schema}.")
 
     @classmethod
-    def capture(cls, model_to_capture: ["SQLCapturingDoc"], **kwargs):
+    def capture(cls, model_to_capture: ["SQLCapturingDoc"] = None, **kwargs):
+        if model_to_capture is None:
+            model_to_capture = cls.MODELS
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
@@ -224,7 +220,9 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
             doc.two_days_capture = two_days_capture
 
     @classmethod
-    def capture(cls, model_to_capture: ["TwoDaysSQLCapturingDoc"], **kwargs):
+    def capture(cls, model_to_capture: ["TwoDaysSQLCapturingDoc"] = None, **kwargs):
+        if model_to_capture is None:
+            model_to_capture = cls.MODELS
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]

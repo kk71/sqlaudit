@@ -47,7 +47,9 @@ class ObjectCapturingDoc(
             })
 
     @classmethod
-    def capture(cls, model_to_capture: ["ObjectCapturingDoc"], **kwargs):
+    def capture(cls, model_to_capture: ["ObjectCapturingDoc"] = None, **kwargs):
+        if model_to_capture is None:
+            model_to_capture = cls.MODELS
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
@@ -101,7 +103,9 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             })
 
     @classmethod
-    def capture(cls, model_to_capture: ["SchemaObjectCapturingDoc"], **kwargs):
+    def capture(cls, model_to_capture: ["SchemaObjectCapturingDoc"] = None, **kwargs):
+        if model_to_capture is None:
+            model_to_capture = cls.MODELS
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
