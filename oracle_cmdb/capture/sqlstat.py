@@ -52,8 +52,8 @@ class SQLStat(TwoDaysSQLCapturingDoc):
         sql_id: str = kwargs["sql_id"]
         plan_hash_value: int = kwargs["plan_hash_value"]
         schema_name: str = kwargs["schema_name"]
-        snap_id_s: int = kwargs["sna_id_s"]
-        snap_id_e: int = kwargs["sna_id_e"]
+        snap_id_s: int = kwargs["snap_id_s"]
+        snap_id_e: int = kwargs["snap_id_e"]
 
         return f"""
 SELECT t.sql_id,
