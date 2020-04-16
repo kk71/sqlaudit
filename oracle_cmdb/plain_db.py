@@ -16,6 +16,7 @@ import settings
 
 
 class OraclePlainConnector:
+    """oracle纳管库的连接器"""
 
     def __init__(self,
                  ip_address,
@@ -41,7 +42,7 @@ class OraclePlainConnector:
         params = params or []
         try:
             print(sql, params)
-            self.cursor.execute(sql, params)
+            self.execute(sql, params)
         except cx_Oracle.OperationalError as e:
             print(str(e))
             self.conn.rollback()
@@ -62,7 +63,7 @@ Oracle CMDB sql execution failed at:
     def select_dict(self, sql, params=None, one=False) -> Union[list, dict]:
         """select语句返回字典形式，key全部小写"""
         params = params or []
-        self.cursor.execute(sql, params)
+        self.execute(sql, params)
         fields = [x[0].lower() for x in self.cursor.description]
         if one:
             data = self.cursor.fetchone() or ()
@@ -74,7 +75,7 @@ Oracle CMDB sql execution failed at:
     def select(self, sql, params=None, one=False) -> [tuple]:
         """select语句返回列表元组形式"""
         params = params or []
-        self.cursor.execute(sql, params)
+        self.execute(sql, params)
         return self.cursor.fetchone() or () if one else self.cursor.fetchall()
 
     def close(self):
