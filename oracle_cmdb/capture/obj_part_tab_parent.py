@@ -16,19 +16,19 @@ from ..plain_db import OraclePlainConnector
 class ObjPartTabParent(SchemaObjectCapturingDoc):
     """分区表父"""
 
-    owner = StringField()
-    table_name = StringField()
-    object_id = IntField()
-    data_object_id = IntField()
-    partitioning_type = StringField()
-    column_name = StringField()
-    partitioning_key_count = IntField()
-    partition_count = IntField()
-    sub_partitioning_key_count = IntField()
-    sub_partitioning_type = StringField()
-    last_ddl_time = DateTimeField()
-    part_role = StringField()
-    phy_size_mb = FloatField()
+    owner = StringField(required=True)
+    table_name = StringField(required=True)
+    object_id = IntField(required=True)
+    data_object_id = IntField(required=True)
+    partitioning_type = StringField(required=True)
+    column_name = StringField(required=True)
+    partitioning_key_count = IntField(required=True)
+    partition_count = IntField(required=True)
+    sub_partitioning_key_count = IntField(required=True)
+    sub_partitioning_type = StringField(required=True)
+    last_ddl_time = DateTimeField(required=True)
+    part_role = StringField(required=True)
+    phy_size_mb = FloatField(required=True)
 
     meta = {
         "collection": "obj_part_tab_parent",

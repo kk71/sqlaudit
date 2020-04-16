@@ -16,21 +16,21 @@ from ..plain_db import OraclePlainConnector
 class ObjTabInfo(SchemaObjectCapturingDoc):
     """表信息"""
 
-    owner = StringField()
-    table_name = StringField()
-    table_type = StringField()
-    object_type = StringField()
-    iot_name = StringField()
-    num_rows = IntField()
-    blocks = IntField()
-    avg_row_len = IntField()
-    last_analysed = DateTimeField()
-    last_ddl_time = DateTimeField()
-    chain_cnt = IntField()
-    partitioned = StringField()
-    hwm_stat = IntField()
-    compression = StringField()
-    phy_size_mb = FloatField()
+    owner = StringField(required=True)
+    table_name = StringField(required=True)
+    table_type = StringField(required=True)
+    object_type = StringField(required=True)
+    iot_name = StringField(required=True)
+    num_rows = IntField(required=True)
+    blocks = IntField(required=True)
+    avg_row_len = IntField(required=True)
+    last_analysed = DateTimeField(required=True)
+    last_ddl_time = DateTimeField(required=True)
+    chain_cnt = IntField(required=True)
+    partitioned = StringField(required=True)
+    hwm_stat = IntField(required=True)
+    compression = StringField(required=True)
+    phy_size_mb = FloatField(required=True)
 
     meta = {
         "collection": "obj_tab_info",

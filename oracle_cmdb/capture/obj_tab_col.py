@@ -13,17 +13,17 @@ from .base import SchemaObjectCapturingDoc
 class ObjTabCol(SchemaObjectCapturingDoc):
     """表列信息"""
 
-    owner = StringField()
-    table_name = StringField()
-    column_id = IntField()
-    column_name = StringField()
-    data_type = StringField()
-    type_change = StringField()
-    nullable = StringField()
-    num_nulls = IntField()
-    num_distinct = IntField()
-    data_default = DynamicField()
-    avg_col_len = FloatField()
+    owner = StringField(required=True)
+    table_name = StringField(required=True)
+    column_id = IntField(required=True)
+    column_name = StringField(required=True)
+    data_type = StringField(required=True)
+    type_change = StringField(required=True)
+    nullable = StringField(required=True)
+    num_nulls = IntField(required=True)
+    num_distinct = IntField(required=True)
+    data_default = DynamicField(required=True)
+    avg_col_len = FloatField(required=True)
 
     meta = {
         "collection": "obj_tab_col",

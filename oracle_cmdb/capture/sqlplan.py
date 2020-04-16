@@ -15,37 +15,39 @@ from .base import TwoDaysSQLCapturingDoc
 class SQLPlan(TwoDaysSQLCapturingDoc):
     """纳管库sql执行计划"""
 
-    operation_display = StringField()  # 带缩进用于展示的执行计划
-    operation_display_with_options = StringField()  # operation_display 加上 options的值
+    # 带缩进用于展示的执行计划
+    operation_display = StringField(required=True)
+    # operation_display 加上 options的值
+    operation_display_with_options = StringField(required=True)
 
-    sql_id = StringField()
-    plan_hash_value = IntField()
-    the_id = IntField()
-    depth = IntField()
-    parent_id = IntField()
-    operation = StringField()
-    options = StringField()
-    object_node = StringField()
-    object_owner = StringField()
-    object_name = StringField()
-    object_type = StringField()
-    optimizer = StringField()
-    search_columns = StringField()
-    position = IntField()
-    cost = StringField()
-    cardinality = StringField()
-    the_bytes = StringField()
-    other_tag = StringField()
-    partition_start = StringField()
-    partition_stop = StringField()
-    partition_id = StringField()
-    other = StringField()
-    distribution = StringField()
-    cpu_cost = StringField()
-    io_cost = StringField()
-    filter_predicates = StringField()
-    access_predicates = StringField()
-    time = StringField()
+    sql_id = StringField(required=True)
+    plan_hash_value = IntField(required=True)
+    the_id = IntField(required=True)
+    depth = IntField(required=True)
+    parent_id = IntField(required=True)
+    operation = StringField(required=True)
+    options = StringField(required=True)
+    object_node = StringField(required=True)
+    object_owner = StringField(required=True)
+    object_name = StringField(required=True)
+    object_type = StringField(required=True)
+    optimizer = StringField(required=True)
+    search_columns = StringField(required=True)
+    position = IntField(required=True)
+    cost = StringField(required=True)
+    cardinality = StringField(required=True)
+    the_bytes = StringField(required=True)
+    other_tag = StringField(required=True)
+    partition_start = StringField(required=True)
+    partition_stop = StringField(required=True)
+    partition_id = StringField(required=True)
+    other = StringField(required=True)
+    distribution = StringField(required=True)
+    cpu_cost = StringField(required=True)
+    io_cost = StringField(required=True)
+    filter_predicates = StringField(required=True)
+    access_predicates = StringField(required=True)
+    time = StringField(required=True)
 
     meta = {
         "collection": "sqlplan",
@@ -159,6 +161,7 @@ FROM
                 doc.cardinality = str(int(doc.cardinality))
             if doc.operation:
                 doc.operation_display = " " * doc.depth + doc.operation
+                doc.operation_display_with_options = doc.operation_display
                 if doc.options:
                     doc.operation_display_with_options = \
                         doc.operation_display + " " + doc.options

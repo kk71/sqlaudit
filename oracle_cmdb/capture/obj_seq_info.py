@@ -15,13 +15,13 @@ from .base import SchemaObjectCapturingDoc
 class ObjSeqInfo(SchemaObjectCapturingDoc):
     """序列信息"""
 
-    min_value = StringField()
-    max_value = StringField()
-    increment_by = IntField()
-    cache_size = IntField()
-    sequence_name = StringField()
-    sequence_owner = StringField()
-    last_number = StringField()
+    min_value = StringField(required=True)
+    max_value = StringField(required=True)
+    increment_by = IntField(required=True)
+    cache_size = IntField(required=True)
+    sequence_name = StringField(required=True)
+    sequence_owner = StringField(required=True)
+    last_number = StringField(required=True)
 
     meta = {
         "collection": "obj_seq_info",

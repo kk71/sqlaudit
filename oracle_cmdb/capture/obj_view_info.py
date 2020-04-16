@@ -13,13 +13,13 @@ from .base import SchemaObjectCapturingDoc
 class ObjViewInfo(SchemaObjectCapturingDoc):
     """视图信息"""
 
-    obj_pk = StringField()
-    owner = StringField()
-    view_name = StringField()
-    object_type = StringField()
-    referenced_owner = StringField()
-    referenced_name = StringField()
-    referenced_type = StringField()
+    obj_pk = StringField(required=True)
+    owner = StringField(required=True)
+    view_name = StringField(required=True)
+    object_type = StringField(required=True)
+    referenced_owner = StringField(required=True)
+    referenced_name = StringField(required=True)
+    referenced_type = StringField(required=True)
 
     meta = {
         "collection": "obj_view_info",
