@@ -13,7 +13,7 @@ def main():
     """display all cmdb tasks"""
     with make_session() as session:
         task_q = session.query(
-            *qe := QueryEntity(
+            *(qe := QueryEntity(
                 CMDBTask.task_id,
                 CMDBTask.task_type,
                 CMDBTask.task_name,
@@ -21,7 +21,7 @@ def main():
                 CMDBTask.connect_name,
                 CMDBTask.group_name,
                 CMDBTask.ip_address
-            )
+            ))
         )
         pt = PrettyTable(qe.keys)
         pt.align = "l"
