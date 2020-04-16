@@ -93,7 +93,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
         docs: ["SchemaObjectCapturingDoc"] = kwargs["docs"]
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
-        obj_owner: str = kwargs.pop["obj_owner"]
+        obj_owner: str = kwargs["obj_owner"]
 
         for d in docs:
             d.from_dict({
