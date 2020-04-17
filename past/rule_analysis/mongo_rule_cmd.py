@@ -320,8 +320,8 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
         table_q = ObjTabInfo.objects(
             table_name=x["OBJECT_NAME"], schema_name=x["USERNAME"])
         for tab in table_q:
-            # if tab.phy_size_mb > int(table_phy_size):
-            if tab.num_rows > int(table_row_num):
+            if tab.phy_size_mb > int(table_phy_size) \
+                    or tab.num_rows > int(table_row_num):
                 yield {
                     "SQL_ID": x["SQL_ID"],
                     "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
