@@ -15,5 +15,5 @@ class BaseOracleCapture(core.capture.BaseCaptureItem):
 
     RELATIVE_IMPORT_TOP_PATH_PREFIX = settings.SETTINGS_FILE_DIR
 
-    PATH_TO_IMPORT = lambda: os.path.dirname(os.path.dirname(__file__))
+    PATH_TO_IMPORT = os.path.dirname(os.path.dirname(__file__))
 

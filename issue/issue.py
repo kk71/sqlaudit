@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "Issue"
+    "OnlineIssue"
 ]
 
 from mongoengine import StringField, FloatField, DictField, IntField, ListField
@@ -13,11 +13,11 @@ import rule.const
 from models.mongoengine import *
 
 
-class Issue(
+class OnlineIssue(
         BaseDoc,
-        core.issue.BaseIssue,
+        core.issue.BaseOnlineIssue,
         metaclass=ABCTopLevelDocumentMetaclass):
-    """oracle issue"""
+    """common online issue"""
 
     cmdb_id = IntField(required=True)
     db_type = StringField(required=True)
@@ -32,18 +32,19 @@ class Issue(
     level = IntField()  # 规则优先级
 
     meta = {
-        "allow_inheritance": True,
-        "collection": "issue",
+        "abstract": True,
         'indexes': [
             "cmdb_id",
-            "db_type",
             "rule_name",
             "entries",
             "level"
         ]
     }
 
-    def as_issue_of(self, the_rule: rule.rule.Rule, output_data: dict):
+    # 规定使用的规则entries为线上审核
+    ENTRIES = (rule.const.RULE_ENTRY_ONLINE,)
+
+    def as_issue_of(self, the_rule: rule.rule.CMDBRule, output_data: dict):
         """
         作为一个规则的问题
         :param the_rule:
@@ -64,4 +65,3 @@ class Issue(
                 raise rule.exceptions.RuleCodeInvalidParamTypeException(
                     f"{str(the_rule)}-{output_param.name}: {the_output_data_to_this_param}")
             self.output_params[output_param.name] = the_output_data_to_this_param
-
