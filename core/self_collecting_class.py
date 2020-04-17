@@ -43,9 +43,9 @@ class SelfCollectingFramework(abc.ABC):
     def collect(cls):
         """通过文件目录路径，import相应的module"""
         print(f"collecting modules for {cls.__doc__} ...")
-        if issubclass(cls.PATH_TO_IMPORT, str):
+        if isinstance(cls.PATH_TO_IMPORT, str):
             dirs = [cls.PATH_TO_IMPORT]
-        elif issubclass(cls.PATH_TO_IMPORT, (tuple, list)):
+        elif isinstance(cls.PATH_TO_IMPORT, (tuple, list)):
             dirs = cls.PATH_TO_IMPORT
         elif callable(cls.PATH_TO_IMPORT):
             dirs = cls.PATH_TO_IMPORT()
