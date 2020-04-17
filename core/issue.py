@@ -6,6 +6,7 @@ __all__ = [
 ]
 
 import abc
+from typing import Union
 
 from .rule import BaseRuleItem
 from .self_collecting_class import *
@@ -25,7 +26,10 @@ class BaseIssue(abc.ABC):
     max_score = None  # 最大扣分快照
 
     @abc.abstractmethod
-    def as_issue_of(self, the_rule: BaseRuleItem, output_data: dict):
+    def as_issue_of(self,
+                    the_rule: BaseRuleItem,
+                    output_data: dict,
+                    minus_score: Union[int, float], **kwargs):
         """设置当前问题为某个规则的问题"""
         pass
 

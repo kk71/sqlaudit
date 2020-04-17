@@ -33,6 +33,3 @@ class OracleOnlineIssue(OnlineIssue):
 
     ENTRIES = ()
 
-    @classmethod
-    def process(cls, collected=None, **kwargs):
-        pass

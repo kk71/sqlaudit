@@ -4,6 +4,8 @@ __all__ = [
     "OnlineIssue"
 ]
 
+from typing import Union
+
 from mongoengine import StringField, FloatField, DictField, IntField, ListField
 
 import core.issue
@@ -44,13 +46,22 @@ class OnlineIssue(
     # 规定使用的规则entries为线上审核
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE,)
 
-    def as_issue_of(self, the_rule: rule.rule.CMDBRule, output_data: dict):
+    @classmethod
+    def generate_rule_jar(cls):
+        cls
+
+    def as_issue_of(self,
+                    the_rule: rule.rule.CMDBRule,
+                    output_data: dict,
+                    minus_score: Union[int, float], **kwargs):
         """
         作为一个规则的问题
         :param the_rule:
         :param output_data: 规则的运行输出
+        :param minus_score
         :return:
         """
+        self.cmdb_id = the_rule.cmdb_id
         self.db_type = the_rule.db_type
         self.rule_name = the_rule.name
         self.rule_desc = the_rule.desc
@@ -59,6 +70,7 @@ class OnlineIssue(
         self.weight = the_rule.weight
         self.input_params = [i for i in the_rule.to_dict()["input_params"]]
         self.entries = list(the_rule.entries)
+        self.minus_score = minus_score
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             if not output_param.validate_data_type(the_output_data_to_this_param):
