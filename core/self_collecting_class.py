@@ -51,7 +51,7 @@ class SelfCollectingFramework(abc.ABC):
             dirs = cls.PATH_TO_IMPORT()
         else:
             assert 0
-
+        print(f"path to collect: {dirs}")
         module_dirs = []
         for the_dir in dirs:
             module_dirs += glob(
@@ -62,6 +62,7 @@ class SelfCollectingFramework(abc.ABC):
                 str(Path(the_dir) / "**/**.py"),
                 recursive=True
             )
+        print(f"going to collect in the following modules: {module_dirs}")
         for module_dir in module_dirs:
             relative_path = module_dir[len(cls.RELATIVE_IMPORT_TOP_PATH_PREFIX):]
             # TODO only support *nix system
