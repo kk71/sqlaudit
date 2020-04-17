@@ -11,7 +11,7 @@ from typing import NoReturn
 import arrow
 from mongoengine import IntField, StringField
 
-import core.capture
+from .base import *
 from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
 from oracle_cmdb import exceptions, const
@@ -21,7 +21,7 @@ from utils.datetime_utils import dt_to_str
 
 class SQLCapturingDoc(
         BaseDoc,
-        core.capture.BaseCaptureItem,
+        BaseOracleCapture,
         metaclass=ABCTopLevelDocumentMetaclass):
     """采集sql数据"""
 
@@ -38,7 +38,7 @@ class SQLCapturingDoc(
         ]
     }
 
-    MODELS = []
+    COLLECTED = []
 
     # select_workload_repository的参数
     PARAMETERS = (
@@ -149,7 +149,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         :param snap_id_e:
         :param m: 采集的model
         :param kwargs:
-        :return: 采集到的sql数量
+        :return: 采集到sql的相应数据量
         """
         cmdb_connector: OraclePlainConnector = kwargs["cmdb_connector"]
         snap_id_s: int = kwargs["snap_id_s"]
@@ -185,9 +185,9 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         return len(docs_inserted)
 
     @classmethod
-    def capture(cls, model_to_capture: ["SQLCapturingDoc"] = None, **kwargs):
-        if model_to_capture is None:
-            model_to_capture = cls.MODELS
+    def process(cls, collected: ["SQLCapturingDoc"] = None, **kwargs):
+        if collected is None:
+            collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
@@ -196,9 +196,9 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
 
         snap_id_s, snap_id_e = cls.query_snap_id_today(cmdb_conn, now)
 
-        for i, m in enumerate(model_to_capture):
+        for i, m in enumerate(collected):
             i += 1
-            total = len(model_to_capture)
+            total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
             with schema_no_data(m.__doc__) as schema_counter:
                 for a_schema in schemas:
@@ -227,7 +227,7 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
         ]
     }
 
-    MODELS = []
+    COLLECTED = []
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
@@ -239,9 +239,9 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
             doc.two_days_capture = two_days_capture
 
     @classmethod
-    def capture(cls, model_to_capture: ["TwoDaysSQLCapturingDoc"] = None, **kwargs):
-        if model_to_capture is None:
-            model_to_capture = cls.MODELS
+    def process(cls, collected: ["TwoDaysSQLCapturingDoc"] = None, **kwargs):
+        if collected is None:
+            collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
@@ -253,9 +253,9 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
         yesterday_snap_id_s, yesterday_snap_id_e = cls.query_snap_id_yesterday(
             cmdb_conn, now)
 
-        for i, m in enumerate(model_to_capture):
+        for i, m in enumerate(collected):
             i += 1
-            total = len(model_to_capture)
+            total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
             with schema_no_data(
                     f"{m.__doc__}-today",

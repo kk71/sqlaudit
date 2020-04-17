@@ -25,6 +25,8 @@ class BaseCMDBTask(BaseTask):
 
     @classmethod
     def shoot(cls, **kwargs):
+        """使用该方法启动任务而不是用delay"""
+
         cmdb_task_id: int = kwargs["cmdb_task_id"]
         operator: str = kwargs["operator"]
 

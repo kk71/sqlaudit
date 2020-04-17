@@ -13,7 +13,7 @@ from .base import TwoDaysSQLCapturingDoc
 
 @TwoDaysSQLCapturingDoc.need_collect()
 class SQLPlan(TwoDaysSQLCapturingDoc):
-    """纳管库sql执行计划"""
+    """sql执行计划"""
 
     # 带缩进用于展示的执行计划
     operation_display = StringField(null=True)

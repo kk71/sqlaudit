@@ -9,7 +9,6 @@ from utils.datetime_utils import *
 from cmdb.task import *
 from cmdb.cmdb_task import *
 from task.task import *
-from ..capture import modules
 from ..capture.base import *
 from ..cmdb import *
 from ..plain_db import *
@@ -39,16 +38,17 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
             cmdb_conn: OraclePlainConnector = the_cmdb.build_connector()
             print(f"{len(schemas)} schema(s) to run: {schemas}")
 
-        modules.collect_dynamic_modules()
+        BaseOracleCapture.collect()
+
         print("================== CMDB capture ==================")
-        ObjectCapturingDoc.capture(
+        ObjectCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn
         )
 
         print("============== Schema Object capture ==============")
-        SchemaObjectCapturingDoc.capture(
+        SchemaObjectCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,
@@ -56,7 +56,7 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         )
 
         print("=============== Schema SQL capture ===============")
-        SQLCapturingDoc.capture(
+        SQLCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,
@@ -65,7 +65,7 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         )
 
         print("=========== Schema SQL two-days capture ===========")
-        TwoDaysSQLCapturingDoc.capture(
+        TwoDaysSQLCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,

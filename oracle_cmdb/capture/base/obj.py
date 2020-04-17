@@ -9,16 +9,16 @@ from typing import NoReturn
 
 from mongoengine import ObjectIdField, IntField, StringField
 
-import core.capture
+from .base import *
 from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
 from oracle_cmdb.plain_db import OraclePlainConnector
 
 
 class ObjectCapturingDoc(
-    BaseDoc,
-    core.capture.BaseCaptureItem,
-    metaclass=ABCTopLevelDocumentMetaclass):
+        BaseDoc,
+        BaseOracleCapture,
+        metaclass=ABCTopLevelDocumentMetaclass):
     """对象采集"""
 
     _id = ObjectIdField()
@@ -33,7 +33,7 @@ class ObjectCapturingDoc(
         ]
     }
 
-    MODELS = []
+    COLLECTED = []
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
@@ -48,16 +48,16 @@ class ObjectCapturingDoc(
             })
 
     @classmethod
-    def capture(cls, model_to_capture: ["ObjectCapturingDoc"] = None, **kwargs):
-        if model_to_capture is None:
-            model_to_capture = cls.MODELS
+    def process(cls, collected: ["ObjectCapturingDoc"] = None, **kwargs):
+        if collected is None:
+            collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
 
-        for i, m in enumerate(model_to_capture):
+        for i, m in enumerate(collected):
             i += 1
-            total = len(model_to_capture)
+            total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
             sql_to_run = m.simple_capture()
             docs = [
@@ -87,7 +87,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
         ]
     }
 
-    MODELS = []
+    COLLECTED = []
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
@@ -104,17 +104,17 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             })
 
     @classmethod
-    def capture(cls, model_to_capture: ["SchemaObjectCapturingDoc"] = None, **kwargs):
-        if model_to_capture is None:
-            model_to_capture = cls.MODELS
+    def process(cls, collected: ["SchemaObjectCapturingDoc"] = None, **kwargs):
+        if collected is None:
+            collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         cmdb_conn: OraclePlainConnector = kwargs["cmdb_connector"]
         schemas: [str] = kwargs["schemas"]
 
-        for i, m in enumerate(model_to_capture):
+        for i, m in enumerate(collected):
             i += 1
-            total = len(model_to_capture)
+            total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
             with schema_no_data(m.__doc__) as schema_counter:
                 for a_schema in schemas:

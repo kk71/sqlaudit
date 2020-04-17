@@ -11,7 +11,7 @@ from .base import TwoDaysSQLCapturingDoc
 
 @TwoDaysSQLCapturingDoc.need_collect()
 class SQLStat(TwoDaysSQLCapturingDoc):
-    """纳管库sql执行信息"""
+    """sql执行信息"""
 
     sql_id = StringField(null=True)
     plan_hash_value = IntField(null=True)

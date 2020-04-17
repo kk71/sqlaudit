@@ -12,7 +12,7 @@ from .base import SQLCapturingDoc
 
 @SQLCapturingDoc.need_collect()
 class SQLText(SQLCapturingDoc):
-    """纳管库sql文本信息"""
+    """sql文本信息"""
 
     dbid = IntField(null=True)
     sql_id = StringField(null=True)
