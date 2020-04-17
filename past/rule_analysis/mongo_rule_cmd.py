@@ -322,14 +322,14 @@ def SQL_TABLE_FULL_SCAN(mongo_client, sql, username, etl_date_key, etl_date, tab
         for tab in table_q:
             # if tab.phy_size_mb > int(table_phy_size):
             if tab.num_rows > int(table_row_num):
-                    yield {
-                        "SQL_ID": x["SQL_ID"],
-                        "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
-                        "OBJECT_NAME": x["OBJECT_NAME"],
-                        "ID": x["ID"],
-                        "COST": x["COST"],
-                        "COUNT": ""
-                    }
+                yield {
+                    "SQL_ID": x["SQL_ID"],
+                    "PLAN_HASH_VALUE": x["PLAN_HASH_VALUE"],
+                    "OBJECT_NAME": x["OBJECT_NAME"],
+                    "ID": x["ID"],
+                    "COST": x["COST"],
+                    "COUNT": ""
+                }
 
 
 @timing()
