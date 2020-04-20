@@ -334,7 +334,7 @@ select t.owner,
        trunc(((t.AVG_ROW_LEN * t.NUM_ROWS) / 8) /
              (decode(t.BLOCKS, 0, 1, t.BLOCKS)) * 100) as HWM_STAT,
        t.COMPRESSION,
-       p.bytes/1024/1024 phy_size_mb
+       p.bytes/1024/1024 "PHY_SIZE(MB)"
   from dba_tables t, dba_objects s, dba_segments p
  where t.table_name = s.object_name
    and p.segment_name = t.table_name
