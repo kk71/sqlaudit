@@ -16,10 +16,11 @@ import cmdb.const
 import ticket.sub_ticket
 from models.mongoengine import *
 from plain_db.oracleob import *
-from utils.parsed_sql import ParsedSQL
+from parsed_sql.parsed_sql import ParsedSQL
 from ticket.analyse import SubTicketAnalyse
 from .sub_ticket import OracleSubTicket
 from .sql_plan import OracleTicketSQLPlan
+from rule.adapters import *
 
 
 class OracleSubTicketAnalyse(SubTicketAnalyse):
@@ -77,20 +78,22 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 # ===指明oracle动态审核的输入参数(kwargs)===
-                ret = dr.run(
+                ret = CMDBRuleAdapterSQL(dr).run(
                     entries=self.dynamic_rules.entries,
 
                     single_sql=single_sql,
                     cmdb_connector=self.cmdb_connector,
-                    mongo_connector=self.mongo_connector,
                     sql_plan_qs=sql_plan_qs,
                     schema_name=sub_result.schema_name,
                     statement_id=self.statement_id
                 )
                 for minus_score, output_param in ret:
-                    sub_result_issue = ticket.sub_ticket.SubTicketIssue(
-                        minus_score=minus_score)
-                    sub_result_issue.as_issue_of(dr, output_data=output_param)
+                    sub_result_issue = ticket.sub_ticket.SubTicketIssue()
+                    sub_result_issue.as_issue_of(
+                        dr,
+                        output_data=output_param,
+                        minus_score=minus_score
+                    )
                     sub_result.dynamic.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)

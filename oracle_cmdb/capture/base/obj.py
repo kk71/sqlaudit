@@ -116,7 +116,8 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             i += 1
             total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data(m.__doc__) as schema_counter:
+            with grouped_count_logger(
+                    m.__doc__, item_type_name="schema") as schema_counter:
                 for a_schema in schemas:
                     sql_to_run = m.simple_capture(obj_owner=a_schema)
                     docs = [

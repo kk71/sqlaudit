@@ -200,7 +200,8 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             i += 1
             total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data(m.__doc__) as schema_counter:
+            with grouped_count_logger(
+                    m.__doc__, item_type_name="schema") as schema_counter:
                 for a_schema in schemas:
                     captured_num = cls._schema_sql_capture(
                         a_schema=a_schema,
@@ -257,13 +258,15 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
             i += 1
             total = len(collected)
             print(f"* running {i} of {total}: {m.__doc__}")
-            with schema_no_data(
+            with grouped_count_logger(
                     f"{m.__doc__}-today",
-                    show_lable_in_schema_print=True
+                    item_type_name="schema",
+                    show_label_in_print=True
             ) as schema_counter_today:
-                with schema_no_data(
+                with grouped_count_logger(
                         f"{m.__doc__}-yesterday",
-                        show_lable_in_schema_print=True
+                        item_type_name="schema",
+                        show_label_in_print=True
                 ) as schema_counter_yesterday:
                     for a_schema in schemas:
                         common_params = dict(

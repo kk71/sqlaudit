@@ -9,12 +9,14 @@ import abc
 import traceback
 
 from prettytable import PrettyTable
-from mongoengine import QuerySet as mongoengine_qs
 
+from models.mongoengine import *
 from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
 from .sub_ticket import SubTicketIssue
-from rule.rule_jar import RuleJar
+from rule.rule_jar import *
+from rule.adapters import *
+from utils.single_sql import *
 
 
 class BaseSubTicketAnalyse(abc.ABC):
@@ -99,8 +101,12 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
                     sqls=sqls
                 )
                 for minus_score, output_param in ret:
-                    sub_result_issue = SubTicketIssue(minus_score=minus_score)
-                    sub_result_issue.as_issue_of(sr, output_data=output_param)
+                    sub_result_issue = SubTicketIssue()
+                    sub_result_issue.as_issue_of(
+                        sr,
+                        output_data=output_param,
+                        minus_score=minus_score
+                    )
                     sub_result.static.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)
@@ -116,7 +122,6 @@ class SubTicketAnalyse(
         BaseSubTicketAnalyseStatic):
     """子工单分析模块，不指明纳管库类型"""
 
-    @abc.abstractmethod
     def __init__(self,
                  static_rules: RuleJar,
                  dynamic_rules: RuleJar,
@@ -133,8 +138,8 @@ class SubTicketAnalyse(
     def run_static(
             self,
             sub_result,
-            sqls: [dict],
-            single_sql: dict):
+            sqls: [SingleSQL],
+            single_sql: SingleSQL):
         """
         静态分析
         :param self:
@@ -149,7 +154,7 @@ class SubTicketAnalyse(
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 # ===指明静态审核的输入参数(kwargs)===
-                ret = sr.run(
+                ret = CMDBRuleAdapterSQL(sr).run(
                     entries=self.static_rules.entries,
 
                     single_sql=single_sql,
@@ -157,8 +162,12 @@ class SubTicketAnalyse(
                     cmdb=self.cmdb
                 )
                 for minus_score, output_param in ret:
-                    sub_result_issue = SubTicketIssue(minus_score=minus_score)
-                    sub_result_issue.as_issue_of(sr, output_data=output_param)
+                    sub_result_issue = SubTicketIssue()
+                    sub_result_issue.as_issue_of(
+                        sr,
+                        output_data=output_param,
+                        minus_score=minus_score
+                    )
                     sub_result.static.append(sub_result_issue)
         except Exception as e:
             error_msg = str(e)

@@ -23,8 +23,8 @@ class RuleJar(list):
         :param args: entries...
         :return:
         """
-        from .rule import Rule
-        new_jar = cls(Rule.filter_enabled(entries__in=args).filter(**kwargs))
+        from .rule import CMDBRule
+        new_jar = cls(CMDBRule.filter_enabled(entries__in=args).filter(**kwargs))
         new_jar.entries = args
         return new_jar
 

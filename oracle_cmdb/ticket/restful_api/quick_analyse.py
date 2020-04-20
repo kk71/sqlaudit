@@ -7,7 +7,7 @@ from utils.schema_utils import *
 from auth.restful_api.base import AuthReq
 from ..sub_ticket import OracleSubTicket
 from ticket.analyse import SubTicketAnalyseStaticCMDBIndependent
-from ..single_sql import SingleSQL
+from utils.single_sql import SingleSQL
 from ticket.parsed_sql import ParsedSQL
 from rule.rule_jar import *
 

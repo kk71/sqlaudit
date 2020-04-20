@@ -9,7 +9,7 @@ import re
 
 import sqlparse
 
-from utils import const
+from . import const
 
 
 class ParsedSQL(list):

@@ -4,7 +4,7 @@ __all__ = [
     "OnlineIssue"
 ]
 
-from typing import Union
+from typing import Union, Generator
 
 from mongoengine import StringField, FloatField, DictField, IntField, ListField
 
@@ -12,6 +12,7 @@ import core.issue
 import rule.rule
 import rule.exceptions
 import rule.const
+from rule.rule_jar import *
 from models.mongoengine import *
 
 
@@ -47,8 +48,13 @@ class OnlineIssue(
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE,)
 
     @classmethod
-    def generate_rule_jar(cls):
-        cls
+    def generate_rule_jar(cls,
+                          db_type: str,
+                          entries: [str] = None,
+                          **kwargs) -> RuleJar:
+        if entries is None:
+            entries = cls.inherited_entries()
+        return RuleJar.gen_jar_with_entries(*entries, db_type=db_type, **kwargs)
 
     def as_issue_of(self,
                     the_rule: rule.rule.CMDBRule,
@@ -77,3 +83,13 @@ class OnlineIssue(
                 raise rule.exceptions.RuleCodeInvalidParamTypeException(
                     f"{str(the_rule)}-{output_param.name}: {the_output_data_to_this_param}")
             self.output_params[output_param.name] = the_output_data_to_this_param
+
+    @classmethod
+    def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue"]:
+        pass
+
+    @classmethod
+    def filter_with_entries(cls, *args, **kwargs):
+        """便于子类只查询当前（以及其子类）的对象"""
+        return cls.objects(
+            entries__all=cls.inherited_entries()).filter(*args, **kwargs)

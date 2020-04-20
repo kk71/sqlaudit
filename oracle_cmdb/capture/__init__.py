@@ -21,5 +21,7 @@ __all__ = [
     "ObjTabInfo",
     "ObjTabSpace",
     "ObjViewInfo",
-
+    "SQLText",
+    "SQLPlan",
+    "SQLStat",
 ]

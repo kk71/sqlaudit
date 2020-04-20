@@ -21,11 +21,6 @@ class BaseCaptureItem(SelfCollectingFramework):
         pass
 
     @classmethod
-    def manual_capture(cls, **kwargs) -> ["BaseCaptureItem"]:
-        """手动采集行为"""
-        pass
-
-    @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
         """采集后对采到的数据做简单的修正，例如添加辅助字段，修正数据类型等"""
         pass

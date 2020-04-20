@@ -5,8 +5,10 @@ from .export_utils import *
 from .rule_jar import *
 
 __all__ = [
-    "Rule",
-    "RuleInputOutputParams",
+    "CMDBRule",
+    "RuleCartridge",
+    "RuleInputParams",
+    "RuleOutputParams",
     "RuleJar",
     "rule_import",
     "rule_export",

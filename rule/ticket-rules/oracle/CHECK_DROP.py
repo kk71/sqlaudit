@@ -1,4 +1,4 @@
-from utils.parsed_sql import ParsedSQL
+from parsed_sql.parsed_sql import ParsedSQL
 
 
 def code(rule, entries, **kwargs):

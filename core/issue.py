@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 import abc
-from typing import Union
+from typing import Union, NoReturn
 
 from .rule import BaseRuleItem
 from .self_collecting_class import *
@@ -40,7 +40,7 @@ class BaseOnlineIssue(BaseIssue, SelfCollectingFramework):
     entries = None  # 该问题分析时候传入的entries
 
     # 规则分析的时候接受的entries
-    # TODO 子类仅写当前子类需要的entries，如果需要查找当前子类所需的全部entries,
+    # TODO 子类仅填写当前子类需要的entries，如果需要查找当前子类所需的全部entries,
     #      使用inherited_entries查找继承的entries
     ENTRIES = ()
 
@@ -51,3 +51,13 @@ class BaseOnlineIssue(BaseIssue, SelfCollectingFramework):
         if upper_entries is not None:
             return set(cls.ENTRIES) | super().inherited_entries()
         return set(cls.ENTRIES)
+
+    @classmethod
+    def simple_analyse(cls, **kwargs):
+        """简单规则分析"""
+        pass
+
+    @classmethod
+    def post_analysed(cls, **kwargs) -> NoReturn:
+        """规则分析结束后处理"""
+        pass

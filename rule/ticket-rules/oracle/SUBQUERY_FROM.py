@@ -1,6 +1,6 @@
 from sqlparse.sql import TokenList
 
-from utils.parsed_sql import ParsedSQL
+from parsed_sql.parsed_sql import ParsedSQL
 
 
 def recursively_find_following_select(token: TokenList) -> bool:

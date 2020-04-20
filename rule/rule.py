@@ -216,7 +216,7 @@ code_hole.append(code)  # 务必加上这一句
                 self._code: Callable = self.construct_code(self.code)
             else:
                 print(f"* running {str(self)} ...")
-            ret = self._code(self, entries, **kwargs)
+            ret = list(self._code(self, entries, **kwargs))
 
         except Exception as e:
             # 执行规则代码失败，需要报错
@@ -233,13 +233,22 @@ code_hole.append(code)  # 务必加上这一句
                             (
                                 Or(
                                     And(scm_num, lambda x: x <= 0),
-                                    Use(lambda x:
-                                        -self.weight if x is None else scm_raise_error())
+                                    Use(
+                                        lambda x: -self.weight
+                                        if x is None
+                                        else scm_raise_error(
+                                            f"incorrect minus_score: {x}"
+                                        )
+                                    )
                                 ),
                                 dict
                             ),
-                            Use(lambda x:
-                                (None, x) if isinstance(x, dict) else scm_raise_error())
+                            Use(
+                                lambda x: (None, x)
+                                if isinstance(x, dict)
+                                else scm_raise_error(f"no minus_score is given,"
+                                                     f" and the return data is "
+                                                     f"incorrect, too."))
                         )
                     ],
                     Use(lambda x: [] if x is None else x)

@@ -5,6 +5,8 @@ __all__ = [
     "SubTicketIssue"
 ]
 
+from typing import Union
+
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     BooleanField, EmbeddedDocumentField, EmbeddedDocumentListField, \
     EmbeddedDocument, DictField
@@ -36,12 +38,12 @@ class SubTicketIssue(
     def get_rule_unique_key(self) -> tuple:
         return self.db_type, self.rule_name
 
-    def as_issue_of(self, the_rule: CMDBRule, output_data: dict):
+    def as_issue_of(self,
+                    the_rule: "CMDBRule",
+                    output_data: dict,
+                    minus_score: Union[int, float], **kwargs):
         """
         作为一个子工单（一条sql语句）的一个规则的诊断结果，获取该规则的信息
-        :param the_rule:
-        :param output_data: 规则的运行输出
-        :return:
         """
         self.db_type = the_rule.db_type
         self.rule_name = the_rule.name
@@ -50,6 +52,7 @@ class SubTicketIssue(
         self.max_score = the_rule.max_score
         self.weight = the_rule.weight
         self.input_params = [i for i in the_rule.to_dict()["input_params"]]
+        self.minus_score = minus_score
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             if not output_param.validate_data_type(the_output_data_to_this_param):
