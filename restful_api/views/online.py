@@ -284,8 +284,6 @@ class SQLRiskDetailHandler(AuthReq):
                 )
                 risk_rules = risk_rules.filter(RiskSQLRule.rule_name.in_(rule_names))
 
-            sql_text_stats = await async_thr(
-                sql_utils.get_sql_id_stats, session, cmdb_id=cmdb_id)
             latest_sql_text_object = SQLText.objects(sql_id=sql_id). \
                 order_by("-etl_date"). \
                 first()
@@ -428,10 +426,10 @@ class SQLRiskDetailHandler(AuthReq):
             sql_stats = {k: sum([j for j in v if j]) / len(v) if len(v) else 0
                          for k, v in sql_stats.items()}
 
-            the_first_appearance_time = sql_text_stats.get(sql_id, {}) \
-                .get("first_appearance", None)
-            the_last_appearance_time = sql_text_stats.get(sql_id, {}) \
-                .get("last_appearance", None)
+            sql_text_stats = await async_thr(
+                sql_utils.get_sql_id_stats, session, sql_id=sql_id, cmdb_id=cmdb_id)
+            the_first_appearance_time = sql_text_stats.get("first_appearance", None)
+            the_last_appearance_time = sql_text_stats.get("last_appearance", None)
             if not the_first_appearance_time or not the_last_appearance_time:
                 print(f"* warning: this sql with sql_id({sql_id}) may currently "
                       f"under capturing and has no statistic info")

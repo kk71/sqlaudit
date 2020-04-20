@@ -12,7 +12,10 @@ from utils import rule_utils, const
 from utils.datetime_utils import *
 
 
-def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
+def get_sql_id_stats(session,
+                     cmdb_id: int,
+                     sql_id: str,
+                     task_record_id_to_replace=None) -> dict:
     """
     计算sql文本的统计信息
     """
@@ -24,8 +27,12 @@ def get_sql_id_stats(session, cmdb_id, task_record_id_to_replace=None) -> dict:
             task_record_id_to_replace=task_record_id_to_replace
         )
         task_record_id = latest_cmdb_id_task_record_id[cmdb_id]
-        objs = StatsCMDBSQLText.objects(task_record_id=task_record_id, cmdb_id=cmdb_id)
-        return {obj.sql_id: obj.to_dict() for obj in objs}
+        the_obj = StatsCMDBSQLText.objects(
+            task_record_id=task_record_id,
+            cmdb_id=cmdb_id,
+            sql_id=sql_id
+        ).first()
+        return the_obj.to_dict()
     except KeyError:
         return {}
 
@@ -159,13 +166,6 @@ def get_risk_sql_list(session,
 
     if not sql_id_only:
         # ====== 如果仅统计sql_id，以下信息不需要 ======
-        sql_text_stats = {}
-        if sqltext_stats:
-            sql_text_stats = get_sql_id_stats(
-                session,
-                cmdb_id=cmdb_id,
-                task_record_id_to_replace=task_record_id_to_replace
-            )
         # 统计全部搜索到的result的record_id内的全部sql_id的最近一次运行的统计信息
         last_sql_id_sqlstat_dict = get_sql_id_sqlstat_dict(record_id=list(result_q.distinct("record_id")))
 
@@ -235,7 +235,12 @@ def get_risk_sql_list(session,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                 }
                 if sqltext_stats:
-                    sql_text_stats_sql_id = sql_text_stats.get(sql_id, {})
+                    sql_text_stats_sql_id = get_sql_id_stats(
+                        session,
+                        cmdb_id=cmdb_id,
+                        sql_id=sql_id,
+                        task_record_id_to_replace=task_record_id_to_replace
+                    )
                     r.update({
                         "first_appearance": dt_to_str(sql_text_stats_sql_id.get('first_appearance', None)),
                         "last_appearance": dt_to_str(sql_text_stats_sql_id.get('last_appearance', None)),
