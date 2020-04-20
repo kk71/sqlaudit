@@ -89,23 +89,23 @@ class CaptureObj(past.capture.base.Capture):
     def obj_tab_info(self, obj_owner):
         records, columns = self.query_sql(
             OBJ_BASE_TAB_HEAP_INFO_SQL.format(obj_owner=obj_owner))
-        phy_size, _ = self.query_sql(
-            OBJ_PART_TAB_PARENT_PHY_SIZE_SQL.format(obj_owner=obj_owner))
+        # phy_size, _ = self.query_sql(
+        #     OBJ_PART_TAB_PARENT_PHY_SIZE_SQL.format(obj_owner=obj_owner))
         col_num, _ = self.query_sql(
             OBJ_PART_TAB_PARENT_COL_SQL.format(obj_owner=obj_owner))
-        phy_name = self.extract_column(phy_size)
+        # phy_name = self.extract_column(phy_size)
         info_name = self.extract_column(records, column=1)
-        phy_null = list(set(info_name) - set(phy_name))
+        # phy_null = list(set(info_name) - set(phy_name))
 
         results = self.parse_result(records, columns, obj_owner, *(1,))
-        for data in phy_null:
-            if data not in results:
-                continue
-            results[data].update({"PHY_SIZE(MB)": 0})
-        for item in phy_size:
-            if item[0] not in results:
-                continue
-            results[item[0]].update({"PHY_SIZE(MB)": item[1]})
+        # for data in phy_null:
+        #     if data not in results:
+        #         continue
+        #     results[data].update({"PHY_SIZE(MB)": 0})
+        # for item in phy_size:
+        #     if item[0] not in results:
+        #         continue
+        #     results[item[0]].update({"PHY_SIZE(MB)": item[1]})
 
         for item in col_num:
             if item[0] not in results:

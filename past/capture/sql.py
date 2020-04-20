@@ -313,31 +313,62 @@ OBJ_BASE_IDX_COL_HEAP_COL_INFO_SQL = """
 
 # 获取某个schema下的对象类型为table的基本信息，如：表的名称，表的类型，最后一次ddl的时间等信息。
 OBJ_BASE_TAB_HEAP_INFO_SQL = """
-    select t.owner,
-           t.table_name,
-           decode(t.partitioned,
-                  'YES',
-                  'PART',
-                  decode(t.temporary, 'Y', 'TEMP', decode (t.iot_type,'IOT','IOT','NORMAL'))) table_type,
-           s.object_type,
-           t.iot_name,
-           t.NUM_ROWS,
-           t.BLOCKS,
-           t.AVG_ROW_LEN,
-           t.LAST_ANALYZED,
-           s.last_ddl_time,
-           t.CHAIN_CNT,
-           t.PARTITIONED,
-           trunc(((t.AVG_ROW_LEN * t.NUM_ROWS) / 8) /
-                 (decode(t.BLOCKS, 0, 1, t.BLOCKS)) * 100) as HWM_STAT,
-           t.COMPRESSION
-      from dba_tables t, dba_objects s
-     where t.table_name = s.object_name
-       and t.owner = s.owner
-       and s.object_type = 'TABLE'
-       and t.table_name not like '%BIN$%'
-       and t.owner = '{obj_owner}'
+select t.owner,
+       t.table_name,
+       decode(t.partitioned,
+              'YES',
+              'PART',
+              decode(t.temporary,
+                     'Y',
+                     'TEMP',
+                     decode(t.iot_type, 'IOT', 'IOT', 'NORMAL'))) table_type,
+       s.object_type,
+       t.iot_name,
+       t.NUM_ROWS,
+       t.BLOCKS,
+       t.AVG_ROW_LEN,
+       t.LAST_ANALYZED,
+       s.last_ddl_time,
+       t.CHAIN_CNT,
+       t.PARTITIONED,
+       trunc(((t.AVG_ROW_LEN * t.NUM_ROWS) / 8) /
+             (decode(t.BLOCKS, 0, 1, t.BLOCKS)) * 100) as HWM_STAT,
+       t.COMPRESSION,
+       p.bytes/1024/1024 phy_size_mb
+  from dba_tables t, dba_objects s, dba_segments p
+ where t.table_name = s.object_name
+   and p.segment_name = t.table_name
+   and t.owner = s.owner
+   and s.object_type = 'TABLE'
+   and t.table_name not like '%BIN$%'
+   and t.owner = '{obj_owner}'
 """
+# OBJ_BASE_TAB_HEAP_INFO_SQL = """
+#     select t.owner,
+#            t.table_name,
+#            decode(t.partitioned,
+#                   'YES',
+#                   'PART',
+#                   decode(t.temporary, 'Y', 'TEMP', decode (t.iot_type,'IOT','IOT','NORMAL'))) table_type,
+#            s.object_type,
+#            t.iot_name,
+#            t.NUM_ROWS,
+#            t.BLOCKS,
+#            t.AVG_ROW_LEN,
+#            t.LAST_ANALYZED,
+#            s.last_ddl_time,
+#            t.CHAIN_CNT,
+#            t.PARTITIONED,
+#            trunc(((t.AVG_ROW_LEN * t.NUM_ROWS) / 8) /
+#                  (decode(t.BLOCKS, 0, 1, t.BLOCKS)) * 100) as HWM_STAT,
+#            t.COMPRESSION
+#       from dba_tables t, dba_objects s
+#      where t.table_name = s.object_name
+#        and t.owner = s.owner
+#        and s.object_type = 'TABLE'
+#        and t.table_name not like '%BIN$%'
+#        and t.owner = '{obj_owner}'
+# """
 # 获取某个schema下的对象类型为table的基本信息，如：表的物理大小
 OBJ_BASE_TAB_HEAP_PHY_SIZE_SQL = """
     select segment_name, sum(bytes) / 1024 / 1024 as tab_space
