@@ -8,13 +8,14 @@ from models import init_models
 
 init_models()
 
+from rule.rule_cartridge import RuleCartridge
 from rule.rule_cartridge_utils import rule_export
 
 
 @click.option(
     "--filename",
     help="the json filename",
-    default="./new_rule/files/ticket-rule.json",
+    default=RuleCartridge.DEFAULT_JSON_FILE,
     type=click.STRING)
 def main(filename):
     """export rule cartridge, target json file will be overwritten if existed."""

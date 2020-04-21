@@ -14,11 +14,12 @@
                 "name": "in_list_num",
                 "desc": "inlist元素个数",
                 "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 20
             }
         ],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") > rule.gip(\"in_list_num\") - 1:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "IN List元素过多",
@@ -26,7 +27,9 @@
             "改用临时表存入变量"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "DML_DDL_MIXED",
@@ -41,15 +44,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "\ndef code(rule, entries, **kwargs):\n    \"\"\"判断同一个工单的sql语句是否存在ddl和dml混写的情况\"\"\"\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if len(sql_types) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "\ndef code(rule, entries, **kwargs):\n    \"\"\"判断同一个工单的sql语句是否存在ddl和dml混写的情况\"\"\"\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if len(sql_types) > 1:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": false,
         "summary": "DML、DDL语句混写会导致上线失败回滚时，DDL无法回滚",
         "solution": [
             "建议拆分DDL和DML语句"
         ],
         "weight": 0.1,
-        "level": 1
+        "max_score": 5,
+        "level": 1,
+        "db_model": "OLTP"
     },
     {
         "name": "BAD_JOIN",
@@ -63,15 +67,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\")\n\n    if cross_outer_join.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\")\n\n    if cross_outer_join.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在全连接或外连接,cross join或outer join情况",
         "solution": [
             "改写为innerjoin"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_ADD_COLUMN",
@@ -85,15 +90,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I):\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I):\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             "尽可能在添加字段的时候指定默认值"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_BITMAP_INDEX",
@@ -106,15 +112,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\nfrom utils.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I):\n        return {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_COLUMN_NUMBER",
@@ -128,15 +135,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        # if len(sql.split(',')) > rule.gip(\"\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_CONCURRENCY_LEVEL",
@@ -150,15 +158,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return None, []\n\n    if 'parallel' not in sql_text:\n        return None, []\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.group(1)) > 1:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return\n\n    if 'parallel' not in sql_text:\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.group(1)) > 1:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_CREATE_TABLE_NOT_DEFINE_TABLE_SPACE",
@@ -172,15 +181,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_DB_LINK_CREATED",
@@ -194,15 +204,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I+re.M):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_DB_LINK_OFFLINE",
@@ -216,15 +227,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_DELETE",
@@ -238,15 +250,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            yield {}\n            return\n\n\ncode_hole.append(code)\n\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 0.1,
-        "level": 1
+        "max_score": 5,
+        "level": 1,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_DROP",
@@ -260,15 +273,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            yield {}\n            return\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 0.1,
-        "level": 1
+        "max_score": 5,
+        "level": 1,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_INDEX_NOT_DEFINE_TABLE_SPACE",
@@ -282,15 +296,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I) and 'tablespace' not in sql_text:\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_INDEX_ONLINE",
@@ -304,15 +319,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I):\n        if not re.search(r\"\\s+online\", sql_text, re.I):\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I):\n        if not re.search(r\"\\s+online\", sql_text, re.I):\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "创建索引的时候加上online,否则索引创建期间会锁表",
         "solution": [
             "创建索引的时候加上online"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_LOB_USING",
@@ -326,15 +342,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I) \\\n            and not re.search(r\"alter\\s+table\", sql_text, re.I):\n        return None, []\n\n    if any([x in sql_text.lower() for x in ['blob', 'clob', 'bfile', 'xmltype']]):\n        return -rule.weight, []\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (not re.search(r\"create\\s+table\", sql_text, re.I)\n        and not re.search(r\"alter\\s+table\", sql_text, re.I)) or\\\n            any([x in sql_text.lower() for x in ['blob', 'clob', 'bfile', 'xmltype']]):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_MODIFY_COLUMN",
@@ -348,15 +365,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+modify', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+modify', sql_text, re.I+re.M):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_SEQUENCE",
@@ -370,15 +388,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I):\n        return None, []\n\n    if 'order' in sql_text:\n        return -rule.weight, []\n    if 'cache' not in sql_text:\n        return -rule.weight, []\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if res and int(res.group(1)) < 2000:  # TODO 这不应写死\n        # if res and int(res.group(1)) < rule.gip(\"\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_TRUNCATE",
@@ -392,15 +411,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "from utils.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            yield {}\n            return\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 0.1,
-        "level": 1
+        "max_score": 5,
+        "level": 1,
+        "db_model": "OLTP"
     },
     {
         "name": "CHECK_USING_REVOKE",
@@ -414,15 +434,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'revoke\\s+', sql_text, re.I):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'revoke\\s+', sql_text, re.I+re.M):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "DML_ALLDATA",
@@ -436,15 +457,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))')\n    pat1 = re.compile(' where ')\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))')\n    pat1 = re.compile(' where ')\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "DML_SORT",
@@ -458,15 +480,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(\"(\\\\s)?((update )|(delete )).*order by\")\n\n    if dml_sort.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(\"(\\\\s)?((update )|(delete )).*order by\")\n\n    if dml_sort.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
             ""
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "LIKE_UNINDEX",
@@ -480,15 +503,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(\"like .\\\\%\")\n\n    if like_unindex.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(\"like .\\\\%\")\n\n    if like_unindex.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词条件使用like %xxx,无法使用索引",
         "solution": [
             "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "LONG_TEXT",
@@ -503,20 +527,23 @@
             {
                 "name": "char_num",
                 "desc": "SQL字符数量",
-                "unit": "",
+                "unit": "个",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 5000
             }
         ],
         "output_params": [],
-        "max_score": 5,
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "SQL文本过长",
         "solution": [
             "sql改写为精简语句"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SELECT_ANY",
@@ -530,7 +557,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用select *,必须明确选择所需的列",
@@ -538,7 +564,9 @@
             "使用明确的列"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SUBQUERY_FROM",
@@ -552,15 +580,16 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
-        "code": "from sqlparse.sql import TokenList\n\nfrom utils.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    if token.normalized == \"SELECT\":\n        return True\n    if isinstance(token, TokenList) and token.tokens:\n        for new_token in token.tokens:\n            recursive_ret = recursively_find_following_select(new_token)\n            if recursive_ret:\n                return True\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from sqlparse.sql import TokenList\n\nfrom parsed_sql.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    if token.normalized == \"SELECT\":\n        return True\n    if isinstance(token, TokenList) and token.tokens:\n        for new_token in token.tokens:\n            recursive_ret = recursively_find_following_select(new_token)\n            if recursive_ret:\n                return True\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SUBQUERY_HAVING",
@@ -574,7 +603,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    sqlend = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"having\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "having段出现子查询",
@@ -582,7 +610,9 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SUBQUERY_REP",
@@ -596,7 +626,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value and value in subquery:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用重复的查询子句,应使用with as替换子句(仅限Oracle)来提升SQL执行效率",
@@ -605,7 +634,9 @@
             "2.改写sql避免重复查询"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SUBQUERY_SELECT",
@@ -619,7 +650,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"select\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if sql_text[k: k + 4] == \"from\" and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "select段出现子查询",
@@ -627,7 +657,9 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SUBQUERY_WHERE",
@@ -641,7 +673,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    sql_content = []\n    sqlbegin = 0\n    m = 0\n    n = 0\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 5] == \"where\" and m == 0:\n            sqlbegin = k + 6\n            n = n + 1\n        if sql_text[k: k + 6] == \"having\" and n != 0 and m == 0:\n            sqlend = k - 1\n            n = n - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "where段出现子查询",
@@ -649,7 +680,9 @@
             "改写为表关联"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "TOOMANY_BIND",
@@ -667,11 +700,12 @@
                 "name": "num_of_bound_var",
                 "desc": "绑定变量个数",
                 "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 50
             }
         ],
         "output_params": [],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") > rule.gip(\"num_of_bound_var\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "绑定变量过多",
@@ -679,7 +713,9 @@
             "减少绑定变量"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "TOOMANY_OR",
@@ -696,11 +732,12 @@
                 "name": "or_num",
                 "desc": "or个数",
                 "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 5
             }
         ],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            > rule.gip(\"or_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "多个过滤条件通过or连接,防止优化器出现选择异常",
@@ -708,7 +745,9 @@
             "改用临时表存入变量"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "UNION",
@@ -722,7 +761,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "出现union,防止出现不必要的排序动作",
@@ -730,7 +768,9 @@
             "改写union和sql逻辑中去重"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "WHERE_FUNC",
@@ -744,7 +784,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
@@ -753,7 +792,9 @@
             "2.应用程序实现函数功能"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "WHERE_NOT",
@@ -767,7 +808,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词中存在负向操作符,!=,<>,!<,!>,not exists,not",
@@ -776,7 +816,9 @@
             "2.不建议使用不等值运算"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_INDEX_FAST_FULL_SCAN",
@@ -792,42 +834,61 @@
                 "name": "ind_phy_size",
                 "desc": "索引物理大小",
                 "unit": "MB",
-                "value": 100.0
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 100
             }
         ],
         "output_params": [
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"INDEX\",\n        options=\"FAST FULL SCAN\"\n    )\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "大索引快速全扫描",
@@ -835,7 +896,9 @@
             "SQL逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_INDEX_FULL_SCAN",
@@ -851,6 +914,8 @@
                 "name": "ind_phy_size",
                 "desc": "索引物理大小",
                 "unit": "MB",
+                "data_type": null,
+                "_cls": "RuleInputParams",
                 "value": 1024.0
             }
         ],
@@ -858,30 +923,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"FULL SCAN\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "大索引全扫描",
@@ -889,7 +968,9 @@
             "SQL逻辑能否改写获取更少的数据"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_INDEX_SKIP_SCAN",
@@ -905,30 +986,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"SKIP SCAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "索引跳跃扫描",
@@ -936,7 +1031,9 @@
             "索引列的先后顺序是否合理"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_MERGE_JOIN_CARTESIAN",
@@ -952,30 +1049,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"MERGE JOIN\", options=\"CARTESIAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "笛卡尔积",
@@ -984,7 +1095,9 @@
             "2.统计信息不准确,手工收集统计信息"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_PARALLEL_FETCH",
@@ -1000,30 +1113,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PX COORDINATOR\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在并行访问特征",
@@ -1031,7 +1158,9 @@
             "取消表、索引、sql中的并行设置"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_PARTITION_RANGE_ALL",
@@ -1047,30 +1176,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PARTITION RANGE\", options=\"ALL\")\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "分区全扫描",
@@ -1078,7 +1221,9 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_PARTITION_RANGE_INLIST_OR",
@@ -1094,30 +1239,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\", options__in=(\"INLIST\", \"OR\"))\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "非连续分区扫描",
@@ -1125,7 +1284,9 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_PARTITION_RANGE_ITERATOR",
@@ -1141,30 +1302,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options=\"ITERATOR\"\n    )\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "跨分区扫描",
@@ -1172,7 +1347,9 @@
             "分区键设计是否合理"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_TABLE_FULL_SCAN",
@@ -1188,12 +1365,16 @@
                 "name": "table_phy_size",
                 "desc": "表物理大小",
                 "unit": "MB",
+                "data_type": null,
+                "_cls": "RuleInputParams",
                 "value": 2048
             },
             {
                 "name": "table_row_num",
                 "desc": "表行数",
                 "unit": "",
+                "data_type": null,
+                "_cls": "RuleInputParams",
                 "value": 100000
             }
         ],
@@ -1201,30 +1382,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "def code(rule, entries, **kwargs):\n    '''\n    db.@sql@.find({\n        OPERATION: 'TABLE ACCESS', OPTIONS: 'FULL', USERNAME: '@username@',\n        record_id: '@record_id@'}).forEach(function(x){db.@tmp@.save({\n            SQL_ID:x.SQL_ID, PLAN_HASH_VALUE:x.PLAN_HASH_VALUE, OBJECT_NAME:x.OBJECT_NAME,\n            ID:x.ID, COST:x.COST, COUNT:''});})\"\n    '''\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "全表扫描",
@@ -1243,7 +1438,9 @@
             "12.统计信息不准确数据批量加载程序触发收集统计信息"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_TO_CHANGE_TYPE",
@@ -1259,30 +1456,44 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        filter_predicates=re.compile(r\"(SYS_OP|TO_NUMBER|INTERNAL_FUNCTION)\", re.I)\n    )\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "隐式转换",
@@ -1291,7 +1502,9 @@
             "2.选择合适的字段类型"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_VIEW_SCAN",
@@ -1307,35 +1520,52 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(object_type=\"VIEW\",\n                               object_owner__ne=None,\n                               object_name=re.compile(r\"^index$_join$\"))\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在视图访问",
@@ -1343,7 +1573,9 @@
             "视图不能展开,复杂视图拆解、改写"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "LOOP_IN_TAB_FULL_SCAN",
@@ -1359,12 +1591,16 @@
                 "name": "table_phy_size",
                 "desc": "表物理大小",
                 "unit": "MB",
-                "value": 1024.0
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 1024
             },
             {
                 "name": "table_row_num",
                 "desc": "表行数",
                 "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 5000
             }
         ],
@@ -1372,38 +1608,54 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "" 
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "" 
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "" 
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
-        "code": "import re\n\nfrom mongoengine import Q\n\nfrom utils.mongo_utils import *\nfrom models.mongo import ObjTabInfo, OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.find({\n        $or: [\n                {OPERATION: /NESTED LOOP/},\n                {OPERATION: /FILTER/}\n             ],\n        USERNAME: '@username@', record_id: '@record_id@'\n    }).forEach(function(x){db.@tmp@.save({\n        SQL_ID: x.SQL_ID, PLAN_HASH_VALUE: x.PLAN_HASH_VALUE, PARENT_ID: x.ID,\n        USERNAME: x.USERNAME, record_id:x.record_id\n    });});\n\n    db.@tmp@.find().forEach(function(x){db.sqlplan.find({\n        SQL_ID: x.SQL_ID, PLAN_HASH_VALUE: x.PLAN_HASH_VALUE, PARENT_ID: x.PARENT_ID,\n        USERNAME: x.USERNAME, record_id: x.record_id\n    }).forEach(function(y){db.@tmp1@.save({\n        SQL_ID: y.SQL_ID, PLAN_HASH_VALUE: y.PLAN_HASH_VALUE, OBJECT_NAME: y.OBJECT_NAME,\n        ID: y.ID, PARENT_ID: y.PARENT_ID, OPERATION: y.OPERATION, OPTIONS: y.OPTIONS,\n        USERNAME: y.USERNAME, record_id: y.record_id})});});\n\n    db.@tmp@.drop();\n    db.@tmp1@.aggregate([\n        {$group:{_id:{PARENT_ID:\\\"$PARENT_ID\\\",SQL_ID:\\\"$SQL_ID\\\",\n        PLAN_HASH_VALUE:\\\"$PLAN_HASH_VALUE\\\"},\n        MAXID: {$max:\\\"$ID\\\"}}}]).forEach(function(z){db.sqlplan.find({\n            SQL_ID:z._id.SQL_ID,\n            PLAN_HASH_VALUE:z._id.PLAN_HASH_VALUE,\n            $and:[\n                {ID:z.MAXID},{ID:{$ne:2}}\n            ],\n            \\\"USERNAME\\\":\\\"@username@\\\",\n            record_id: '@record_id@',\n            OPERATION:\\\"TABLE ACCESS\\\",\n            OPTIONS:\\\"FULL\\\"\n            }).forEach(function(y){if(db.obj_tab_info.findOne({\n                OWNER: y.OBJECT_OWNER, IPADDR: '@ip_addr@', SID: '@sid@',\n                TABLE_NAME: y.OBJECT_NAME,\n                $or: [{\\\"NUM_ROWS\\\":{$gt:@table_row_num@}},{\\\"PHY_SIZE(MB)\\\":{$gt:@table_phy_size@}}]}))\n                db.@tmp@.save({\n                    \\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"OBJECT_NAME\\\":y.OBJECT_NAME,\n                    \\\"ID\\\":y.ID,\\\"COST\\\":y.COST,\\\"COUNT\\\":\\\"\\\"})});})\",\n    '''\n\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n    mongo_connector = kwargs[\"mongo_connector\"]\n\n    plans = sql_plan_qs.filter(\n        Q(operation=re.compile(r\"NESTED LOOP\")) |\n        Q(operation=re.compile(r\"FILTER\"))\n    )\n    with temp_collection(mongo_connector, rule.name) as tmp:\n        to_insert = [\n            i.to_dict(\n                iter_if=lambda k, v: k in (\n                    \"statement_id\",\n                    \"plan_id\",\n                    \"object_name\",\n                    \"the_id\",\n                    \"parent_id\",\n                    \"operation\",\n                    \"options\",\n                    \"username\"\n                )\n            ) for i in plans\n        ]\n        if to_insert:\n            tmp.insert_many(to_insert)\n        else:\n            return None, []\n        aggregate_result = tmp.aggregate([\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"parent_id\": \"$parent_id\",\n                        \"statement_id\": \"$statement_id\",\n                        \"plan_id\": \"$plan_id\"\n                    },\n                    \"max_id\": {\"$max\": \"$the_id\"}\n                }\n            }\n        ])\n        for ar in aggregate_result:\n            plans_after_aggregation = OracleTicketSQLPlan.objects(\n                Q(the_id=ar[\"max_id\"]) & Q(the_id__ne=2),\n                statement_id=ar[\"_id\"][\"statement_id\"],\n                plan_id=ar[\"_id\"][\"plan_id\"],\n                operation=\"TABLE ACCESS\",\n                options=\"FULL\"\n            )\n            for paa in plans_after_aggregation:\n                a_tab = ObjTabInfo.objects(\n                    Q(num_rows__gt=rule.gip(\"table_row_num\")) |\n                    Q(phy_size_mb__gt=rule.gip(\"table_phy_size\")),\n                    owner=paa.owner,\n                    ip_address=rule.gip(\"ip_addr\"),\n                    sid=rule.gip(\"sid\"),\n                    table_name=paa.object_name,\n                ).first()\n                if a_tab:\n                    return -rule.weight, [\n                        paa.statement_id,\n                        paa.plan_id,\n                        paa.object_name,\n                        paa.the_id,\n                        paa.cost\n                    ]\n\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\nfrom mongoengine import Q\n\nfrom utils.mongo_utils import *\n# from models.mongo import ObjTabInfo, OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n    mongo_connector = kwargs[\"mongo_connector\"]\n\n    plans = sql_plan_qs.filter(\n        Q(operation=re.compile(r\"NESTED LOOP\")) |\n        Q(operation=re.compile(r\"FILTER\"))\n    )\n    with temp_collection(mongo_connector, rule.name) as tmp:\n        to_insert = [\n            i.to_dict(\n                iter_if=lambda k, v: k in (\n                    \"statement_id\",\n                    \"plan_id\",\n                    \"object_name\",\n                    \"the_id\",\n                    \"parent_id\",\n                    \"operation\",\n                    \"options\",\n                    \"username\"\n                )\n            ) for i in plans\n        ]\n        if to_insert:\n            tmp.insert_many(to_insert)\n        else:\n            return\n        aggregate_result = tmp.aggregate([\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"parent_id\": \"$parent_id\",\n                        \"statement_id\": \"$statement_id\",\n                        \"plan_id\": \"$plan_id\"\n                    },\n                    \"max_id\": {\"$max\": \"$the_id\"}\n                }\n            }\n        ])\n        for ar in aggregate_result:\n            plans_after_aggregation = OracleTicketSQLPlan.objects(\n                Q(the_id=ar[\"max_id\"]) & Q(the_id__ne=2),\n                statement_id=ar[\"_id\"][\"statement_id\"],\n                plan_id=ar[\"_id\"][\"plan_id\"],\n                operation=\"TABLE ACCESS\",\n                options=\"FULL\"\n            )\n            for paa in plans_after_aggregation:\n                a_tab = ObjTabInfo.objects(\n                    Q(num_rows__gt=rule.gip(\"table_row_num\")) |\n                    Q(phy_size_mb__gt=rule.gip(\"table_phy_size\")),\n                    owner=paa.owner,\n                    ip_address=rule.gip(\"ip_addr\"),\n                    sid=rule.gip(\"sid\"),\n                    table_name=paa.object_name,\n                ).first()\n                if a_tab:\n                    yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "嵌套循环内层表访问方式为全表扫描",
         "solution": [
             "关联列创建索引"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_LOOP_NUM",
@@ -1419,6 +1671,8 @@
                 "name": "loop_num",
                 "desc": "表嵌套的层次",
                 "unit": "",
+                "data_type": null,
+                "_cls": "RuleInputParams",
                 "value": 3
             }
         ],
@@ -1426,20 +1680,28 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "loop_num",
                 "desc": "嵌套次数",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "import re\n\nfrom oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
         "status": true,
         "summary": "嵌套层次过深",
@@ -1447,7 +1709,9 @@
             "改写sql逻辑减少表关联的数量"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "SQL_TAB_REL_NUM",
@@ -1463,6 +1727,8 @@
                 "name": "tab_num",
                 "desc": "关联表的数量",
                 "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
                 "value": 5
             }
         ],
@@ -1470,20 +1736,28 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "str" 
+                "unit": "str",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int" 
+                "unit": "int",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "" 
+                "unit": "",
+                "data_type": null,
+                "_cls": "RuleOutputParams",
+                "optional": null
             }
         ],
-        "max_score": 5,
         "code": "from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.group( {\n        key:{\\\"USERNAME\\\":1,\\\"record_id\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1,\\\"OBJECT_TYPE\\\":1},\n        cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n            \\\"OBJECT_TYPE\\\":\\\"TABLE\\\"},\n        reduce:function(curr,result){ result.count++; },\n        initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\n            \\\"SQL_ID\\\":x.SQL_ID,\\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"ID\\\":x.ID,\\\"COUNT\\\":x.count\n        })});db.@tmp1@.find({\\\"COUNT\\\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\n            \\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\n            \\\"COUNT\\\":y.COUNT,\\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\n    '''\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] >= rule.gip(\"tab_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "过多的表关联,影响性能",
@@ -1491,7 +1765,9 @@
             "建议减少表关联,业务逻辑sql改写"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     },
     {
         "name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
@@ -1504,7 +1780,6 @@
         ],
         "input_params": [],
         "output_params": [],
-        "max_score": 5,
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"TABLE ACCESS\",\n        options=re.compile(r\"BY GLOBAL INDEX ROWID\", re.I)\n    )\n    if plans.count():\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
@@ -1512,6 +1787,8 @@
             "合理设计分区索引"
         ],
         "weight": 1.0,
-        "level": 3
+        "max_score": 5,
+        "level": 3,
+        "db_model": "OLTP"
     }
 ]
