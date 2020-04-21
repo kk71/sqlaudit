@@ -25,8 +25,10 @@ def import_from_risk_rule_json_file(filename: str):
         old_risk_rule=session.query(RiskSQLRule)
         if old_risk_rule:
             old_risk_rule.delete()
+        risks_rules=[]
         for x in risk_rules:
             r_r=RiskSQLRule(**x)
-            session.add(r_r)
+            risks_rules.append(r_r)
+        session.add_all(risks_rules)
         session.commit()
-        return len(risk_rules)
+        return len(risks_rules)
