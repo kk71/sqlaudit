@@ -109,7 +109,11 @@ class OracleOnlineIssue(OnlineIssue):
                         schema_name=schema_name,
                         cmdb_id=cmdb_id
                     ))
-                cls.post_analysed(docs=docs)
+                    cls.post_analysed(
+                        docs=docs,
+                        task_record_id=task_record_id,
+                        schema_name=schema_name
+                    )
                 if docs:
                     cls.objects.insert(docs)
                 counter(m.__doc__, len(docs))
