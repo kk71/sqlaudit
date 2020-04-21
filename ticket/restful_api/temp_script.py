@@ -4,6 +4,7 @@ import abc
 
 import chardet
 
+import parsed_sql.const
 from utils.schema_utils import *
 from restful_api.modules import *
 from .. import const
@@ -70,7 +71,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
         params = self.get_query_args(Schema({
             scm_optional("filter_sql_type", default=None):
-                And(scm_int, scm_one_of_choices(const.ALL_SQL_TYPE)),
+                And(scm_int, scm_one_of_choices(parsed_sql.const.ALL_SQL_TYPE)),
         }))
         file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")

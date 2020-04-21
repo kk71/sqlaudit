@@ -12,7 +12,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     EmbeddedDocument, DictField
 
 import rule.exceptions
-from . import const
+import parsed_sql.const
 from core.ticket import *
 from core.issue import *
 from models.mongoengine import *
@@ -76,7 +76,7 @@ class SubTicket(
     task_name = StringField(default=None)
     db_type = StringField()
     cmdb_id = IntField()
-    sql_type = StringField(choices=const.ALL_SQL_TYPE)
+    sql_type = StringField(choices=parsed_sql.const.ALL_SQL_TYPE)
     sql_text = StringField()
     sql_text_no_comment = StringField()
     comments = StringField(default="")

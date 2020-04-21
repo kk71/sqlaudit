@@ -17,6 +17,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
 from bson.objectid import ObjectId
 
 import cmdb.const
+import parsed_sql.const
 from parsed_sql.parsed_sql import ParsedSQL
 from core.ticket import *
 from models.mongoengine import *
@@ -148,7 +149,7 @@ class TempScriptStatement(BaseDoc):
     normalized = StringField()  # 处理后的单条sql语句
     normalized_without_comment = StringField()  # 处理后的单条无注释sql语句
     statement_type = StringField()  # 语句归属（select update delete etc...）
-    sql_type = StringField(choices=const.ALL_SQL_TYPE)  # sql type: ddl or dml or ...
+    sql_type = StringField(choices=parsed_sql.const.ALL_SQL_TYPE)
 
     meta = {
         "collection": "ticket_temp_parsed_sql_statement",

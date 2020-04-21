@@ -13,6 +13,7 @@ from ..capture.base import *
 from ..cmdb import *
 from ..plain_db import *
 from models.sqlalchemy import *
+from ..issue import OracleOnlineIssue
 
 
 @register_task(task.const.TASK_TYPE_CAPTURE)
@@ -74,6 +75,12 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         )
 
         print("================== Rule Analyse ==================")
+        OracleOnlineIssue.collect()
+        OracleOnlineIssue.process(
+            cmdb_id=cmdb_id,
+            task_record_id=task_record_id,
+            schemas=schemas
+        )
 
         print("============ Make CMDB Statistics Data ============")
 
