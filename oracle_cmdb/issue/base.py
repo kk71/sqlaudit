@@ -70,7 +70,7 @@ class OracleOnlineIssue(OnlineIssue):
             the_cmdb: OracleCMDB,
             task_record_id: int,
             schema_name: str,
-            **kwargs) -> Generator["OracleOnlineIssue", None]:
+            **kwargs) -> Generator["OracleOnlineIssue", None, None]:
         """单个schema的sqls以单个规则分析"""
         pass
 
