@@ -10,7 +10,7 @@ from rule.rule_cartridge_utils import rule_drop
 
 
 def main():
-    """delete all ticket rules, use with caution!"""
+    """clear rule cartridge, use with caution!"""
     dropped_num = rule_drop()
     print(f"{dropped_num} ticket rule(s) dropped.")
 

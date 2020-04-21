@@ -17,7 +17,7 @@ from rule.rule_cartridge import RuleCartridge
     default=False,
     type=click.BOOL)
 def main(compare: bool):
-    """FOR DEVELOPMENT: import rule code to rule_cartridge"""
+    """FOR DEVELOPMENT: import rule code to rule cartridge"""
     if compare:
         print("=== compare only ===")
     different_codes = []

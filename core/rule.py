@@ -47,7 +47,6 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
         """返回code的模板"""
         pass
 
-    @abc.abstractmethod
     def unique_key(self, as_dict=False) -> Union[tuple, dict]:
         """返回一个规则的唯一标识"""
         unique_keys = tuple([getattr(self, i) for i in self.UNIQUE_KEYS])
