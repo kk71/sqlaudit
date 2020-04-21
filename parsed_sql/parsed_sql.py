@@ -24,13 +24,15 @@ class ParsedSQL(list):
         # sql里面的remark是不能被sqlparse当作注释处理的，需要先替换掉
         # 需要在后面把这个备注换回去
         tmpl_replace_remark = re.compile(r"^\s*remark", re.I | re.M)
-        sql_remark_replaced: str = tmpl_replace_remark.sub(const.REMARK_PLACEHOLDER, sql)
+        sql_remark_replaced: str = tmpl_replace_remark.sub(
+            const.REMARK_PLACEHOLDER, sql)
         # 去掉注释的sql只是暂存，后续可能有用
         self._comment_striped_sql: str = sqlparse.format(
-            sql_remark_replaced, strip_comment=True)
+            sql_remark_replaced, strip_comments=True)
         parsed_sqlparse_sql_statements = sqlparse.parse(sql_remark_replaced)
         super(ParsedSQL, self).__init__([ParsedSQLStatement(i)
-                                         for i in parsed_sqlparse_sql_statements])
+                                         for i in parsed_sqlparse_sql_statements
+                                         if i.normalized.strip()])
 
     def get_original_sql(self):
         return self._original_sql
@@ -50,8 +52,10 @@ class ParsedSQLStatement:
 
         # 处理过的语句
         # 这里把之前替换掉的remark替换回去
-        tmpl_replaced_remark = re.compile(rf"^\s*{const.REMARK_PLACEHOLDER}", re.I | re.M)
-        self.normalized = tmpl_replaced_remark.sub("remark", sss.normalized).strip()
+        tmpl_replaced_remark = re.compile(
+            rf"^\s*{const.REMARK_PLACEHOLDER}", re.I | re.M)
+        self.normalized = tmpl_replaced_remark.sub(
+            "remark", sss.normalized).strip()
 
         # sql里面的remark是不能被sqlparse当作注释处理的，
         # 需要先替换成普通的注释，再用sqlparse去掉注释
@@ -60,7 +64,7 @@ class ParsedSQLStatement:
             const.REMARK_PLACEHOLDER, self.normalized)
         # 去掉注释的sql只是暂存，后续可能有用
         self.normalized_without_comment: str = sqlparse.format(
-            sql_remark_replaced, strip_comment=True)
+            sql_remark_replaced, strip_comments=True)
 
         # 语句内的组成部分
         self.tokens = sss.tokens
@@ -69,7 +73,7 @@ class ParsedSQLStatement:
         self.statement_type = sss.get_type()
         if self.statement_type == "UNKNOWN":
             token_num = 0
-            while self.statement_type not in const.ALL_SQL_KEYWORDS and\
+            while self.statement_type not in const.ALL_SQL_KEYWORDS and \
                     self.tokens:
                 ft = self.tokens[token_num]
                 self.statement_type = ft.normalized
@@ -98,3 +102,11 @@ class ParsedSQLStatement:
                f"{const.ALL_SQL_TYPE_NAME_MAPPING[self.sql_type]}-" \
                f"{self.statement_type}-" \
                f"{sql_thumbnail}>"
+
+    def serialize(self):
+        return {
+            "normalized": self.normalized,
+            "normalized_without_comment": self.normalized_without_comment,
+            "statement_type": self.statement_type,
+            "sql_type": self.sql_type
+        }

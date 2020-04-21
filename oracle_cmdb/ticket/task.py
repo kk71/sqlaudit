@@ -16,7 +16,7 @@ from .analyse import OracleSubTicketAnalyse
 from .ticket import OracleTicket
 from .sub_ticket import OracleSubTicket
 from ticket.ticket import TempScriptStatement, TicketScript
-from utils.single_sql import SingleSQL
+from parsed_sql.single_sql import SingleSQL
 from rule.rule_jar import RuleJar
 
 

@@ -34,7 +34,6 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
             with grouped_count_logger(
                     cls.__doc__, item_type_name="rule") as counter:
                 for the_rule in rule_jar:
-                    docs = []
                     ret = the_rule.run(
                         entries=entries,
 
@@ -43,13 +42,5 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
                         cmdb_connector=cmdb_connector,
                         schema_name=schema_name
                     )
-                    for minus_score, output_param in ret:
-                        doc = cls()
-                        doc.as_issue_of(
-                            the_rule,
-                            output_data=output_param,
-                            minus_score=minus_score
-                        )
-                        docs.append(doc)
-                        yield doc
-                    counter(the_rule.name, len(docs))
+                    yield from cls.pack_rule_ret_to_doc(the_rule, ret)
+                    counter(the_rule.name, len(ret))

@@ -1,27 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from ticket.ticket import TempScriptStatement
-from ticket.parsed_sql import ParsedSQLStatement
+from parsed_sql.single_sql import *
+from .ticket import TempScriptStatement
+from parsed_sql.parsed_sql import ParsedSQLStatement
 
 
-class SingleSQL(dict):
-    """传给规则使用的单条sql语句的信息"""
-
-    def __init__(self,
-                 sql_text: str,
-                 sql_text_no_comment: str,
-                 comments: str,
-                 position: int,
-                 sql_type: str,
-                 **kwargs):
-        kwargs.update(
-            sql_text=sql_text,
-            sql_text_no_comment=sql_text_no_comment,
-            comments=comments,
-            position=position,
-            sql_type=sql_type,
-        )
-        super(SingleSQL, self).__init__(**kwargs)
+class SingleSQLForTicket(SingleSQL):
 
     @classmethod
     def gen_from_temp_script(cls, ts: TempScriptStatement):

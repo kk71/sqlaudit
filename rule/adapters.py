@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 from .rule import CMDBRule
-from utils.single_sql import *
+from parsed_sql.single_sql import *
 from cmdb.cmdb import CMDB
 
 
@@ -25,6 +25,7 @@ class CMDBRuleAdapterSQL:
             sqls: [SingleSQL] = None,
             cmdb_connector=None,
             sql_plan_qs=None,
+            sql_stat_qs=None,
             schema_name: str = None,
             task_record_id: int = None,
             statement_id: str = None,
@@ -37,6 +38,7 @@ class CMDBRuleAdapterSQL:
         :param sqls:
         :param cmdb_connector:
         :param sql_plan_qs:
+        :param sql_stat_qs:
         :param schema_name:
         :param task_record_id:
         :param statement_id: 动态审核
@@ -51,6 +53,7 @@ class CMDBRuleAdapterSQL:
             sqls=sqls,
             cmdb_connector=cmdb_connector,
             sql_plan_qs=sql_plan_qs,
+            sql_stat_qs=sql_stat_qs,
             schema_name=schema_name,
             task_record_id=task_record_id,
             statement_id=statement_id,

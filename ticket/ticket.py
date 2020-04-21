@@ -17,7 +17,7 @@ from mongoengine import IntField, StringField, DateTimeField, FloatField, \
 from bson.objectid import ObjectId
 
 import cmdb.const
-from .parsed_sql import ParsedSQL
+from parsed_sql.parsed_sql import ParsedSQL
 from core.ticket import *
 from models.mongoengine import *
 from utils import datetime_utils

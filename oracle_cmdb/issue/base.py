@@ -4,6 +4,7 @@ __all__ = [
     "OracleOnlineIssue"
 ]
 
+import abc
 import os.path
 from typing import NoReturn, Generator
 
@@ -11,6 +12,7 @@ from mongoengine import IntField, StringField
 
 import settings
 import cmdb.const
+from rule.rule import CMDBRule
 from rule.rule_jar import *
 from issue.issue import *
 from ..cmdb import OracleCMDB
@@ -59,11 +61,32 @@ class OracleOnlineIssue(OnlineIssue):
             doc.schema_name = schema_name
 
     @classmethod
-    def _schema_rule_analyse(
+    @abc.abstractmethod
+    def _single_rule_analyse(
             cls,
+            the_rule: CMDBRule,
+            entries: [str],
+            the_cmdb: OracleCMDB,
+            task_record_id: int,
             schema_name: str,
             **kwargs) -> Generator["OracleOnlineIssue"]:
+        """单个schema的sql以单个规则分析"""
         pass
+
+    @classmethod
+    def pack_rule_ret_to_doc(
+            cls,
+            the_rule: CMDBRule,
+            ret: list) -> Generator["OracleOnlineIssue"]:
+        """统一将规则的返回包装成文档"""
+        for minus_score, output_param in ret:
+            doc = cls()
+            doc.as_issue_of(
+                the_rule,
+                output_data=output_param,
+                minus_score=minus_score
+            )
+            yield doc
 
     @classmethod
     def process(cls, collected=None, **kwargs):

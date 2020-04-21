@@ -16,7 +16,7 @@ from .ticket import Ticket
 from .sub_ticket import SubTicketIssue
 from rule.rule_jar import *
 from rule.adapters import *
-from utils.single_sql import *
+from parsed_sql.single_sql import *
 
 
 class BaseSubTicketAnalyse(abc.ABC):
