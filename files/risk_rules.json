@@ -1,1422 +1,1422 @@
 [
     {
-        "rule_name": "BAD_JOIN",
-        "risk_sql_rule_id": 14135,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在全连接或外连接",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "改写为innerjoin"
-    },
-    {
-        "rule_name": "LONG_TEXT",
-        "risk_sql_rule_id": 14136,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL文本过长",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "sql改写为精简语句"
-    },
-    {
-        "rule_name": "LIKE_UNINDEX",
-        "risk_sql_rule_id": 14149,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "谓词条件使用like %xxx,无法使用索引",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
-    },
-    {
-        "rule_name": "SUBQUERY_SELECT",
-        "risk_sql_rule_id": 14150,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "select段出现子查询",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "改写为表关联"
-    },
-    {
-        "rule_name": "SUBQUERY_FROM",
-        "risk_sql_rule_id": 14151,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "from段出现子查询",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "改写为表关联"
-    },
-    {
-        "rule_name": "SUBQUERY_WHERE",
-        "risk_sql_rule_id": 14152,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "where段出现子查询",
-        "rule_type": "TEXT",
-        "db_model": "OLTP",
-        "optimized_advice": "改写为表关联"
-    },
-    {
-        "rule_name": "SQL_NO_BIND",
-        "risk_sql_rule_id": 14153,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL未使用绑定变量",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLTP",
-        "optimized_advice": "强选择性谓词使用绑定变量写法"
-    },
-    {
-        "rule_name": "SINGLETABLE_INDEX_NUM",
-        "risk_sql_rule_id": 14154,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "索引数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
-    },
-    {
-        "rule_name": "LONG_COLUMN_TAB",
-        "risk_sql_rule_id": 14155,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "记录长度定义过长",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "按需定义字段长度"
-    },
-    {
-        "rule_name": "TIMESTAMP",
-        "risk_sql_rule_id": 14156,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "不包含时间戳字段的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "添加时间字段(比如插入、更新的时间戳)"
-    },
-    {
-        "rule_name": "TABLE_MIS_PK",
-        "risk_sql_rule_id": 14157,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "没有主键的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "必须定义主键"
-    },
-    {
-        "rule_name": "TABLE_FK_NOIND",
-        "risk_sql_rule_id": 14158,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "外键没有索引的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.在应用端实现外键约束, 2.无法去除外键,必须添加外键索引"
-    },
-    {
-        "rule_name": "COUNT_RECORD_TAB",
-        "risk_sql_rule_id": 14159,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "单表或单分区记录数量过大",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
-    },
-    {
-        "rule_name": "BIG_TABLE",
-        "risk_sql_rule_id": 14160,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "超过指定规模且没有分区的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
-    },
-    {
-        "rule_name": "TABLE_LOB",
-        "risk_sql_rule_id": 14161,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "包含有大字段类型的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "建议在数据库外部进行存储大字段"
-    },
-    {
-        "rule_name": "TAB_PARALLEL_ON",
-        "risk_sql_rule_id": 14162,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "表对象开启并行访问",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "关闭表的并行度alter table TABLENAME noparallel"
-    },
-    {
-        "rule_name": "TABLE_COL_NUM",
-        "risk_sql_rule_id": 14163,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "大于阀值数量字段的表",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数"
-    },
-    {
-        "rule_name": "BIG_TABLE_COUNT",
-        "risk_sql_rule_id": 14164,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "大表数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
-    },
-    {
-        "rule_name": "TAB_EXISTS_FK",
-        "risk_sql_rule_id": 14165,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "表中存在外键约束",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "应用程序实现外键约束,不建议在数据库里面使用外键约束"
-    },
-    {
-        "rule_name": "INVALID_INDEX",
-        "risk_sql_rule_id": 14166,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在7天内没有使用的索引",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "根据业务特点,有目的的添加相关索引"
-    },
-    {
-        "rule_name": "USE_FUNCTION",
-        "risk_sql_rule_id": 14167,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在函数",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "用应用端程序实现函数"
-    },
-    {
-        "rule_name": "IDX_PARALLEL_ON",
-        "risk_sql_rule_id": 14168,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "索引对象开启并行度",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "关闭索引并行度alter index INDEXNAME noparallel;"
-    },
-    {
-        "rule_name": "USE_PROCEDURE",
-        "risk_sql_rule_id": 14169,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在存储过程",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "用应用端程序实现将存储过程"
-    },
-    {
-        "rule_name": "IDX_CLUSTERING_FACTOR",
-        "risk_sql_rule_id": 14170,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "索引的聚簇因子",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.重新定义表的字段类型, 2.表数据重新存储"
-    },
-    {
-        "rule_name": "SEQ_CACHESIZE",
-        "risk_sql_rule_id": 14171,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "序列CACHESIZE过小",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "调整cache缓存大小,alter sequence sequence_name cache 2000;"
-    },
-    {
-        "rule_name": "DUPLICATE_INDEX",
-        "risk_sql_rule_id": 14172,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "字段重复索引",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "删除不必要的索引"
-    },
-    {
-        "rule_name": "COMBINED_INDEX_PERCENT",
-        "risk_sql_rule_id": 14173,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "组合索引数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.构建战略性索引结构,不要针对每个需求都通过创建索引解决, 2.注意列在所有的顺序"
-    },
-    {
-        "rule_name": "DBLINKS_NUM",
-        "risk_sql_rule_id": 14174,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在DBLINK",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "禁用dblink,在应用程序端连接多个数据库操作"
-    },
-    {
-        "rule_name": "COUNT_SUBPART_TAB",
-        "risk_sql_rule_id": 14175,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "复合分区数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "重新合理定义分区键"
-    },
-    {
-        "rule_name": "IDX_BLEVEL",
-        "risk_sql_rule_id": 14176,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "索引对象高度过高",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.重构表的字段或索引, 2.重建索引"
-    },
-    {
-        "rule_name": "COUNT_SUMPART_FULL_TAB",
-        "risk_sql_rule_id": 14177,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "分区表数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.重新合理定义分区键, 2.垂直拆分,减少单库规模"
-    },
-    {
-        "rule_name": "TRIGGERS_NUM",
-        "risk_sql_rule_id": 14178,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在触发器",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "在应用端实现触发器功能"
-    },
-    {
-        "rule_name": "IDX_FUNC",
-        "risk_sql_rule_id": 14179,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "使用函数索引",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.函数在表达式右侧实现, 2.应用程序替换数据库函数"
-    },
-    {
-        "rule_name": "COL_WRONG_TYPE",
-        "risk_sql_rule_id": 14180,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "表字段类型不匹配",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "合理定义字段类型"
-    },
-    {
-        "rule_name": "GLOBAL_PART_INDEX",
-        "risk_sql_rule_id": 14181,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在全局分区索引",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "改造本地分区索引"
-    },
-    {
-        "rule_name": "IDX_BITMAP",
-        "risk_sql_rule_id": 14182,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "是否使用位图索引",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "OLTP在线交易系统禁用位图索引"
-    },
-    {
-        "rule_name": "COUNT_SUMPART_SINGLE_TAB",
-        "risk_sql_rule_id": 14183,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "分区数量过多",
-        "rule_type": "OBJ",
-        "db_model": "OLAP",
-        "optimized_advice": "1.合理定义分区键, 2.历史数据归档"
-    },
-    {
-        "rule_name": "SQL_TABLE_FULL_SCAN",
-        "risk_sql_rule_id": 14184,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "全表扫描",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "1.缺索引评估创建索引, 2.取max、min值评估创建索引, 3.索引失效重建索引,分区表维护记得维护索引, 4.对条件字段使用函数或表达式a.函数、表达式放到等于号的右边b.创建函数索引(下策), 5.出现隐式转换a.不同类型的谓词匹配先显式转换b.表定义根据数据选择正确的数据类型, 6.使用isNULL做查询条件a.不建议使用null值b.null值较少的情况可创建组合索引或者伪列索引(createindexidx_1ontab1(col1,0)c.将null定义一个普通变量, 7.使用不等运算符<>!=做查询条件a.尽量少用不等判断；b.如果列值是连续,可把否定操作更改为两个区间；c.如果列值不多,可用inlist枚举其他所有值, 8.'％a％''％a'建议精确匹配, 9.sql逻辑,比如最大值,改用窗口函数, 10.弱选择sql,返回结果集较大建议a.添加更多的谓词减少数据的访问,比如时间b.改造分区表c.使用覆盖索引, 11.hintfull禁用hint1, 12.统计信息不准确数据批量加载程序触发收集统计信息"
-    },
-    {
-        "rule_name": "SQL_PARTITION_RANGE_ITERATOR",
-        "risk_sql_rule_id": 14185,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "跨分区扫描",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "分区键设计是否合理"
-    },
-    {
-        "rule_name": "SQL_INDEX_FULL_SCAN",
-        "risk_sql_rule_id": 14186,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "执行计划中索引全扫",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "sql逻辑能否改写获取更少的数据"
-    },
-    {
-        "rule_name": "SQL_PARTITION_RANGE_ALL",
-        "risk_sql_rule_id": 14187,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "分区全扫描",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "分区键设计是否合理"
-    },
-    {
-        "rule_name": "SQL_INDEX_SKIP_SCAN",
-        "risk_sql_rule_id": 14188,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "执行计划中存在索引跳描",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "索引列的先后顺序是否合理"
-    },
-    {
-        "rule_name": "SQL_INDEX_FAST_FULL_SCAN",
-        "risk_sql_rule_id": 14189,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "执行计划中索引快速全扫",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "sql逻辑能否改写获取更少的数据"
-    },
-    {
-        "rule_name": "SQL_PARTITION_RANGE_INLIST_OR",
-        "risk_sql_rule_id": 14190,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "非连续分区扫描",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "分区键设计是否合理"
-    },
-    {
-        "rule_name": "SQL_TAB_REL_NUM",
-        "risk_sql_rule_id": 14191,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "过多的表关联,影响性能",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "建议减少表关联,业务逻辑sql改写"
-    },
-    {
-        "rule_name": "SQL_VIEW_SCAN",
-        "risk_sql_rule_id": 14192,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在视图访问",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "视图不能展开,复杂视图拆解、改写"
-    },
-    {
-        "rule_name": "SQL_PARALLEL_FETCH",
-        "risk_sql_rule_id": 14193,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在并行访问特征",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "取消表、索引、sql中的并行设置"
-    },
-    {
-        "rule_name": "SQL_MERGE_JOIN_CARTESIAN",
-        "risk_sql_rule_id": 14194,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "笛卡尔积关联",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "1.表关联条件缺失,加上关联条件, 2.统计信息不准确,手工收集统计信息"
-    },
-    {
-        "rule_name": "SQL_TO_CHANGE_TYPE",
-        "risk_sql_rule_id": 14195,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "隐式转换",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "1.显式转换, 2.选择合适的字段类型"
-    },
-    {
-        "rule_name": "LOOP_IN_TAB_FULL_SCAN",
-        "risk_sql_rule_id": 14196,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "嵌套循环内层表全扫",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "关联列创建索引"
-    },
-    {
-        "rule_name": "SQL_LOOP_NUM",
-        "risk_sql_rule_id": 14197,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "嵌套层次过深",
-        "rule_type": "SQLPLAN",
-        "db_model": "OLAP",
-        "optimized_advice": "改写sql逻辑减少表关联的数量"
-    },
-    {
-        "rule_name": "SQL_SUB_CURSOR_COUNT",
-        "risk_sql_rule_id": 14198,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL子游标过多",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因"
-    },
-    {
-        "rule_name": "SQL_BUFFER_GETS",
-        "risk_sql_rule_id": 14199,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL消耗逻辑读过高",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理"
-    },
-    {
-        "rule_name": "SQL_CPU_TIME",
-        "risk_sql_rule_id": 14200,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL消耗CPU时间过长",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理"
-    },
-    {
-        "rule_name": "SQL_ELAPSED_TIME",
-        "risk_sql_rule_id": 14201,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL执行时间过长",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "对sql执行次数评估是否合理,能否优化"
-    },
-    {
-        "rule_name": "UNION",
-        "risk_sql_rule_id": 14202,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL中出现union",
-        "rule_type": "TEXT",
-        "db_model": "OLAP",
-        "optimized_advice": "改写unionall和sql逻辑中去重"
-    },
-    {
-        "rule_name": "WHERE_FUNC",
-        "risk_sql_rule_id": 14203,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "查询列上使用表达式",
-        "rule_type": "TEXT",
-        "db_model": "OLAP",
-        "optimized_advice": "1.函数写在表达式右边, 2.应用程序实现函数功能"
-    },
-    {
-        "rule_name": "LONG_TEXT",
-        "risk_sql_rule_id": 14204,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL文本过长",
-        "rule_type": "TEXT",
-        "db_model": "OLAP",
-        "optimized_advice": "sql改写为精简语句"
-    },
-    {
-        "rule_name": "SQL_DISK_READS",
-        "risk_sql_rule_id": 14205,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL消耗物理读过高",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "对sql消耗资源评估是否合理,能否优化"
-    },
-    {
-        "rule_name": "BAD_JOIN",
-        "risk_sql_rule_id": 14206,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "存在全连接或外连接",
-        "rule_type": "TEXT",
-        "db_model": "OLAP",
-        "optimized_advice": "改写为innerjoin"
-    },
-    {
-        "rule_name": "TOOMANY_IN_LIST",
-        "risk_sql_rule_id": 14207,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "IN List元素过多",
-        "rule_type": "TEXT",
-        "db_model": "OLAP",
-        "optimized_advice": "改用临时表存入变量"
-    },
-    {
-        "rule_name": "SQL_EXECUTIONS",
-        "risk_sql_rule_id": 14208,
-        "db_type": "oracle",
-        "severity": "严重",
-        "risk_name": "SQL执行次数过高",
-        "rule_type": "SQLSTAT",
-        "db_model": "OLAP",
-        "optimized_advice": "对sql执行次数评估是否合理,能否优化"
-    },
-    {
         "rule_name": "WHERE_NOT",
-        "risk_sql_rule_id": 14209,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.如果列值是连续,可把否定操作,更改为两个区间, 2.不建议使用不等值运算",
         "risk_name": "谓词中存在负向操作符!=等",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "1.如果列值是连续,可把否定操作,更改为两个区间, 2.不建议使用不等值运算"
+        "severity": "提示",
+        "risk_sql_rule_id": 14209
     },
     {
         "rule_name": "TOOMANY_BIND",
-        "risk_sql_rule_id": 14210,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "减少绑定变量",
         "risk_name": "绑定变量过多",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "减少绑定变量"
+        "severity": "严重",
+        "risk_sql_rule_id": 14210
     },
     {
         "rule_name": "SUBQUERY_REP",
-        "risk_sql_rule_id": 14211,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.withas, 2.改写sql避免重复查询",
         "risk_name": "重复查询子句",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "1.withas, 2.改写sql避免重复查询"
+        "severity": "告警",
+        "risk_sql_rule_id": 14211
     },
     {
         "rule_name": "SUBQUERY_HAVING",
-        "risk_sql_rule_id": 14212,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写为表关联",
         "risk_name": "having段出现子查询",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "改写为表关联"
+        "severity": "提示",
+        "risk_sql_rule_id": 14212
     },
     {
         "rule_name": "LIKE_UNINDEX",
-        "risk_sql_rule_id": 14213,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'",
         "risk_name": "谓词条件使用like %xxx,无法使用索引",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'"
+        "severity": "严重",
+        "risk_sql_rule_id": 14213
     },
     {
         "rule_name": "DML_SORT",
-        "risk_sql_rule_id": 14214,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "DML操作无需排序",
         "risk_name": "delete或update中出现order by子句",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "DML操作无需排序"
+        "severity": "告警",
+        "risk_sql_rule_id": 14214
     },
     {
         "rule_name": "SELECT_ANY",
-        "risk_sql_rule_id": 14215,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "使用明确的列",
         "risk_name": "使用select *",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "使用明确的列"
+        "severity": "告警",
+        "risk_sql_rule_id": 14215
     },
     {
         "rule_name": "SUBQUERY_FROM",
-        "risk_sql_rule_id": 14216,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写为表关联",
         "risk_name": "from段出现子查询",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "改写为表关联"
+        "severity": "告警",
+        "risk_sql_rule_id": 14216
     },
     {
         "rule_name": "DML_ALLDATA",
-        "risk_sql_rule_id": 14217,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.建议加where条件, 2.全表删除用truncate",
         "risk_name": "delete或update中缺少where条件",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "1.建议加where条件, 2.全表删除用truncate"
+        "severity": "严重",
+        "risk_sql_rule_id": 14217
     },
     {
         "rule_name": "TOOMANY_OR",
-        "risk_sql_rule_id": 14218,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改用临时表存入变量",
         "risk_name": "多个过滤条件通过or连接",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "改用临时表存入变量"
+        "severity": "提示",
+        "risk_sql_rule_id": 14218
     },
     {
         "rule_name": "SUBQUERY_SELECT",
-        "risk_sql_rule_id": 14219,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写为表关联",
         "risk_name": "select段出现子查询",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "改写为表关联"
+        "severity": "告警",
+        "risk_sql_rule_id": 14219
     },
     {
         "rule_name": "SQL_DIRECT_WRITES",
-        "risk_sql_rule_id": 14220,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "对sql消耗资源评估是否合理,能否优化",
         "risk_name": "SQL直接路径写过高",
         "rule_type": "SQLSTAT",
         "db_model": "OLAP",
-        "optimized_advice": "对sql消耗资源评估是否合理,能否优化"
+        "severity": "提示",
+        "risk_sql_rule_id": 14220
     },
     {
         "rule_name": "SUBQUERY_WHERE",
-        "risk_sql_rule_id": 14221,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写为表关联",
         "risk_name": "where段出现子查询",
         "rule_type": "TEXT",
         "db_model": "OLAP",
-        "optimized_advice": "改写为表关联"
+        "severity": "告警",
+        "risk_sql_rule_id": 14221
     },
     {
         "rule_name": "SQL_NO_BIND",
-        "risk_sql_rule_id": 14222,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "强选择性谓词使用绑定变量写法",
         "risk_name": "SQL未使用绑定变量",
         "rule_type": "SQLSTAT",
         "db_model": "OLAP",
-        "optimized_advice": "强选择性谓词使用绑定变量写法"
+        "severity": "严重",
+        "risk_sql_rule_id": 14222
     },
     {
         "rule_name": "TABLE_NO_INDEX",
-        "risk_sql_rule_id": 14223,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "需要考虑建索引",
         "risk_name": "没有索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "需要考虑建索引"
+        "severity": "告警",
+        "risk_sql_rule_id": 14223
     },
     {
         "rule_name": "TABLE_NO_INDEX",
-        "risk_sql_rule_id": 14224,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "需要考虑建索引",
         "risk_name": "没有索引",
         "rule_type": "OBJ",
         "db_model": "OLAP",
-        "optimized_advice": "需要考虑建索引"
+        "severity": "告警",
+        "risk_sql_rule_id": 14224
     },
     {
         "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
-        "risk_sql_rule_id": 14225,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "合理设计分区索引",
         "risk_name": "全局索引扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "合理设计分区索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14225
     },
     {
         "rule_name": "TABLE_ACCESS_BY_GLOBAL_INDEX",
-        "risk_sql_rule_id": 14226,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "合理设计分区索引",
         "risk_name": "全局索引扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLAP",
-        "optimized_advice": "合理设计分区索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14226
     },
     {
         "rule_name": "SINGLETABLE_INDEX_NUM",
-        "risk_sql_rule_id": 14085,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "构建战略性索引结构,不要针对每个需求都通过创建索引解决",
         "risk_name": "索引数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
+        "severity": "严重",
+        "risk_sql_rule_id": 14085
     },
     {
         "rule_name": "LONG_COLUMN_TAB",
-        "risk_sql_rule_id": 14086,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "按需定义字段长度",
         "risk_name": "记录长度定义过长",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "按需定义字段长度"
+        "severity": "严重",
+        "risk_sql_rule_id": 14086
     },
     {
         "rule_name": "SEQ_CACHESIZE",
-        "risk_sql_rule_id": 14087,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "调整cache缓存大小,alter sequence sequence_name cache 2000;",
         "risk_name": "序列CACHESIZE过小",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "调整cache缓存大小,alter sequence sequence_name cache 2000;"
+        "severity": "严重",
+        "risk_sql_rule_id": 14087
     },
     {
         "rule_name": "TIMESTAMP",
-        "risk_sql_rule_id": 14088,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "添加时间字段(比如插入、更新的时间戳)",
         "risk_name": "不包含时间戳字段的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "添加时间字段(比如插入、更新的时间戳)"
+        "severity": "提示",
+        "risk_sql_rule_id": 14088
     },
     {
         "rule_name": "USE_PROCEDURE",
-        "risk_sql_rule_id": 14089,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "用应用端程序实现将存储过程",
         "risk_name": "存在存储过程",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "用应用端程序实现将存储过程"
+        "severity": "提示",
+        "risk_sql_rule_id": 14089
     },
     {
         "rule_name": "USE_FUNCTION",
-        "risk_sql_rule_id": 14090,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "用应用端程序实现函数",
         "risk_name": "存在函数",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "用应用端程序实现函数"
+        "severity": "提示",
+        "risk_sql_rule_id": 14090
     },
     {
         "rule_name": "DUPLICATE_INDEX",
-        "risk_sql_rule_id": 14091,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "删除不必要的索引",
         "risk_name": "字段重复索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "删除不必要的索引"
+        "severity": "告警",
+        "risk_sql_rule_id": 14091
     },
     {
         "rule_name": "COL_WRONG_TYPE",
-        "risk_sql_rule_id": 14092,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "合理定义字段类型",
         "risk_name": "表字段类型不匹配",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "合理定义字段类型"
+        "severity": "严重",
+        "risk_sql_rule_id": 14092
     },
     {
         "rule_name": "COUNT_SUMPART_FULL_TAB",
-        "risk_sql_rule_id": 14093,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.重新合理定义分区键, 2.垂直拆分,减少单库规模",
         "risk_name": "分区表数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.重新合理定义分区键, 2.垂直拆分,减少单库规模"
+        "severity": "严重",
+        "risk_sql_rule_id": 14093
     },
     {
         "rule_name": "COUNT_SUBPART_TAB",
-        "risk_sql_rule_id": 14094,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "重新合理定义分区键",
         "risk_name": "复合分区数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "重新合理定义分区键"
+        "severity": "提示",
+        "risk_sql_rule_id": 14094
     },
     {
         "rule_name": "COUNT_SUMPART_SINGLE_TAB",
-        "risk_sql_rule_id": 14095,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.合理定义分区键, 2.历史数据归档",
         "risk_name": "分区数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.合理定义分区键, 2.历史数据归档"
+        "severity": "提示",
+        "risk_sql_rule_id": 14095
     },
     {
         "rule_name": "DBLINKS_NUM",
-        "risk_sql_rule_id": 14096,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "禁用dblink,在应用程序端连接多个数据库操作",
         "risk_name": "存在DBLINK",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "禁用dblink,在应用程序端连接多个数据库操作"
+        "severity": "提示",
+        "risk_sql_rule_id": 14096
     },
     {
         "rule_name": "IDX_FUNC",
-        "risk_sql_rule_id": 14097,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.函数在表达式右侧实现, 2.应用程序替换数据库函数",
         "risk_name": "使用函数索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.函数在表达式右侧实现, 2.应用程序替换数据库函数"
+        "severity": "提示",
+        "risk_sql_rule_id": 14097
     },
     {
         "rule_name": "GLOBAL_PART_INDEX",
-        "risk_sql_rule_id": 14098,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改造本地分区索引",
         "risk_name": "存在全局分区索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "改造本地分区索引"
+        "severity": "告警",
+        "risk_sql_rule_id": 14098
     },
     {
         "rule_name": "WHERE_FUNC",
-        "risk_sql_rule_id": 14137,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.函数写在表达式右边, 2.应用程序实现函数功能",
         "risk_name": "查询列上使用表达式",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "1.函数写在表达式右边, 2.应用程序实现函数功能"
+        "severity": "严重",
+        "risk_sql_rule_id": 14137
     },
     {
         "rule_name": "TOOMANY_BIND",
-        "risk_sql_rule_id": 14138,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "减少绑定变量",
         "risk_name": "绑定变量过多",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "减少绑定变量"
+        "severity": "严重",
+        "risk_sql_rule_id": 14138
     },
     {
         "rule_name": "TOOMANY_IN_LIST",
-        "risk_sql_rule_id": 14139,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改用临时表存入变量",
         "risk_name": "IN List元素过多",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "改用临时表存入变量"
+        "severity": "提示",
+        "risk_sql_rule_id": 14139
     },
     {
         "rule_name": "SUBQUERY_REP",
-        "risk_sql_rule_id": 14140,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.withas, 2.改写sql避免重复查询",
         "risk_name": "重复查询子句",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "1.withas, 2.改写sql避免重复查询"
+        "severity": "告警",
+        "risk_sql_rule_id": 14140
     },
     {
         "rule_name": "SQL_DIRECT_WRITES",
-        "risk_sql_rule_id": 14141,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "对sql消耗资源评估是否合理,能否优化",
         "risk_name": "SQL直接路径写过高",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "对sql消耗资源评估是否合理,能否优化"
+        "severity": "提示",
+        "risk_sql_rule_id": 14141
     },
     {
         "rule_name": "TABLE_FK_NOIND",
-        "risk_sql_rule_id": 14142,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.在应用端实现外键约束, 2.无法去除外键,必须添加外键索引",
         "risk_name": "外键没有索引的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.在应用端实现外键约束, 2.无法去除外键,必须添加外键索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14142
     },
     {
         "rule_name": "DML_ALLDATA",
-        "risk_sql_rule_id": 14143,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.建议加where条,2.如需全表删除可用truncate代替",
         "risk_name": "delete或update中缺少where条件",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "1.建议加where条,2.如需全表删除可用truncate代替"
+        "severity": "严重",
+        "risk_sql_rule_id": 14143
     },
     {
         "rule_name": "SELECT_ANY",
-        "risk_sql_rule_id": 14144,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "使用明确的列",
         "risk_name": "使用select *",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "使用明确的列"
+        "severity": "告警",
+        "risk_sql_rule_id": 14144
     },
     {
         "rule_name": "WHERE_NOT",
-        "risk_sql_rule_id": 14145,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.如果列值是连续,可把否定操作,更改为两个区间, 2.不建议使用不等值运算",
         "risk_name": "谓词中存在负向操作符!=等",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "1.如果列值是连续,可把否定操作,更改为两个区间, 2.不建议使用不等值运算"
+        "severity": "提示",
+        "risk_sql_rule_id": 14145
     },
     {
         "rule_name": "SUBQUERY_HAVING",
-        "risk_sql_rule_id": 14146,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写为表关联",
         "risk_name": "having段出现子查询",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "改写为表关联"
+        "severity": "提示",
+        "risk_sql_rule_id": 14146
     },
     {
         "rule_name": "DML_SORT",
-        "risk_sql_rule_id": 14147,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "DML操作无需排序",
         "risk_name": "delete或update中出现order by子句",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "DML操作无需排序"
+        "severity": "告警",
+        "risk_sql_rule_id": 14147
     },
     {
         "rule_name": "TOOMANY_OR",
-        "risk_sql_rule_id": 14148,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改用临时表存入变量",
         "risk_name": "多个过滤条件通过or连接",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "改用临时表存入变量"
+        "severity": "提示",
+        "risk_sql_rule_id": 14148
     },
     {
         "rule_name": "TRIGGERS_NUM",
-        "risk_sql_rule_id": 14099,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "在应用端实现触发器功能",
         "risk_name": "存在触发器",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "在应用端实现触发器功能"
+        "severity": "提示",
+        "risk_sql_rule_id": 14099
     },
     {
         "rule_name": "BIG_TABLE_COUNT",
-        "risk_sql_rule_id": 14100,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
         "risk_name": "大表数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
+        "severity": "告警",
+        "risk_sql_rule_id": 14100
     },
     {
         "rule_name": "IDX_BITMAP",
-        "risk_sql_rule_id": 14101,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "OLTP在线交易系统禁用位图索引",
         "risk_name": "是否使用位图索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "OLTP在线交易系统禁用位图索引"
+        "severity": "告警",
+        "risk_sql_rule_id": 14101
     },
     {
         "rule_name": "TABLE_LOB",
-        "risk_sql_rule_id": 14102,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "建议在数据库外部进行存储大字段",
         "risk_name": "包含有大字段类型的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "建议在数据库外部进行存储大字段"
+        "severity": "提示",
+        "risk_sql_rule_id": 14102
     },
     {
         "rule_name": "COMBINED_INDEX_PERCENT",
-        "risk_sql_rule_id": 14103,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.构建战略性索引结构,不要针对每个需求都通过创建索引解决, 2.注意列在所有的顺序",
         "risk_name": "组合索引数量过多",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.构建战略性索引结构,不要针对每个需求都通过创建索引解决, 2.注意列在所有的顺序"
+        "severity": "严重",
+        "risk_sql_rule_id": 14103
     },
     {
         "rule_name": "SQL_PARTITION_RANGE_ALL",
-        "risk_sql_rule_id": 14104,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "分区键设计是否合理",
         "risk_name": "分区全扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "分区键设计是否合理"
+        "severity": "严重",
+        "risk_sql_rule_id": 14104
     },
     {
         "rule_name": "SQL_INDEX_FAST_FULL_SCAN",
-        "risk_sql_rule_id": 14105,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "SQL逻辑能否改写获取更少的数据",
         "risk_name": "执行计划中索引快速全扫",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "SQL逻辑能否改写获取更少的数据"
+        "severity": "严重",
+        "risk_sql_rule_id": 14105
     },
     {
         "rule_name": "SQL_PARTITION_RANGE_ITERATOR",
-        "risk_sql_rule_id": 14106,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "分区键设计是否合理",
         "risk_name": "跨分区扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "分区键设计是否合理"
+        "severity": "告警",
+        "risk_sql_rule_id": 14106
     },
     {
         "rule_name": "SQL_TABLE_FULL_SCAN",
-        "risk_sql_rule_id": 14107,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.缺索引评估创建索引, 2.取max、min值评估创建索引, 3.索引失效重建索引,分区表维护记得维护索引, 4.对条件字段使用函数或表达式a.函数、表达式放到等于号的右边b.创建函数索引(下策), 5.出现隐式转换a.不同类型的谓词匹配先显式转换b.表定义根据数据选择正确的数据类型, 6.使用isNULL做查询条件a.不建议使用null值b.null值较少的情况可创建组合索引或者伪列索引(createindexidx_1ontab1(col1,0)c.将null定义一个普通变量, 7.使用不等运算符<>!=做查询条件a.尽量少用不等判断；b.如果列值是连续,可把否定操作更改为两个区间；c.如果列值不多,可用inlist枚举其他所有值, 8.'％a％''％a'建议精确匹配, 9.sql逻辑,比如最大值,改用窗口函数, 10.弱选择sql,返回结果集较大建议a.添加更多的谓词减少数据的访问,比如时间b.改造分区表c.使用覆盖索引, 11.hintfull禁用hint1, 12.统计信息不准确数据批量加载程序触发收集统计信息",
         "risk_name": "全表扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "1.缺索引评估创建索引, 2.取max、min值评估创建索引, 3.索引失效重建索引,分区表维护记得维护索引, 4.对条件字段使用函数或表达式a.函数、表达式放到等于号的右边b.创建函数索引(下策), 5.出现隐式转换a.不同类型的谓词匹配先显式转换b.表定义根据数据选择正确的数据类型, 6.使用isNULL做查询条件a.不建议使用null值b.null值较少的情况可创建组合索引或者伪列索引(createindexidx_1ontab1(col1,0)c.将null定义一个普通变量, 7.使用不等运算符<>!=做查询条件a.尽量少用不等判断；b.如果列值是连续,可把否定操作更改为两个区间；c.如果列值不多,可用inlist枚举其他所有值, 8.'％a％''％a'建议精确匹配, 9.sql逻辑,比如最大值,改用窗口函数, 10.弱选择sql,返回结果集较大建议a.添加更多的谓词减少数据的访问,比如时间b.改造分区表c.使用覆盖索引, 11.hintfull禁用hint1, 12.统计信息不准确数据批量加载程序触发收集统计信息"
+        "severity": "严重",
+        "risk_sql_rule_id": 14107
     },
     {
         "rule_name": "SQL_MERGE_JOIN_CARTESIAN",
-        "risk_sql_rule_id": 14108,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.表关联条件缺失,加上关联条件, 2.统计信息不准确,手工收集统计信息",
         "risk_name": "笛卡尔积关联",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "1.表关联条件缺失,加上关联条件, 2.统计信息不准确,手工收集统计信息"
+        "severity": "严重",
+        "risk_sql_rule_id": 14108
     },
     {
         "rule_name": "IDX_CLUSTERING_FACTOR",
-        "risk_sql_rule_id": 14109,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.重新定义表的字段类型, 2.表数据重新存储",
         "risk_name": "索引的聚簇因子",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.重新定义表的字段类型, 2.表数据重新存储"
+        "severity": "严重",
+        "risk_sql_rule_id": 14109
     },
     {
         "rule_name": "SQL_INDEX_SKIP_SCAN",
-        "risk_sql_rule_id": 14110,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "索引列的先后顺序是否合理",
         "risk_name": "执行计划中存在索引跳描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "索引列的先后顺序是否合理"
+        "severity": "严重",
+        "risk_sql_rule_id": 14110
     },
     {
         "rule_name": "SQL_INDEX_FULL_SCAN",
-        "risk_sql_rule_id": 14111,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "SQL逻辑能否改写获取更少的数据",
         "risk_name": "执行计划中索引全扫",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "SQL逻辑能否改写获取更少的数据"
+        "severity": "严重",
+        "risk_sql_rule_id": 14111
     },
     {
         "rule_name": "SQL_PARTITION_RANGE_INLIST_OR",
-        "risk_sql_rule_id": 14112,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "分区键设计是否合理",
         "risk_name": "非连续分区扫描",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "分区键设计是否合理"
+        "severity": "告警",
+        "risk_sql_rule_id": 14112
     },
     {
         "rule_name": "SQL_TAB_REL_NUM",
-        "risk_sql_rule_id": 14113,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "建议减少表关联,业务逻辑sql改写",
         "risk_name": "过多的表关联",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "建议减少表关联,业务逻辑sql改写"
+        "severity": "提示",
+        "risk_sql_rule_id": 14113
     },
     {
         "rule_name": "TAB_EXISTS_FK",
-        "risk_sql_rule_id": 14114,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "应用程序实现外键约束,不建议在数据库里面使用外键约束",
         "risk_name": "表中存在外键约束",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "应用程序实现外键约束,不建议在数据库里面使用外键约束"
+        "severity": "提示",
+        "risk_sql_rule_id": 14114
     },
     {
         "rule_name": "SQL_PARALLEL_FETCH",
-        "risk_sql_rule_id": 14115,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "取消表、索引、sql中的并行设置",
         "risk_name": "存在并行访问特征",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "取消表、索引、sql中的并行设置"
+        "severity": "提示",
+        "risk_sql_rule_id": 14115
     },
     {
         "rule_name": "SQL_TO_CHANGE_TYPE",
-        "risk_sql_rule_id": 14116,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.显式转换, 2.选择合适的字段类型",
         "risk_name": "隐式转换",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "1.显式转换, 2.选择合适的字段类型"
+        "severity": "严重",
+        "risk_sql_rule_id": 14116
     },
     {
         "rule_name": "SQL_VIEW_SCAN",
-        "risk_sql_rule_id": 14117,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "视图不能展开,复杂视图拆解、改写",
         "risk_name": "存在视图访问",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "视图不能展开,复杂视图拆解、改写"
+        "severity": "提示",
+        "risk_sql_rule_id": 14117
     },
     {
         "rule_name": "SQL_BUFFER_GETS",
-        "risk_sql_rule_id": 14118,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理",
         "risk_name": "SQL消耗逻辑读过高",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理"
+        "severity": "严重",
+        "risk_sql_rule_id": 14118
     },
     {
         "rule_name": "IDX_BLEVEL",
-        "risk_sql_rule_id": 14119,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.重构表的字段或索引, 2.重建索引",
         "risk_name": "索引对象高度过高",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.重构表的字段或索引, 2.重建索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14119
     },
     {
         "rule_name": "SQL_SUB_CURSOR_COUNT",
-        "risk_sql_rule_id": 14120,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因",
         "risk_name": "SQL子游标过多",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因"
+        "severity": "严重",
+        "risk_sql_rule_id": 14120
     },
     {
         "rule_name": "LOOP_IN_TAB_FULL_SCAN",
-        "risk_sql_rule_id": 14121,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "关联列创建索引",
         "risk_name": "嵌套循环内层表全扫",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "关联列创建索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14121
     },
     {
         "rule_name": "SQL_LOOP_NUM",
-        "risk_sql_rule_id": 14122,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写sql逻辑减少表关联的数量",
         "risk_name": "嵌套层次过深",
         "rule_type": "SQLPLAN",
         "db_model": "OLTP",
-        "optimized_advice": "改写sql逻辑减少表关联的数量"
+        "severity": "提示",
+        "risk_sql_rule_id": 14122
     },
     {
         "rule_name": "TAB_PARALLEL_ON",
-        "risk_sql_rule_id": 14123,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "关闭表的并行度alter table TABLENAME noparallel",
         "risk_name": "表对象开启并行访问",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "关闭表的并行度alter table TABLENAME noparallel"
+        "severity": "告警",
+        "risk_sql_rule_id": 14123
     },
     {
         "rule_name": "BIG_TABLE",
-        "risk_sql_rule_id": 14124,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
         "risk_name": "超过指定规模且没有分区的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
+        "severity": "告警",
+        "risk_sql_rule_id": 14124
     },
     {
         "rule_name": "INVALID_INDEX",
-        "risk_sql_rule_id": 14125,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "根据业务特点,有目的的添加相关索引",
         "risk_name": "存在7天内没有使用的索引",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "根据业务特点,有目的的添加相关索引"
+        "severity": "严重",
+        "risk_sql_rule_id": 14125
     },
     {
         "rule_name": "TABLE_MIS_PK",
-        "risk_sql_rule_id": 14126,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "必须定义主键",
         "risk_name": "没有主键的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "必须定义主键"
+        "severity": "告警",
+        "risk_sql_rule_id": 14126
     },
     {
         "rule_name": "TABLE_COL_NUM",
-        "risk_sql_rule_id": 14127,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数",
         "risk_name": "大于阀值数量字段的表",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数"
+        "severity": "提示",
+        "risk_sql_rule_id": 14127
     },
     {
         "rule_name": "COUNT_RECORD_TAB",
-        "risk_sql_rule_id": 14128,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
         "risk_name": "单表或单分区记录数量过大",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档"
+        "severity": "告警",
+        "risk_sql_rule_id": 14128
     },
     {
         "rule_name": "SQL_CPU_TIME",
-        "risk_sql_rule_id": 14129,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理",
         "risk_name": "SQL消耗CPU时间过长",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理"
+        "severity": "严重",
+        "risk_sql_rule_id": 14129
     },
     {
         "rule_name": "SQL_EXECUTIONS",
-        "risk_sql_rule_id": 14130,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "对sql执行次数评估是否合理,能否优化",
         "risk_name": "SQL执行次数过高",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "对sql执行次数评估是否合理,能否优化"
+        "severity": "严重",
+        "risk_sql_rule_id": 14130
     },
     {
         "rule_name": "SQL_ELAPSED_TIME",
-        "risk_sql_rule_id": 14131,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "对sql执行次数评估是否合理,能否优化",
         "risk_name": "SQL执行时间过长",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "对sql执行次数评估是否合理,能否优化"
+        "severity": "严重",
+        "risk_sql_rule_id": 14131
     },
     {
         "rule_name": "UNION",
-        "risk_sql_rule_id": 14132,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "改写unionall和sql逻辑中去重",
         "risk_name": "SQL中出现union",
         "rule_type": "TEXT",
         "db_model": "OLTP",
-        "optimized_advice": "改写unionall和sql逻辑中去重"
+        "severity": "提示",
+        "risk_sql_rule_id": 14132
     },
     {
         "rule_name": "SQL_DISK_READS",
-        "risk_sql_rule_id": 14133,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "对sql消耗资源评估是否合理,能否优化",
         "risk_name": "SQL消耗物理读过高",
         "rule_type": "SQLSTAT",
         "db_model": "OLTP",
-        "optimized_advice": "对sql消耗资源评估是否合理,能否优化"
+        "severity": "严重",
+        "risk_sql_rule_id": 14133
     },
     {
         "rule_name": "IDX_PARALLEL_ON",
-        "risk_sql_rule_id": 14134,
         "db_type": "oracle",
-        "severity": "严重",
+        "optimized_advice": "关闭索引并行度alter index INDEXNAME noparallel;",
         "risk_name": "索引对象开启并行度",
         "rule_type": "OBJ",
         "db_model": "OLTP",
-        "optimized_advice": "关闭索引并行度alter index INDEXNAME noparallel;"
+        "severity": "告警",
+        "risk_sql_rule_id": 14134
+    },
+    {
+        "rule_name": "BAD_JOIN",
+        "db_type": "oracle",
+        "optimized_advice": "改写为innerjoin",
+        "risk_name": "存在全连接或外连接",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14135
+    },
+    {
+        "rule_name": "LONG_TEXT",
+        "db_type": "oracle",
+        "optimized_advice": "sql改写为精简语句",
+        "risk_name": "SQL文本过长",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14136
+    },
+    {
+        "rule_name": "LIKE_UNINDEX",
+        "db_type": "oracle",
+        "optimized_advice": "从业务角度出发,分析是否可使用精确运算符或类似like'xx%'",
+        "risk_name": "谓词条件使用like %xxx,无法使用索引",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14149
+    },
+    {
+        "rule_name": "SUBQUERY_SELECT",
+        "db_type": "oracle",
+        "optimized_advice": "改写为表关联",
+        "risk_name": "select段出现子查询",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14150
+    },
+    {
+        "rule_name": "SUBQUERY_FROM",
+        "db_type": "oracle",
+        "optimized_advice": "改写为表关联",
+        "risk_name": "from段出现子查询",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14151
+    },
+    {
+        "rule_name": "SUBQUERY_WHERE",
+        "db_type": "oracle",
+        "optimized_advice": "改写为表关联",
+        "risk_name": "where段出现子查询",
+        "rule_type": "TEXT",
+        "db_model": "OLTP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14152
+    },
+    {
+        "rule_name": "SQL_NO_BIND",
+        "db_type": "oracle",
+        "optimized_advice": "强选择性谓词使用绑定变量写法",
+        "risk_name": "SQL未使用绑定变量",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLTP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14153
+    },
+    {
+        "rule_name": "SINGLETABLE_INDEX_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "构建战略性索引结构,不要针对每个需求都通过创建索引解决",
+        "risk_name": "索引数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14154
+    },
+    {
+        "rule_name": "LONG_COLUMN_TAB",
+        "db_type": "oracle",
+        "optimized_advice": "按需定义字段长度",
+        "risk_name": "记录长度定义过长",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14155
+    },
+    {
+        "rule_name": "TIMESTAMP",
+        "db_type": "oracle",
+        "optimized_advice": "添加时间字段(比如插入、更新的时间戳)",
+        "risk_name": "不包含时间戳字段的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14156
+    },
+    {
+        "rule_name": "TABLE_MIS_PK",
+        "db_type": "oracle",
+        "optimized_advice": "必须定义主键",
+        "risk_name": "没有主键的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14157
+    },
+    {
+        "rule_name": "TABLE_FK_NOIND",
+        "db_type": "oracle",
+        "optimized_advice": "1.在应用端实现外键约束, 2.无法去除外键,必须添加外键索引",
+        "risk_name": "外键没有索引的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14158
+    },
+    {
+        "rule_name": "COUNT_RECORD_TAB",
+        "db_type": "oracle",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
+        "risk_name": "单表或单分区记录数量过大",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14159
+    },
+    {
+        "rule_name": "BIG_TABLE",
+        "db_type": "oracle",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
+        "risk_name": "超过指定规模且没有分区的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14160
+    },
+    {
+        "rule_name": "TABLE_LOB",
+        "db_type": "oracle",
+        "optimized_advice": "建议在数据库外部进行存储大字段",
+        "risk_name": "包含有大字段类型的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14161
+    },
+    {
+        "rule_name": "TAB_PARALLEL_ON",
+        "db_type": "oracle",
+        "optimized_advice": "关闭表的并行度alter table TABLENAME noparallel",
+        "risk_name": "表对象开启并行访问",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14162
+    },
+    {
+        "rule_name": "TABLE_COL_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数",
+        "risk_name": "大于阀值数量字段的表",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14163
+    },
+    {
+        "rule_name": "BIG_TABLE_COUNT",
+        "db_type": "oracle",
+        "optimized_advice": "1.建议分库,分表,分区, 2.历史数据归档",
+        "risk_name": "大表数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14164
+    },
+    {
+        "rule_name": "TAB_EXISTS_FK",
+        "db_type": "oracle",
+        "optimized_advice": "应用程序实现外键约束,不建议在数据库里面使用外键约束",
+        "risk_name": "表中存在外键约束",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14165
+    },
+    {
+        "rule_name": "INVALID_INDEX",
+        "db_type": "oracle",
+        "optimized_advice": "根据业务特点,有目的的添加相关索引",
+        "risk_name": "存在7天内没有使用的索引",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14166
+    },
+    {
+        "rule_name": "USE_FUNCTION",
+        "db_type": "oracle",
+        "optimized_advice": "用应用端程序实现函数",
+        "risk_name": "存在函数",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14167
+    },
+    {
+        "rule_name": "IDX_PARALLEL_ON",
+        "db_type": "oracle",
+        "optimized_advice": "关闭索引并行度alter index INDEXNAME noparallel;",
+        "risk_name": "索引对象开启并行度",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14168
+    },
+    {
+        "rule_name": "USE_PROCEDURE",
+        "db_type": "oracle",
+        "optimized_advice": "用应用端程序实现将存储过程",
+        "risk_name": "存在存储过程",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14169
+    },
+    {
+        "rule_name": "IDX_CLUSTERING_FACTOR",
+        "db_type": "oracle",
+        "optimized_advice": "1.重新定义表的字段类型, 2.表数据重新存储",
+        "risk_name": "索引的聚簇因子",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14170
+    },
+    {
+        "rule_name": "SEQ_CACHESIZE",
+        "db_type": "oracle",
+        "optimized_advice": "调整cache缓存大小,alter sequence sequence_name cache 2000;",
+        "risk_name": "序列CACHESIZE过小",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14171
+    },
+    {
+        "rule_name": "DUPLICATE_INDEX",
+        "db_type": "oracle",
+        "optimized_advice": "删除不必要的索引",
+        "risk_name": "字段重复索引",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14172
+    },
+    {
+        "rule_name": "COMBINED_INDEX_PERCENT",
+        "db_type": "oracle",
+        "optimized_advice": "1.构建战略性索引结构,不要针对每个需求都通过创建索引解决, 2.注意列在所有的顺序",
+        "risk_name": "组合索引数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14173
+    },
+    {
+        "rule_name": "DBLINKS_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "禁用dblink,在应用程序端连接多个数据库操作",
+        "risk_name": "存在DBLINK",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14174
+    },
+    {
+        "rule_name": "COUNT_SUBPART_TAB",
+        "db_type": "oracle",
+        "optimized_advice": "重新合理定义分区键",
+        "risk_name": "复合分区数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14175
+    },
+    {
+        "rule_name": "IDX_BLEVEL",
+        "db_type": "oracle",
+        "optimized_advice": "1.重构表的字段或索引, 2.重建索引",
+        "risk_name": "索引对象高度过高",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14176
+    },
+    {
+        "rule_name": "COUNT_SUMPART_FULL_TAB",
+        "db_type": "oracle",
+        "optimized_advice": "1.重新合理定义分区键, 2.垂直拆分,减少单库规模",
+        "risk_name": "分区表数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14177
+    },
+    {
+        "rule_name": "TRIGGERS_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "在应用端实现触发器功能",
+        "risk_name": "存在触发器",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14178
+    },
+    {
+        "rule_name": "IDX_FUNC",
+        "db_type": "oracle",
+        "optimized_advice": "1.函数在表达式右侧实现, 2.应用程序替换数据库函数",
+        "risk_name": "使用函数索引",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14179
+    },
+    {
+        "rule_name": "COL_WRONG_TYPE",
+        "db_type": "oracle",
+        "optimized_advice": "合理定义字段类型",
+        "risk_name": "表字段类型不匹配",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14180
+    },
+    {
+        "rule_name": "GLOBAL_PART_INDEX",
+        "db_type": "oracle",
+        "optimized_advice": "改造本地分区索引",
+        "risk_name": "存在全局分区索引",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14181
+    },
+    {
+        "rule_name": "IDX_BITMAP",
+        "db_type": "oracle",
+        "optimized_advice": "OLTP在线交易系统禁用位图索引",
+        "risk_name": "是否使用位图索引",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14182
+    },
+    {
+        "rule_name": "COUNT_SUMPART_SINGLE_TAB",
+        "db_type": "oracle",
+        "optimized_advice": "1.合理定义分区键, 2.历史数据归档",
+        "risk_name": "分区数量过多",
+        "rule_type": "OBJ",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14183
+    },
+    {
+        "rule_name": "SQL_TABLE_FULL_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "1.缺索引评估创建索引, 2.取max、min值评估创建索引, 3.索引失效重建索引,分区表维护记得维护索引, 4.对条件字段使用函数或表达式a.函数、表达式放到等于号的右边b.创建函数索引(下策), 5.出现隐式转换a.不同类型的谓词匹配先显式转换b.表定义根据数据选择正确的数据类型, 6.使用isNULL做查询条件a.不建议使用null值b.null值较少的情况可创建组合索引或者伪列索引(createindexidx_1ontab1(col1,0)c.将null定义一个普通变量, 7.使用不等运算符<>!=做查询条件a.尽量少用不等判断；b.如果列值是连续,可把否定操作更改为两个区间；c.如果列值不多,可用inlist枚举其他所有值, 8.'％a％''％a'建议精确匹配, 9.sql逻辑,比如最大值,改用窗口函数, 10.弱选择sql,返回结果集较大建议a.添加更多的谓词减少数据的访问,比如时间b.改造分区表c.使用覆盖索引, 11.hintfull禁用hint1, 12.统计信息不准确数据批量加载程序触发收集统计信息",
+        "risk_name": "全表扫描",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14184
+    },
+    {
+        "rule_name": "SQL_PARTITION_RANGE_ITERATOR",
+        "db_type": "oracle",
+        "optimized_advice": "分区键设计是否合理",
+        "risk_name": "跨分区扫描",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14185
+    },
+    {
+        "rule_name": "SQL_INDEX_FULL_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "sql逻辑能否改写获取更少的数据",
+        "risk_name": "执行计划中索引全扫",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14186
+    },
+    {
+        "rule_name": "SQL_PARTITION_RANGE_ALL",
+        "db_type": "oracle",
+        "optimized_advice": "分区键设计是否合理",
+        "risk_name": "分区全扫描",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14187
+    },
+    {
+        "rule_name": "SQL_INDEX_SKIP_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "索引列的先后顺序是否合理",
+        "risk_name": "执行计划中存在索引跳描",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14188
+    },
+    {
+        "rule_name": "SQL_INDEX_FAST_FULL_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "sql逻辑能否改写获取更少的数据",
+        "risk_name": "执行计划中索引快速全扫",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14189
+    },
+    {
+        "rule_name": "SQL_PARTITION_RANGE_INLIST_OR",
+        "db_type": "oracle",
+        "optimized_advice": "分区键设计是否合理",
+        "risk_name": "非连续分区扫描",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "告警",
+        "risk_sql_rule_id": 14190
+    },
+    {
+        "rule_name": "SQL_TAB_REL_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "建议减少表关联,业务逻辑sql改写",
+        "risk_name": "过多的表关联,影响性能",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14191
+    },
+    {
+        "rule_name": "SQL_VIEW_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "视图不能展开,复杂视图拆解、改写",
+        "risk_name": "存在视图访问",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14192
+    },
+    {
+        "rule_name": "SQL_PARALLEL_FETCH",
+        "db_type": "oracle",
+        "optimized_advice": "取消表、索引、sql中的并行设置",
+        "risk_name": "存在并行访问特征",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14193
+    },
+    {
+        "rule_name": "SQL_MERGE_JOIN_CARTESIAN",
+        "db_type": "oracle",
+        "optimized_advice": "1.表关联条件缺失,加上关联条件, 2.统计信息不准确,手工收集统计信息",
+        "risk_name": "笛卡尔积关联",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14194
+    },
+    {
+        "rule_name": "SQL_TO_CHANGE_TYPE",
+        "db_type": "oracle",
+        "optimized_advice": "1.显式转换, 2.选择合适的字段类型",
+        "risk_name": "隐式转换",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14195
+    },
+    {
+        "rule_name": "LOOP_IN_TAB_FULL_SCAN",
+        "db_type": "oracle",
+        "optimized_advice": "关联列创建索引",
+        "risk_name": "嵌套循环内层表全扫",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14196
+    },
+    {
+        "rule_name": "SQL_LOOP_NUM",
+        "db_type": "oracle",
+        "optimized_advice": "改写sql逻辑减少表关联的数量",
+        "risk_name": "嵌套层次过深",
+        "rule_type": "SQLPLAN",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14197
+    },
+    {
+        "rule_name": "SQL_SUB_CURSOR_COUNT",
+        "db_type": "oracle",
+        "optimized_advice": "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因",
+        "risk_name": "SQL子游标过多",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14198
+    },
+    {
+        "rule_name": "SQL_BUFFER_GETS",
+        "db_type": "oracle",
+        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理",
+        "risk_name": "SQL消耗逻辑读过高",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14199
+    },
+    {
+        "rule_name": "SQL_CPU_TIME",
+        "db_type": "oracle",
+        "optimized_advice": "1.对sql执行计划进行分析并进行优化, 2.SQL执行次数是否合理",
+        "risk_name": "SQL消耗CPU时间过长",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14200
+    },
+    {
+        "rule_name": "SQL_ELAPSED_TIME",
+        "db_type": "oracle",
+        "optimized_advice": "对sql执行次数评估是否合理,能否优化",
+        "risk_name": "SQL执行时间过长",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14201
+    },
+    {
+        "rule_name": "UNION",
+        "db_type": "oracle",
+        "optimized_advice": "改写unionall和sql逻辑中去重",
+        "risk_name": "SQL中出现union",
+        "rule_type": "TEXT",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14202
+    },
+    {
+        "rule_name": "WHERE_FUNC",
+        "db_type": "oracle",
+        "optimized_advice": "1.函数写在表达式右边, 2.应用程序实现函数功能",
+        "risk_name": "查询列上使用表达式",
+        "rule_type": "TEXT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14203
+    },
+    {
+        "rule_name": "LONG_TEXT",
+        "db_type": "oracle",
+        "optimized_advice": "sql改写为精简语句",
+        "risk_name": "SQL文本过长",
+        "rule_type": "TEXT",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14204
+    },
+    {
+        "rule_name": "SQL_DISK_READS",
+        "db_type": "oracle",
+        "optimized_advice": "对sql消耗资源评估是否合理,能否优化",
+        "risk_name": "SQL消耗物理读过高",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14205
+    },
+    {
+        "rule_name": "BAD_JOIN",
+        "db_type": "oracle",
+        "optimized_advice": "改写为innerjoin",
+        "risk_name": "存在全连接或外连接",
+        "rule_type": "TEXT",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14206
+    },
+    {
+        "rule_name": "TOOMANY_IN_LIST",
+        "db_type": "oracle",
+        "optimized_advice": "改用临时表存入变量",
+        "risk_name": "IN List元素过多",
+        "rule_type": "TEXT",
+        "db_model": "OLAP",
+        "severity": "提示",
+        "risk_sql_rule_id": 14207
+    },
+    {
+        "rule_name": "SQL_EXECUTIONS",
+        "db_type": "oracle",
+        "optimized_advice": "对sql执行次数评估是否合理,能否优化",
+        "risk_name": "SQL执行次数过高",
+        "rule_type": "SQLSTAT",
+        "db_model": "OLAP",
+        "severity": "严重",
+        "risk_sql_rule_id": 14208
     }
 ]
