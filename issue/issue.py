@@ -85,7 +85,7 @@ class OnlineIssue(
             self.output_params[output_param.name] = the_output_data_to_this_param
 
     @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue"]:
+    def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue", None, None]:
         pass
 
     @classmethod

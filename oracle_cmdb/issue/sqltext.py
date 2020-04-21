@@ -31,7 +31,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
             the_cmdb: OracleCMDB,
             task_record_id: int,
             schema_name: str,
-            **kwargs) -> Generator["OracleOnlineSQLTextIssue"]:
+            **kwargs) -> Generator["OracleOnlineSQLTextIssue", None, None]:
         single_sqls: [SingleSQLForOnline] = kwargs["single_sqls"]
 
         for single_sql in single_sqls:
@@ -46,7 +46,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
             yield from cls.pack_rule_ret_to_doc(the_rule, ret)
 
     @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineSQLTextIssue"]:
+    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineSQLTextIssue", None, None]:
         task_record_id: int = kwargs["task_record_id"]
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]

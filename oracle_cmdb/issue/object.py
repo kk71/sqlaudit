@@ -21,7 +21,7 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 
     @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineObjectIssue"]:
+    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineObjectIssue", None, None]:
         task_record_id: int = kwargs["task_record_id"]
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]

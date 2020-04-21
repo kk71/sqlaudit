@@ -28,7 +28,7 @@ class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
             the_cmdb: OracleCMDB,
             task_record_id: int,
             schema_name: str,
-            **kwargs) -> Generator["OracleOnlineSQLStatIssue"]:
+            **kwargs) -> Generator["OracleOnlineSQLStatIssue", None, None]:
         sql_ids: [str] = kwargs["sql_ids"]
 
         for sql_id in sql_ids:

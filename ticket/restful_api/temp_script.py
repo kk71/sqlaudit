@@ -7,7 +7,6 @@ import chardet
 import parsed_sql.const
 from utils.schema_utils import *
 from restful_api.modules import *
-from .. import const
 from .base import *
 from ..ticket import *
 

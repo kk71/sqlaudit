@@ -70,7 +70,7 @@ class OracleOnlineIssue(OnlineIssue):
             the_cmdb: OracleCMDB,
             task_record_id: int,
             schema_name: str,
-            **kwargs) -> Generator["OracleOnlineIssue"]:
+            **kwargs) -> Generator["OracleOnlineIssue", None]:
         """单个schema的sqls以单个规则分析"""
         pass
 
@@ -78,7 +78,7 @@ class OracleOnlineIssue(OnlineIssue):
     def pack_rule_ret_to_doc(
             cls,
             the_rule: CMDBRule,
-            ret: list) -> Generator["OracleOnlineIssue"]:
+            ret: list) -> Generator["OracleOnlineIssue", None, None]:
         """统一将规则的返回包装成文档"""
         for minus_score, output_param in ret:
             doc = cls()

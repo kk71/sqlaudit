@@ -41,7 +41,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     @classmethod
     def get_sql_plan_qs(cls,
                         task_record_id: int,
-                        sql_id: str = None) -> Generator[mongoengine_qs]:
+                        sql_id: str = None) -> Generator[mongoengine_qs, None, None]:
         plan_hash_values = SQLPlan.objects(
             task_record_id=task_record_id, sql_id=sql_id).distinct(
             "plan_hash_value")
@@ -55,7 +55,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     @classmethod
     def get_sql_stat_qs(cls,
                         task_record_id: int,
-                        sql_id: str = None) -> Generator[mongoengine_qs]:
+                        sql_id: str = None) -> Generator[mongoengine_qs, None, None]:
         plan_hash_values = SQLStat.objects(
             task_record_id=task_record_id, sql_id=sql_id).distinct(
             "plan_hash_value")
@@ -67,7 +67,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
             )
 
     @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineSQLExecutionIssue"]:
+    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineSQLExecutionIssue", None, None]:
         task_record_id: int = kwargs["task_record_id"]
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]
