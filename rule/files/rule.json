@@ -799,38 +799,32 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -864,32 +858,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -916,32 +905,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -968,32 +952,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1021,32 +1000,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1073,32 +1047,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1125,32 +1094,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1177,32 +1141,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1242,32 +1201,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1305,32 +1259,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1358,38 +1307,32 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1429,32 +1372,27 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "object_name",
                 "desc": "对象名",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "the_id",
                 "desc": "id",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "cost",
                 "desc": "cost",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1488,20 +1426,17 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "",
-                "value": null
+                "unit": "" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "loop_num",
                 "desc": "嵌套次数",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
@@ -1535,20 +1470,17 @@
             {
                 "name": "statement_id",
                 "desc": "SQL ID",
-                "unit": "str",
-                "value": null
+                "unit": "str" 
             },
             {
                 "name": "plan_hash_value",
                 "desc": "执行计划id",
-                "unit": "int",
-                "value": null
+                "unit": "int" 
             },
             {
                 "name": "count",
                 "desc": "计数",
-                "unit": "",
-                "value": null
+                "unit": "" 
             }
         ],
         "max_score": 5,
