@@ -16,7 +16,7 @@ from rule.adapters import CMDBRuleAdapterSQL
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
-    """oracle线上审核sql执行信息问题"""
+    """sql执行信息问题"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_PLAN,)
 

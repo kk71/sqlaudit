@@ -12,6 +12,7 @@ from mongoengine import IntField, StringField
 
 import settings
 import cmdb.const
+from utils.log_utils import grouped_count_logger
 from rule.rule import CMDBRule
 from rule.rule_jar import *
 from issue.issue import *
@@ -70,7 +71,7 @@ class OracleOnlineIssue(OnlineIssue):
             task_record_id: int,
             schema_name: str,
             **kwargs) -> Generator["OracleOnlineIssue"]:
-        """单个schema的sql以单个规则分析"""
+        """单个schema的sqls以单个规则分析"""
         pass
 
     @classmethod
@@ -91,7 +92,24 @@ class OracleOnlineIssue(OnlineIssue):
     @classmethod
     def process(cls, collected=None, **kwargs):
         task_record_id: int = kwargs["task_record_id"]
+        cmdb_id: int = kwargs["cmdb_id"]
         schemas: [str] = kwargs["schemas"]
 
         if collected is None:
             collected = cls.COLLECTED
+        with grouped_count_logger(cls.__doc__, item_type_name="维度") as counter:
+            for i, m in enumerate(collected):
+                i += 1
+                total = len(collected)
+                print(f"* running {i} of {total}: {m.__doc__}")
+                docs = []
+                for schema_name in schemas:
+                    docs += list(m.simple_analyse(
+                        task_record_id=task_record_id,
+                        schema_name=schema_name,
+                        cmdb_id=cmdb_id
+                    ))
+                cls.post_analysed(docs=docs)
+                if docs:
+                    cls.objects.insert(docs)
+                counter(m.__doc__, len(docs))

@@ -19,7 +19,7 @@ from utils.log_utils import *
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
-    """oracle线上审核sql文本问题"""
+    """sql文本问题"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_TEXT,)
 

@@ -15,11 +15,12 @@ from ..capture import SQLText
 
 
 class OracleOnlineSQLIssue(OracleOnlineIssue):
-    """oracle线上审核sql问题"""
+    """sql问题"""
 
     sql_id = StringField(required=True, default=None)
 
     meta = {
+        "allow_inheritance": True,
         "indexes": [
             "sql_id"
         ]

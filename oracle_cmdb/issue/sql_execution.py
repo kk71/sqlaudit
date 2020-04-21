@@ -18,9 +18,16 @@ from utils.log_utils import *
 
 
 class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
-    """oracle线上审核sql运行问题"""
+    """sql运行问题"""
 
     plan_hash_value = IntField(required=True, default=None)
+
+    meta = {
+        "allow_inheritance": True,
+        "indexes": [
+            "plan_hash_value"
+        ]
+    }
 
     @classmethod
     def post_analysed(cls, **kwargs) -> NoReturn:
