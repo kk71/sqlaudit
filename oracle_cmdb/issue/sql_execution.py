@@ -4,7 +4,7 @@ __all__ = [
     "OracleOnlineSQLExecutionIssue"
 ]
 
-from typing import NoReturn, Generator
+from typing import NoReturn, Generator, Tuple
 
 from mongoengine import IntField
 
@@ -41,12 +41,13 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     @classmethod
     def get_sql_plan_qs(cls,
                         task_record_id: int,
-                        sql_id: str = None) -> Generator[mongoengine_qs, None, None]:
+                        sql_id: str = None
+                        ) -> Generator[Tuple[int, mongoengine_qs], None, None]:
         plan_hash_values = SQLPlan.objects(
             task_record_id=task_record_id, sql_id=sql_id).distinct(
             "plan_hash_value")
         for phv in plan_hash_values:
-            yield SQLPlan.objects(
+            yield phv, SQLPlan.objects(
                 task_record_id=task_record_id,
                 sql_id=sql_id,
                 plan_hash_value=phv
@@ -55,12 +56,13 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     @classmethod
     def get_sql_stat_qs(cls,
                         task_record_id: int,
-                        sql_id: str = None) -> Generator[mongoengine_qs, None, None]:
+                        sql_id: str = None
+                        ) -> Generator[Tuple[int, mongoengine_qs], None, None]:
         plan_hash_values = SQLStat.objects(
             task_record_id=task_record_id, sql_id=sql_id).distinct(
             "plan_hash_value")
         for phv in plan_hash_values:
-            yield SQLStat.objects(
+            yield phv, SQLStat.objects(
                 task_record_id=task_record_id,
                 sql_id=sql_id,
                 plan_hash_value=phv

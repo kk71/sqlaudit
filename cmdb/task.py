@@ -45,6 +45,7 @@ class BaseCMDBTask(BaseTask):
                 operator=operator
             )
             session.add(cmdb_task_record)
+        print(f"* going to start a cmdb task {cmdb_task_id=} with {task_record_id=} ...")
         cls.task_instance.delay(task_record_id, **kwargs)
 
     def on_success(self, retval, task_id, args, kwargs):

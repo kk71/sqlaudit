@@ -21,7 +21,8 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 
     @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineObjectIssue", None, None]:
+    def simple_analyse(cls,
+                       **kwargs) -> Generator["OracleOnlineObjectIssue", None, None]:
         task_record_id: int = kwargs["task_record_id"]
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]
@@ -42,5 +43,11 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
                         cmdb_connector=cmdb_connector,
                         schema_name=schema_name
                     )
-                    yield from cls.pack_rule_ret_to_doc(the_rule, ret)
+                    docs = cls.pack_rule_ret_to_doc(the_rule, ret)
+                    cls.post_analysed(
+                        docs=docs,
+                        task_record_id=task_record_id,
+                        schema_name=schema_name
+                    )
+                    yield from docs
                     counter(the_rule.name, len(ret))

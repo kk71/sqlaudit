@@ -32,12 +32,21 @@ class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
         sql_ids: [str] = kwargs["sql_ids"]
 
         for sql_id in sql_ids:
-            ret = CMDBRuleAdapterSQL(the_rule).run(
-                entries=entries,
+            for phv, sqlstat_qs in cls.get_sql_stat_qs(task_record_id, sql_id):
+                ret = CMDBRuleAdapterSQL(the_rule).run(
+                    entries=entries,
 
-                cmdb=the_cmdb,
-                task_record_id=task_record_id,
-                schema_name=schema_name,
-                sql_stat_qs=cls.get_sql_stat_qs(task_record_id, sql_id)
-            )
-            yield from cls.pack_rule_ret_to_doc(the_rule, ret)
+                    cmdb=the_cmdb,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name,
+                    sql_stat_qs=sqlstat_qs
+                )
+                docs = cls.pack_rule_ret_to_doc(the_rule, ret)
+                cls.post_analysed(
+                    docs=docs,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name,
+                    sql_id=sql_id,
+                    plan_hash_value=phv
+                )
+                yield from docs
