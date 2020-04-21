@@ -90,7 +90,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         :param kwargs:
         :return:
         """
-        from rule.rule import CMDBRule
+        from rule.cmdb_rule import CMDBRule
         from .sub_ticket import SubTicket
 
         print(f"calculating total score for {self.ticket_id}...")

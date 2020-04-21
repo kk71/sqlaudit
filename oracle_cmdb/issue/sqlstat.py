@@ -10,7 +10,7 @@ import rule.const
 from ..cmdb import OracleCMDB
 from .base import OracleOnlineIssue
 from .sql_execution import OracleOnlineSQLExecutionIssue
-from rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 from rule.adapters import CMDBRuleAdapterSQL
 
 

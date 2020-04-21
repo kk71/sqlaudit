@@ -4,7 +4,7 @@ __all__ = [
     "CMDBRuleAdapterSQL"
 ]
 
-from .rule import CMDBRule
+from .cmdb_rule import CMDBRule
 from parsed_sql.single_sql import *
 from cmdb.cmdb import CMDB
 

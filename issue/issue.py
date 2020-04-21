@@ -9,6 +9,7 @@ from typing import Union, Generator
 from mongoengine import StringField, FloatField, DictField, IntField, ListField
 
 import core.issue
+import rule.cmdb_rule
 import rule.rule
 import rule.exceptions
 import rule.const
@@ -57,7 +58,7 @@ class OnlineIssue(
         return RuleJar.gen_jar_with_entries(*entries, db_type=db_type, **kwargs)
 
     def as_issue_of(self,
-                    the_rule: rule.rule.CMDBRule,
+                    the_rule: rule.cmdb_rule.CMDBRule,
                     output_data: dict,
                     minus_score: Union[int, float], **kwargs):
         """

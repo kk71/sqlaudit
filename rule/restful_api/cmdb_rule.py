@@ -4,7 +4,7 @@ from mongoengine import NotUniqueError
 
 from restful_api.modules import *
 from utils.schema_utils import *
-from ..rule import CMDBRule
+from ..cmdb_rule import CMDBRule
 from .base import *
 
 

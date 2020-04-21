@@ -12,7 +12,7 @@ from ..cmdb import OracleCMDB
 from .base import OracleOnlineIssue
 from .sql import OracleOnlineSQLIssue
 from ..single_sql import SingleSQLForOnline
-from rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 from rule.adapters import CMDBRuleAdapterSQL
 from utils.log_utils import *
 

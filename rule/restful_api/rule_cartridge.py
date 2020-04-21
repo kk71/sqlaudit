@@ -5,7 +5,7 @@ from mongoengine import NotUniqueError
 import cmdb.const
 from restful_api.modules import *
 from utils.schema_utils import *
-from ..rule import RuleCartridge
+from ..rule_cartridge import RuleCartridge
 from .base import *
 
 

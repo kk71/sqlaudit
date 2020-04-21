@@ -1,10 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "RuleCartridge",
-    "CMDBRule",
     "RuleInputParams",
     "RuleOutputParams",
+    "BaseRule"
 ]
 
 import traceback
@@ -17,10 +16,10 @@ from schema import Or, SchemaError, Use
 import core.rule
 import core.issue
 import cmdb.const
+from models.mongoengine import *
 from utils.schema_utils import *
 from . import exceptions
 from . import const
-from models.mongoengine import *
 
 
 class RuleParams(EmbeddedDocument):
@@ -98,6 +97,23 @@ class BaseRule(
         default=const.RULE_LEVEL_WARNING,
         choices=const.ALL_RULE_LEVELS)  # 规则等级
 
+    # 记录基础规则的全部字段名
+    ALL_KEYS = (
+        "name",
+        "desc",
+        "db_type",
+        "entries",
+        "input_params",
+        "output_params",
+        "code",
+        "status",
+        "summary",
+        "solution",
+        "weight",
+        "max_score",
+        "level"
+    )
+
     meta = {
         "abstract": True,
         'indexes': [
@@ -108,8 +124,6 @@ class BaseRule(
             "level"
         ],
     }
-
-    UNIQUE_KEYS = ("db_type", "name")
 
     def __init__(self, *args, **kwargs):
         super(BaseRule, self).__init__(*args, **kwargs)
@@ -261,36 +275,4 @@ code_hole.append(code)  # 务必加上这一句
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.objects.filter(status=True).filter(*args, **kwargs)
-
-
-class RuleCartridge(BaseRule):
-    """规则墨盒"""
-
-    db_model = StringField(
-        required=True, null=False, choices=cmdb.const.ALL_DB_MODEL)
-
-    UNIQUE_KEYS = ("db_type", "db_model", "name")
-
-    meta = {
-        "collection": "rule_cartridge",
-        "indexes": [
-            {'fields': UNIQUE_KEYS, 'unique': True},
-        ]
-    }
-
-
-class CMDBRule(BaseRule):
-    """纳管库规则"""
-
-    cmdb_id = IntField(required=True, null=False)
-
-    UNIQUE_KEYS = ("cmdb_id", "name")
-
-    meta = {
-        "collection": "cmdb_rule",
-        "indexes": [
-            {'fields': UNIQUE_KEYS, 'unique': True},
-            "cmdb_id"
-        ]
-    }
 

@@ -9,7 +9,7 @@ from models import init_models
 init_models()
 
 import rule.const
-from rule.rule import RuleCartridge
+from rule.rule_cartridge import RuleCartridge
 
 
 def main():

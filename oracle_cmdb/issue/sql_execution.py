@@ -13,7 +13,7 @@ from models.mongoengine import *
 from ..capture import SQLPlan, SQLStat
 from ..cmdb import OracleCMDB
 from .sql import OracleOnlineSQLIssue
-from rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 from utils.log_utils import *
 
 

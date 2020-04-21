@@ -8,7 +8,7 @@ from typing import Generator
 
 import rule.const
 from models.sqlalchemy import *
-from rule.rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 from .base import *
 from utils.log_utils import *
 from ..cmdb import *

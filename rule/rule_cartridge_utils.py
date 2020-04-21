@@ -8,7 +8,7 @@ __all__ = [
 
 import json
 
-from rule.rule import RuleCartridge
+from rule.rule_cartridge import RuleCartridge
 
 
 def rule_import(filename) -> tuple:

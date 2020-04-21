@@ -13,7 +13,7 @@ from mongoengine import IntField, StringField
 import settings
 import cmdb.const
 from utils.log_utils import grouped_count_logger
-from rule.rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 from rule.rule_jar import *
 from issue.issue import *
 from ..cmdb import OracleCMDB

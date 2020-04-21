@@ -5,8 +5,6 @@ from .rule_cartridge_utils import *
 from .rule_jar import *
 
 __all__ = [
-    "CMDBRule",
-    "RuleCartridge",
     "RuleInputParams",
     "RuleOutputParams",
     "RuleJar",

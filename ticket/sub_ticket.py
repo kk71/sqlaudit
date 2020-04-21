@@ -17,7 +17,7 @@ from core.ticket import *
 from core.issue import *
 from models.mongoengine import *
 from .ticket import TicketScript
-from rule.rule import CMDBRule
+from rule.cmdb_rule import CMDBRule
 
 
 class SubTicketIssue(

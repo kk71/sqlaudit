@@ -1,17 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from pathlib import Path
-
 import click
 
-import settings
 from models import init_models
 
 # initiate database models/connections
 
 init_models()
 
-from rule.rule import RuleCartridge
+from rule.rule_cartridge import RuleCartridge
 
 
 @click.option(
@@ -20,21 +17,19 @@ from rule.rule import RuleCartridge
     default=False,
     type=click.BOOL)
 def main(compare: bool):
-    """FOR DEVELOPMENT: import rule code from ticket_rules"""
+    """FOR DEVELOPMENT: import rule code to rule_cartridge"""
     if compare:
         print("=== compare only ===")
     different_codes = []
     not_imported_rules = []
     for tr in RuleCartridge.objects().all():
         try:
-            code_file = Path(settings.SETTINGS_FILE_DIR) / \
-                        f"new_rule/ticket-rules/{tr.db_type}/" \
-                        f"{tr.name}.py"
+            code_file = RuleCartridge.CODE_FILES_DIR / f"{tr.db_type}/{tr.name}.py"
             if not code_file.exists():
                 raise Exception(f"code file {code_file} not existed.")
             if not code_file.is_file():
                 raise Exception(f"{code_file} is not a file.")
-            with open(code_file, "r") as z:
+            with open(str(code_file), "r") as z:
                 new_code = z.read()
                 if tr.code != new_code:
                     different_codes.append(tr.unique_key())
