@@ -6,7 +6,7 @@ from models import init_models
 
 init_models()
 
-from rule.export_utils import rule_drop
+from rule.rule_cartridge_utils import rule_drop
 
 
 def main():

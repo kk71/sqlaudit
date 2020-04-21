@@ -53,3 +53,17 @@ ALL_RULE_PARAM_TYPES = (
     RULE_PARAM_TYPE_NUM := "NUM",
     RULE_PARAM_TYPE_LIST := "LIST"
 )
+
+
+# 当需要从规则墨盒更新规则到纳管库规则的时候，哪些字段不更新
+
+KEYS_NOT_SYNCHRONIZED_FROM_RULE_CARTRIDGE = (
+    "level",
+)
+
+
+# 哪些字段如果两者不一致，询问是否要更新
+
+WARN_KEYS_TO_SYNCHRONIZE_WHEN_DIFFERENT = (
+    "input_params",
+)

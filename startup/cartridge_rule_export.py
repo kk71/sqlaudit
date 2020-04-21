@@ -8,7 +8,7 @@ from models import init_models
 
 init_models()
 
-from rule.export_utils import rule_export
+from rule.rule_cartridge_utils import rule_export
 
 
 @click.option(
