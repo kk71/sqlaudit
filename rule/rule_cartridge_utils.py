@@ -18,9 +18,9 @@ def rule_import(filename) -> tuple:
     rules_to_import = []
     for rule in rules:
         the_rule = RuleCartridge()
-        the_rule.from_dict(rule, iter_if=lambda k, v: k not in ("_id", "id"))
-        if RuleCartridge.objects(**the_rule.to_dict(iter_if=lambda k, v: k in (
-                "db_type", "name"))).count():
+        the_rule.from_dict(rule, iter_if=lambda k, v: k not in (
+            "_id", "id", "create_time"))
+        if RuleCartridge.objects(**the_rule.unique_key(as_dict=True)).count():
             print(f"this ticket rule existed: {the_rule.unique_key()}")
             continue
         rules_to_import.append(the_rule)

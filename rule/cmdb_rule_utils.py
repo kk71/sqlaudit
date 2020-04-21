@@ -1,12 +1,25 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
+    "initiate_cmdb_rule",
     "cmdb_rule_update"
 ]
 
 from models.sqlalchemy import *
 from cmdb.cmdb import CMDB
+from .rule import CMDBRule, RuleCartridge
 from . import const
+
+
+def initiate_cmdb_rule(cmdb_id: int, db_type: str, db_model: str):
+    """
+    给一个纳管库分配纳管库规则
+    :param cmdb_id:
+    :param db_type:
+    :param db_model:
+    :return:
+    """
+    return
 
 
 def cmdb_rule_update(

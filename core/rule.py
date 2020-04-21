@@ -26,6 +26,8 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
     create_time = None  # 创建时间
     update_time = None  # 修改时间
 
+    UNIQUE_KEYS = ()
+
     def __init__(self, *args, **kwargs):
         self._code = None  # 已构建的规则python函数引用
 
@@ -46,9 +48,12 @@ class BaseRuleItem(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def unique_key(self) -> tuple:
+    def unique_key(self, as_dict=False) -> Union[tuple, dict]:
         """返回一个规则的唯一标识"""
-        pass
+        unique_keys = tuple([getattr(self, i) for i in self.UNIQUE_KEYS])
+        if not as_dict:
+            return unique_keys
+        return dict(zip(self.UNIQUE_KEYS, unique_keys))
 
 
 class BaseRuleJar(abc.ABC):

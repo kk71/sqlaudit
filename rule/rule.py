@@ -109,6 +109,8 @@ class BaseRule(
         ],
     }
 
+    UNIQUE_KEYS = ("db_type", "name")
+
     def __init__(self, *args, **kwargs):
         super(BaseRule, self).__init__(*args, **kwargs)
         self._code: Union[Callable, None] = None
@@ -170,9 +172,6 @@ code_hole.append(code)  # 务必加上这一句
         """
         return {i["name"]: i["value"]
                 for i in self.to_dict()["input_params"]}[param_name]
-
-    def unique_key(self) -> tuple:
-        return self.db_type, self.name
 
     @staticmethod
     def construct_code(code: str) -> Callable:
@@ -270,15 +269,14 @@ class RuleCartridge(BaseRule):
     db_model = StringField(
         required=True, null=False, choices=cmdb.const.ALL_DB_MODEL)
 
+    UNIQUE_KEYS = ("db_type", "db_model", "name")
+
     meta = {
         "collection": "rule_cartridge",
         "indexes": [
-            {'fields': ("db_type", "db_model", "name"), 'unique': True},
+            {'fields': UNIQUE_KEYS, 'unique': True},
         ]
     }
-
-    def unique_key(self) -> tuple:
-        return self.db_type, self.db_model, self.name
 
 
 class CMDBRule(BaseRule):
@@ -286,13 +284,13 @@ class CMDBRule(BaseRule):
 
     cmdb_id = IntField(required=True, null=False)
 
+    UNIQUE_KEYS = ("cmdb_id", "name")
+
     meta = {
         "collection": "cmdb_rule",
         "indexes": [
-            {'fields': ("cmdb_id", "name"), 'unique': True},
+            {'fields': UNIQUE_KEYS, 'unique': True},
             "cmdb_id"
         ]
     }
 
-    def unique_key(self) -> tuple:
-        return self.cmdb_id, self.name
