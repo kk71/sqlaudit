@@ -1,5 +1,5 @@
 import re
-from utils.const import MODEL_OLTP
+from cmdb.const import MODEL_OLTP
 
 
 def code(rule, entries, **kwargs):

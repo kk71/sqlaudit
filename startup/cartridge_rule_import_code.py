@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import traceback
+
 import click
 
 from models import init_models
@@ -38,12 +40,12 @@ def main(compare: bool):
                         tr.test()
                         tr.save()
         except Exception as e:
-            print(e)
+            print(traceback.format_exc())
             not_imported_rules.append(str(tr))
     if not compare:
-        print(f"{len(not_imported_rules)} rules not updated "
-              f"due to local code file not found: {not_imported_rules}")
         print(f"{len(different_codes)} rules updated in code: {different_codes}")
+        print(f"{len(not_imported_rules)} rules not updated "
+              f"with exceptions above: {not_imported_rules}")
     else:
         print(f"{len(different_codes)} rules different in code "
               f"and local code files: {different_codes}")

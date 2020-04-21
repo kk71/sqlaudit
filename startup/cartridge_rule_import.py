@@ -19,7 +19,7 @@ from rule.rule_cartridge_utils import rule_import
     type=click.STRING)
 def main(filename):
     """import rule cartridge, deduplicated."""
-    print(f"going to import ticket rules from {filename} ...")
+    print(f"going to import rule cartridge from {filename} ...")
     imported_num = rule_import(filename)
     print(f"{imported_num} rule(s) imported.")
 

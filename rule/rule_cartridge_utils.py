@@ -8,6 +8,7 @@ __all__ = [
 
 import json
 
+import cmdb.const
 from rule.rule_cartridge import RuleCartridge
 
 
@@ -17,6 +18,10 @@ def rule_import(filename) -> tuple:
         rules = json.load(z)
     rules_to_import = []
     for rule in rules:
+        if "db_model" not in rule.keys():
+            rule["db_model"] = cmdb.const.MODEL_OLTP
+            print(f"this one has no db_model, "
+                  f"and give it {cmdb.const.MODEL_OLTP} as default: {rule}")
         the_rule = RuleCartridge()
         the_rule.from_dict(rule, iter_if=lambda k, v: k not in (
             "_id", "id", "create_time"))

@@ -130,9 +130,8 @@ class BaseRule(
         self._code: Union[Callable, None] = None
 
     def __str__(self):
-        return f"<{self.__class__} " + "-".join(
-            [str(i) for i in self.unique_key() if i is not None] +
-            [str(self.entries)]
+        return f"<Rule " + "-".join(
+            [str(i) for i in self.unique_key() if i is not None]
         ) + ">"
 
     @classmethod
