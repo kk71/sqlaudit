@@ -14,21 +14,30 @@ from .rule_cartridge import RuleCartridge
 from .cmdb_rule import CMDBRule
 
 
-def initiate_cmdb_rule(cmdb_id: int, db_type: str, db_model: str) -> int:
+def initiate_cmdb_rule(
+        cmdb_id: int,
+        clear_first: bool = True) -> int:
     """
     给一个纳管库分配纳管库规则
     :param cmdb_id:
-    :param db_type:
-    :param db_model:
+    :param clear_first: 是否先清空目标纳管库的规则
     :return: 插入的纳管库规则数
     """
-    rules = RuleCartridge.objects(
-        cmdb_id=cmdb_id, db_type=db_type, db_model=db_model)
+    if clear_first:
+        num = CMDBRule.objects(cmdb_id=cmdb_id).delete()
+        print(f"{num} cmdb-rules are deleted in cmdb({cmdb_id}).")
+    with make_session() as session:
+        the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+        db_type = the_cmdb.db_type
+        db_model = the_cmdb.db_model
+    rules = RuleCartridge.objects(db_type=db_type, db_model=db_model)
     rules_to_insert_into_cmdb_rule = []
     for a_rule_cartridge in rules:
         a_cmdb_rule = CMDBRule(cmdb_id=cmdb_id)
         a_cmdb_rule.from_rule_cartridge(a_rule_cartridge, force=True)
         rules_to_insert_into_cmdb_rule.append(a_cmdb_rule)
+    if not rules_to_insert_into_cmdb_rule:
+        return 0
     return len(CMDBRule.objects.insert(rules_to_insert_into_cmdb_rule))
 
 
