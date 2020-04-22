@@ -176,7 +176,7 @@
         "rule_name": "USE_PROCEDURE",
         "rule_complexity": "simple",
         "rule_cmd": "select object_name, object_type from dba_objects where object_type = 'PROCEDURE' and owner = '@username@' order by object_type",
-        "rule_status": "OFF",
+        "rule_status": "ON",
         "rule_summary": "存储过程,将影响数据库的异构迁移能力,并存在代码维护性较差等原因。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -314,7 +314,7 @@
         "rule_name": "COL_WRONG_TYPE",
         "rule_complexity": "complex",
         "rule_cmd": "default",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "此规则会抽样部分数据,分析其定义类型与存储类型是否相符。常见问题如用数字、文本保存日期等。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -439,7 +439,7 @@
         "rule_name": "COUNT_SUMPART_SINGLE_TAB",
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, count(1)  from DBA_TAB_PARTITIONS t where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name having count(1) >= @part_tab_num@",
-        "rule_status": "OFF",
+        "rule_status": "ON",
         "rule_summary": "分区表中分区数量过多,将导致整体维护成本过高,可调整分区粒度。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -878,7 +878,7 @@
                 "parm_desc": "索引物理大小",
                 "parm_name": "ind_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 100.0
+                "parm_value": 2048
             }
         ],
         "max_score": 10,
@@ -1089,13 +1089,13 @@
                 "parm_desc": "表物理大小",
                 "parm_name": "table_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 2048
+                "parm_value": 100
             },
             {
                 "parm_desc": "表行数",
                 "parm_name": "table_row_num",
                 "parm_unit": "",
-                "parm_value": 100000
+                "parm_value": 1000
             }
         ],
         "max_score": 20,
@@ -1463,7 +1463,7 @@
                 "parm_desc": "索引物理大小",
                 "parm_name": "ind_phy_size",
                 "parm_unit": "MB",
-                "parm_value": 20480
+                "parm_value": 2048
             }
         ],
         "max_score": 5,
@@ -2364,7 +2364,7 @@
                 "parm_desc": "表嵌套的层次",
                 "parm_name": "loop_num",
                 "parm_unit": "",
-                "parm_value": 1
+                "parm_value": 3
             }
         ],
         "max_score": 5,
@@ -3102,7 +3102,7 @@
         "output_parms": [],
         "rule_desc": "查询列上使用表达式",
         "rule_name": "WHERE_FUNC",
-        "rule_complexity": "simple",
+        "rule_complexity": "complex",
         "rule_cmd": "wheres+.*?[+\\-*/()].*[<>=]{1,2}?",
         "rule_status": "ON",
         "rule_summary": "禁止在查询字段中引用函数",
@@ -4698,7 +4698,7 @@
         "rule_name": "COL_WRONG_TYPE",
         "rule_complexity": "complex",
         "rule_cmd": "default",
-        "rule_status": "ON",
+        "rule_status": "OFF",
         "rule_summary": "此规则会抽样部分数据,分析其定义类型与存储类型是否相符。常见问题如用数字、文本保存日期等。",
         "rule_type": "OBJ",
         "rule_type_detail": null,
@@ -6540,7 +6540,7 @@
         "output_parms": [],
         "rule_desc": "查询列上使用表达式",
         "rule_name": "WHERE_FUNC",
-        "rule_complexity": "simple",
+        "rule_complexity": "complex",
         "rule_cmd": "wheres+.*?[+\\-*/()].*[<>=]{1,2}?",
         "rule_status": "ON",
         "rule_summary": "禁止在查询字段中引用函数",
