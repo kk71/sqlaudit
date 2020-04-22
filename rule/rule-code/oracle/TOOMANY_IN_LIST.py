@@ -11,7 +11,7 @@ def code(rule, entries, **kwargs):
         if 'select' not in x.lower()
     ]
     for value in sql_content:
-        if value.count(",") > rule.gip("in_list_num") - 1:
+        if value.count(",") >= rule.gip("in_list_num") - 1:
             yield {}
 
 

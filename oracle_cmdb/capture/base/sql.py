@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 from datetime import datetime
-from typing import NoReturn
+from typing import NoReturn, List
 
 import arrow
 from mongoengine import IntField, StringField
@@ -291,3 +291,35 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
                             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY
                         )
                         schema_counter_yesterday(a_schema, yesterday_captured)
+
+    @classmethod
+    def aggregate(cls,
+                  match_append: dict = None,
+                  group_id_append: dict = None,
+                  two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY) -> List:
+        """专门为规则写的聚合简化代码"""
+
+        if not match_append:
+            match_append = {}
+        if not group_id_append:
+            group_id_append = {}
+
+        return cls.objects.aggregate(
+            {
+                "$match": {
+                    "two_days_capture": two_days_capture,
+                    **match_append
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "sql_id": "$sql_id",
+                        "plan_hash_value": "$plan_hash_value",
+                        "the_id": "$the_id",
+                        **group_id_append
+                    },
+                    "count": {"$sum": 1}
+                }
+            }
+        )

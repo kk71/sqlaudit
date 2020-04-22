@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if len(re.compile(r"\s+or\s+", re.I+re.M).findall(sql_text))\
-            > rule.gip("or_num"):
+            >= rule.gip("or_num"):
         yield {}
 
 

@@ -4,11 +4,12 @@ __all__ = [
     "SQLPlan"
 ]
 
-from typing import NoReturn
+from typing import NoReturn, List
 
 from mongoengine import StringField, IntField
 
 from .base import TwoDaysSQLCapturingDoc
+from .. import const
 
 
 @TwoDaysSQLCapturingDoc.need_collect()
@@ -165,3 +166,10 @@ FROM
                 if doc.options:
                     doc.operation_display_with_options = \
                         doc.operation_display + " " + doc.options
+
+    @classmethod
+    def aggregate(cls, **kwargs) -> List:
+        group_id_append = kwargs.pop("group_id_append", {})
+        group_id_append["the_id"] = "$the_id"
+        return super().aggregate(
+            group_id_append=group_id_append, **kwargs)
