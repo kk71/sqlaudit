@@ -256,7 +256,7 @@ code_hole.append(code)  # 务必加上这一句
                                 dict
                             ),
                             Use(
-                                lambda x: (None, x)
+                                lambda x: (-self.weight, x)
                                 if isinstance(x, dict)
                                 else scm_raise_error(f"no minus_score is given,"
                                                      f" and the return data is "

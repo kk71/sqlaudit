@@ -6,7 +6,7 @@ __all__ = [
 
 import abc
 import os.path
-from typing import NoReturn, Generator
+from typing import NoReturn, Generator, List
 
 from mongoengine import IntField, StringField
 
@@ -78,8 +78,9 @@ class OracleOnlineIssue(OnlineIssue):
     def pack_rule_ret_to_doc(
             cls,
             the_rule: CMDBRule,
-            ret: list) -> Generator["OracleOnlineIssue", None, None]:
+            ret: list) -> List["OracleOnlineIssue"]:
         """统一将规则的返回包装成文档"""
+        docs = []
         for minus_score, output_param in ret:
             doc = cls()
             doc.as_issue_of(
@@ -87,7 +88,8 @@ class OracleOnlineIssue(OnlineIssue):
                 output_data=output_param,
                 minus_score=minus_score
             )
-            yield doc
+            docs.append(doc)
+        return docs
 
     @classmethod
     def process(cls, collected=None, **kwargs):

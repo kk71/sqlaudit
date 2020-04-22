@@ -14,7 +14,6 @@ from ..capture import SQLPlan, SQLStat
 from ..cmdb import OracleCMDB
 from .sql import OracleOnlineSQLIssue
 from rule.cmdb_rule import CMDBRule
-from utils.log_utils import *
 
 
 class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
@@ -81,16 +80,15 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-            with grouped_count_logger(
-                    cls.__doc__, item_type_name="rule") as counter:
-                for the_rule in rule_jar:
-                    docs = list(cls._single_rule_analyse(
-                        the_rule=the_rule,
-                        entries=entries,
-                        the_cmdb=the_cmdb,
-                        task_record_id=task_record_id,
-                        schema_name=schema_name,
-                        sql_ids=sql_ids
-                    ))
-                    counter(the_rule.name, len(docs))
-                    yield from docs
+            for the_rule in rule_jar:
+                # 这里因为上面返回的是个生成器，必须用list
+                docs = list(cls._single_rule_analyse(
+                    the_rule=the_rule,
+                    entries=entries,
+                    the_cmdb=the_cmdb,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name,
+                    sql_ids=sql_ids
+                ))
+                yield from docs
+

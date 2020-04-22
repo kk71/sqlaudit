@@ -25,6 +25,6 @@ def main():
         OracleOnlineIssue.collect()
         OracleOnlineIssue.process(
             cmdb_id=cmdb_id,
-            task_record_id=29,
+            task_record_id=32,
             schemas=the_cmdb.get_bound_schemas(session)
         )

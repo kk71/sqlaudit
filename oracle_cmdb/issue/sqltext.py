@@ -16,7 +16,6 @@ from .sql import OracleOnlineSQLIssue
 from ..single_sql import SingleSQLForOnline
 from rule.cmdb_rule import CMDBRule
 from rule.adapters import CMDBRuleAdapterSQL
-from utils.log_utils import *
 from ..capture.sqltext import SQLText
 
 
@@ -72,19 +71,17 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-            with grouped_count_logger(
-                    cls.__doc__, item_type_name="rule") as counter:
-                for the_rule in rule_jar:
-                    docs = list(cls._single_rule_analyse(
-                        the_rule=the_rule,
-                        entries=entries,
-                        the_cmdb=the_cmdb,
-                        task_record_id=task_record_id,
-                        schema_name=schema_name,
-                        sqltext=sqltext
-                    ))
-                    counter(the_rule.name, len(docs))
-                    yield from docs
+            for the_rule in rule_jar:
+                # 这里因为上面返回的是个生成器，必须用list
+                docs = list(cls._single_rule_analyse(
+                    the_rule=the_rule,
+                    entries=entries,
+                    the_cmdb=the_cmdb,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name,
+                    sqltext=sqltext
+                ))
+                yield from docs
 
     @classmethod
     def post_analysed(cls, **kwargs) -> NoReturn:
@@ -92,6 +89,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
         short_sql_text: str = kwargs["short_sql_text"]
         longer_sql_text: str = kwargs["longer_sql_text"]
 
+        super().post_analysed(**kwargs)
         for doc in docs:
             doc.short_sql_text = short_sql_text
             doc.longer_sql_text = longer_sql_text

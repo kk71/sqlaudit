@@ -10,7 +10,6 @@ import rule.const
 from models.sqlalchemy import *
 from rule.cmdb_rule import CMDBRule
 from .base import *
-from utils.log_utils import *
 from ..cmdb import *
 
 
@@ -32,22 +31,19 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
             rule_jar: [CMDBRule] = cls.generate_rule_jar()
             entries = cls.inherited_entries()
             cmdb_connector = cmdb.build_connector()
-            with grouped_count_logger(
-                    cls.__doc__, item_type_name="rule") as counter:
-                for the_rule in rule_jar:
-                    ret = the_rule.run(
-                        entries=entries,
+            for the_rule in rule_jar:
+                ret = the_rule.run(
+                    entries=entries,
 
-                        cmdb=cmdb,
-                        task_record_id=task_record_id,
-                        cmdb_connector=cmdb_connector,
-                        schema_name=schema_name
-                    )
-                    docs = cls.pack_rule_ret_to_doc(the_rule, ret)
-                    cls.post_analysed(
-                        docs=docs,
-                        task_record_id=task_record_id,
-                        schema_name=schema_name
-                    )
-                    yield from docs
-                    counter(the_rule.name, len(ret))
+                    cmdb=cmdb,
+                    task_record_id=task_record_id,
+                    cmdb_connector=cmdb_connector,
+                    schema_name=schema_name
+                )
+                docs = cls.pack_rule_ret_to_doc(the_rule, ret)
+                cls.post_analysed(
+                    docs=docs,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name
+                )
+                yield from docs

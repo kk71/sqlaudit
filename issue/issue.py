@@ -75,7 +75,10 @@ class OnlineIssue(
         self.level = the_rule.level
         self.max_score = the_rule.max_score
         self.weight = the_rule.weight
-        self.input_params = [i for i in the_rule.to_dict()["input_params"]]
+        self.input_params = {
+            i["name"]: i["value"]
+            for i in the_rule.to_dict()["input_params"]
+        }
         self.entries = list(the_rule.entries)
         self.minus_score = minus_score
         for output_param in the_rule.output_params:
