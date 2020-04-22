@@ -1,12 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OnlineIssue"
+    "OnlineIssue",
+    "OnlineIssueOutputParams"
 ]
 
 from typing import Union, Generator
 
-from mongoengine import StringField, FloatField, DictField, IntField, ListField
+from mongoengine import StringField, FloatField, DictField, IntField,\
+    ListField, EmbeddedDocumentField, DynamicEmbeddedDocument
 
 import core.issue
 import rule.cmdb_rule
@@ -15,6 +17,16 @@ import rule.exceptions
 import rule.const
 from rule.rule_jar import *
 from models.mongoengine import *
+
+
+class OnlineIssueOutputParams(DynamicEmbeddedDocument):
+    """
+    线上审核问题输出
+    注意：这个嵌入式文档是动态的，意味着字段可以变动。这里只是起到一个提示作用
+    """
+
+    # 一句话描述当前问题的关键（应当是人能通读的表述）
+    issue_desc = StringField(required=True, default="")
 
 
 class OnlineIssue(
@@ -31,7 +43,7 @@ class OnlineIssue(
     weight = FloatField()
     max_score = FloatField(required=True)
     input_params = DictField(default=lambda: {})  # 输入参数快照
-    output_params = DictField(default=lambda: {})  # 运行输出
+    output_params = EmbeddedDocumentField(OnlineIssueOutputParams)  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
     level = IntField()  # 规则优先级
 
@@ -85,8 +97,13 @@ class OnlineIssue(
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             if not output_param.validate_data_type(the_output_data_to_this_param):
                 raise rule.exceptions.RuleCodeInvalidParamTypeException(
-                    f"{str(the_rule)}-{output_param.name}: {the_output_data_to_this_param}")
-            self.output_params[output_param.name] = the_output_data_to_this_param
+                    f"{str(the_rule)}-{output_param.name}:"
+                    f" {the_output_data_to_this_param}")
+            setattr(
+                self.output_params,
+                output_param.name,
+                the_output_data_to_this_param
+            )
 
     @classmethod
     def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue", None, None]:

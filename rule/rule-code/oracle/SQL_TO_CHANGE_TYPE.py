@@ -9,14 +9,7 @@ def code(rule, entries, **kwargs):
     )
 
     for x in plans:
-        return -rule.weight, [
-            x.statement_id,
-            x.plan_id,
-            x.object_name,
-            x.the_id,
-            x.cost
-        ]
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

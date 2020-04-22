@@ -4,7 +4,6 @@ __all__ = [
     "OracleOnlineIssue"
 ]
 
-import abc
 import os.path
 from typing import NoReturn, Generator, List
 
@@ -45,7 +44,10 @@ class OracleOnlineIssue(OnlineIssue):
     @classmethod
     def generate_rule_jar(cls, **kwargs) -> RuleJar:
         return super().generate_rule_jar(
-            db_type=cmdb.const.DB_ORACLE, **kwargs)
+            db_type=cmdb.const.DB_ORACLE,
+            entries=cls.inherited_entries(),
+            **kwargs
+        )
 
     @staticmethod
     def build_connector(cmdb_id: int):
@@ -62,23 +64,10 @@ class OracleOnlineIssue(OnlineIssue):
             doc.schema_name = schema_name
 
     @classmethod
-    @abc.abstractmethod
-    def _single_rule_analyse(
-            cls,
-            the_rule: CMDBRule,
-            entries: [str],
-            the_cmdb: OracleCMDB,
-            task_record_id: int,
-            schema_name: str,
-            **kwargs) -> Generator["OracleOnlineIssue", None, None]:
-        """单个schema的sqls以单个规则分析"""
-        pass
-
-    @classmethod
     def pack_rule_ret_to_doc(
             cls,
             the_rule: CMDBRule,
-            ret: list) -> List["OracleOnlineIssue"]:
+            ret: Generator[dict, None, None]) -> List["OracleOnlineIssue"]:
         """统一将规则的返回包装成文档"""
         docs = []
         for minus_score, output_param in ret:

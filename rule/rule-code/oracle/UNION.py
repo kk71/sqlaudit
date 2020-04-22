@@ -8,8 +8,7 @@ def code(rule, entries, **kwargs):
     pat = re.compile(r"\s+union\s+", re.I+re.M)
 
     if pat.findall(sql_text):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

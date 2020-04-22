@@ -6,16 +6,28 @@ __all__ = [
 
 from typing import Generator
 
+from mongoengine import StringField, EmbeddedDocumentField
+
 import rule.const
 from models.sqlalchemy import *
 from rule.cmdb_rule import CMDBRule
+from issue.issue import OnlineIssueOutputParams
 from .base import *
 from ..cmdb import *
+
+
+class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
+    """针对对象的输出字段"""
+
+    object_name = StringField(required=True, default=None)
+    object_type = StringField(required=True, default=None)
 
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
+
+    output_params = EmbeddedDocumentField(OracleOnlineIssueOutputParamsObject)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 

@@ -9,8 +9,7 @@ def code(rule, entries, **kwargs):
         options=re.compile(r"BY GLOBAL INDEX ROWID", re.I)
     )
     if plans.count():
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

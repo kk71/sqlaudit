@@ -12,8 +12,7 @@ def code(rule, entries, **kwargs):
     ]
     for value in sql_content:
         if value.count(",") > rule.gip("in_list_num") - 1:
-            return -rule.weight, []
-    return None, []
+            yield {}
 
 
 code_hole.append(code)

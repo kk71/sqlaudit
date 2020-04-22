@@ -13,6 +13,7 @@ from mongoengine import EmbeddedDocument, StringField, DynamicField, \
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
 from schema import Or, SchemaError, Use
 
+import settings
 import core.rule
 import core.issue
 import cmdb.const
@@ -208,7 +209,7 @@ code_hole.append(code)  # 务必加上这一句
             input_param.validate_input_data()
         if getattr(self, "_code", None):
             delattr(self, "_code")
-        print(f"* generating code for {str(self)} (test only)...")
+        print(f"* generating code of {str(self)} (test only)...")
         self.construct_code(self.code)
 
     def run(
@@ -223,11 +224,11 @@ code_hole.append(code)  # 务必加上这一句
         """
         try:
             if not getattr(self, "_code", None):
-                print(f"* generating and running code of {str(self)} ...")
+                print(f"* generating code of {str(self)} ...")
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = self.construct_code(self.code)
-            else:
-                print(f"* running {str(self)} ...")
+            if settings.RULE_DEBUG:
+                print(f"* running {str(self)}: {entries=} {kwargs=} ...")
             ret = list(self._code(self, entries, **kwargs))
 
         except Exception as e:

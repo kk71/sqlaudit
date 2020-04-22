@@ -16,11 +16,10 @@ def code(rule, entries, **kwargs):
             stop = i - 1
             sql_content.append(sql_text[start:stop])
     for value in sql_content:
-        if "select" in value and value not in subquery:
+        if "select" in value.lower() and value not in subquery:
             subquery.append(value)
-        elif "select" in value and value in subquery:
-            return -rule.weight, []
-    return None, []
+        elif "select" in value.lower() and value in subquery:
+            yield {}
 
 
 code_hole.append(code)

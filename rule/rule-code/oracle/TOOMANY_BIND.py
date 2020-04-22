@@ -3,8 +3,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if sql_text.count(":") > rule.gip("num_of_bound_var"):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)

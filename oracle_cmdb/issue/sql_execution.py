@@ -4,91 +4,59 @@ __all__ = [
     "OracleOnlineSQLExecutionIssue"
 ]
 
-from typing import NoReturn, Generator, Tuple
+from typing import NoReturn, Generator
 
-from mongoengine import IntField
+from mongoengine import IntField, EmbeddedDocumentField
 
 from models.sqlalchemy import *
-from models.mongoengine import *
-from ..capture import SQLPlan, SQLStat
-from ..cmdb import OracleCMDB
-from .sql import OracleOnlineSQLIssue
+from ..cmdb import *
+from .sql import OracleOnlineSQLIssue, OracleOnlineIssueOutputParamsSQL
 from rule.cmdb_rule import CMDBRule
+from rule.adapters import CMDBRuleAdapterSQL
 
 
-class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
-    """sql运行问题"""
+class OracleOnlineIssueOutputParamsSQLExecution(
+        OracleOnlineIssueOutputParamsSQL):
+    """针对SQL执行相关的输出字段"""
 
     plan_hash_value = IntField(required=True, default=None)
 
+
+class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
+    """sql执行相关问题"""
+
+    output_params = EmbeddedDocumentField(
+        OracleOnlineIssueOutputParamsSQLExecution)
+
     meta = {
-        "allow_inheritance": True,
-        "indexes": [
-            "plan_hash_value"
-        ]
+        "allow_inheritance": True
     }
 
     @classmethod
-    def post_analysed(cls, **kwargs) -> NoReturn:
-        docs: ["OracleOnlineSQLExecutionIssue"] = kwargs["docs"]
-        plan_hash_value: int = kwargs["plan_hash_value"]
-
-        super().post_analysed(**kwargs)
-        for doc in docs:
-            doc.plan_hash_value = plan_hash_value
-
-    @classmethod
-    def get_sql_plan_qs(cls,
-                        task_record_id: int,
-                        sql_id: str = None
-                        ) -> Generator[Tuple[int, mongoengine_qs], None, None]:
-        plan_hash_values = SQLPlan.objects(
-            task_record_id=task_record_id, sql_id=sql_id).distinct(
-            "plan_hash_value")
-        for phv in plan_hash_values:
-            yield phv, SQLPlan.objects(
-                task_record_id=task_record_id,
-                sql_id=sql_id,
-                plan_hash_value=phv
-            )
-
-    @classmethod
-    def get_sql_stat_qs(cls,
-                        task_record_id: int,
-                        sql_id: str = None
-                        ) -> Generator[Tuple[int, mongoengine_qs], None, None]:
-        plan_hash_values = SQLStat.objects(
-            task_record_id=task_record_id, sql_id=sql_id).distinct(
-            "plan_hash_value")
-        for phv in plan_hash_values:
-            yield phv, SQLStat.objects(
-                task_record_id=task_record_id,
-                sql_id=sql_id,
-                plan_hash_value=phv
-            )
-
-    @classmethod
-    def simple_analyse(cls, **kwargs) -> Generator["OracleOnlineSQLExecutionIssue", None, None]:
+    def simple_analyse(cls, **kwargs) -> Generator[
+            "OracleOnlineSQLExecutionIssue", None, None]:
         task_record_id: int = kwargs["task_record_id"]
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]
 
         rule_jar: [CMDBRule] = cls.generate_rule_jar()
-        entries = cls.inherited_entries()
-        sql_ids: [str] = cls.get_sql_qs(
-            task_record_id, schema_name).distinct("sql_id")
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
             for the_rule in rule_jar:
-                # 这里因为上面返回的是个生成器，必须用list
-                docs = list(cls._single_rule_analyse(
-                    the_rule=the_rule,
-                    entries=entries,
-                    the_cmdb=the_cmdb,
+                ret = CMDBRuleAdapterSQL(the_rule).run(
+                    entries=rule_jar.entries,
+
+                    cmdb=the_cmdb,
+                    task_record_id=task_record_id,
+                    schema_name=schema_name
+                )
+                docs = cls.pack_rule_ret_to_doc(the_rule, ret)
+                cls.post_analysed(
+                    docs=docs,
                     task_record_id=task_record_id,
                     schema_name=schema_name,
-                    sql_ids=sql_ids
-                ))
+                    cmdb_id=cmdb_id
+                )
                 yield from docs
 

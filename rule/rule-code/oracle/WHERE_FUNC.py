@@ -8,8 +8,7 @@ def code(rule, entries, **kwargs):
     where_func = re.compile(r"where\s+.*?[+\-*/()].*[<>=]{1,2}?", re.I+re.S)
 
     if where_func.search(sql_text):
-        return -rule.weight, []
-    return None, []
+        yield {}
 
 
 code_hole.append(code)
