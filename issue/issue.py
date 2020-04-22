@@ -15,6 +15,7 @@ import rule.cmdb_rule
 import rule.rule
 import rule.exceptions
 import rule.const
+import issue.exceptions
 from rule.rule_jar import *
 from models.mongoengine import *
 
@@ -27,6 +28,30 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
 
     # 一句话描述当前问题的关键（应当是人能通读的表述）
     issue_desc = StringField(required=True, default="")
+
+    def as_output_of(
+            self,
+            the_rule: rule.cmdb_rule.CMDBRule,
+            output_data: dict):
+        """以给出的数据作为本问题的输出"""
+        # 检查实际输出是否包含当前问题要求必须输出的字段。
+        for f in self._fields_ordered:
+            if f in ("_cls", "_id"):
+                continue
+            if f not in output_data.keys():
+                raise issue.exceptions.IssueBadOutputData(f"need {f}")
+        for output_param in the_rule.output_params:
+            the_output_data_to_this_param = output_data.get(output_param.name, None)
+            # 检查规则的输出参数和实际的输出是否一直，
+            if not output_param.validate_data_type(the_output_data_to_this_param):
+                raise rule.exceptions.RuleCodeInvalidParamTypeException(
+                    f"{str(the_rule)}-{output_param.name}:"
+                    f" {the_output_data_to_this_param}")
+            setattr(
+                self,
+                output_param.name,
+                the_output_data_to_this_param
+            )
 
 
 class OnlineIssue(
@@ -42,7 +67,7 @@ class OnlineIssue(
     entries = ListField(default=lambda: [], choices=rule.const.ALL_RULE_ENTRIES)
     weight = FloatField()
     max_score = FloatField(required=True)
-    input_params = DictField(default=lambda: {})  # 输入参数快照
+    input_params = DictField(default=dict)  # 输入参数快照
     output_params = EmbeddedDocumentField(OnlineIssueOutputParams)  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
     level = IntField()  # 规则优先级
@@ -93,17 +118,7 @@ class OnlineIssue(
         }
         self.entries = list(the_rule.entries)
         self.minus_score = minus_score
-        for output_param in the_rule.output_params:
-            the_output_data_to_this_param = output_data.get(output_param.name, None)
-            if not output_param.validate_data_type(the_output_data_to_this_param):
-                raise rule.exceptions.RuleCodeInvalidParamTypeException(
-                    f"{str(the_rule)}-{output_param.name}:"
-                    f" {the_output_data_to_this_param}")
-            setattr(
-                self.output_params,
-                output_param.name,
-                the_output_data_to_this_param
-            )
+        self.output_params.as_output_of(the_rule, output_data)
 
     @classmethod
     def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue", None, None]:

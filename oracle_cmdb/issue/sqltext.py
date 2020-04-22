@@ -47,8 +47,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
 
                         cmdb=the_cmdb,
                         single_sql=SingleSQLForOnline.gen_from_sql_text(a_sqltext),
-                        task_record_id=task_record_id,
-                        schema_name=schema_name
+                        sql_id=a_sqltext.sql_id
                     )
                     docs = cls.pack_rule_ret_to_doc(the_rule, ret)
                     cls.post_analysed(
