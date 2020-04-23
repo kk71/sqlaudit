@@ -4,13 +4,14 @@ __all__ = [
     "ABCDocumentMetaclass",
     "ABCTopLevelDocumentMetaclass",
     "BaseDoc",
+    "values_dict",
     "mongoengine_qs",
     "Q"
 ]
 
 import abc
 import json
-from typing import NoReturn
+from typing import NoReturn, List
 from types import FunctionType
 
 import arrow
@@ -33,6 +34,11 @@ class ABCTopLevelDocumentMetaclass(TopLevelDocumentMetaclass, abc.ABCMeta):
 class ABCDocumentMetaclass(DocumentMetaclass, abc.ABCMeta):
     """普通document的元类，给EmbeddedDocument使用"""
     pass
+
+
+def values_dict(qs: mongoengine_qs, *args) -> List[dict]:
+    """查询values_list返回字典形式"""
+    return [dict(zip(args, i)) for i in list(qs.values_list(*args))]
 
 
 class BaseDoc(DynamicDocument):

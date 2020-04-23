@@ -1,17 +1,23 @@
+from rule import const
+from rule.code_utils import *
+
+
 def code(rule, entries, **kwargs):
     sql_plan_qs = kwargs["sql_plan_qs"]
 
-    plans = sql_plan_qs.filter(operation="INDEX", options="SKIP SCAN")
+    qs = sql_plan_qs.filter(operation="INDEX", options="SKIP SCAN")
 
-    for x in plans:
-        return -rule.weight, [
-            x.statement_id,
-            x.plan_id,
-            x.object_name,
-            x.the_id,
-            x.cost
-        ]
-    return None, []
+    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:
+        for d in values_dict(qs, "object_name", "object_type"):
+            yield d
+
+    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:
+        for d in values_dict(qs,
+                             "sql_id",
+                             "plan_hash_value",
+                             "object_name",
+                             "object_type"):
+            yield d
 
 
 code_hole.append(code)

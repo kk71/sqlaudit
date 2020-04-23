@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
+    "values_dict",
     "recursively_find_following_select"
 ]
 
@@ -11,6 +12,10 @@ __all__ = [
 """
 
 from sqlparse.sql import TokenList
+
+from models.mongoengine import *
+
+values_dict = values_dict
 
 
 def recursively_find_following_select(token: TokenList) -> bool:

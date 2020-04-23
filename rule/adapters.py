@@ -25,6 +25,7 @@ class CMDBRuleAdapterSQL:
             sqls: [SingleSQL] = None,
             cmdb_connector=None,
             sql_plan_qs=None,
+            sql_stat_qs=None,
             schema_name: str = None,
             task_record_id: int = None,
             statement_id: str = None,
@@ -36,7 +37,8 @@ class CMDBRuleAdapterSQL:
         :param single_sql:
         :param sqls: 工单审核
         :param cmdb_connector:
-        :param sql_plan_qs: 工单动态审核
+        :param sql_plan_qs:
+        :param sql_stat_qs: 线上审核
         :param schema_name:
         :param task_record_id: 线上审核
         :param statement_id: 工单审核
@@ -51,6 +53,7 @@ class CMDBRuleAdapterSQL:
             sqls=sqls,
             cmdb_connector=cmdb_connector,
             sql_plan_qs=sql_plan_qs,
+            sql_stat_qs=sql_stat_qs,
             schema_name=schema_name,
             task_record_id=task_record_id,
             statement_id=statement_id,

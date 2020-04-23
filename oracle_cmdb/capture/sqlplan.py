@@ -166,10 +166,3 @@ FROM
                 if doc.options:
                     doc.operation_display_with_options = \
                         doc.operation_display + " " + doc.options
-
-    @classmethod
-    def aggregate(cls, **kwargs) -> List:
-        group_id_append = kwargs.pop("group_id_append", {})
-        group_id_append["the_id"] = "$the_id"
-        return super().aggregate(
-            group_id_append=group_id_append, **kwargs)

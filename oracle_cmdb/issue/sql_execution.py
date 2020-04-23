@@ -4,7 +4,8 @@ __all__ = [
     "OracleOnlineSQLExecutionIssue"
 ]
 
-from typing import NoReturn, Generator
+import abc
+from typing import Generator
 
 from mongoengine import IntField, EmbeddedDocumentField
 
@@ -16,7 +17,7 @@ from rule.adapters import CMDBRuleAdapterSQL
 
 
 class OracleOnlineIssueOutputParamsSQLExecution(
-        OracleOnlineIssueOutputParamsSQL):
+    OracleOnlineIssueOutputParamsSQL):
     """针对SQL执行相关的输出字段"""
 
     plan_hash_value = IntField(required=True, default=None)
@@ -31,6 +32,13 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     meta = {
         "allow_inheritance": True
     }
+
+    @classmethod
+    @abc.abstractmethod
+    def params_to_append_to_rule(cls,
+                                 task_record_id: int,
+                                 schema_name: str) -> dict:
+        pass
 
     @classmethod
     def simple_analyse(cls, **kwargs) -> Generator[
@@ -49,7 +57,8 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
 
                     cmdb=the_cmdb,
                     task_record_id=task_record_id,
-                    schema_name=schema_name
+                    schema_name=schema_name,
+                    **cls.params_to_append_to_rule(task_record_id, schema_name)
                 )
                 docs = cls.pack_rule_ret_to_doc(the_rule, ret)
                 cls.post_analysed(
@@ -59,4 +68,3 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
                     cmdb_id=cmdb_id
                 )
                 yield from docs
-
