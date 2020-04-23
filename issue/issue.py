@@ -29,6 +29,10 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
     # 一句话描述当前问题的关键（应当是人能通读的表述）
     issue_desc = StringField(required=True, default="")
 
+    meta = {
+        "allow_inheritance": True
+    }
+
     def as_output_of(
             self,
             the_rule: rule.cmdb_rule.CMDBRule,

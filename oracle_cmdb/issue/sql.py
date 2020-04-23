@@ -17,6 +17,10 @@ class OracleOnlineIssueOutputParamsSQL(OnlineIssueOutputParams):
 
     sql_id = StringField(required=True, default=None)
 
+    meta = {
+        "allow_inheritance": True
+    }
+
 
 class OracleOnlineSQLIssue(OracleOnlineIssue):
     """sql问题"""
