@@ -115,11 +115,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select SEQUENCE_OWNER||'.'||SEQUENCE_NAME, CACHE_SIZE from dba_sequences WHERE SEQUENCE_OWNER = '@username@' AND CACHE_SIZE < @cache_size@",
         "rule_status": "ON",
-        "rule_summary": "缓存过小的序列",
+        "rule_summary": "cache值较小，内存中预先缓存的cache值很快被耗尽，再次取值时需要修改数据字典信息，在此期间，会持有SQ锁",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "调整cache缓存大小,alter sequence sequence_name cache 2000;"
+            "调整序列的cache值为2000以上"
         ],
         "weight": 1.0,
         "obj_info_type": "SEQUENCE",
@@ -144,7 +144,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select table_name from dba_tables where owner = '@username@' and table_name not in(select table_name from dba_tab_cols where owner = '@username@' and (column_name like 'CREATE%' or column_name like 'UPDATE%') and data_type = 'DATE')",
         "rule_status": "ON",
-        "rule_summary": "时间戳,是获取增量数据的一种方法。建议在表内增加创建时间、更新时间的时间戳字段。命名方式为CREATE_TIME、UPDATE_TIME。",
+        "rule_summary": "时间戳是获取增量数据的一种方法。建议在表内增加创建时间、更新时间的时间戳字段。命名方式为CREATE_TIME、UPDATE_TIME",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -177,7 +177,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select object_name, object_type from dba_objects where object_type = 'PROCEDURE' and owner = '@username@' order by object_type",
         "rule_status": "ON",
-        "rule_summary": "存储过程,将影响数据库的异构迁移能力,并存在代码维护性较差等原因。",
+        "rule_summary": "存储过程将影响数据库的异构迁移能力,并存在代码维护性较差等原因",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -214,7 +214,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner,object_name, object_type from dba_objects where object_type = 'FUNCTION' and owner = '@username@' order by object_type",
         "rule_status": "ON",
-        "rule_summary": "函数,将影响数据库的异构迁移能力,并存在代码维护性较差等原因。",
+        "rule_summary": "函数将影响数据库的异构迁移能力,并存在代码维护性较差等原因",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -255,11 +255,11 @@
         "rule_complexity": "complex",
         "rule_cmd": "SELECT T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME, COUNT(T.INDEX_NAME) FROM DBA_IND_COLUMNS T WHERE T.INDEX_OWNER = '@username@' GROUP BY T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME HAVING COUNT(T.INDEX_NAME) > 1",
         "rule_status": "ON",
-        "rule_summary": "一个字段被多个索引引用,请考虑构建策略。删除不必要的索引。",
+        "rule_summary": "造成索引冗余，不仅占用空间，而且容易产生多个执行计划",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "删除不必要的索引"
+            "监控索引，删除不必要的索引"
         ],
         "weight": 12.0,
         "obj_info_type": "INDEX",
@@ -400,11 +400,12 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, t.partition_name, count(1) from DBA_TAB_SUBPARTITIONS t  where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name, t.partition_name having count(1) >= @subpart_tab_num@",
         "rule_status": "ON",
-        "rule_summary": "复合分区数量过多",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "重新合理定义分区键"
+            "1.建议重新分库，分表，分区",
+            "2.历史数据归档"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -440,11 +441,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, count(1)  from DBA_TAB_PARTITIONS t where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name having count(1) >= @part_tab_num@",
         "rule_status": "ON",
-        "rule_summary": "分区表中分区数量过多,将导致整体维护成本过高,可调整分区粒度。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.合理定义分区键",
+            "1.建议重新分库，分表，分区",
             "2.历史数据归档"
         ],
         "weight": 0.5,
@@ -478,11 +479,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select db_link, username, host from dba_db_links where owner = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "存在DBLINK",
+        "rule_summary": "数据库之间会同步SCN",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "禁用dblink,在应用程序端连接多个数据库操作"
+            "禁用dblink，在应用程序端连接多个数据库操作"
         ],
         "weight": 10.0,
         "obj_info_type": null,
@@ -519,7 +520,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.owner||'.'||t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.COLUMN_EXPRESSION from dba_indexes t, dba_ind_expressions s where t.index_name = s.index_name and t.table_name = s.TABLE_name  and t.index_name not like 'BIN%'  and t.owner = '@username@' and t.index_type like '%FUNCTION%' order by t.table_name, t.index_name",
         "rule_status": "ON",
-        "rule_summary": "是否使用函数索引",
+        "rule_summary": "若使用函数索引，则说明列上使用了表达式，应检查查询列是否使用了表达式",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -553,11 +554,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "SELECT X.INDEX_NAME, X.TABLE_NAME FROM DBA_INDEXES X, DBA_PART_TABLES Y WHERE X.OWNER = Y.OWNER AND X.TABLE_NAME = Y.TABLE_NAME  AND X.PARTITIONED = 'NO' and X.OWNER = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "全局分区索引,存在维护成本较高问题。当分区发生变化是,需要维护全局索引的有效性。",
+        "rule_summary": "在对分区表进行维护时，全局分区索引冗余导致失效",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "改造本地分区索引"
+            "根据业务场景，创建分区索引"
         ],
         "weight": 0.3,
         "obj_info_type": "INDEX",
@@ -586,11 +587,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select trigger_name, 'TRIGGER' as type from dba_triggers where owner = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "触发器,将影响数据库的异构迁移能力。如有数据一致性维护需求,请从应用端给予考虑。",
+        "rule_summary": "触发器将影响数据库的异构迁移能力，并存在代码维护性较差等原因",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "在应用端实现触发器功能"
+            "用应用端程序实现触发器"
         ],
         "weight": 5.0,
         "obj_info_type": null,
@@ -630,7 +631,7 @@
         "rule_complexity": "complex",
         "rule_cmd": "default",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下,超过指定物理大小的表名",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -672,7 +673,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.owner||'.'||t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.column_name from dba_indexes t, dba_ind_columns s where t.owner = s.table_owner and t.index_name = s.index_name and t.index_name not like 'BIN%' and t.owner = '@username@' and t.index_type = 'BITMAP' order by t.table_name, t.index_name",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有索引的类型,并判断是否为位图索引。若表对象有频繁的DML操作,位图索引会在一定程度上阻塞相关操作。",
+        "rule_summary": "在OLTP在线交易系统中，如果有位图索引，则在DML操作时会产生大量的行锁",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -709,7 +710,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner,table_name,column_name from dba_lobs where owner='@username@'",
         "rule_status": "ON",
-        "rule_summary": "大对象字段是关系型数据库中应尽量避免的。如有需要,可考虑在外部进行存储。",
+        "rule_summary": "不仅占用更多空间，而且维护起来困难，比如导入导出慢",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -1330,12 +1331,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select * from (select a.owner || '.' || a.index_name,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type, 'LOB', 'Lob'))))) as type,a.clustering_factor,a.table_name,b.num_rows,trunc((a.clustering_factor - a.leaf_blocks) /(a.num_rows - a.leaf_blocks + 1) * 100,2) ratio from dba_ind_statistics a, dba_tables b, dba_indexes c where a.table_name = b.table_name and a.index_name = c.index_name and a.num_rows > 200000 and ((a.clustering_factor - a.leaf_blocks) / (a.num_rows - a.leaf_blocks + 1) > 0.7 or a.blevel > 4) and a.index_name not like '%BIN$%' and a.owner = '@username@' order by 1, 6) where ratio > @cluster_row_ratio@",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
+        "rule_summary": "索引的聚簇因子大，容易造成该索引用不上",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.重新定义表的字段类型",
-            "2.表数据重新存储"
+            "表数据重新存储"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -1786,11 +1786,12 @@
         "rule_complexity": "simple",
         "rule_cmd": "select c.table_name,  c.constraint_name,  t.column_name, (select distinct a.table_name  from dba_constraints a  where a.constraint_name = c.r_constraint_name and a.owner = c.owner) r_table_name, c.r_constraint_name   from dba_constraints c, dba_cons_columns t  where t.owner = c.owner  and t.constraint_name = c.constraint_name and c.owner = '@username@'   and c.table_name not like 'BIN$%'  and c.constraint_type = 'R'",
         "rule_status": "ON",
-        "rule_summary": "表中存在外键约束",
+        "rule_summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "应用程序实现外键约束,不建议在数据库里面使用外键约束"
+            "1.在应用端实现外键约束",
+            "2.无法去除外键,必须添加外键索引"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -2159,12 +2160,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select index_name, type, idx_blevel, table_name from (select distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type, t.TABLE_NAME,t.blevel as idx_blevel from dba_indexes t   where t.index_name not like 'BIN%'  and t.owner = '@username@' and t.blevel > @idx_level@  order by t.table_name, t.owner||'.'||t.index_name)",
         "rule_status": "ON",
-        "rule_summary": "索引对象高度",
+        "rule_summary": "索引高度越高，在进行读取时会产生更多的逻辑读",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.重构表的字段或索引",
-            "2.重建索引"
+            "索引高度越高，说明数据越大，需要重新分库，分表，分区或者 历史数据归档"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -2476,11 +2476,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_name, decode(t.partitioned, 'YES', 'PART',  decode(t.temporary, 'Y', 'TEMP', decode (t.iot_type,'IOT','IOT','NORMAL'))) table_type, t.degree from dba_tables t  where t.table_name not like 'BIN%'  and t.owner = '@username@' and to_number(replace(ltrim(t.degree),'DEFAULT',0))  > 1 order by table_type,table_name",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有表对象的并行度。",
+        "rule_summary": "当表被并发访问时，会引起资源竞争",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "关闭表的并行度alter table TABLENAME noparallel"
+            "关闭表的并行度，默认为1"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -2516,7 +2516,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select * from (select owner||'.'||segment_name as table_name,round(sum(bytes) / 1024 / 1024 / 1024, 2) as tab_phy_size from dba_segments where segment_type = 'TABLE' and owner = '@username@'  and segment_name not like 'BIN$%'  group by owner||'.'||segment_name) a  where tab_phy_size > @tab_phy_size@",
         "rule_status": "ON",
-        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等。常见的解决方案就是使用分区表,将大表转换为分区表。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -2579,11 +2579,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select a.table_name from dba_tables a where a.owner = '@username@' and a.table_name not like 'BIN$%' minus select b.table_name from dba_constraints b where b.owner = '@username@' and b.table_name not like 'BIN$%' and b.constraint_type = 'P'",
         "rule_status": "ON",
-        "rule_summary": "主键是关系型数据库中唯一确定一条记录的依据,没有任何理由不定义主键。",
+        "rule_summary": "主键是关系型数据库中唯一确定一条记录的依据,可强制表的实体完整性",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "必须定义主键"
+            "创建表时应定义一个字段为主键"
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
@@ -2619,7 +2619,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner||'.'||table_name, count(1)   from dba_tab_cols   where owner = '@username@'   group by owner||'.'||table_name  having count(1) > @column_count@",
         "rule_status": "ON",
-        "rule_summary": "字段过多,会导致记录长度过大。单个数据存储单元将保存的记录数过少,影响访问效率。",
+        "rule_summary": "表字段数量过多，往往会导致一个数据块存放的行数越少，因此读取数据时IO发生次数越多",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -2659,7 +2659,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.owner||'.'||t.table_name,t.num_rows from DBA_TABLES t  where t.partitioned='NO' and t.owner='@username@' and t.num_rows>@record_count@ union select t.table_name||'.'||t.table_name||':'||t.PARTITION_NAME,t.num_rows  from  dba_tab_PARTITIONS t  where t.table_owner='@username@' and t.num_rows>@record_count@",
         "rule_status": "ON",
-        "rule_summary": "控制单个表或单个分区的数据规模,提高单一对象的访问效率。如记录数过多,应考虑分库、分表、分区等策略。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -3026,11 +3026,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select index_name, type, degree, table_name  from (select distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,  decode(INDEX_TYPE,  'NORMAL',  'B-tree',  decode(index_type,  'BITMAP',  'BitMap',  decode(INDEX_TYPE,  'FUNCTION-BASED NORMAL', 'Func',  decode(table_type,  'IOT',  'IOT',  decode(index_type,  'LOB',  'Lob'))))) as type,t.TABLE_NAME,  t.degree   from dba_indexes t  where t.index_name not like 'BIN%'  and t.owner = '@username@'  and to_number(replace(ltrim(t.degree),'DEFAULT',0)) >1  order by t.table_name, t.owner||'.'||t.index_name)",
         "rule_status": "ON",
-        "rule_summary": "索引对象是否开启并行访问",
+        "rule_summary": "当索引被并发访问时，会引起资源竞争",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "关闭索引并行度alter index INDEXNAME noparallel;"
+            "关闭索引的并行度，默认为1"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -3301,12 +3301,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "with tc as (select owner||'.'||table_name as table_name, column_name from dba_cons_columns where owner||'.'||constraint_name in (select owner||'.'||constraint_name from dba_constraints where owner = '@username@' and constraint_type = 'R')  and owner = '@username@') select table_name, column_name  from tc  where (table_name, column_name) not in (select table_name, column_name  from tc intersect   select table_name, column_name from dba_ind_columns  where index_owner = '@username@')",
         "rule_status": "ON",
-        "rule_summary": "外键没有索引会导致主子表关联查询时,关联效率很低。",
+        "rule_summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据，如果从表上外键上不存在索引，则需要在从表增加表锁，此时从表的增删改将被阻塞，业务将被阻塞",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.在应用端实现外键约束",
-            "2.无法去除外键,必须添加外键索引"
+            "外键必须建立索引"
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
@@ -3713,7 +3712,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select table_name from dba_tables where owner = '@username@' and table_name not in(select table_name from dba_tab_cols where owner = '@username@' and (column_name like 'CREATE%' or column_name like 'UPDATE%') and data_type = 'DATE')",
         "rule_status": "ON",
-        "rule_summary": "时间戳,是获取增量数据的一种方法。建议在表内增加创建时间、更新时间的时间戳字段。命名方式为CREATE_TIME、UPDATE_TIME。",
+        "rule_summary": "时间戳是获取增量数据的一种方法。建议在表内增加创建时间、更新时间的时间戳字段。命名方式为CREATE_TIME、UPDATE_TIME",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -3742,11 +3741,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select a.table_name from dba_tables a where a.owner = '@username@' and a.table_name not like 'BIN$%' minus select b.table_name from dba_constraints b where b.owner = '@username@' and b.table_name not like 'BIN$%' and b.constraint_type = 'P'",
         "rule_status": "ON",
-        "rule_summary": "主键是关系型数据库中唯一确定一条记录的依据,没有任何理由不定义主键。",
+        "rule_summary": "主键是关系型数据库中唯一确定一条记录的依据,可强制表的实体完整性",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "必须定义主键"
+            "创建表时应定义一个字段为主键"
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
@@ -3775,12 +3774,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "with tc as (select owner||'.'||table_name as table_name, column_name from dba_cons_columns where owner||'.'||constraint_name in (select owner||'.'||constraint_name from dba_constraints where owner = '@username@' and constraint_type = 'R')  and owner = '@username@') select table_name, column_name  from tc  where (table_name, column_name) not in (select table_name, column_name  from tc intersect   select table_name, column_name from dba_ind_columns  where index_owner = '@username@')",
         "rule_status": "ON",
-        "rule_summary": "外键没有索引会导致主子表关联查询时,关联效率很低。",
+        "rule_summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据，如果从表上外键上不存在索引，则需要在从表增加表锁，此时从表的增删改将被阻塞，业务将被阻塞",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.在应用端实现外键约束",
-            "2.无法去除外键,必须添加外键索引"
+            "外键必须建立索引"
         ],
         "weight": 1.0,
         "obj_info_type": "TABLE",
@@ -3816,7 +3814,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.owner||'.'||t.table_name,t.num_rows from DBA_TABLES t  where t.partitioned='NO' and t.owner='@username@' and t.num_rows>@record_count@ union select t.table_name||'.'||t.table_name||':'||t.PARTITION_NAME,t.num_rows  from  dba_tab_PARTITIONS t  where t.table_owner='@username@' and t.num_rows>@record_count@",
         "rule_status": "ON",
-        "rule_summary": "控制单个表或单个分区的数据规模,提高单一对象的访问效率。如记录数过多,应考虑分库、分表、分区等策略。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -3857,7 +3855,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select * from (select owner||'.'||segment_name as table_name,round(sum(bytes) / 1024 / 1024 / 1024, 2) as tab_phy_size from dba_segments where segment_type = 'TABLE' and owner = '@username@'  and segment_name not like 'BIN$%'  group by owner||'.'||segment_name) a  where tab_phy_size > @tab_phy_size@",
         "rule_status": "ON",
-        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等。常见的解决方案就是使用分区表,将大表转换为分区表。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -3895,7 +3893,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner,table_name,column_name from dba_lobs where owner='@username@'",
         "rule_status": "ON",
-        "rule_summary": "大对象字段是关系型数据库中应尽量避免的。如有需要,可考虑在外部进行存储。",
+        "rule_summary": "不仅占用更多空间，而且维护起来困难，比如导入导出慢",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -3932,11 +3930,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.owner||'.'||t.table_name, decode(t.partitioned, 'YES', 'PART',  decode(t.temporary, 'Y', 'TEMP', decode (t.iot_type,'IOT','IOT','NORMAL'))) table_type, t.degree from dba_tables t  where t.table_name not like 'BIN%'  and t.owner = '@username@' and to_number(replace(ltrim(t.degree),'DEFAULT',0))  > 1 order by table_type,table_name",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有表对象的并行度。",
+        "rule_summary": "当表被并发访问时，会引起资源竞争",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "关闭表的并行度alter table TABLENAME noparallel"
+            "关闭表的并行度，默认为1"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -3972,7 +3970,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner||'.'||table_name, count(1)   from dba_tab_cols   where owner = '@username@'   group by owner||'.'||table_name  having count(1) > @column_count@",
         "rule_status": "ON",
-        "rule_summary": "字段过多,会导致记录长度过大。单个数据存储单元将保存的记录数过少,影响访问效率。",
+        "rule_summary": "表字段数量过多，往往会导致一个数据块存放的行数越少，因此读取数据时IO发生次数越多",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -4016,11 +4014,11 @@
         "rule_complexity": "complex",
         "rule_cmd": "default",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下,超过指定物理大小的表名",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.建议分库,分表,分区",
+            "1.建议重新分库，分表，分区",
             "2.历史数据归档"
         ],
         "weight": 1.0,
@@ -4062,11 +4060,12 @@
         "rule_complexity": "simple",
         "rule_cmd": "select c.OWNER||'.'||c.table_name,  c.constraint_name,  t.column_name, (select distinct a.table_name  from dba_constraints a  where a.constraint_name = c.r_constraint_name and a.owner = c.owner) r_table_name, c.r_constraint_name   from dba_constraints c, dba_cons_columns t  where t.owner = c.owner  and t.constraint_name = c.constraint_name and c.owner = '@username@'   and c.table_name not like 'BIN$%'  and c.constraint_type = 'R'",
         "rule_status": "ON",
-        "rule_summary": "表中存在外键约束",
+        "rule_summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "应用程序实现外键约束,不建议在数据库里面使用外键约束"
+            "1.在应用端实现外键约束",
+            "2.无法去除外键,必须添加外键索引"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -4132,7 +4131,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner,object_name, object_type from dba_objects where object_type = 'FUNCTION' and owner = '@username@' order by object_type",
         "rule_status": "ON",
-        "rule_summary": "函数,将影响数据库的异构迁移能力,并存在代码维护性较差等原因。",
+        "rule_summary": "函数将影响数据库的异构迁移能力,并存在代码维护性较差等原因",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -4173,11 +4172,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select index_name, type, degree, table_name  from (select distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,  decode(INDEX_TYPE,  'NORMAL',  'B-tree',  decode(index_type,  'BITMAP',  'BitMap',  decode(INDEX_TYPE,  'FUNCTION-BASED NORMAL', 'Func',  decode(table_type,  'IOT',  'IOT',  decode(index_type,  'LOB',  'Lob'))))) as type,t.TABLE_NAME,  t.degree   from dba_indexes t  where t.index_name not like 'BIN%'  and t.owner = '@username@'  and to_number(replace(ltrim(t.degree),'DEFAULT',0)) >1  order by t.table_name, t.owner||'.'||t.index_name)",
         "rule_status": "ON",
-        "rule_summary": "索引对象是否开启并行访问",
+        "rule_summary": "当索引被并发访问时，会引起资源竞争",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "关闭索引并行度alter index INDEXNAME noparallel;"
+            "关闭索引的并行度，默认为1"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -4262,12 +4261,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select * from (select a.owner || '.' || a.index_name,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type, 'LOB', 'Lob'))))) as type,a.clustering_factor,a.table_name,b.num_rows,trunc((a.clustering_factor - a.leaf_blocks) /(a.num_rows - a.leaf_blocks + 1) * 100,2) ratio from dba_ind_statistics a, dba_tables b, dba_indexes c where a.table_name = b.table_name and a.index_name = c.index_name and a.num_rows > 200000 and ((a.clustering_factor - a.leaf_blocks) / (a.num_rows - a.leaf_blocks + 1) > 0.7 or a.blevel > 4) and a.index_name not like '%BIN$%' and a.owner = '@username@' order by 1, 6) where ratio > @cluster_row_ratio@",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有索引对象的聚簇因子情况。",
+        "rule_summary": "索引的聚簇因子大，容易造成该索引用不上",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.重新定义表的字段类型",
-            "2.表数据重新存储"
+            "表数据重新存储"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -4303,11 +4301,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select SEQUENCE_OWNER||'.'||SEQUENCE_NAME, CACHE_SIZE from dba_sequences WHERE SEQUENCE_OWNER = '@username@' AND CACHE_SIZE < @cache_size@",
         "rule_status": "ON",
-        "rule_summary": "缓存过小的序列",
+        "rule_summary": "cache值较小，内存中预先缓存的cache值很快被耗尽，再次取值时需要修改数据字典信息，在此期间，会持有SQ锁",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "调整cache缓存大小,alter sequence sequence_name cache 2000;"
+            "调整序列的cache值为2000以上"
         ],
         "weight": 1.0,
         "obj_info_type": "SEQUENCE",
@@ -4344,11 +4342,11 @@
         "rule_complexity": "complex",
         "rule_cmd": "SELECT T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME, COUNT(T.INDEX_NAME) FROM DBA_IND_COLUMNS T WHERE T.INDEX_OWNER = '@username@' GROUP BY T.TABLE_OWNER||'.'||T.TABLE_NAME, T.COLUMN_NAME HAVING COUNT(T.INDEX_NAME) > 1",
         "rule_status": "ON",
-        "rule_summary": "一个字段被多个索引引用,请考虑构建策略。删除不必要的索引。",
+        "rule_summary": "造成索引冗余，不仅占用空间，而且容易产生多个执行计划",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "删除不必要的索引"
+            "监控索引，删除不必要的索引"
         ],
         "weight": 0.3,
         "obj_info_type": "TABLE",
@@ -4430,11 +4428,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select db_link, username, host from dba_db_links where owner = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "存在DBLINK",
+        "rule_summary": "数据库之间会同步SCN",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "禁用dblink,在应用程序端连接多个数据库操作"
+            "禁用dblink，在应用程序端连接多个数据库操作"
         ],
         "weight": 10.0,
         "obj_info_type": null,
@@ -4474,11 +4472,12 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, t.partition_name, count(1) from DBA_TAB_SUBPARTITIONS t  where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name, t.partition_name having count(1) >= @subpart_tab_num@",
         "rule_status": "ON",
-        "rule_summary": "复合分区数量过多",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "重新合理定义分区键"
+            "1.建议重新分库，分表，分区",
+            "2.历史数据归档"
         ],
         "weight": 0.5,
         "obj_info_type": "TABLE",
@@ -4522,12 +4521,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select index_name, type, idx_blevel, table_name from (select distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME,decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type, t.TABLE_NAME,t.blevel as idx_blevel from dba_indexes t   where t.index_name not like 'BIN%'  and t.owner = '@username@' and t.blevel > @idx_level@  order by t.table_name, t.owner||'.'||t.index_name)",
         "rule_status": "ON",
-        "rule_summary": "索引对象高度",
+        "rule_summary": "索引高度越高，在进行读取时会产生更多的逻辑读",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.重构表的字段或索引",
-            "2.重建索引"
+            "索引高度越高，说明数据越大，需要重新分库，分表，分区或者 历史数据归档"
         ],
         "weight": 0.5,
         "obj_info_type": "INDEX",
@@ -4597,11 +4595,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select owner||'.'||trigger_name, 'TRIGGER' as type from dba_triggers where owner = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "触发器,将影响数据库的异构迁移能力。如有数据一致性维护需求,请从应用端给予考虑。",
+        "rule_summary": "触发器将影响数据库的异构迁移能力，并存在代码维护性较差等原因",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "在应用端实现触发器功能"
+            "用应用端程序实现触发器"
         ],
         "weight": 5.0,
         "obj_info_type": null,
@@ -4638,7 +4636,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.INDEX_NAME, t.INDEX_TYPE, t.owner||'.'||t.TABLE_NAME, s.COLUMN_EXPRESSION from dba_indexes t, dba_ind_expressions s where t.index_name = s.index_name and t.table_name = s.TABLE_name  and t.index_name not like 'BIN%'  and t.owner = '@username@' and t.index_type like '%FUNCTION%' order by t.table_name, t.index_name",
         "rule_status": "ON",
-        "rule_summary": "是否使用函数索引",
+        "rule_summary": "若使用函数索引，则说明列上使用了表达式，应检查查询列是否使用了表达式",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -4732,11 +4730,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "SELECT X.INDEX_NAME, X.TABLE_NAME FROM DBA_INDEXES X, DBA_PART_TABLES Y WHERE X.OWNER = Y.OWNER AND X.TABLE_NAME = Y.TABLE_NAME  AND X.PARTITIONED = 'NO' and X.OWNER = '@username@'",
         "rule_status": "ON",
-        "rule_summary": "全局分区索引,存在维护成本较高问题。当分区发生变化是,需要维护全局索引的有效性。",
+        "rule_summary": "在对分区表进行维护时，全局分区索引冗余导致失效",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "改造本地分区索引"
+            "根据业务场景，创建分区索引"
         ],
         "weight": 0.3,
         "obj_info_type": "INDEX",
@@ -4773,7 +4771,7 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.INDEX_NAME, t.INDEX_TYPE, t.owner||'.'||t.TABLE_NAME, s.column_name from dba_indexes t, dba_ind_columns s where t.owner = s.table_owner and t.index_name = s.index_name and t.index_name not like 'BIN%' and t.owner = '@username@' and t.index_type = 'BITMAP' order by t.table_name, t.index_name",
         "rule_status": "ON",
-        "rule_summary": "此规则会获取被审核用户下所有索引的类型,并判断是否为位图索引。若表对象有频繁的DML操作,位图索引会在一定程度上阻塞相关操作。",
+        "rule_summary": "在OLTP在线交易系统中，如果有位图索引，则在DML操作时会产生大量的行锁",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
@@ -4813,11 +4811,11 @@
         "rule_complexity": "simple",
         "rule_cmd": "select t.table_owner||'.'||t.table_name, count(1)  from DBA_TAB_PARTITIONS t where t.table_owner = '@username@' group by t.table_owner||'.'||t.table_name having count(1) >= @part_tab_num@",
         "rule_status": "ON",
-        "rule_summary": "分区表中分区数量过多,将导致整体维护成本过高,可调整分区粒度。",
+        "rule_summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "1.合理定义分区键",
+            "1.建议重新分库，分表，分区",
             "2.历史数据归档"
         ],
         "weight": 0.5,
@@ -7250,11 +7248,11 @@
         "rule_complexity": "complex",
         "rule_cmd": "default",
         "rule_status": "ON",
-        "rule_summary": "表未设置任何索引。",
+        "rule_summary": "表的规模过大,且没任何索引时，任何查询都是全表扫描",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "需要考虑建索引"
+            "根据谓词条件的选择率创建合适的索引"
         ],
         "weight": 0.1,
         "obj_info_type": "TABLE",
@@ -7294,11 +7292,11 @@
         "rule_complexity": "complex",
         "rule_cmd": "default",
         "rule_status": "ON",
-        "rule_summary": "表未设置任何索引。",
+        "rule_summary": "表的规模过大,且没任何索引时，任何查询都是全表扫描",
         "rule_type": "OBJ",
         "rule_type_detail": null,
         "solution": [
-            "需要考虑建索引"
+            "根据谓词条件的选择率创建合适的索引"
         ],
         "weight": 0.1,
         "obj_info_type": "TABLE",

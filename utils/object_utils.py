@@ -169,7 +169,8 @@ def get_risk_object_list(session,
                         record, const.OBJ_RULE_TYPE_TABLE),
                     "risk_detail": rule_utils.format_rule_result_detail(
                         risky_rule_object, record),
-                    "optimized_advice": risk_rule_object.optimized_advice,
+                    "influence": risk_rule_object.influence,#rule_summary
+                    "optimized_advice": risk_rule_object.optimized_advice,#solution
                     "severity": risk_rule_object.severity,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                     **risky_rule_appearance[risky_rule_name]

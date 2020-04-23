@@ -68,6 +68,7 @@ def set_all_rules_as_risk_rule(session):
         rr.risk_name = json.loads(json.dumps(rule.rule_desc))
         rr.severity = json.loads(json.dumps("严重"))
         rr.optimized_advice = ", ".join(json.loads(json.dumps(rule.solution)))
+        rr.influence =json.loads(json.dumps(rule.rule_summary))
         risks.append(rr)
     session.add_all(risks)
     return len(risks)
