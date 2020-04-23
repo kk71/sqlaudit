@@ -702,8 +702,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                             "severity": k["severity"],
                         } for rule_name, k in risk_rule_name_sql_num_dict.items()
                     ]
-
-                    doc.risk_rule_rank = sorted(doc.risk_rule_rank, key=lambda x: x["num"], reverse=True)
+                    doc.risk_rule_rank = sorted(doc.risk_rule_rank, key=lambda x: (x["severity"], -x['num']))
 
                     # top 10 execution cost by sum and by average
                     sqls = get_risk_sql_list(
