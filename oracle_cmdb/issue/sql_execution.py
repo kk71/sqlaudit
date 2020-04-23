@@ -27,7 +27,8 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
     """sql执行相关问题"""
 
     output_params = EmbeddedDocumentField(
-        OracleOnlineIssueOutputParamsSQLExecution)
+        OracleOnlineIssueOutputParamsSQLExecution,
+        default=OracleOnlineIssueOutputParamsSQLExecution)
 
     meta = {
         "allow_inheritance": True

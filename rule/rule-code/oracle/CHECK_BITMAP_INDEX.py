@@ -10,7 +10,7 @@ def code(rule, entries, **kwargs):
 
     if db_model == MODEL_OLTP and\
             re.search(r"create\s+bitmap\s+index", sql_text, re.I+re.M):
-        return {}
+        yield {}
 
 
 code_hole.append(code)

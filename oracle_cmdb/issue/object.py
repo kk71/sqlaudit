@@ -27,7 +27,8 @@ class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
 class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
 
-    output_params = EmbeddedDocumentField(OracleOnlineIssueOutputParamsObject)
+    output_params = EmbeddedDocumentField(
+        OracleOnlineIssueOutputParamsObject, default=OracleOnlineIssueOutputParamsObject)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 
@@ -41,11 +42,10 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
         with make_session() as session:
             cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
             rule_jar: [CMDBRule] = cls.generate_rule_jar()
-            entries = cls.inherited_entries()
             cmdb_connector = cmdb.build_connector()
             for the_rule in rule_jar:
                 ret = the_rule.run(
-                    entries=entries,
+                    entries=rule_jar.entries,
 
                     cmdb=cmdb,
                     task_record_id=task_record_id,

@@ -24,7 +24,7 @@ class RuleJar(list):
         :return:
         """
         from rule.cmdb_rule import CMDBRule
-        new_jar = cls(CMDBRule.filter_enabled(entries__in=args).filter(**kwargs))
+        new_jar = cls(CMDBRule.filter_enabled(entries__all=args).filter(**kwargs))
         new_jar.entries = args
         return new_jar
 

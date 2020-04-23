@@ -45,7 +45,7 @@ class OracleOnlineIssue(OnlineIssue):
     def generate_rule_jar(cls, **kwargs) -> RuleJar:
         return super().generate_rule_jar(
             db_type=cmdb.const.DB_ORACLE,
-            entries=cls.inherited_entries(),
+            entries=cls.INHERITED_ENTRIES,
             **kwargs
         )
 

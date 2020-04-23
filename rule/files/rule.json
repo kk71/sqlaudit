@@ -7,7 +7,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [
             {
@@ -20,7 +23,7 @@
             }
         ],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") >= rule.gip(\"in_list_num\") - 1:\n            yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs[\"single_sql\"]\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") >= rule.gip(\"in_list_num\") - 1:\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "IN List元素过多",
         "solution": [
@@ -63,7 +66,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -71,7 +77,7 @@
         "status": true,
         "summary": "存在全连接或外连接,cross join或outer join情况",
         "solution": [
-            "改写为innerjoin"
+            "改写为inner join"
         ],
         "weight": 1.0,
         "max_score": 5,
@@ -80,13 +86,16 @@
     },
     {
         "name": "CHECK_ADD_COLUMN",
-        "desc": "添加字段有默认值",
+        "desc": "添加字段无默认值",
         "db_type": "oracle",
         "entries": [
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -108,11 +117,14 @@
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "DDL"
+            "DDL",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        return {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -131,7 +143,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -154,7 +169,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -177,7 +195,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -200,7 +221,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -223,7 +247,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -246,7 +273,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -256,8 +286,8 @@
         "solution": [
             ""
         ],
-        "weight": 0.1,
-        "max_score": 5,
+        "weight": 0.0,
+        "max_score": 0,
         "level": 1,
         "db_model": "OLTP"
     },
@@ -269,7 +299,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -279,8 +312,8 @@
         "solution": [
             ""
         ],
-        "weight": 0.1,
-        "max_score": 5,
+        "weight": 0.0,
+        "max_score": 0,
         "level": 1,
         "db_model": "OLTP"
     },
@@ -292,7 +325,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -304,7 +340,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -315,7 +351,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -338,7 +377,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -361,7 +403,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -371,9 +416,9 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
+        "weight": 0.0,
+        "max_score": 0,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -384,7 +429,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -394,9 +442,9 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
+        "weight": 0.0,
+        "max_score": 0,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -407,7 +455,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -417,8 +468,8 @@
         "solution": [
             ""
         ],
-        "weight": 0.1,
-        "max_score": 5,
+        "weight": 0.0,
+        "max_score": 0,
         "level": 1,
         "db_model": "OLTP"
     },
@@ -430,7 +481,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -440,9 +494,9 @@
         "solution": [
             ""
         ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
+        "weight": 0.0,
+        "max_score": 0,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -453,7 +507,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -465,7 +522,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -476,7 +533,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -488,7 +548,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -499,7 +559,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -511,7 +574,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -521,7 +584,10 @@
         "entries": [
             "TICKET",
             "TICKET_STATIC",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [
             {
@@ -540,9 +606,9 @@
         "solution": [
             "sql改写为精简语句"
         ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
+        "weight": 0.0,
+        "max_score": 0,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -553,7 +619,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -576,7 +645,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -599,7 +671,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -622,7 +697,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -646,7 +724,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -669,7 +750,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -693,7 +777,10 @@
             "TICKET_STATIC",
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "DML",
-            "DDL"
+            "DDL",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [
             {
@@ -714,7 +801,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -725,7 +812,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [
             {
@@ -746,7 +836,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -757,7 +847,10 @@
             "TICKET",
             "TICKET_STATIC",
             "TICKET_STATIC_CMDB_INDEPENDENT",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -769,7 +862,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -780,7 +873,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -793,7 +889,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -804,7 +900,10 @@
             "TICKET",
             "TICKET_STATIC",
             "DML",
-            "TICKET_STATIC_CMDB_INDEPENDENT"
+            "TICKET_STATIC_CMDB_INDEPENDENT",
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT"
         ],
         "input_params": [],
         "output_params": [],
@@ -817,7 +916,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -827,7 +926,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [
             {
@@ -907,7 +1009,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [
             {
@@ -971,7 +1076,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1034,7 +1142,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1098,7 +1209,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1161,7 +1275,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1224,7 +1341,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1287,7 +1407,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1350,7 +1473,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [
             {
@@ -1441,7 +1567,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1505,7 +1634,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [
@@ -1576,7 +1708,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [
             {
@@ -1632,7 +1767,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [
             {
@@ -1678,7 +1816,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1688,7 +1826,10 @@
         "entries": [
             "TICKET",
             "TICKET_DYNAMIC",
-            "DML"
+            "DML",
+            "ONLINE",
+            "SQL",
+            "SQL_PLAN"
         ],
         "input_params": [],
         "output_params": [],

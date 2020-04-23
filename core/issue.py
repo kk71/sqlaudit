@@ -34,7 +34,37 @@ class BaseIssue(abc.ABC):
         pass
 
 
-class BaseOnlineIssue(BaseIssue, SelfCollectingFramework):
+class BaseOnlineIssueMetaClass(type):
+    """元类：基础线上审核的问题"""
+
+    def __new__(mcs, name, bases, attrs):
+
+        INHERITED_ENTRIES = "INHERITED_ENTRIES"
+        inherited_entries = []
+
+        for b in bases:
+            upper_inherited_entries = getattr(b, INHERITED_ENTRIES, None)
+            if upper_inherited_entries is not None:
+                inherited_entries = set(b.ENTRIES) | set(upper_inherited_entries)
+
+        attrs[INHERITED_ENTRIES] = list(inherited_entries)
+        return super().__new__(mcs, name, bases, attrs)
+
+    def __init__(cls, name, bases, attrs):
+
+        super().__init__(name, bases, attrs)
+        ENTRIES = getattr(cls, "ENTRIES", ())
+        cls.INHERITED_ENTRIES = tuple(set(cls.INHERITED_ENTRIES + list(ENTRIES)))
+
+
+class BaseOnlineIssueMetaclassWithABCMetaClass(BaseOnlineIssueMetaClass, abc.ABCMeta):
+    pass
+
+
+class BaseOnlineIssue(
+        BaseIssue,
+        SelfCollectingFramework,
+        metaclass=BaseOnlineIssueMetaclassWithABCMetaClass):
     """基础线上审核的问题"""
 
     entries = None  # 该问题分析时候传入的entries
@@ -43,14 +73,6 @@ class BaseOnlineIssue(BaseIssue, SelfCollectingFramework):
     # TODO 子类仅填写当前子类需要的entries，如果需要查找当前子类所需的全部entries,
     #      使用inherited_entries查找继承的entries
     ENTRIES = ()
-
-    @classmethod
-    def inherited_entries(cls) -> set:
-        """不断调用父类的inherited_entries收集所有父类指明的entries"""
-        upper_entries = getattr(super(), "inherited_entries", None)
-        if upper_entries is not None:
-            return set(cls.ENTRIES) | super().inherited_entries()
-        return set(cls.ENTRIES)
 
     @classmethod
     def simple_analyse(cls, **kwargs):

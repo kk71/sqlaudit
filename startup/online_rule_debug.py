@@ -26,7 +26,7 @@ def main():
 
     # 最后运行一下分析任务
     cmdb_task_id = 1991
-    task_record_id = 32
+    task_record_id = 36
 
     with make_session() as session:
         the_cmdb_task = session.query(CMDBTask).filter_by(

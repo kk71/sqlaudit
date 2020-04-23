@@ -25,10 +25,6 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
     线上审核问题输出
     注意：这个嵌入式文档是动态的，意味着字段可以变动。这里只是起到一个提示作用
     """
-
-    # 一句话描述当前问题的关键（应当是人能通读的表述）
-    issue_desc = StringField(required=True, default="")
-
     meta = {
         "allow_inheritance": True
     }
@@ -43,7 +39,7 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
             if f in ("_cls", "_id"):
                 continue
             if f not in output_data.keys():
-                raise issue.exceptions.IssueBadOutputData(f"need {f}")
+                raise issue.exceptions.IssueBadOutputData(f"{the_rule}: need {f}")
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             # 检查规则的输出参数和实际的输出是否一直，
@@ -58,10 +54,16 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
             )
 
 
+class IssueMetaABCMetaTopLevelDocMeta(
+        ABCTopLevelDocumentMetaclass,
+        core.issue.BaseOnlineIssueMetaclassWithABCMetaClass):
+    pass
+
+
 class OnlineIssue(
         BaseDoc,
         core.issue.BaseOnlineIssue,
-        metaclass=ABCTopLevelDocumentMetaclass):
+        metaclass=IssueMetaABCMetaTopLevelDocMeta):
     """common online issue"""
 
     cmdb_id = IntField(required=True)
@@ -72,7 +74,8 @@ class OnlineIssue(
     weight = FloatField()
     max_score = FloatField(required=True)
     input_params = DictField(default=dict)  # 输入参数快照
-    output_params = EmbeddedDocumentField(OnlineIssueOutputParams)  # 运行输出
+    output_params = EmbeddedDocumentField(
+        OnlineIssueOutputParams, default=OnlineIssueOutputParams)  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
     level = IntField()  # 规则优先级
 
@@ -95,7 +98,7 @@ class OnlineIssue(
                           entries: [str] = None,
                           **kwargs) -> RuleJar:
         if entries is None:
-            entries = cls.inherited_entries()
+            entries = cls.INHERITED_ENTRIES
         return RuleJar.gen_jar_with_entries(*entries, db_type=db_type, **kwargs)
 
     def as_issue_of(self,
