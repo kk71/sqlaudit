@@ -43,11 +43,11 @@ class OracleOnlineIssue(OnlineIssue):
 
     @classmethod
     def generate_rule_jar(cls,
-                          db_type: str = cmdb.const.DB_ORACLE,
+                          cmdb_id: int,
                           entries: [str] = None,
                           **kwargs) -> RuleJar:
         return super().generate_rule_jar(
-            db_type=db_type,
+            cmdb_id=cmdb_id,
             entries=entries,
             **kwargs
         )

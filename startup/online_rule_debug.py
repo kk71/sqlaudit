@@ -16,6 +16,11 @@ from cmdb.cmdb_task import *
 def main():
     """for debugging only"""
 
+    # 最后运行一下分析任务
+    cmdb_task_id = 1991
+    task_record_id = 36
+    cmdb_id = 2526
+
     # 先把规则代码更新到规则墨盒
     update_code(compare=False)
 
@@ -23,15 +28,11 @@ def main():
     rule_export(RuleCartridge.DEFAULT_JSON_FILE)
 
     # 然后把规则墨盒更新到某个测试库上
-    initiate_cmdb_rule(cmdb_id=2526)
+    initiate_cmdb_rule(cmdb_id=cmdb_id)
 
     # 检查输出参数和规则是否符合
     for m in OracleOnlineIssue.COLLECTED:
-        m.check_rule_output_and_issue(db_type=cmdb.const.DB_ORACLE)
-
-    # 最后运行一下分析任务
-    cmdb_task_id = 1991
-    task_record_id = 36
+        m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 
     with make_session() as session:
         the_cmdb_task = session.query(CMDBTask).filter_by(

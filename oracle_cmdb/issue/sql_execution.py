@@ -48,7 +48,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]
 
-        rule_jar: [CMDBRule] = cls.generate_rule_jar()
+        rule_jar: [CMDBRule] = cls.generate_rule_jar(cmdb_id)
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()

@@ -97,12 +97,12 @@ class OnlineIssue(
 
     @classmethod
     def generate_rule_jar(cls,
-                          db_type: str,
+                          cmdb_id: int,
                           entries: [str] = None,
                           **kwargs) -> RuleJar:
         if entries is None:
             entries = cls.INHERITED_ENTRIES
-        return RuleJar.gen_jar_with_entries(*entries, db_type=db_type, **kwargs)
+        return RuleJar.gen_jar_with_entries(*entries, cmdb_id=cmdb_id, **kwargs)
 
     def as_issue_of(self,
                     the_rule: rule.cmdb_rule.CMDBRule,
