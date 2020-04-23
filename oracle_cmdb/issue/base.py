@@ -42,10 +42,13 @@ class OracleOnlineIssue(OnlineIssue):
     COLLECTED: ["OracleOnlineIssue"] = []
 
     @classmethod
-    def generate_rule_jar(cls, **kwargs) -> RuleJar:
+    def generate_rule_jar(cls,
+                          db_type: str = cmdb.const.DB_ORACLE,
+                          entries: [str] = None,
+                          **kwargs) -> RuleJar:
         return super().generate_rule_jar(
-            db_type=cmdb.const.DB_ORACLE,
-            entries=cls.INHERITED_ENTRIES,
+            db_type=db_type,
+            entries=entries,
             **kwargs
         )
 

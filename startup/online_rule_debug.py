@@ -3,6 +3,7 @@
 from models import init_models
 init_models()
 
+import cmdb.const
 from rule.rule_cartridge_utils import *
 from rule.rule_cartridge import *
 from rule.cmdb_rule_utils import initiate_cmdb_rule
@@ -23,6 +24,10 @@ def main():
 
     # 然后把规则墨盒更新到某个测试库上
     initiate_cmdb_rule(cmdb_id=2526)
+
+    # 检查输出参数和规则是否符合
+    for m in OracleOnlineIssue.COLLECTED:
+        m.check_rule_output_and_issue(db_type=cmdb.const.DB_ORACLE)
 
     # 最后运行一下分析任务
     cmdb_task_id = 1991

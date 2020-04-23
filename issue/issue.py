@@ -29,17 +29,20 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
         "allow_inheritance": True
     }
 
+    def check_rule_output_and_issue(self, the_rule: rule.cmdb_rule.CMDBRule):
+        """检查对应的规则的输出参数是否满足当前issue的要求"""
+        keys_of_rule_output_params = {i.name for i in the_rule.output_params}
+        for f in self._fields_ordered:
+            if f in ("_cls", "_id"):
+                continue
+            if f not in keys_of_rule_output_params:
+                raise issue.exceptions.IssueBadOutputData(f"{the_rule}: need {f}")
+
     def as_output_of(
             self,
             the_rule: rule.cmdb_rule.CMDBRule,
             output_data: dict):
         """以给出的数据作为本问题的输出"""
-        # 检查实际输出是否包含当前问题要求必须输出的字段。
-        for f in self._fields_ordered:
-            if f in ("_cls", "_id"):
-                continue
-            if f not in output_data.keys():
-                raise issue.exceptions.IssueBadOutputData(f"{the_rule}: need {f}")
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             # 检查规则的输出参数和实际的输出是否一直，
@@ -136,3 +139,10 @@ class OnlineIssue(
         """便于子类只查询当前（以及其子类）的对象"""
         return cls.objects(
             entries__all=cls.inherited_entries()).filter(*args, **kwargs)
+
+    @classmethod
+    def check_rule_output_and_issue(cls, **kwargs):
+        """检查规则和对应的输出字段是否符合要求"""
+        rule_jar = cls.generate_rule_jar(**kwargs)
+        for the_rule in rule_jar:
+            cls().output_params.check_rule_output_and_issue(the_rule)
