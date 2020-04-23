@@ -20,7 +20,7 @@
             }
         ],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") > rule.gip(\"in_list_num\") - 1:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") >= rule.gip(\"in_list_num\") - 1:\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "IN List元素过多",
         "solution": [
@@ -44,7 +44,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "\ndef code(rule, entries, **kwargs):\n    \"\"\"判断同一个工单的sql语句是否存在ddl和dml混写的情况\"\"\"\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if len(sql_types) > 1:\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql import const\n\n\ndef code(rule, entries, **kwargs):\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if const.SQL_DDL in sql_types and const.SQL_DML in sql_types:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": false,
         "summary": "DML、DDL语句混写会导致上线失败回滚时，DDL无法回滚",
         "solution": [
@@ -67,7 +67,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\")\n\n    if cross_outer_join.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\", re.M+re.I)\n\n    if cross_outer_join.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在全连接或外连接,cross join或outer join情况",
         "solution": [
@@ -90,7 +90,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I):\n            yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I+re.M):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I+re.M):\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -112,7 +112,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I):\n        return {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        return {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -135,7 +135,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -158,7 +158,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I):\n        return\n\n    if 'parallel' not in sql_text:\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I)\n    if parallel and int(parallel.group(1)) > 1:\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    if 'parallel' not in sql_text.lower():\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I+re.M)\n    if parallel and int(parallel.group(1)) > 1:\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -181,7 +181,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -296,7 +296,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I) and\\\n            'tablespace' not in sql_text:\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -319,7 +319,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I):\n        if not re.search(r\"\\s+online\", sql_text, re.I):\n            yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I+re.M):\n        if not re.search(r\"\\s+online\", sql_text, re.I+re.M):\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "创建索引的时候加上online,否则索引创建期间会锁表",
         "solution": [
@@ -342,7 +342,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (not re.search(r\"create\\s+table\", sql_text, re.I)\n        and not re.search(r\"alter\\s+table\", sql_text, re.I)) or\\\n            any([x in sql_text.lower() for x in ['blob', 'clob', 'bfile', 'xmltype']]):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (\n            not re.search(r\"create\\s+table\", sql_text, re.I)\n            and not re.search(r\"alter\\s+table\", sql_text, re.I)\n    ) or any([\n        x in sql_text.lower()\n        for x in ['blob', 'clob', 'bfile', 'xmltype']\n    ]):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -388,7 +388,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I+re.M):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -457,7 +457,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))')\n    pat1 = re.compile(' where ')\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))', re.M+re.I)\n    pat1 = re.compile(r'\\s+where\\s+', re.S+re.I)\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -480,7 +480,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(\"(\\\\s)?((update )|(delete )).*order by\")\n\n    if dml_sort.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(r\"(\\s)?((update )|(delete )).*order by\", re.M+re.I)\n\n    if dml_sort.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -503,7 +503,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(\"like .\\\\%\")\n\n    if like_unindex.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(r\"like\\s+\\.?%\", re.M+re.I)\n\n    if like_unindex.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词条件使用like %xxx,无法使用索引",
         "solution": [
@@ -534,7 +534,7 @@
             }
         ],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    if len(sql_text) > rule.gip(\"char_num\"):\n        yield {}\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    length = len(sql_text)\n    if length >= rule.gip(\"char_num\"):\n        yield {\n            \"char_num\": length\n        }\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "SQL文本过长",
         "solution": [
@@ -557,7 +557,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用select *,必须明确选择所需的列",
         "solution": [
@@ -580,7 +580,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "from sqlparse.sql import TokenList\n\nfrom parsed_sql.parsed_sql import ParsedSQL\n\n\ndef recursively_find_following_select(token: TokenList) -> bool:\n    if token.normalized == \"SELECT\":\n        return True\n    if isinstance(token, TokenList) and token.tokens:\n        for new_token in token.tokens:\n            recursive_ret = recursively_find_following_select(new_token)\n            if recursive_ret:\n                return True\n    return False\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
@@ -603,7 +603,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    sqlend = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"having\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"HAVING\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "having段出现子查询",
         "solution": [
@@ -626,7 +626,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value and value in subquery:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value.lower() and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value.lower() and value in subquery:\n            yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用重复的查询子句,应使用with as替换子句(仅限Oracle)来提升SQL执行效率",
         "solution": [
@@ -650,7 +650,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    m = 0\n    n = 0\n    sql_content = []\n    sqlbegin = 0\n    str_len = len(sql_text)\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 6] == \"select\" and m == 0:\n            sqlbegin = k + 7\n            n = n + 1\n        if sql_text[k: k + 4] == \"from\" and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"SELECT\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "select段出现子查询",
         "solution": [
@@ -673,7 +673,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    sql_content = []\n    sqlbegin = 0\n    m = 0\n    n = 0\n    for k in range(str_len):\n        if sql_text[k] == \"(\":\n            m = m + 1\n        if sql_text[k] == \")\":\n            m = m - 1\n        if sql_text[k: k + 5] == \"where\" and m == 0:\n            sqlbegin = k + 6\n            n = n + 1\n        if sql_text[k: k + 6] == \"having\" and n != 0 and m == 0:\n            sqlend = k - 1\n            n = n - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n        if k == str_len - 1 and n > 0 and m == 0:\n            sqlend = k - 1\n            sql_content.append(sql_text[sqlbegin:sqlend])\n    for value in sql_content:\n        if \"select\" in value:\n            return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"WHERE\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "where段出现子查询",
         "solution": [
@@ -706,7 +706,7 @@
             }
         ],
         "output_params": [],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") > rule.gip(\"num_of_bound_var\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") >= rule.gip(\"num_of_bound_var\"):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "绑定变量过多",
         "solution": [
@@ -738,7 +738,7 @@
             }
         ],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            > rule.gip(\"or_num\"):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            >= rule.gip(\"or_num\"):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "多个过滤条件通过or连接,防止优化器出现选择异常",
         "solution": [
@@ -761,7 +761,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "出现union,防止出现不必要的排序动作",
         "solution": [
@@ -784,7 +784,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
         "solution": [
@@ -808,7 +808,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        yield {}\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词中存在负向操作符,!=,<>,!<,!>,not exists,not",
         "solution": [
@@ -889,7 +889,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"INDEX\",\n        options=\"FAST FULL SCAN\"\n    )\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"INDEX\",\n        options=\"FAST FULL SCAN\"\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "大索引快速全扫描",
         "solution": [
@@ -914,15 +914,15 @@
                 "name": "ind_phy_size",
                 "desc": "索引物理大小",
                 "unit": "MB",
-                "data_type": null,
+                "data_type": "NUM",
                 "_cls": "RuleInputParams",
                 "value": 1024.0
             }
         ],
         "output_params": [
             {
-                "name": "statement_id",
-                "desc": "SQL ID",
+                "name": "sql_id",
+                "desc": "sql id",
                 "unit": "",
                 "data_type": null,
                 "_cls": "RuleOutputParams",
@@ -945,23 +945,15 @@
                 "optional": null
             },
             {
-                "name": "the_id",
-                "desc": "id",
-                "unit": "",
-                "data_type": null,
-                "_cls": "RuleOutputParams",
-                "optional": null
-            },
-            {
-                "name": "cost",
-                "desc": "cost",
+                "name": "object_type",
+                "desc": "对象类型",
                 "unit": "",
                 "data_type": null,
                 "_cls": "RuleOutputParams",
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"FULL SCAN\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(operation=\"INDEX\", options=\"FULL SCAN\")\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "大索引全扫描",
         "solution": [
@@ -1024,7 +1016,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"INDEX\", options=\"SKIP SCAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(operation=\"INDEX\", options=\"SKIP SCAN\")\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "索引跳跃扫描",
         "solution": [
@@ -1087,7 +1079,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"MERGE JOIN\", options=\"CARTESIAN\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"MERGE JOIN\",\n        options=\"CARTESIAN\"\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_type\", \"object_name\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "笛卡尔积",
         "solution": [
@@ -1151,7 +1143,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PX COORDINATOR\")\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(operation=\"PX COORDINATOR\")\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_type\", \"object_name\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在并行访问特征",
         "solution": [
@@ -1214,7 +1206,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"PARTITION RANGE\", options=\"ALL\")\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options=\"ALL\"\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_type\", \"object_name\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "分区全扫描",
         "solution": [
@@ -1277,7 +1269,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\", options__in=(\"INLIST\", \"OR\"))\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options__in=(\"INLIST\", \"OR\")\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_type\", \"object_name\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "非连续分区扫描",
         "solution": [
@@ -1340,7 +1332,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options=\"ITERATOR\"\n    )\n\n    for x in plans:\n        plans_filter = sql_plan_qs.filter(statement_id=x.statement_id,\n                                          plan_id=x.plan_id,\n                                          the_id=x.the_id + 1)\n        for y in plans_filter:\n            return -rule.weight, [\n                y.statement_id,\n                y.plan_id,\n                y.object_name,\n                y.the_id,\n                y.cost\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"PARTITION RANGE\",\n        options=\"ITERATOR\"\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_type\", \"object_name\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "跨分区扫描",
         "solution": [
@@ -1365,7 +1357,7 @@
                 "name": "table_phy_size",
                 "desc": "表物理大小",
                 "unit": "MB",
-                "data_type": null,
+                "data_type": "NUM",
                 "_cls": "RuleInputParams",
                 "value": 2048
             },
@@ -1373,7 +1365,7 @@
                 "name": "table_row_num",
                 "desc": "表行数",
                 "unit": "",
-                "data_type": null,
+                "data_type": "INT",
                 "_cls": "RuleInputParams",
                 "value": 100000
             }
@@ -1420,7 +1412,7 @@
                 "optional": null
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    '''\n    db.@sql@.find({\n        OPERATION: 'TABLE ACCESS', OPTIONS: 'FULL', USERNAME: '@username@',\n        record_id: '@record_id@'}).forEach(function(x){db.@tmp@.save({\n            SQL_ID:x.SQL_ID, PLAN_HASH_VALUE:x.PLAN_HASH_VALUE, OBJECT_NAME:x.OBJECT_NAME,\n            ID:x.ID, COST:x.COST, COUNT:''});})\"\n    '''\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for plan in plans:\n        return -rule.weight, [\n            plan.statement_id,\n            plan.plan_id,\n            plan.object_name,\n            plan.the_id,\n            plan.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from oracle_cmdb.capture.obj_tab_info import ObjTabInfo\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(operation=\"TABLE ACCESS\", options=\"FULL\")\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\",\n                         \"object_name\",\n                         \"object_type\",\n                         \"task_record_id\",\n                         \"schema_name\"):\n        the_table = ObjTabInfo.objects(\n            task_record_id=d[\"task_record_id\"],\n            schema_name=d[\"schema_name\"],\n            table_name=d[\"object_name\"]\n        ).first()\n        if the_table.num_rows >= rule.gip(\"table_row_num\") or\\\n                the_table.phy_size_mb >= rule.gip(\"table_phy_size\"):\n            yield {\n                k: v\n                for k, v in d.items()\n                if k in (\"sql_id\", \"plan_hash_value\", \"object_name\", \"object_type\")\n            }\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "全表扫描",
         "solution": [
@@ -1494,7 +1486,7 @@
                 "optional": null
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        filter_predicates=re.compile(r\"(SYS_OP|TO_NUMBER|INTERNAL_FUNCTION)\", re.I)\n    )\n\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\nfrom rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        filter_predicates=re.compile(\n            r\"(SYS_OP|TO_NUMBER|INTERNAL_FUNCTION)\", re.I)\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "隐式转换",
         "solution": [
@@ -1566,91 +1558,11 @@
                 "optional": null
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(object_type=\"VIEW\",\n                               object_owner__ne=None,\n                               object_name=re.compile(r\"^index$_join$\"))\n    for x in plans:\n        return -rule.weight, [\n            x.statement_id,\n            x.plan_id,\n            x.object_name,\n            x.the_id,\n            x.cost\n        ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\nfrom rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        object_type=\"VIEW\",\n        object_owner__ne=None,\n        object_name=re.compile(r\"^index$_join$\")\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在视图访问",
         "solution": [
             "视图不能展开,复杂视图拆解、改写"
-        ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
-        "db_model": "OLTP"
-    },
-    {
-        "name": "LOOP_IN_TAB_FULL_SCAN",
-        "desc": "嵌套循环内层表全扫",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_DYNAMIC",
-            "DML"
-        ],
-        "input_params": [
-            {
-                "name": "table_phy_size",
-                "desc": "表物理大小",
-                "unit": "MB",
-                "data_type": "NUM",
-                "_cls": "RuleInputParams",
-                "value": 1024
-            },
-            {
-                "name": "table_row_num",
-                "desc": "表行数",
-                "unit": "",
-                "data_type": "INT",
-                "_cls": "RuleInputParams",
-                "value": 5000
-            }
-        ],
-        "output_params": [
-            {
-                "name": "statement_id",
-                "desc": "SQL ID",
-                "unit": "",
-                "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": null
-            },
-            {
-                "name": "plan_hash_value",
-                "desc": "执行计划id",
-                "unit": "int",
-                "data_type": "INT",
-                "_cls": "RuleOutputParams",
-                "optional": null
-            },
-            {
-                "name": "object_name",
-                "desc": "对象名",
-                "unit": "",
-                "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": null
-            },
-            {
-                "name": "the_id",
-                "desc": "id",
-                "unit": "",
-                "data_type": "INT",
-                "_cls": "RuleOutputParams",
-                "optional": null
-            },
-            {
-                "name": "cost",
-                "desc": "cost",
-                "unit": "",
-                "data_type": "INT",
-                "_cls": "RuleOutputParams",
-                "optional": null
-            }
-        ],
-        "code": "import re\n\nfrom mongoengine import Q\n\nfrom utils.mongo_utils import *\n# from models.mongo import ObjTabInfo, OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n    mongo_connector = kwargs[\"mongo_connector\"]\n\n    plans = sql_plan_qs.filter(\n        Q(operation=re.compile(r\"NESTED LOOP\")) |\n        Q(operation=re.compile(r\"FILTER\"))\n    )\n    with temp_collection(mongo_connector, rule.name) as tmp:\n        to_insert = [\n            i.to_dict(\n                iter_if=lambda k, v: k in (\n                    \"statement_id\",\n                    \"plan_id\",\n                    \"object_name\",\n                    \"the_id\",\n                    \"parent_id\",\n                    \"operation\",\n                    \"options\",\n                    \"username\"\n                )\n            ) for i in plans\n        ]\n        if to_insert:\n            tmp.insert_many(to_insert)\n        else:\n            return\n        aggregate_result = tmp.aggregate([\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"parent_id\": \"$parent_id\",\n                        \"statement_id\": \"$statement_id\",\n                        \"plan_id\": \"$plan_id\"\n                    },\n                    \"max_id\": {\"$max\": \"$the_id\"}\n                }\n            }\n        ])\n        for ar in aggregate_result:\n            plans_after_aggregation = OracleTicketSQLPlan.objects(\n                Q(the_id=ar[\"max_id\"]) & Q(the_id__ne=2),\n                statement_id=ar[\"_id\"][\"statement_id\"],\n                plan_id=ar[\"_id\"][\"plan_id\"],\n                operation=\"TABLE ACCESS\",\n                options=\"FULL\"\n            )\n            for paa in plans_after_aggregation:\n                a_tab = ObjTabInfo.objects(\n                    Q(num_rows__gt=rule.gip(\"table_row_num\")) |\n                    Q(phy_size_mb__gt=rule.gip(\"table_phy_size\")),\n                    owner=paa.owner,\n                    ip_address=rule.gip(\"ip_addr\"),\n                    sid=rule.gip(\"sid\"),\n                    table_name=paa.object_name,\n                ).first()\n                if a_tab:\n                    yield {}\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "嵌套循环内层表访问方式为全表扫描",
-        "solution": [
-            "关联列创建索引"
         ],
         "weight": 1.0,
         "max_score": 5,
@@ -1671,7 +1583,7 @@
                 "name": "loop_num",
                 "desc": "表嵌套的层次",
                 "unit": "",
-                "data_type": null,
+                "data_type": "INT",
                 "_cls": "RuleInputParams",
                 "value": 3
             }
@@ -1702,7 +1614,7 @@
                 "optional": null
             }
         ],
-        "code": "import re\n\nfrom oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"\"db.@sql@.group( {\n    key:{\\\"USERNAME\\\":1,\\\"ETL_DATE\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1},\n     cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n     $or: [{\\\"OPERATION\\\":/NESTED LOOP/},{\\\"OPERATION\\\":/FILTER/}]},\n     reduce:function(curr,result){ result.count++; }, initial:{count:0} } ).\n\n     forEach(function(x){db.@tmp1@.save({\\\"SQL_ID\\\":x.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"COUNT\\\":x.count})});\n     db.@tmp1@.find({\\\"COUNT\\\":{$gte:\\\"@loop_num@\\\"}}).\n     forEach(function(y){db.@tmp@.save({\\\"SQL_ID\\\":y.SQL_ID,\n     \\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\\\"COUNT\\\":x.COUNT,\n     \\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\",\n    \"\"\"\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"$or\": [\n                    {\"operation\": re.compile(r\"NESTED LOOP\")},\n                    {\"operation\": re.compile(r\"FILTER\")}\n                ]\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] > rule.gip(\"loop_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n\n\n",
+        "code": "import re\n\nfrom rule import const\nfrom oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\nfrom oracle_cmdb.capture import SQLPlan\n\n\ndef code(rule, entries, **kwargs):\n\n    nested_loop = {\n        \"$or\": [\n            {\"operation\": re.compile(r\"NESTED LOOP\")},\n            {\"operation\": re.compile(r\"FILTER\")}\n        ]\n    }\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        statement_id: str = kwargs[\"statement_id\"]\n        ret = OracleTicketSQLPlan.objects.aggregate(\n            {\n                \"$match\": {\n                    \"statement_id\": statement_id,\n                    **nested_loop\n                }\n            },\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"statement_id\": \"$statement_id\",\n                        \"plan_id\": \"$plan_id\",\n                        \"object_name\": \"$object_name\",\n                        \"object_type\": \"$object_type\",\n                    },\n                    \"count\": {\"$sum\": 1}\n                }\n            }\n        )\n        for d in ret:\n            if d[\"count\"] >= rule.gip(\"loop_num\"):\n                yield {\n                    \"object_name\": d[\"_id\"][\"object_name\"],\n                    \"object_type\": d[\"_id\"][\"object_type\"]\n                }\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        schema_name: str = kwargs[\"schema_name\"]\n        task_record_id: int = kwargs[\"task_record_id\"]\n\n        ret = SQLPlan.objects.aggregate(\n            {\n                \"$match\": {\n                    \"task_record_id\": task_record_id,\n                    \"schema_name\": schema_name,\n                    **nested_loop\n                }\n            },\n            {\n                \"$group\": {\n                    \"_id\": {\n                        \"sql_id\": \"$sql_id\",\n                        \"plan_hash_value\": \"$plan_hash_value\",\n                        \"object_name\": \"$object_name\",\n                        \"object_type\": \"$object_type\",\n                    },\n                    \"count\": {\"$sum\": 1}\n                }\n            }\n        )\n        for d in ret:\n            if d[\"count\"] >= rule.gip(\"loop_num\"):\n                yield {\n                    \"count\": d[\"count\"],\n                    **d[\"_id\"]\n                }\n\n\ncode_hole.append(code)\n\n\n",
         "status": true,
         "summary": "嵌套层次过深",
         "solution": [
@@ -1758,7 +1670,7 @@
                 "optional": null
             }
         ],
-        "code": "from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    '''\n    db.@sql@.group( {\n        key:{\\\"USERNAME\\\":1,\\\"record_id\\\":1,\\\"SQL_ID\\\":1,\\\"PLAN_HASH_VALUE\\\":1,\\\"OBJECT_TYPE\\\":1},\n        cond:{\\\"USERNAME\\\":\\\"@username@\\\",\\\"@etl_date_key@\\\":\\\"@etl_date@\\\",\n            \\\"OBJECT_TYPE\\\":\\\"TABLE\\\"},\n        reduce:function(curr,result){ result.count++; },\n        initial:{count:0} } ).forEach(function(x){db.@tmp1@.save({\n            \\\"SQL_ID\\\":x.SQL_ID,\\\"PLAN_HASH_VALUE\\\":x.PLAN_HASH_VALUE,\\\"ID\\\":x.ID,\\\"COUNT\\\":x.count\n        })});db.@tmp1@.find({\\\"COUNT\\\":{$gte:@tab_num@}}).forEach(function(y){db.@tmp@.save({\n            \\\"SQL_ID\\\":y.SQL_ID,\\\"PLAN_HASH_VALUE\\\":y.PLAN_HASH_VALUE,\\\"ID\\\":y.ID,\n            \\\"COUNT\\\":y.COUNT,\\\"COST\\\":\\\"\\\",\\\"OBJECT_NAME\\\":\\\"\\\"})})\n    '''\n    statement_id: str = kwargs[\"statement_id\"]\n\n    agg_ret = OracleTicketSQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"statement_id\": statement_id,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"statement_id\": \"$statement_id\",\n                    \"plan_id\": \"$plan_id\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for r in agg_ret:\n        if r[\"count\"] >= rule.gip(\"tab_num\"):\n            return -rule.weight, [\n                statement_id,\n                r[\"_id\"][\"plan_id\"],\n                r[\"count\"]\n            ]\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "from oracle_cmdb.capture import SQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    task_record_id: int = kwargs[\"task_record_id\"]\n    schema_name: str = kwargs[\"schema_name\"]\n\n    ret = SQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"task_record_id\": task_record_id,\n                \"schema_name\": schema_name\n            }\n        },\n        {\n            \"group\": {\n                \"_id\": {\n                    \"task_record_id\": task_record_id,\n                    \"schema_name\": schema_name,\n                    \"sql_id\": \"$sql_id\",\n                    \"plan_hash_value\": \"$plan_hash_value\",\n                    \"object_name\": \"$object_name\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for d in ret:\n        if d[\"count\"] >= rule.gip(\"tab_num\"):\n            yield {\n                \"sql_id\": d[\"_id\"][\"sql_id\"],\n                \"plan_hash_value\": d[\"_id\"][\"plan_hash_value\"],\n                \"object_name\": d[\"_id\"][\"object_name\"],\n                \"object_type\": d[\"_id\"][\"object_type\"],\n                \"tab_num\": d[\"count\"]\n            }\n\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "过多的表关联,影响性能",
         "solution": [
@@ -1780,7 +1692,7 @@
         ],
         "input_params": [],
         "output_params": [],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    plans = sql_plan_qs.filter(\n        operation=\"TABLE ACCESS\",\n        options=re.compile(r\"BY GLOBAL INDEX ROWID\", re.I)\n    )\n    if plans.count():\n        return -rule.weight, []\n    return None, []\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\nfrom rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"TABLE ACCESS\",\n        options=re.compile(r\"BY GLOBAL INDEX ROWID\", re.I)\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
