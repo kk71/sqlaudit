@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     single_sql: dict = kwargs.get("single_sql")
     sql_text: str = single_sql["sql_text_no_comment"]
 
-    if not re.search(r"create\s+table", sql_text, re.I):
+    if not re.search(r"create\s+table", sql_text, re.I+re.M):
         return
 
     left_brackets = 0

@@ -9,7 +9,7 @@ def code(rule, entries, **kwargs):
     db_model = cmdb.db_model
 
     if db_model == MODEL_OLTP and\
-            re.search(r"create\s+bitmap\s+index", sql_text, re.I):
+            re.search(r"create\s+bitmap\s+index", sql_text, re.I+re.M):
         return {}
 
 
