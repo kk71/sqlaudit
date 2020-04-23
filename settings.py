@@ -69,9 +69,9 @@ REDIS_BACKEND = f'redis://{REDIS_BACKEND_IP}:{REDIS_BACKEND_PORT}/{REDIS_BACKEND
 
 MONGO_SERVER = env_get("MONGO_IP", "193.0.0.2")
 MONGO_PORT = env_get("MONGO_PORT", 27017, int)
-MONGO_USER = env_get("MONGO_USER", "sqlreview")
+MONGO_USER = env_get("MONGO_USER", "sqlaudit")
 MONGO_PASSWORD = env_get("MONGO_PASSWORD", "V1G2M60ID2499YZ")
-MONGO_DB = env_get("MONGO_DB", "sqlreview")
+MONGO_DB = env_get("MONGO_DB", "sqlaudit")
 
 
 # cache setting
