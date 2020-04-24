@@ -120,7 +120,7 @@ class SQLCapturingDoc(
             cmdb_connector: OraclePlainConnector,
             schema_name: str,
             beg_snap: int,
-            end_snap: int) -> {(str, {int})}:
+            end_snap: int) -> List[(str, {int})]:
         """查询sql基本信息，按照cls.PARAMETERS的参数分别查，最后去重"""
         ret_dict = defaultdict(set)
         for parameter in cls.PARAMETERS:
@@ -133,7 +133,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             NULL, NULL, NULL))""")
             for sql_id, plan_hash_value, parsing_schema_name in sql_info:
                 ret_dict[str(sql_id)].add(int(plan_hash_value))
-        return set(ret_dict.items())
+        return list(ret_dict.items())
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
