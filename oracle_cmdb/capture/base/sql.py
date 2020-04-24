@@ -6,7 +6,8 @@ __all__ = [
 ]
 
 from datetime import datetime
-from typing import NoReturn
+from typing import NoReturn, List, Union
+from collections import defaultdict
 
 import arrow
 from mongoengine import IntField, StringField
@@ -105,15 +106,23 @@ class SQLCapturingDoc(
             end_time=now.date()
         )
 
+    @staticmethod
+    def list_to_oracle_str(l: List[Union[str, int, float]]):
+        """一个list转换为oracle的数组"""
+        inner = ""
+        if l:
+            inner = ", ".join([f"'{str(i)}'" for i in l])
+        return f"({inner})"
+
     @classmethod
     def query_sql_set(
             cls,
             cmdb_connector: OraclePlainConnector,
             schema_name: str,
             beg_snap: int,
-            end_snap: int) -> {(str, int, str)}:
+            end_snap: int) -> {(str, {int})}:
         """查询sql基本信息，按照cls.PARAMETERS的参数分别查，最后去重"""
-        ret = set()
+        ret_dict = defaultdict(set)
         for parameter in cls.PARAMETERS:
             sql_info = cmdb_connector.select(f"""
 SELECT sql_id,
@@ -123,8 +132,8 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             'parsing_schema_name=''{schema_name}''', NULL, '{parameter}', NULL,
             NULL, NULL, NULL))""")
             for sql_id, plan_hash_value, parsing_schema_name in sql_info:
-                ret.add((str(sql_id), int(plan_hash_value), str(parsing_schema_name)))
-        return ret
+                ret_dict[str(sql_id)].add(int(plan_hash_value))
+        return set(ret_dict.items())
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
@@ -164,11 +173,11 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             beg_snap=snap_id_s,
             end_snap=snap_id_e
         )
-        for sql_id, plan_hash_value, parsing_schema_name in sql_set:
+        for sql_id, plan_hash_value in sql_set:
             sql_to_run = m.simple_capture(
                 sql_id=sql_id,
-                plan_hash_value=plan_hash_value,
-                schema_name=parsing_schema_name,
+                plan_hash_value=cls.list_to_oracle_str(plan_hash_value),
+                schema_name=a_schema,
                 snap_id_s=snap_id_s,
                 snap_id_e=snap_id_e,
             )
