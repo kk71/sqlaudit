@@ -1305,6 +1305,14 @@
                 "data_type": "INT",
                 "_cls": "RuleOutputParams",
                 "optional": false
+            },
+            {
+                "name": "object_name",
+                "desc": "对象名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
             }
         ],
         "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(operation=\"INDEX\", options=\"FULL SCAN\")\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",

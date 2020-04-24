@@ -107,3 +107,9 @@ class BaseDoc(DynamicDocument):
 
     def __str__(self):
         return json.dumps(self.to_dict())
+
+    def filter_enabled(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def filter(self, *args, **kwargs):
+        return self.objects(*args, **kwargs)
