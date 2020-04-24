@@ -11,7 +11,6 @@ from collections import defaultdict
 
 import arrow
 from mongoengine import IntField, StringField
-from utils.perf_utils import timing
 
 import settings
 from .base import *
@@ -165,7 +164,6 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             doc.schema_name = schema_name
 
     @classmethod
-    @timing()
     def _schema_sql_capture(cls,
                             a_schema: str,
                             m: "SQLCapturingDoc",

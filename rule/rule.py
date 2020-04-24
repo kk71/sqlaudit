@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 import traceback
-from typing import Union, Callable, List
+from typing import Union, Callable
 
 from mongoengine import EmbeddedDocument, StringField, DynamicField, \
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
@@ -119,15 +119,28 @@ class RuleOutputParams(RuleParams):
             ).validate(ret)
         except SchemaError:
             raise exceptions.RuleCodeInvalidReturnException(ret)
+        output_params_keys = set()
         for the_output_param in the_rule.output_params:
+            output_params_keys.add(the_output_param.name)
             for _, a_ret_dict in ret:
-                if not the_output_param.optional:
-                    if the_output_param.name not in a_ret_dict.keys():
-                        raise exceptions.RuleCodeInvalidReturnException(
-                            f"need {the_output_param.name}")
-                else:
+                if not the_output_param.optional and\
+                            the_output_param.name not in a_ret_dict.keys():
+                    # 逐输出字段并且逐输出数据检查必选的输出字段是否输出了
+                    raise exceptions.RuleCodeInvalidReturnException(
+                        f"need {the_output_param.name}")
+                if the_output_param.name in a_ret_dict.keys():
                     the_output_param.validate_data_type(
                         a_ret_dict[the_output_param.name])
+        for _, a_ret_dict in ret:
+            # 这个循环是为了去掉没有声明的输出字段
+            # 规则代码中允许返回没有声明的字段，但是规则返回的时候这些字段需要去掉
+            new_ret_dict = {
+                k: v
+                for k, v in a_ret_dict.items()
+                if k in output_params_keys
+            }
+            a_ret_dict.clear()
+            a_ret_dict.update(new_ret_dict)
         return ret
 
 

@@ -1,7 +1,4 @@
 import re
-import sys
-
-print(sys.path)
 
 from rule import const
 from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan
