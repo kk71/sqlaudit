@@ -5,11 +5,13 @@ __all__ = [
     "register_task"
 ]
 
+import sys
 import pickle
 import traceback
 
 from kombu import Exchange, Queue
 
+import settings
 from utils.datetime_utils import *
 from models.sqlalchemy import *
 from . import celery_conf
@@ -51,6 +53,10 @@ class BaseTask(celery_app.Task):
     # name用于celery标识任务的名称，本质就是task_type
 
     def run(self, task_record_id: int, **kwargs):
+
+        # 用来解决找不到代码根目录的问题
+        sys.path.append(settings.SETTINGS_FILE_DIR)
+
         self.task_record_id = task_record_id
         print(f"============"
               f"task {self.task_type}: {self.task_record_id}"
