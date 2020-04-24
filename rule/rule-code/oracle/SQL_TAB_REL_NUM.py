@@ -9,17 +9,15 @@ def code(rule, entries, **kwargs):
         {
             "$match": {
                 "task_record_id": task_record_id,
-                "schema_name": schema_name
+                "schema_name": schema_name,
+                "object_type": "TABLE"
             }
         },
         {
             "$group": {
                 "_id": {
-                    "task_record_id": task_record_id,
-                    "schema_name": schema_name,
                     "sql_id": "$sql_id",
                     "plan_hash_value": "$plan_hash_value",
-                    "object_name": "$object_name",
                     "object_type": "$object_type"
                 },
                 "count": {"$sum": 1}
@@ -31,8 +29,6 @@ def code(rule, entries, **kwargs):
             yield {
                 "sql_id": d["_id"]["sql_id"],
                 "plan_hash_value": d["_id"]["plan_hash_value"],
-                "object_name": d["_id"]["object_name"],
-                "object_type": d["_id"]["object_type"],
                 "tab_num": d["count"]
             }
 

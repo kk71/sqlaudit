@@ -16,5 +16,5 @@ def main():
 
     conn = OracleCMDB.build_connector_by_cmdb_id(cmdb_id)
     sql_set = SQLCapturingDoc.query_sql_set(conn, schema_name, snap_s, snap_e)
-    print(f"{sql_set=}")
-
+    print(f"{len(sql_set)=}")
+    print(f"sql_ids: {len(set(i[0] for i in sql_set))}")

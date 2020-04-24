@@ -18,7 +18,7 @@ def main():
 
     # 最后运行一下分析任务
     cmdb_task_id = 1991
-    task_record_id = 36
+    task_record_id = 38
     cmdb_id = 2526
 
     # 先把规则代码更新到规则墨盒

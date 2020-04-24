@@ -1815,9 +1815,17 @@
                 "data_type": "INT",
                 "_cls": "RuleOutputParams",
                 "optional": false
+            },
+            {
+                "name": "tab_num",
+                "desc": "关联表的数量",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
             }
         ],
-        "code": "from oracle_cmdb.capture import SQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    task_record_id: int = kwargs[\"task_record_id\"]\n    schema_name: str = kwargs[\"schema_name\"]\n\n    ret = SQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"task_record_id\": task_record_id,\n                \"schema_name\": schema_name\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"task_record_id\": task_record_id,\n                    \"schema_name\": schema_name,\n                    \"sql_id\": \"$sql_id\",\n                    \"plan_hash_value\": \"$plan_hash_value\",\n                    \"object_name\": \"$object_name\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for d in ret:\n        if d[\"count\"] >= rule.gip(\"tab_num\"):\n            yield {\n                \"sql_id\": d[\"_id\"][\"sql_id\"],\n                \"plan_hash_value\": d[\"_id\"][\"plan_hash_value\"],\n                \"object_name\": d[\"_id\"][\"object_name\"],\n                \"object_type\": d[\"_id\"][\"object_type\"],\n                \"tab_num\": d[\"count\"]\n            }\n\n\ncode_hole.append(code)\n",
+        "code": "from oracle_cmdb.capture import SQLPlan\n\n\ndef code(rule, entries, **kwargs):\n    task_record_id: int = kwargs[\"task_record_id\"]\n    schema_name: str = kwargs[\"schema_name\"]\n\n    ret = SQLPlan.objects.aggregate(\n        {\n            \"$match\": {\n                \"task_record_id\": task_record_id,\n                \"schema_name\": schema_name,\n                \"object_type\": \"TABLE\"\n            }\n        },\n        {\n            \"$group\": {\n                \"_id\": {\n                    \"sql_id\": \"$sql_id\",\n                    \"plan_hash_value\": \"$plan_hash_value\",\n                    \"object_type\": \"$object_type\"\n                },\n                \"count\": {\"$sum\": 1}\n            }\n        }\n    )\n    for d in ret:\n        if d[\"count\"] >= rule.gip(\"tab_num\"):\n            yield {\n                \"sql_id\": d[\"_id\"][\"sql_id\"],\n                \"plan_hash_value\": d[\"_id\"][\"plan_hash_value\"],\n                \"tab_num\": d[\"count\"]\n            }\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "过多的表关联,影响性能",
         "solution": [
