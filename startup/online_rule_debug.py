@@ -30,9 +30,15 @@ def main():
     # 然后把规则墨盒更新到某个测试库上
     initiate_cmdb_rule(cmdb_id=cmdb_id)
 
+    # 检查规则墨盒的规则代码是否有问题
+    for a_rule in RuleCartridge.objects():
+        a_rule.test()
+
     # 检查输出参数和规则是否符合
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
+
+    return
 
     with make_session() as session:
         the_cmdb_task = session.query(CMDBTask).filter_by(

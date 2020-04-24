@@ -10,7 +10,7 @@ from models import init_models
 
 init_models()
 
-from rule.rule_cartridge import RuleCartridge
+from rule.rule_cartridge_utils import *
 
 
 @click.option(
@@ -20,4 +20,4 @@ from rule.rule_cartridge import RuleCartridge
     type=click.BOOL)
 def main(compare: bool):
     """FOR DEVELOPMENT: import rule code to rule cartridge"""
-    RuleCartridge.update_code(compare)
+    update_code(compare)
