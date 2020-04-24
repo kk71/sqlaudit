@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 from datetime import datetime
-from typing import NoReturn, List, Union
+from typing import NoReturn, List, Union, Tuple
 from collections import defaultdict
 
 import arrow
@@ -120,7 +120,7 @@ class SQLCapturingDoc(
             cmdb_connector: OraclePlainConnector,
             schema_name: str,
             beg_snap: int,
-            end_snap: int) -> List[(str, {int})]:
+            end_snap: int) -> List[Tuple[str, set]]:
         """查询sql基本信息，按照cls.PARAMETERS的参数分别查，最后去重"""
         ret_dict = defaultdict(set)
         for parameter in cls.PARAMETERS:
