@@ -29,27 +29,25 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
 
     def check_rule_output_and_issue(self, the_rule: rule.cmdb_rule.CMDBRule):
         """检查对应的规则的输出参数是否满足当前issue的要求"""
-        keys_of_rule_output_params = {i.name for i in the_rule.output_params}
+        keys_of_rule_output_params = {
+            i.name
+            for i in the_rule.output_params
+            if not i.optional
+        }
         for f in self._fields_ordered:
             if f in ("_cls", "_id"):
                 continue
             if f not in keys_of_rule_output_params:
-                raise issue.exceptions.IssueBadOutputData(f"{the_rule}: need {f}")
+                raise issue.exceptions.IssueBadOutputData(
+                    f"{the_rule}: need {f}, make sure the output parameter is set "
+                    f"and with 'optional' turned to false")
 
     def as_output_of(
             self,
-            the_rule: rule.cmdb_rule.CMDBRule,
             output_data: dict):
         """以给出的数据作为本问题的输出"""
-        for output_param in the_rule.output_params:
-            the_output_data_to_this_param = output_data.get(output_param.name, None)
-            # 检查规则的输出参数和实际的输出是否一直，
-            output_param.validate_data_type(the_output_data_to_this_param)
-            setattr(
-                self,
-                output_param.name,
-                the_output_data_to_this_param
-            )
+        for k, v in output_data:
+            setattr(self, k, v)
 
 
 class IssueMetaABCMetaTopLevelDocMeta(

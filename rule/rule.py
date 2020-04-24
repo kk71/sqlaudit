@@ -77,6 +77,58 @@ class RuleOutputParams(RuleParams):
     # False则表示该字段可以不返回，或者返回None
     optional = BooleanField()
 
+    @classmethod
+    def validate_output_data(
+            cls,
+            the_rule: "BaseRule",
+            ret) -> [(Union[int, float], dict)]:
+        """
+        验证输出数据是否正确
+        :param the_rule: 当前输出参数所在的规则。验证的是改规则的全部输出参数
+        :param ret: 规则代码的直接返回结果
+        :return:
+        """
+        try:
+            # 校验函数返回的结构是否合乎预期
+            ret = Schema(
+                Or(
+                    [
+                        Or(
+                            (
+                                Or(
+                                    And(scm_num, lambda x: x <= 0),
+                                    Use(
+                                        lambda x: -the_rule.weight
+                                        if x is None
+                                        else scm_raise_error(
+                                            f"incorrect minus_score: {x}"
+                                        )
+                                    )
+                                ),
+                                dict
+                            ),
+                            Use(
+                                lambda x: (-the_rule.weight, x)
+                                if isinstance(x, dict)
+                                else scm_raise_error(f"no minus_score is given,"
+                                                     f" and the return data is "
+                                                     f"incorrect, too."))
+                        )
+                    ],
+                    Use(lambda x: [] if x is None else x)
+                )
+            ).validate(ret)
+        except SchemaError:
+            raise exceptions.RuleCodeInvalidReturnException(ret)
+        for the_output_param in the_rule.output_params:
+            if not the_output_param.optional:
+                if the_output_param.name not in ret.keys():
+                    raise exceptions.RuleCodeInvalidReturnException(
+                        f"need {the_output_param.name}")
+            else:
+                the_output_param.validate_data_type(ret[the_output_param.name])
+        return ret
+
 
 class BaseRule(
         BaseDoc,
@@ -219,7 +271,7 @@ code_hole.append(code)  # 务必加上这一句
     def run(
             self,
             entries: [str] = None,
-            **kwargs) -> [(Union[int, float], dict)]:
+            **kwargs):
         """
         在给定的sql文本上执行当前规则
         :param entries: 入口，告诉规则函数，本次调用是从哪里调入的，不同调用入口，会带入不同的参数
@@ -240,39 +292,9 @@ code_hole.append(code)  # 务必加上这一句
             print(f"failed when executing(or generating) {str(self)}: {e}")
             print(trace)
             raise exceptions.RuleCodeInvalidException(trace)
-        try:
-            # 校验函数返回的结构是否合乎预期
-            ret = Schema(
-                Or(
-                    [
-                        Or(
-                            (
-                                Or(
-                                    And(scm_num, lambda x: x <= 0),
-                                    Use(
-                                        lambda x: -self.weight
-                                        if x is None
-                                        else scm_raise_error(
-                                            f"incorrect minus_score: {x}"
-                                        )
-                                    )
-                                ),
-                                dict
-                            ),
-                            Use(
-                                lambda x: (-self.weight, x)
-                                if isinstance(x, dict)
-                                else scm_raise_error(f"no minus_score is given,"
-                                                     f" and the return data is "
-                                                     f"incorrect, too."))
-                        )
-                    ],
-                    Use(lambda x: [] if x is None else x)
-                )
-            ).validate(ret)
-        except SchemaError:
-            raise exceptions.RuleCodeInvalidReturnException(ret)
-        return ret
+        current_rule_output_params = self.__class__.\
+            output_params.field.document_type_obj
+        return current_rule_output_params.validate_output_data(self, ret)
 
     @classmethod
     def filter_enabled(cls, *args, **kwargs):
