@@ -32,21 +32,19 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
         keys_of_rule_output_params = {
             i.name
             for i in the_rule.output_params
-            if not i.optional
         }
         for f in self._fields_ordered:
             if f in ("_cls", "_id"):
                 continue
             if f not in keys_of_rule_output_params:
                 raise issue.exceptions.IssueBadOutputData(
-                    f"{the_rule}: need {f}, make sure the output parameter is set "
-                    f"and with 'optional' turned to false")
+                    f"{the_rule}: need {f}, make sure the output parameter is set")
 
     def as_output_of(
             self,
             output_data: dict):
         """以给出的数据作为本问题的输出"""
-        for k, v in output_data:
+        for k, v in output_data.items():
             setattr(self, k, v)
 
 
@@ -121,7 +119,7 @@ class OnlineIssue(
         }
         self.entries = list(the_rule.entries)
         self.minus_score = minus_score
-        self.output_params.as_output_of(the_rule, output_data)
+        self.output_params.as_output_of(output_data)
 
     @classmethod
     def simple_analyse(cls, **kwargs) -> Generator["OnlineIssue", None, None]:

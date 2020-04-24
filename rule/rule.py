@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 import traceback
-from typing import Union, Callable
+from typing import Union, Callable, List
 
 from mongoengine import EmbeddedDocument, StringField, DynamicField, \
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
@@ -90,43 +90,44 @@ class RuleOutputParams(RuleParams):
         """
         try:
             # 校验函数返回的结构是否合乎预期
+            """
+            """
             ret = Schema(
-                Or(
-                    [
-                        Or(
-                            (
-                                Or(
-                                    And(scm_num, lambda x: x <= 0),
-                                    Use(
-                                        lambda x: -the_rule.weight
-                                        if x is None
-                                        else scm_raise_error(
-                                            f"incorrect minus_score: {x}"
-                                        )
+                [
+                    scm_optional(Or(
+                        (
+                            Or(
+                                And(scm_num, lambda x: x <= 0),
+                                Use(
+                                    lambda x: -the_rule.weight
+                                    if x is None
+                                    else scm_raise_error(
+                                        f"incorrect minus_score: {x}"
                                     )
-                                ),
-                                dict
+                                )
                             ),
-                            Use(
-                                lambda x: (-the_rule.weight, x)
-                                if isinstance(x, dict)
-                                else scm_raise_error(f"no minus_score is given,"
-                                                     f" and the return data is "
-                                                     f"incorrect, too."))
-                        )
-                    ],
-                    Use(lambda x: [] if x is None else x)
-                )
+                            dict
+                        ),
+                        Use(
+                            lambda x: (-the_rule.weight, x)
+                            if isinstance(x, dict)
+                            else scm_raise_error(f"no minus_score is given,"
+                                                 f" and the return data is "
+                                                 f"incorrect, too."))
+                    ))
+                ]
             ).validate(ret)
         except SchemaError:
             raise exceptions.RuleCodeInvalidReturnException(ret)
         for the_output_param in the_rule.output_params:
-            if not the_output_param.optional:
-                if the_output_param.name not in ret.keys():
-                    raise exceptions.RuleCodeInvalidReturnException(
-                        f"need {the_output_param.name}")
-            else:
-                the_output_param.validate_data_type(ret[the_output_param.name])
+            for _, a_ret_dict in ret:
+                if not the_output_param.optional:
+                    if the_output_param.name not in a_ret_dict.keys():
+                        raise exceptions.RuleCodeInvalidReturnException(
+                            f"need {the_output_param.name}")
+                else:
+                    the_output_param.validate_data_type(
+                        a_ret_dict[the_output_param.name])
         return ret
 
 

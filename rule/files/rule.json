@@ -88,7 +88,7 @@
                 "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\", re.M+re.I)\n\n    if cross_outer_join.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
@@ -123,7 +123,7 @@
                 "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I+re.M):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I+re.M):\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
@@ -1051,7 +1051,7 @@
                 "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
-                "optional": true
+                "optional": false
             }
         ],
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") >= rule.gip(\"num_of_bound_var\"):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
@@ -1095,7 +1095,7 @@
                 "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
-                "optional": true
+                "optional": false
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            >= rule.gip(\"or_num\"):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
