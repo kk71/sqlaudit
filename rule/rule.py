@@ -228,7 +228,6 @@ code_hole.append(code)  # 务必加上这一句
         """
         try:
             if not getattr(self, "_code", None):
-                print(f"* generating code of {str(self)} ...")
                 # 放进去可以在当前对象存活周期内，不用每次都重新生成新的代码
                 self._code: Callable = self.construct_code(self.code)
             if settings.RULE_DEBUG:

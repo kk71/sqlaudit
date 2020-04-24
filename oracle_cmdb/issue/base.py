@@ -98,6 +98,7 @@ class OracleOnlineIssue(OnlineIssue):
                 print(f"* running {i} of {total}: {m.__doc__}")
                 docs = []
                 for schema_name in schemas:
+                    print(f"... in {schema_name}")
                     docs += list(m.simple_analyse(
                         task_record_id=task_record_id,
                         schema_name=schema_name,

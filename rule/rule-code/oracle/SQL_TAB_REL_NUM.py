@@ -13,7 +13,7 @@ def code(rule, entries, **kwargs):
             }
         },
         {
-            "group": {
+            "$group": {
                 "_id": {
                     "task_record_id": task_record_id,
                     "schema_name": schema_name,
@@ -35,7 +35,6 @@ def code(rule, entries, **kwargs):
                 "object_type": d["_id"]["object_type"],
                 "tab_num": d["count"]
             }
-
 
 
 code_hole.append(code)

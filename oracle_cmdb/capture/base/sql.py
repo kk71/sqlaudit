@@ -6,10 +6,11 @@ __all__ = [
 ]
 
 from datetime import datetime
-from typing import NoReturn, List
+from typing import NoReturn
 
 import arrow
 from mongoengine import IntField, StringField
+from utils.perf_utils import timing
 
 from .base import *
 from utils.log_utils import *
@@ -138,6 +139,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             doc.schema_name = schema_name
 
     @classmethod
+    @timing()
     def _schema_sql_capture(cls,
                             a_schema: str,
                             m: "SQLCapturingDoc",
