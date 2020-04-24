@@ -12,8 +12,6 @@ from mongoengine import StringField, FloatField, DictField, IntField,\
 
 import core.issue
 import rule.cmdb_rule
-import rule.rule
-import rule.exceptions
 import rule.const
 import issue.exceptions
 from rule.rule_jar import *
@@ -46,10 +44,7 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
             # 检查规则的输出参数和实际的输出是否一直，
-            if not output_param.validate_data_type(the_output_data_to_this_param):
-                raise rule.exceptions.RuleCodeInvalidParamTypeException(
-                    f"{str(the_rule)}-{output_param.name}:"
-                    f" {the_output_data_to_this_param}")
+            output_param.validate_data_type(the_output_data_to_this_param)
             setattr(
                 self,
                 output_param.name,
@@ -143,6 +138,7 @@ class OnlineIssue(
     @classmethod
     def check_rule_output_and_issue(cls, **kwargs):
         """检查规则和对应的输出字段是否符合要求"""
+        print(f"{cls.__doc__}: checking rule output to issue output...")
         rule_jar = cls.generate_rule_jar(**kwargs)
         for the_rule in rule_jar:
             cls().output_params.check_rule_output_and_issue(the_rule)
