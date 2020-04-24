@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     like_unindex = re.compile(r"like\s+\.?%", re.M+re.I)
 
     if like_unindex.search(sql_text):
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

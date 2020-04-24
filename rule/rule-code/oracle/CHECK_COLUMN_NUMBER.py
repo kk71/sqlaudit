@@ -26,7 +26,7 @@ def code(rule, entries, **kwargs):
     sql = sql_text[left_flag + 1: right_flag]
 
     if len(sql.split(',')) > 255:  # TODO,这不应写死
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

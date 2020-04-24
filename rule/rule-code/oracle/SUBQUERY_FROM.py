@@ -15,7 +15,7 @@ def code(rule, entries, **kwargs):
             continue
         if has_from:
             if recursively_find_following_select(token):
-                yield {}
+                yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

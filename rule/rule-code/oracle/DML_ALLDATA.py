@@ -9,7 +9,7 @@ def code(rule, entries, **kwargs):
     pat1 = re.compile(r'\s+where\s+', re.S+re.I)
 
     if pat.search(sql_text) and not pat1.search(sql_text):
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

@@ -12,7 +12,7 @@ def code(rule, entries, **kwargs):
     if 'order' in sql_text.lower() or\
             'cache' not in sql_text.lower() or\
             (res and int(res.group(1)) < 2000):
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

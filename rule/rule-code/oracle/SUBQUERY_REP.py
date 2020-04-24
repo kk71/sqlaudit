@@ -19,7 +19,7 @@ def code(rule, entries, **kwargs):
         if "select" in value.lower() and value not in subquery:
             subquery.append(value)
         elif "select" in value.lower() and value in subquery:
-            yield {}
+            yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

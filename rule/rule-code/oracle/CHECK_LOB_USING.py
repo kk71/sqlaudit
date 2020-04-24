@@ -12,7 +12,7 @@ def code(rule, entries, **kwargs):
         x in sql_text.lower()
         for x in ['blob', 'clob', 'bfile', 'xmltype']
     ]):
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

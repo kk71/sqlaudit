@@ -35,22 +35,26 @@ class RuleParams(EmbeddedDocument):
         "allow_inheritance": True
     }
 
+    def __str__(self):
+        return f"<RuleParams {self.name}-{self.data_type}>"
+
     def validate_data_type(self, the_value):
+        s = f"{self}: {the_value}"
         if self.data_type == const.RULE_PARAM_TYPE_STR:
             if not isinstance(the_value, str):
-                raise exceptions.RuleCodeInvalidParamTypeException
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         elif self.data_type == const.RULE_PARAM_TYPE_INT:
             if not isinstance(the_value, int):
-                raise exceptions.RuleCodeInvalidParamTypeException
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         elif self.data_type == const.RULE_PARAM_TYPE_FLOAT:
             if not isinstance(the_value, float):
-                raise exceptions.RuleCodeInvalidParamTypeException
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         elif self.data_type == const.RULE_PARAM_TYPE_NUM:
             if not isinstance(the_value, (float, int)):
-                raise exceptions.RuleCodeInvalidParamTypeException
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         elif self.data_type == const.RULE_PARAM_TYPE_LIST:
             if not isinstance(the_value, list):
-                raise exceptions.RuleCodeInvalidParamTypeException
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         else:
             assert 0
 

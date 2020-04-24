@@ -12,7 +12,7 @@ def code(rule, entries, **kwargs):
     ]
     for value in sql_content:
         if value.count(",") >= rule.gip("in_list_num") - 1:
-            yield {}
+            yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

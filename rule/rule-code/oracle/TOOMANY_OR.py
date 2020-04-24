@@ -7,7 +7,7 @@ def code(rule, entries, **kwargs):
 
     if len(re.compile(r"\s+or\s+", re.I+re.M).findall(sql_text))\
             >= rule.gip("or_num"):
-        yield {}
+        yield {"sql_id": kwargs.get("sql_id", None)}
 
 
 code_hole.append(code)

@@ -9,7 +9,7 @@ def code(rule, entries, **kwargs):
     this_one_sql = ps[0]
     for token in this_one_sql.tokens:
         if token.normalized == "DROP":
-            yield {}
+            yield {"sql_id": kwargs.get("sql_id", None)}
             return
 
 
