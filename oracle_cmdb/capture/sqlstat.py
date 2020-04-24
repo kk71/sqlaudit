@@ -48,9 +48,20 @@ class SQLStat(TwoDaysSQLCapturingDoc):
     }
 
     @classmethod
+    def convert_sql_set_bulk_to_sql_filter(cls, sql_set_bulk):
+        s = [
+            f"(t.sql_id = '{sql_id}'"
+            f" and "
+            f"t.plan_hash_value in "
+            f"{cls.list_to_oracle_str(plan_hash_values)})"
+            for sql_id, plan_hash_values in sql_set_bulk
+        ]
+        joint_filters = " or ".join(s)
+        return f"({joint_filters})"
+
+    @classmethod
     def simple_capture(cls, **kwargs) -> str:
-        sql_id: str = kwargs["sql_id"]
-        plan_hash_value: str = kwargs["plan_hash_value"]
+        filters: str = kwargs["filters"]
         schema_name: str = kwargs["schema_name"]
         snap_id_s: int = kwargs["snap_id_s"]
         snap_id_e: int = kwargs["snap_id_e"]
@@ -84,8 +95,9 @@ SELECT t.sql_id,
 FROM dba_hist_sqlstat t
 WHERE t.snap_id BETWEEN '{snap_id_s}' AND '{snap_id_e}'
   AND t.parsing_schema_name = '{schema_name}'
-  AND t.sql_id = '{sql_id}'
-  AND t.plan_hash_value in {plan_hash_value}
+
+  AND {filters}
+
 GROUP BY sql_id,
          plan_hash_value,
          t.parsing_schema_name,t.module

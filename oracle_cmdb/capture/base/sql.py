@@ -13,6 +13,7 @@ import arrow
 from mongoengine import IntField, StringField
 from utils.perf_utils import timing
 
+import settings
 from .base import *
 from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
@@ -41,6 +42,9 @@ class SQLCapturingDoc(
     }
 
     COLLECTED = []
+
+    # 批量采集按照sql_id作为单位，一次SQL查询传入的sql_id数
+    SQL_ID_BULK_NUM = settings.ORACLE_SQL_ID_BULK_NUM
 
     # select_workload_repository的参数
     PARAMETERS = (
@@ -115,6 +119,11 @@ class SQLCapturingDoc(
         return f"({inner})"
 
     @classmethod
+    def convert_sql_set_bulk_to_sql_filter(cls, sql_set_bulk):
+        """把sql set bulk转换为sql查询语句"""
+        raise NotImplementedError
+
+    @classmethod
     def query_sql_set(
             cls,
             cmdb_connector: OraclePlainConnector,
@@ -134,6 +143,14 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             for sql_id, plan_hash_value, parsing_schema_name in sql_info:
                 ret_dict[str(sql_id)].add(int(plan_hash_value))
         return list(ret_dict.items())
+
+    @classmethod
+    def query_sql_set_bulk(cls, *args, **kwargs):
+        """批量返回sql_set"""
+        sql_set = cls.query_sql_set(*args, **kwargs)
+        while sql_set:
+            yield sql_set[-cls.SQL_ID_BULK_NUM:]
+            del sql_set[-cls.SQL_ID_BULK_NUM:]
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
@@ -167,19 +184,18 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         snap_id_e: int = kwargs["snap_id_e"]
 
         docs = []
-        sql_set = cls.query_sql_set(
+        sql_set_generator = cls.query_sql_set_bulk(
             cmdb_connector,
             schema_name=a_schema,
             beg_snap=snap_id_s,
             end_snap=snap_id_e
         )
-        for sql_id, plan_hash_value in sql_set:
+        for sql_set_bulk in sql_set_generator:
             sql_to_run = m.simple_capture(
-                sql_id=sql_id,
-                plan_hash_value=cls.list_to_oracle_str(plan_hash_value),
                 schema_name=a_schema,
                 snap_id_s=snap_id_s,
                 snap_id_e=snap_id_e,
+                filters=cls.convert_sql_set_bulk_to_sql_filter(sql_set_bulk)
             )
             docs += [
                 m(**c)

@@ -27,8 +27,13 @@ class SQLText(SQLCapturingDoc):
     }
 
     @classmethod
+    def convert_sql_set_bulk_to_sql_filter(cls, sql_set_bulk):
+        s = [f"p.sql_id = '{sql_id}'" for sql_id, _ in sql_set_bulk]
+        return " or ".join(s)
+
+    @classmethod
     def simple_capture(cls, **kwargs) -> str:
-        sql_id: str = kwargs["sql_id"]
+        filters: str = kwargs["filters"]
 
         return f"""
 SELECT p.dbid,
@@ -36,5 +41,5 @@ SELECT p.dbid,
        dbms_lob.substr(p.sql_text,40,1) short_sql_text,
        dbms_lob.substr(p.sql_text,2000,1) longer_sql_text
 FROM dba_hist_sqltext p
-WHERE p.sql_id = '{sql_id}'
+WHERE {filters}
 """

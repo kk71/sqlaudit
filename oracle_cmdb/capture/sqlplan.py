@@ -58,9 +58,21 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
     }
 
     @classmethod
+    def convert_sql_set_bulk_to_sql_filter(cls, sql_set_bulk):
+        s = [
+            f"(sql_id = '{sql_id}'"
+            f" and "
+            f"plan_hash_value in "
+            f"{cls.list_to_oracle_str(plan_hash_values)})"
+            for sql_id, plan_hash_values in sql_set_bulk
+        ]
+        joint_filters = " or ".join(s)
+        return f"({joint_filters})"
+
+    @classmethod
     def simple_capture(cls, **kwargs) -> str:
-        sql_id: str = kwargs["sql_id"]
-        plan_hash_value: str = kwargs["plan_hash_value"]
+        filters: str = kwargs["filters"]
+
         return f"""
 SELECT
     p.sql_id,
@@ -134,8 +146,7 @@ FROM
                 FROM
                     dba_hist_sql_plan
                 WHERE
-                    sql_id = '{sql_id}'
-                    AND plan_hash_value in {plan_hash_value}
+                    {filters}
                     AND id <= 799
             )
         WHERE

@@ -12,7 +12,7 @@ SETTINGS_FILE_DIR = path.dirname(path.realpath(__file__))
 ALL_ENV_VARS = list()
 
 
-def env_get(k, default, parser=None):
+def env_get(k, default, parser=None, comment=""):
     final_value = environ.get(k, default)
     if parser:
         default = parser(default)
@@ -47,6 +47,7 @@ ADMIN_LOGIN_USER = "admin"
 CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
 VERSION_FILE = path.join(SETTINGS_FILE_DIR, "version.json")
 ECHO_SQL_WHEN_FAIL = env_get("ECHO_SQL_WHEN_FAIL", 1, int)
+ORACLE_SQL_ID_BULK_NUM = env_get("ORACLE_SQL_ID_BULK_NUM", 10, int)
 
 
 REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "193.0.0.3")
