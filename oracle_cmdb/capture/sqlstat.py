@@ -50,7 +50,7 @@ class SQLStat(TwoDaysSQLCapturingDoc):
     @classmethod
     def simple_capture(cls, **kwargs) -> str:
         sql_id: str = kwargs["sql_id"]
-        plan_hash_value: int = kwargs["plan_hash_value"]
+        plan_hash_value: str = kwargs["plan_hash_value"]
         schema_name: str = kwargs["schema_name"]
         snap_id_s: int = kwargs["snap_id_s"]
         snap_id_e: int = kwargs["snap_id_e"]
@@ -85,7 +85,7 @@ FROM dba_hist_sqlstat t
 WHERE t.snap_id BETWEEN '{snap_id_s}' AND '{snap_id_e}'
   AND t.parsing_schema_name = '{schema_name}'
   AND t.sql_id = '{sql_id}'
-  AND t.plan_hash_value = '{plan_hash_value}'
+  AND t.plan_hash_value in {plan_hash_value}
 GROUP BY sql_id,
          plan_hash_value,
          t.parsing_schema_name,t.module

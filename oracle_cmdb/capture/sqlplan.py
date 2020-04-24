@@ -60,7 +60,7 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
     @classmethod
     def simple_capture(cls, **kwargs) -> str:
         sql_id: str = kwargs["sql_id"]
-        plan_hash_value: int = kwargs["plan_hash_value"]
+        plan_hash_value: str = kwargs["plan_hash_value"]
         return f"""
 SELECT
     p.sql_id,
@@ -135,7 +135,7 @@ FROM
                     dba_hist_sql_plan
                 WHERE
                     sql_id = '{sql_id}'
-                    AND plan_hash_value = {plan_hash_value}
+                    AND plan_hash_value in {plan_hash_value}
                     AND id <= 799
             )
         WHERE
