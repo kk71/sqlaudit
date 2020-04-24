@@ -195,7 +195,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
                 schema_name=a_schema,
                 snap_id_s=snap_id_s,
                 snap_id_e=snap_id_e,
-                filters=cls.convert_sql_set_bulk_to_sql_filter(sql_set_bulk)
+                filters=m.convert_sql_set_bulk_to_sql_filter(sql_set_bulk)
             )
             docs += [
                 m(**c)
