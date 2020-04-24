@@ -4,12 +4,11 @@ __all__ = [
     "SQLPlan"
 ]
 
-from typing import NoReturn, List
+from typing import NoReturn
 
 from mongoengine import StringField, IntField
 
 from .base import TwoDaysSQLCapturingDoc
-from .. import const
 
 
 @TwoDaysSQLCapturingDoc.need_collect()

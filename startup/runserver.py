@@ -28,5 +28,3 @@ def main():
     app.listen(settings.WEB_PORT, settings.WEB_IP)
     print(f"listening on port {settings.WEB_IP}:{settings.WEB_PORT} ...")
     tornado.ioloop.IOLoop.instance().start()
-
-

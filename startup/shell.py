@@ -16,5 +16,3 @@ def main():
     # this is for fast model referring
     # this session object is auto-commit and auto-flush enabled.
     embed(header='''SQL-Audit shell for debugging is now running.''')
-
-

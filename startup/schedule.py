@@ -7,7 +7,6 @@ from models import init_models
 init_models()
 
 
-
 def main():
     """start a task scheduler"""
     task.schedule.main()
