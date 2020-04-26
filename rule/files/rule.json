@@ -2143,5 +2143,60 @@
         "max_score": 3,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "DUPLICATE_INDEX",
+        "desc": "字段重复索引",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_name",
+                "desc": "字段名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "repeat_times",
+                "desc": "重复次数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "referred_index_name",
+                "desc": "涉及索引名",
+                "unit": "",
+                "data_type": "LIST",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom collections import defaultdict\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT T.TABLE_OWNER, \n            T.TABLE_NAME, \n            T.COLUMN_NAME, \n            COUNT(T.INDEX_NAME) repeat_times\n        FROM DBA_IND_COLUMNS T \n        WHERE T.INDEX_OWNER = '{schema_name}'\n        GROUP BY T.TABLE_OWNER, T.TABLE_NAME, T.COLUMN_NAME \n        HAVING COUNT(T.INDEX_NAME) > 1\n    \"\"\"\n    records = cmdb_connector.select_dict(sql)\n\n    # 获取字段重复索引的索引名\n    sql = f\"\"\"\n    select index_name, table_owner, table_name, column_name\n        from dba_ind_columns\n        WHERE INDEX_OWNER = '{schema_name}'\n    \"\"\"\n    index_records = cmdb_connector.select(sql)\n\n    # table_owner: table_name: column_name:: {index_name}\n    column_name_index_name_dict = \\\n        defaultdict(lambda: defaultdict(lambda: defaultdict(set)))\n    for index_name, table_owner, table_name, column_name in index_records:\n        column_name_index_name_dict[table_owner][table_name][column_name].add(index_name)\n    for record in records:\n        if record.get(\"referred_index_name\", None) is None:\n            record[\"referred_index_name\"]: list = []\n        index_names = column_name_index_name_dict[record[\"table_owner\"]][record[\"table_name\"]][record[\"column_name\"]]\n        record[\"referred_index_name\"].extend(index_names)\n        record[\"referred_index_name\"] = list(set(record[\"referred_index_name\"]))\n\n    yield from records\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "造成索引冗余，不仅占用空间，而且容易产生多个执行计划",
+        "solution": [
+            "监控索引，删除不必要的索引"
+        ],
+        "weight": 12.0,
+        "max_score": 9,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]

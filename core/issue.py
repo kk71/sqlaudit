@@ -39,6 +39,7 @@ class BaseOnlineIssueMetaClass(type):
 
     def __new__(mcs, name, bases, attrs):
 
+        # 构建inherited_entries
         INHERITED_ENTRIES = "INHERITED_ENTRIES"
         inherited_entries = []
 
@@ -48,6 +49,10 @@ class BaseOnlineIssueMetaClass(type):
                 inherited_entries = set(b.ENTRIES) | set(upper_inherited_entries)
 
         attrs[INHERITED_ENTRIES] = list(inherited_entries)
+
+        # 记录父类的引用
+        attrs["SUB_CLASS"] = bases[-1]
+
         return super().__new__(mcs, name, bases, attrs)
 
     def __init__(cls, name, bases, attrs):
