@@ -90,7 +90,6 @@ class OnlineIssue(
     meta = {
         "abstract": True,
         'indexes': [
-            "_cls",
             "cmdb_id",
             "rule_name",
             "entries",

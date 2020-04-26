@@ -186,7 +186,7 @@ class OracleSQLPlanToday(OracleSQLPlan):
 
     @classmethod
     def filter(cls, *args, **kwargs):
-        return cls.filter(
+        return super().filter(
             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY).filter(*args, **kwargs)
 
 
@@ -194,5 +194,5 @@ class OracleSQLPlanYesterday(OracleSQLPlan):
 
     @classmethod
     def filter(cls, *args, **kwargs):
-        return cls.filter(
+        return super().filter(
             two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY).filter(*args, **kwargs)
