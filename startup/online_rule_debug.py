@@ -29,7 +29,6 @@ def main():
         a_rule.test()
 
     # 检查输出参数和规则是否符合
-    OracleOnlineIssue.collect()
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 

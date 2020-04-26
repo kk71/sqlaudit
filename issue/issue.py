@@ -103,10 +103,8 @@ class OnlineIssue(
     @classmethod
     def generate_rule_jar(cls,
                           cmdb_id: int,
-                          entries: [str] = None,
                           **kwargs) -> RuleJar:
-        if entries is None:
-            entries = cls.INHERITED_ENTRIES
+        entries = cls.INHERITED_ENTRIES
         return RuleJar.gen_jar_with_entries(*entries, cmdb_id=cmdb_id, **kwargs)
 
     def as_issue_of(self,
@@ -131,7 +129,8 @@ class OnlineIssue(
             i["name"]: i["value"]
             for i in the_rule.to_dict()["input_params"]
         }
-        self.entries = list(the_rule.entries)
+        # issue的entries存放的是当前model的继承entries
+        self.entries = list(self.__class__.INHERITED_ENTRIES)
         self.minus_score = minus_score
         self.output_params.as_output_of(output_data)
 
@@ -165,3 +164,8 @@ class OnlineIssue(
         """
         return cls.filter(
             entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)
+
+    @classmethod
+    def filter_with_entries(cls, *args, **kwargs):
+        return cls.filter(
+            entries__all=cls.ENTRIES).filter(*args, **kwargs)

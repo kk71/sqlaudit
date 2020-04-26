@@ -40,17 +40,6 @@ class OracleOnlineIssue(OnlineIssue):
 
     COLLECTED: ["OracleOnlineIssue"] = []
 
-    @classmethod
-    def generate_rule_jar(cls,
-                          cmdb_id: int,
-                          entries: [str] = None,
-                          **kwargs) -> RuleJar:
-        return super().generate_rule_jar(
-            cmdb_id=cmdb_id,
-            entries=entries,
-            **kwargs
-        )
-
     @staticmethod
     def build_connector(cmdb_id: int):
         return OracleCMDB.build_connector_by_cmdb_id(cmdb_id=cmdb_id)
