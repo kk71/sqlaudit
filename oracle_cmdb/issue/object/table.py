@@ -15,4 +15,4 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
 
     @classmethod
     def filter(cls, *args, **kwargs):
-        return cls.filter_with_inherited_entries(*args, **kwargs)
+        return cls.filter_with_entries(*args, **kwargs)

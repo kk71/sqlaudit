@@ -129,8 +129,7 @@ class OnlineIssue(
             i["name"]: i["value"]
             for i in the_rule.to_dict()["input_params"]
         }
-        # issue的entries存放的是当前model的继承entries
-        self.entries = list(self.__class__.INHERITED_ENTRIES)
+        self.entries = list(the_rule.entries)
         self.minus_score = minus_score
         self.output_params.as_output_of(output_data)
 
@@ -162,10 +161,10 @@ class OnlineIssue(
         :param kwargs:
         :return:
         """
-        return cls.filter(
+        return super().filter(
             entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)
 
     @classmethod
     def filter_with_entries(cls, *args, **kwargs):
-        return cls.filter(
+        return super().filter(
             entries__all=cls.ENTRIES).filter(*args, **kwargs)
