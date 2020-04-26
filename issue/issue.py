@@ -161,10 +161,10 @@ class OnlineIssue(
         :param kwargs:
         :return:
         """
-        return super().filter(
+        return cls.BASECLASS.filter(
             entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)
 
     @classmethod
     def filter_with_entries(cls, *args, **kwargs):
-        return super().filter(
+        return cls.BASECLASS.filter(
             entries__all=cls.ENTRIES).filter(*args, **kwargs)

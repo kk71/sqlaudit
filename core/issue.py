@@ -51,7 +51,7 @@ class BaseOnlineIssueMetaClass(type):
         attrs[INHERITED_ENTRIES] = list(inherited_entries)
 
         # 记录父类的引用
-        attrs["SUB_CLASS"] = bases[-1]
+        attrs["BASECLASS"] = bases[-1]
 
         return super().__new__(mcs, name, bases, attrs)
 
