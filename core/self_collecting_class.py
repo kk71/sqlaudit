@@ -30,7 +30,8 @@ class SelfCollectingFramework(abc.ABC):
         def inner(model):
             # 只能检测子类，并不能检测直接子类
             assert issubclass(model, cls)
-            cls.COLLECTED.append(model)
+            if model not in cls.COLLECTED:
+                cls.COLLECTED.append(model)
             return model
         return inner
 
