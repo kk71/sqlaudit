@@ -2,6 +2,7 @@
 
 __all__ = [
     "OnlineIssue",
+    "OnlineIssueFilterWithEntriesMixin",
     "OnlineIssueOutputParams"
 ]
 
@@ -151,3 +152,16 @@ class OnlineIssue(
         rule_jar = cls.generate_rule_jar(**kwargs)
         for the_rule in rule_jar:
             cls().output_params.check_rule_output_and_issue(the_rule)
+
+
+class OnlineIssueFilterWithEntriesMixin(OnlineIssue):
+    """如果需要从entries去过滤查询问题，请继承这个类"""
+
+    meta = {
+        "abstract": True
+    }
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return super().filter(
+            entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)

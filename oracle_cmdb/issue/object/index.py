@@ -6,8 +6,10 @@ __all__ = [
 
 import rule.const
 from .object import *
+from issue.issue import *
 
 
-class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
+class OracleOnlineObjectIssueIndex(
+        OracleOnlineObjectIssue, OnlineIssueFilterWithEntriesMixin):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_INDEX,)

@@ -7,8 +7,10 @@ __all__ = [
 
 import rule.const
 from .object import *
+from issue.issue import *
 
 
-class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
+class OracleOnlineObjectIssueSequence(
+        OracleOnlineObjectIssue, OnlineIssueFilterWithEntriesMixin):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SEQUENCE,)
