@@ -316,5 +316,5 @@ code_hole.append(code)  # 务必加上这一句
     @classmethod
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
-        return cls.objects.filter(status=True).filter(*args, **kwargs)
+        return cls.filter(status=True).filter(*args, **kwargs)
 

@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjTabSpace"
+    "OracleObjTabSpace"
 ]
 
 from typing import NoReturn
@@ -12,7 +12,7 @@ from .base import ObjectCapturingDoc
 
 
 @ObjectCapturingDoc.need_collect()
-class ObjTabSpace(ObjectCapturingDoc):
+class OracleObjTabSpace(ObjectCapturingDoc):
     """表空间信息"""
 
     tablespace_name = StringField(null=True)
@@ -46,7 +46,7 @@ class ObjTabSpace(ObjectCapturingDoc):
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
         ObjectCapturingDoc.post_captured(**kwargs)
-        docs: ["ObjTabSpace"] = kwargs["docs"]
+        docs: ["OracleObjTabSpace"] = kwargs["docs"]
         for d in docs:
             d.total = float(d.total)
             d.free = float(d.free)

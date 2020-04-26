@@ -1,19 +1,16 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjTabInfo"
+    "OracleObjTabInfo"
 ]
-
-from typing import NoReturn
 
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
 from .base import SchemaObjectCapturingDoc
-from ..plain_db import OraclePlainConnector
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjTabInfo(SchemaObjectCapturingDoc):
+class OracleObjTabInfo(SchemaObjectCapturingDoc):
     """表信息"""
 
     owner = StringField(null=True)

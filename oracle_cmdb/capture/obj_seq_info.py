@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjSeqInfo"
+    "OracleObjSeqInfo"
 ]
 
 from typing import NoReturn
@@ -12,7 +12,7 @@ from .base import SchemaObjectCapturingDoc
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjSeqInfo(SchemaObjectCapturingDoc):
+class OracleObjSeqInfo(SchemaObjectCapturingDoc):
     """序列信息"""
 
     min_value = StringField(null=True)
@@ -48,7 +48,7 @@ class ObjSeqInfo(SchemaObjectCapturingDoc):
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
         SchemaObjectCapturingDoc.post_captured(**kwargs)
-        docs: ["ObjSeqInfo"] = kwargs["docs"]
+        docs: ["OracleObjSeqInfo"] = kwargs["docs"]
         for d in docs:
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)

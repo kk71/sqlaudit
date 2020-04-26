@@ -1,4 +1,4 @@
-from oracle_cmdb.capture.obj_tab_info import ObjTabInfo
+from oracle_cmdb.capture.obj_tab_info import OracleObjTabInfo
 from rule.code_utils import *
 
 
@@ -18,7 +18,7 @@ def code(rule, entries, **kwargs):
                          "object_type",
                          "task_record_id",
                          "schema_name"):
-        the_table = ObjTabInfo.objects(
+        the_table = OracleObjTabInfo.objects(
             task_record_id=d["task_record_id"],
             schema_name=d["schema_name"],
             table_name=d["object_name"]

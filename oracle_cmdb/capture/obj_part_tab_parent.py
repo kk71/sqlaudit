@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjPartTabParent"
+    "OracleObjPartTabParent"
 ]
 
 from typing import NoReturn
@@ -13,7 +13,7 @@ from ..plain_db import OraclePlainConnector
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjPartTabParent(SchemaObjectCapturingDoc):
+class OracleObjPartTabParent(SchemaObjectCapturingDoc):
     """分区表父"""
 
     owner = StringField(null=True)

@@ -10,14 +10,14 @@ from mongoengine import StringField
 
 import rule.const
 from models.sqlalchemy import *
-from ..cmdb import OracleCMDB
-from .base import OracleOnlineIssue
-from .sql import OracleOnlineSQLIssue
-from ..single_sql import SingleSQLForOnline
+from models.mongoengine import *
+from ..base import OracleOnlineIssue
+from ..sql import OracleOnlineSQLIssue
+from ...single_sql import SingleSQLForOnline
+from ...cmdb import OracleCMDB
+from ...capture import OracleSQLText
 from rule.cmdb_rule import CMDBRule
 from rule.adapters import CMDBRuleAdapterSQL
-from models.mongoengine import *
-from ..capture import SQLText
 
 
 @OracleOnlineIssue.need_collect()
@@ -66,7 +66,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
             task_record_id: int,
             schema_name: str) -> mongoengine_qs:
         """获取采集任务的sql_id"""
-        return SQLText.objects(
+        return OracleSQLText.objects(
             task_record_id=task_record_id,
             schema_name=schema_name
         )

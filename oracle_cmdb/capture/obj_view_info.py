@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjViewInfo"
+    "OracleObjViewInfo"
 ]
 
 from mongoengine import StringField
@@ -10,7 +10,7 @@ from .base import SchemaObjectCapturingDoc
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjViewInfo(SchemaObjectCapturingDoc):
+class OracleObjViewInfo(SchemaObjectCapturingDoc):
     """视图信息"""
 
     obj_pk = StringField(null=True)

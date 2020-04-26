@@ -1,19 +1,20 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleOnlineObjectIssue"
+    "OracleOnlineObjectIssue",
+    "OracleOnlineIssueOutputParamsObject"
 ]
 
 from typing import Generator
 
-from mongoengine import StringField, EmbeddedDocumentField
+from mongoengine import EmbeddedDocumentField
 
 import rule.const
 from models.sqlalchemy import *
 from rule.cmdb_rule import CMDBRule
 from issue.issue import OnlineIssueOutputParams
-from .base import *
-from ..cmdb import *
+from oracle_cmdb.issue.base import *
+from oracle_cmdb.cmdb import *
 
 
 class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
@@ -28,11 +29,17 @@ class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
 class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
 
+    # 请注意，虽然"对象问题"有子类，但是子类并没有囊括全部的"对象问题"！
+
     output_params = EmbeddedDocumentField(
         OracleOnlineIssueOutputParamsObject,
         default=OracleOnlineIssueOutputParamsObject)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
+
+    meta = {
+        "allow_inheritance": True
+    }
 
     @classmethod
     def simple_analyse(cls,

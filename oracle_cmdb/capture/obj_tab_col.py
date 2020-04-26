@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjTabCol"
+    "OracleObjTabCol"
 ]
 
 from mongoengine import StringField, IntField, FloatField, DynamicField
@@ -10,7 +10,7 @@ from .base import SchemaObjectCapturingDoc
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjTabCol(SchemaObjectCapturingDoc):
+class OracleObjTabCol(SchemaObjectCapturingDoc):
     """表列信息"""
 
     owner = StringField(null=True)

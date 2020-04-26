@@ -12,16 +12,3 @@ from .sqlplan import *
 from .sqlstat import *
 from .sqltext import *
 
-
-__all__ = [
-    "ObjIndColInfo",
-    "ObjPartTabParent",
-    "ObjSeqInfo",
-    "ObjTabCol",
-    "ObjTabInfo",
-    "ObjTabSpace",
-    "ObjViewInfo",
-    "SQLText",
-    "SQLPlan",
-    "SQLStat",
-]

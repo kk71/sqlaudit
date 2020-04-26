@@ -10,8 +10,8 @@ from typing import Generator
 from mongoengine import IntField, EmbeddedDocumentField
 
 from models.sqlalchemy import *
-from ..cmdb import *
-from .sql import OracleOnlineSQLIssue, OracleOnlineIssueOutputParamsSQL
+from oracle_cmdb.cmdb import *
+from oracle_cmdb.issue.sql import OracleOnlineSQLIssue, OracleOnlineIssueOutputParamsSQL
 from rule.cmdb_rule import CMDBRule
 from rule.adapters import CMDBRuleAdapterSQL
 

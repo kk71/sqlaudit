@@ -2,7 +2,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "SQLText"
+    "OracleSQLText"
 ]
 
 from mongoengine import StringField, IntField
@@ -11,7 +11,7 @@ from .base import SQLCapturingDoc
 
 
 @SQLCapturingDoc.need_collect()
-class SQLText(SQLCapturingDoc):
+class OracleSQLText(SQLCapturingDoc):
     """sql文本信息"""
 
     dbid = IntField(null=True)

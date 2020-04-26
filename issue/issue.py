@@ -140,9 +140,9 @@ class OnlineIssue(
         pass
 
     @classmethod
-    def filter_with_entries(cls, *args, **kwargs):
+    def filter(cls, *args, **kwargs):
         """便于子类只查询当前（以及其子类）的对象"""
-        return cls.objects(
+        return cls.filter(
             entries__all=cls.inherited_entries()).filter(*args, **kwargs)
 
     @classmethod

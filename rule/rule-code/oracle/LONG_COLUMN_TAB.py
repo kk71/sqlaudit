@@ -58,6 +58,7 @@ def code(rule, entries, **kwargs):
             if record["table_name"] == the_table_name:
                 if the_data_length >= record["avg_row_len"]:
                     record["column_names"].add(the_column_name)
+        record["column_names"] = list(record["column_names"])
         yield record
 
 

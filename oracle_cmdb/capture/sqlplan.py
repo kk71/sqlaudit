@@ -1,7 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "SQLPlan"
+    "OracleSQLPlan",
+    "OracleSQLPlanToday",
+    "OracleSQLPlanYesterday",
 ]
 
 from typing import NoReturn
@@ -9,10 +11,11 @@ from typing import NoReturn
 from mongoengine import StringField, IntField
 
 from .base import TwoDaysSQLCapturingDoc
+from .. import const
 
 
 @TwoDaysSQLCapturingDoc.need_collect()
-class SQLPlan(TwoDaysSQLCapturingDoc):
+class OracleSQLPlan(TwoDaysSQLCapturingDoc):
     """sql执行计划"""
 
     # 带缩进用于展示的执行计划
@@ -51,6 +54,7 @@ class SQLPlan(TwoDaysSQLCapturingDoc):
 
     meta = {
         "collection": "sqlplan",
+        "allow_inheritance": True,
         "indexes": [
             "sql_id",
             "plan_hash_value",
@@ -176,3 +180,19 @@ FROM
                 if doc.options:
                     doc.operation_display_with_options = \
                         doc.operation_display + " " + doc.options
+
+
+class OracleSQLPlanToday(OracleSQLPlan):
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter(
+            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY).filter(*args, **kwargs)
+
+
+class OracleSQLPlanYesterday(OracleSQLPlan):
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter(
+            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY).filter(*args, **kwargs)

@@ -1,11 +1,11 @@
-from oracle_cmdb.capture import SQLPlan
+from oracle_cmdb.capture import OracleSQLPlan
 
 
 def code(rule, entries, **kwargs):
     task_record_id: int = kwargs["task_record_id"]
     schema_name: str = kwargs["schema_name"]
 
-    ret = SQLPlan.objects.aggregate(
+    ret = OracleSQLPlan.objects.aggregate(
         {
             "$match": {
                 "task_record_id": task_record_id,

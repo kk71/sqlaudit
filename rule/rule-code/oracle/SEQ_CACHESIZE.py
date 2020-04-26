@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     sql = f"""
     select SEQUENCE_NAME, CACHE_SIZE 
             from dba_sequences 
-            WHERE SEQUENCE_OWNER = {schema_name}
+            WHERE SEQUENCE_OWNER = '{schema_name}'
                   AND CACHE_SIZE < {rule.gip('cache_size')}
     """
     for i in cmdb_connector.select_dict(sql):

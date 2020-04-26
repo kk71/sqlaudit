@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjIndColInfo"
+    "OracleObjIndColInfo"
 ]
 
 
@@ -11,7 +11,7 @@ from .base import SchemaObjectCapturingDoc
 
 
 @SchemaObjectCapturingDoc.need_collect()
-class ObjIndColInfo(SchemaObjectCapturingDoc):
+class OracleObjIndColInfo(SchemaObjectCapturingDoc):
     """索引列信息"""
 
     index_owner = StringField(null=True)

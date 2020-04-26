@@ -10,7 +10,6 @@ from typing import NoReturn, Generator, List
 from mongoengine import IntField, StringField
 
 import settings
-import cmdb.const
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
 from rule.rule_jar import *

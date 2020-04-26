@@ -1,28 +1,28 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleOnlineSQLPlanIssue"
+    "OracleOnlineSQLStatIssue"
 ]
 
 import rule.const
-from .base import OracleOnlineIssue
-from .sql_execution import OracleOnlineSQLExecutionIssue
-from ..capture import SQLPlan
-from .. import const
+from oracle_cmdb.issue.base import OracleOnlineIssue
+from oracle_cmdb.issue.sql.sql_execution import OracleOnlineSQLExecutionIssue
+from oracle_cmdb.capture import OracleSQLStat
+from oracle_cmdb import const
 
 
 @OracleOnlineIssue.need_collect()
-class OracleOnlineSQLPlanIssue(OracleOnlineSQLExecutionIssue):
-    """sql执行计划问题"""
+class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
+    """sql执行特征问题"""
 
-    ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_PLAN,)
+    ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_STAT,)
 
     @classmethod
     def params_to_append_to_rule(cls,
                                  task_record_id: int,
                                  schema_name: str) -> dict:
         return {
-            "sql_plan_qs": SQLPlan.objects(
+            "sql_stat_qs": OracleSQLStat.objects(
                 two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY,
                 task_record_id=task_record_id,
                 schema_name=schema_name

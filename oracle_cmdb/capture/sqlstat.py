@@ -1,16 +1,19 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "SQLStat"
+    "OracleSQLStat",
+    "OracleSQLStatToday",
+    "OracleSQLStatYesterday",
 ]
 
 from mongoengine import StringField, IntField, FloatField
 
 from .base import TwoDaysSQLCapturingDoc
+from .. import const
 
 
 @TwoDaysSQLCapturingDoc.need_collect()
-class SQLStat(TwoDaysSQLCapturingDoc):
+class OracleSQLStat(TwoDaysSQLCapturingDoc):
     """sql执行特征"""
 
     sql_id = StringField(null=True)
@@ -41,6 +44,7 @@ class SQLStat(TwoDaysSQLCapturingDoc):
 
     meta = {
         "collection": "sqlstat",
+        "allow_inheritance": True,
         "indexes": [
             "sql_id",
             "plan_hash_value",
@@ -103,3 +107,18 @@ GROUP BY sql_id,
          t.parsing_schema_name,t.module
 """
 
+
+class OracleSQLStatToday(OracleSQLStat):
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter(
+            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY).filter(*args, **kwargs)
+
+
+class OracleSQLStatYesterday(OracleSQLStat):
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter(
+            two_days_capture=const.SQL_TWO_DAYS_CAPTURE_YESTERDAY).filter(*args, **kwargs)

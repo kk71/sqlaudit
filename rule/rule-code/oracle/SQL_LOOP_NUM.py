@@ -2,7 +2,7 @@ import re
 
 from rule import const
 from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan
-from oracle_cmdb.capture import SQLPlan
+from oracle_cmdb.capture import OracleSQLPlan
 
 
 def code(rule, entries, **kwargs):
@@ -46,7 +46,7 @@ def code(rule, entries, **kwargs):
         schema_name: str = kwargs["schema_name"]
         task_record_id: int = kwargs["task_record_id"]
 
-        ret = SQLPlan.objects.aggregate(
+        ret = OracleSQLPlan.objects.aggregate(
             {
                 "$match": {
                     "task_record_id": task_record_id,

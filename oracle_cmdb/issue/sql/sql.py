@@ -9,7 +9,7 @@ from mongoengine import StringField, EmbeddedDocumentField
 
 from issue.issue import OnlineIssueOutputParams
 import rule.const
-from .base import *
+from oracle_cmdb.issue.base import *
 
 
 class OracleOnlineIssueOutputParamsSQL(OnlineIssueOutputParams):

@@ -13,7 +13,7 @@ from .capture import *
 class SingleSQLForOnline(SingleSQL):
 
     @classmethod
-    def gen_from_sql_text(cls, sql_text: SQLText):
+    def gen_from_sql_text(cls, sql_text: OracleSQLText):
         sqls: [ParsedSQLStatement] = ParsedSQL(sql_text.longer_sql_text)
         if len(sqls) != 1:
             # print(f"warning: {sql_text} can't be parsed correctly. "
