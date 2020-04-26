@@ -2044,5 +2044,74 @@
         "max_score": 5,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "TIMESTAMP",
+        "desc": "不包含时间戳字段的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select table_name \n        from dba_tables \n        where owner = '{schema_name}' \n            and table_name not in (\n                select table_name \n                    from dba_tab_cols \n                    where owner = '{schema_name}' and (\n                            column_name like 'CREATE%' or column_name like 'UPDATE%'\n                        ) and data_type = 'DATE')\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "时间戳是获取增量数据的一种方法。建议在表内增加创建时间、更新时间的时间戳字段。命名方式为CREATE_TIME、UPDATE_TIME",
+        "solution": [
+            "添加时间字段(比如插入、更新的时间戳)"
+        ],
+        "weight": 1.0,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "USE_PROCEDURE",
+        "desc": "存在存储过程",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "proc_name",
+                "desc": "存储过程名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "object_type",
+                "desc": "类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select object_name as proc_name, object_type \n        from dba_objects \n        where object_type = 'PROCEDURE' and owner = '{schema_name}'\n        order by object_type\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存储过程将影响数据库的异构迁移能力,并存在代码维护性较差等原因",
+        "solution": [
+            "用应用端程序实现将存储过程"
+        ],
+        "weight": 1.0,
+        "max_score": 9,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
