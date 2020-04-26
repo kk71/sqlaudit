@@ -33,7 +33,7 @@ class ArchiveHandler(TicketReq):
         date_start, date_end = self.pop_date(params)
         ticket_status = params.pop("status")
 
-        filtered_tickets = Ticket.objects(
+        filtered_tickets = Ticket.filter(
             create_time__gte=date_start, create_time__lt=date_end
         ).order_by("-create_time")
         if ticket_status:
@@ -106,7 +106,7 @@ class TicketHandler(TicketReq):
         date_start, date_end = self.pop_date(params)
         p = self.pop_p(params)
 
-        ticket_q = Ticket.objects(**params).order_by("-create_time")
+        ticket_q = Ticket.filter(**params).order_by("-create_time")
         if keyword:
             ticket_q = self.query_keyword(ticket_q, keyword,
                                           "ticket_id",

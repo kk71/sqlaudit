@@ -2113,5 +2113,35 @@
         "max_score": 9,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "USE_FUNCTION",
+        "desc": "存在函数",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "func_name",
+                "desc": "函数名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select object_name as func_name\n        from dba_objects \n        where object_type = 'FUNCTION' and owner = '{schema_name}' \n        order by object_type\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "函数将影响数据库的异构迁移能力,并存在代码维护性较差等原因",
+        "solution": [
+            "用应用端程序实现函数"
+        ],
+        "weight": 3.0,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]

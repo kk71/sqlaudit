@@ -7,8 +7,7 @@ __all__ = [
 import rule.const
 from oracle_cmdb.issue.base import OracleOnlineIssue
 from oracle_cmdb.issue.sql.sql_execution import OracleOnlineSQLExecutionIssue
-from oracle_cmdb.capture import OracleSQLPlan
-from oracle_cmdb import const
+from oracle_cmdb.capture import OracleSQLPlanToday
 
 
 @OracleOnlineIssue.need_collect()
@@ -22,8 +21,7 @@ class OracleOnlineSQLPlanIssue(OracleOnlineSQLExecutionIssue):
                                  task_record_id: int,
                                  schema_name: str) -> dict:
         return {
-            "sql_plan_qs": OracleSQLPlan.objects(
-                two_days_capture=const.SQL_TWO_DAYS_CAPTURE_TODAY,
+            "sql_plan_qs": OracleSQLPlanToday.filter(
                 task_record_id=task_record_id,
                 schema_name=schema_name
             )

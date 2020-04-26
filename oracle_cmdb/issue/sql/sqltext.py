@@ -66,7 +66,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
             task_record_id: int,
             schema_name: str) -> mongoengine_qs:
         """获取采集任务的sql_id"""
-        return OracleSQLText.objects(
+        return OracleSQLText.filter(
             task_record_id=task_record_id,
             schema_name=schema_name
         )

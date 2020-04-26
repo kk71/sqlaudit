@@ -90,6 +90,7 @@ class OnlineIssue(
     meta = {
         "abstract": True,
         'indexes': [
+            "_cls",
             "cmdb_id",
             "rule_name",
             "entries",
@@ -140,12 +141,6 @@ class OnlineIssue(
         pass
 
     @classmethod
-    def filter(cls, *args, **kwargs):
-        """便于子类只查询当前（以及其子类）的对象"""
-        return cls.filter(
-            entries__all=cls.inherited_entries()).filter(*args, **kwargs)
-
-    @classmethod
     def check_rule_output_and_issue(cls, **kwargs):
         """
         检查规则和对应的输出字段是否符合要求
@@ -153,7 +148,7 @@ class OnlineIssue(
         :param kwargs:
         :return:
         """
-        print(f"{cls.__class__}: checking rule output to issue output...")
+        print(f"{cls}: checking rule output to issue output...")
         rule_jar = cls.generate_rule_jar(**kwargs)
         for the_rule in rule_jar:
             cls().output_params.check_rule_output_and_issue(the_rule)
