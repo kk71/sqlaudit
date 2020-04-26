@@ -6,10 +6,12 @@ __all__ = [
 
 import rule.const
 from .object import *
-from issue.issue import *
 
 
-class OracleOnlineObjectIssueIndex(
-        OracleOnlineObjectIssue, OnlineIssueFilterWithEntriesMixin):
+class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_INDEX,)
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter_with_inherited_entries(*args, **kwargs)

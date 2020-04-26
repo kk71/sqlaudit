@@ -7,10 +7,12 @@ __all__ = [
 
 import rule.const
 from .object import *
-from issue.issue import *
 
 
-class OracleOnlineObjectIssueTable(
-        OracleOnlineObjectIssue, OnlineIssueFilterWithEntriesMixin):
+class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_TABLE,)
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.filter_with_inherited_entries(*args, **kwargs)

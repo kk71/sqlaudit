@@ -68,3 +68,4 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
                     schema_name=schema_name
                 )
                 yield from docs
+

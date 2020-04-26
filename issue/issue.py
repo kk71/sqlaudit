@@ -2,7 +2,6 @@
 
 __all__ = [
     "OnlineIssue",
-    "OnlineIssueFilterWithEntriesMixin",
     "OnlineIssueOutputParams"
 ]
 
@@ -153,15 +152,16 @@ class OnlineIssue(
         for the_rule in rule_jar:
             cls().output_params.check_rule_output_and_issue(the_rule)
 
-
-class OnlineIssueFilterWithEntriesMixin(OnlineIssue):
-    """如果需要从entries去过滤查询问题，请继承这个类"""
-
-    meta = {
-        "abstract": True
-    }
-
     @classmethod
-    def filter(cls, *args, **kwargs):
-        return super().filter(
+    def filter_with_inherited_entries(cls, *args, **kwargs):
+        """
+        默认的mongoengine document继承，是带有_cls的。
+        所以不需要根据entries去过滤
+        {$all: [...]}的过滤速度比{$in: [...]}要慢。
+        特殊情况下可以用entries去过滤
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        return cls.filter(
             entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)
