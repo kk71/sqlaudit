@@ -61,6 +61,9 @@ class BaseRuleHandler(AuthReq):
                     scm_data_type = scm_num
                 elif data_type == const.RULE_PARAM_TYPE_LIST:
                     scm_data_type = Or(list, scm_dot_split_str, scm_dot_split_int)
+                elif data_type == const.RULE_PARAM_TYPE_SET:
+                    scm_data_type = And(
+                        Or(set, scm_dot_split_str, scm_dot_split_int), Use(set))
                 else:
                     assert 0
                 validated: dict = Schema({

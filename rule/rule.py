@@ -55,6 +55,9 @@ class RuleParams(EmbeddedDocument):
         elif self.data_type == const.RULE_PARAM_TYPE_LIST:
             if not isinstance(the_value, list):
                 raise exceptions.RuleCodeInvalidParamTypeException(s)
+        elif self.data_type == const.RULE_PARAM_TYPE_SET:
+            if not isinstance(the_value, set):
+                raise exceptions.RuleCodeInvalidParamTypeException(s)
         else:
             assert 0
 

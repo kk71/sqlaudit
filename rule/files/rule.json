@@ -1907,7 +1907,7 @@
         ],
         "output_params": [
             {
-                "name": "seq_name",
+                "name": "sequence_name",
                 "desc": "序列名称",
                 "unit": null,
                 "data_type": "STR",
@@ -1915,7 +1915,7 @@
                 "optional": false
             },
             {
-                "name": "seq_cache_size",
+                "name": "cache_size",
                 "desc": "缓存大小",
                 "unit": null,
                 "data_type": "NUM",
@@ -1979,6 +1979,69 @@
         ],
         "weight": 12.0,
         "max_score": 9,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "LONG_COLUMN_TAB",
+        "desc": "记录长度定义过长",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT"
+        ],
+        "input_params": [
+            {
+                "name": "data_len_ratio",
+                "desc": "记录定义长度与实际存储长度占比",
+                "unit": "",
+                "data_type": "FLOAT",
+                "_cls": "RuleInputParams",
+                "value": 0.5
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "col_sum",
+                "desc": "行记录定义字节数",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "avg_row_len",
+                "desc": "记录实际平均存放字节数",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_names",
+                "desc": "超过长度的字段名",
+                "unit": "",
+                "data_type": "SET",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = \"\"\"\n    SELECT CASE userenv('language')\n               WHEN 'SIMPLIFIED CHINESE_CHINA.AL32UTF8' THEN 3\n               WHEN 'AMERICAN_AMERICA.AL32UTF8' THEN 3\n               WHEN 'SIMPLIFIED CHINESE_CHINA.ZHS16GBK' THEN 4\n               WHEN 'AMERICAN_AMERICA.ZHS16GBK' THEN 4\n               WHEN 'SIMPLIFIED CHINESE_CHINA.UTF8' THEN 3\n           END\n    FROM dual\n    \"\"\"\n    v_len = cmdb_connector.select(sql)\n    sql = f\"\"\"\n    SELECT t.table_name,\n           a.col_sum,\n           t.avg_row_len\n    FROM dba_tables t,\n\n      (SELECT TABLE_NAME,\n              sum(LENGTH) col_sum\n       FROM\n         (SELECT TABLE_NAME,\n                 data_length,\n                 COLUMN_NAME,\n                 sum(CASE data_type\n                         WHEN 'VARCHAR2' THEN round(data_length / 1, 2)\n                         WHEN 'VARCHAR' THEN round(data_length / 1, 2)\n                         ELSE data_length\n                     END) LENGTH\n          FROM dba_tab_cols\n          WHERE OWNER='{schema_name}'\n          GROUP BY TABLE_NAME,\n                   data_length,\n                   COLUMN_NAME) t\n       GROUP BY TABLE_NAME) a\n    WHERE t.owner='{schema_name}'\n      AND t.table_name = a.table_name\n      AND t.avg_row_len / a.col_sum < {rule.gip('data_len_ratio')}\n    \"\"\"\n    records = cmdb_connector.select_dict(sql)\n\n    # 新增功能，返回超过实际长度的字段名\n    sql = f\"\"\"\n                select table_name, column_name, data_length \n                from dba_tab_cols t\n                where t.owner = '{schema_name}'\n    \"\"\"\n    table_columns = cmdb_connector.select(sql)\n    for record in records:\n        record[\"column_names\"] = set()\n        for the_table_name, the_column_name, the_data_length in table_columns:\n            if record[\"table_name\"] == the_table_name:\n                if the_data_length >= record[\"avg_row_len\"]:\n                    record[\"column_names\"].add(the_column_name)\n        yield record\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "记录定义长度与实际存储长度差异过大,请考虑字段类型定义是否合理,个别字段过长是否可分表存储。",
+        "solution": [
+            "按需定义字段长度"
+        ],
+        "weight": 0.5,
+        "max_score": 5,
         "level": 2,
         "db_model": "OLTP"
     }
