@@ -17,7 +17,7 @@ from rule.adapters import CMDBRuleAdapterSQL
 
 
 class OracleOnlineIssueOutputParamsSQLExecution(
-    OracleOnlineIssueOutputParamsSQL):
+        OracleOnlineIssueOutputParamsSQL):
     """针对SQL执行相关的输出字段"""
 
     plan_hash_value = IntField(required=True, default=None)

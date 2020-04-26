@@ -28,7 +28,15 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
     }
 
     def check_rule_output_and_issue(self, the_rule: rule.cmdb_rule.CMDBRule):
-        """检查对应的规则的输出参数是否满足当前issue的要求"""
+        """
+        检查对应的规则的输出参数是否满足当前issue的要求
+        TODO 这个检查只是检查规则输出字段是否包含的当前issue输出要求的字段，
+             但是并不强制规则的输出字段为必选
+             因为规则有一部分是跟工单共用的，你不能要求工单运行规则的时候也必须输出这些字段
+             因此，这个检查是不能保证分析的时候确实拿到这些必须的字段的
+        :param the_rule:
+        :return:
+        """
         keys_of_rule_output_params = {
             i.name
             for i in the_rule.output_params
@@ -38,12 +46,18 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
                 continue
             if f not in keys_of_rule_output_params:
                 raise issue.exceptions.IssueBadOutputData(
-                    f"{the_rule}: need {f}, make sure the output parameter is set")
+                    f"{the_rule}: requires {f}, make sure the output parameter is set")
 
     def as_output_of(
             self,
             output_data: dict):
         """以给出的数据作为本问题的输出"""
+        for f in self._fields_ordered:
+            if f in ("_cls", "_id"):
+                continue
+            if f not in output_data.keys():
+                raise issue.exceptions.IssueBadOutputData(
+                    f"{self.__class__} requires {f}: {output_data}")
         for k, v in output_data.items():
             setattr(self, k, v)
 
@@ -133,8 +147,13 @@ class OnlineIssue(
 
     @classmethod
     def check_rule_output_and_issue(cls, **kwargs):
-        """检查规则和对应的输出字段是否符合要求"""
-        print(f"{cls.__doc__}: checking rule output to issue output...")
+        """
+        检查规则和对应的输出字段是否符合要求
+        TODO 这个检查只是在检查代码的时候需要运行，不要在生产环境中运行
+        :param kwargs:
+        :return:
+        """
+        print(f"{cls.__class__}: checking rule output to issue output...")
         rule_jar = cls.generate_rule_jar(**kwargs)
         for the_rule in rule_jar:
             cls().output_params.check_rule_output_and_issue(the_rule)
