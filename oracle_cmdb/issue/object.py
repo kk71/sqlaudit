@@ -19,8 +19,9 @@ from ..cmdb import *
 class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
     """针对对象的输出字段"""
 
-    object_name = StringField(required=True, default=None)
-    object_type = StringField(required=True, default=None)
+    # object_name = StringField(required=True, default=None)
+    # object_type = StringField(required=True, default=None)
+    pass
 
 
 @OracleOnlineIssue.need_collect()
@@ -28,7 +29,8 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
 
     output_params = EmbeddedDocumentField(
-        OracleOnlineIssueOutputParamsObject, default=OracleOnlineIssueOutputParamsObject)
+        OracleOnlineIssueOutputParamsObject,
+        default=OracleOnlineIssueOutputParamsObject)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 

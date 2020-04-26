@@ -1885,5 +1885,101 @@
         "max_score": 5,
         "level": 3,
         "db_model": "OLTP"
+    },
+    {
+        "name": "SEQ_CACHESIZE",
+        "desc": "序列CACHESIZE过小",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_SEQUENCE"
+        ],
+        "input_params": [
+            {
+                "name": "cache_size",
+                "desc": "缓存大小",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 2000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "seq_name",
+                "desc": "序列名称",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "seq_cache_size",
+                "desc": "缓存大小",
+                "unit": null,
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select SEQUENCE_NAME, CACHE_SIZE \n            from dba_sequences \n            WHERE SEQUENCE_OWNER = {schema_name}\n                  AND CACHE_SIZE < {rule.gip('cache_size')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "cache值较小，内存中预先缓存的cache值很快被耗尽，再次取值时需要修改数据字典信息，在此期间，会持有SQ锁",
+        "solution": [
+            "调整序列的cache值为2000以上"
+        ],
+        "weight": 1.0,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SINGLETABLE_INDEX_NUM",
+        "desc": "索引数量过多",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [
+            {
+                "name": "index_num",
+                "desc": "索引个数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 7
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": null
+            },
+            {
+                "name": "index_num",
+                "desc": "索引数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": null
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT T.TABLE_NAME table_name, COUNT(1) index_num FROM DBA_INDEXES T\n           WHERE T.OWNER = '{schema_name}'\n           GROUP BY T.OWNER||'.'||T.TABLE_NAME \n           HAVING COUNT(1) > {rule.gip(\"index_num\")} ORDER BY COUNT(1) DESC\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "索引可以提高访问速度,但数量过多将导致空间消耗过大,且索引维护成本较高,影响DML效率等问题。应控制索引数量。",
+        "solution": [
+            "构建战略性索引结构,不要针对每个需求都通过创建索引解决"
+        ],
+        "weight": 12.0,
+        "max_score": 9,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
