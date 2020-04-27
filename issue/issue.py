@@ -107,15 +107,19 @@ class OnlineIssue(
     def generate_rule_jar(cls,
                           cmdb_id: int,
                           task_record_id: int = None,
+                          append_data: dict = None,
                           **kwargs) -> RuleJar:
         entries = cls.INHERITED_ENTRIES
         the_jar = RuleJar.gen_jar_with_entries(*entries, cmdb_id=cmdb_id, **kwargs)
         if task_record_id:
+            if not append_data:
+                append_data = {}
             # 保存当前使用的规则唯一标识
             CMDBTaskStatsProcessor(task_record_id).write_stats(
                 cls,
                 cmdb.const.STATS_TYPE_RULE_NAMES,
-                the_jar.get_unique_keys()
+                the_jar.get_unique_keys(),
+                **append_data
             )
         return the_jar
 

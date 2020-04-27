@@ -55,8 +55,13 @@ class CMDBTaskStatsProcessor:
                 "connect_name"
             ))
 
-    def write_stats(self, origin, stats_type, data=None):
+    def write_stats(self, origin, stats_type, data=None, **kwargs):
         origin_name = origin.__name__
         stats = CMDBTaskStats(
-            **self.keys, origin=origin_name, stats_type=stats_type, data=data)
+            **self.keys,
+            origin=origin_name,
+            stats_type=stats_type,
+            data=data,
+            **kwargs
+        )
         stats.save()

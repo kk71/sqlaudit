@@ -11,11 +11,11 @@ def code(rule, entries, **kwargs):
                 a.index_name, 
                 decode(
                     INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type, 'LOB', 'Lob'))))
-                ) as type,
+                ) as index_type,
                 a.clustering_factor,
                 a.table_name,
-                b.num_rows,
-                trunc((a.clustering_factor - a.leaf_blocks) /(a.num_rows - a.leaf_blocks + 1) * 100,2) ratio
+                b.num_rows as row_num,
+                trunc((a.clustering_factor - a.leaf_blocks) /(a.num_rows - a.leaf_blocks + 1) * 100,2) cluster_row_ratio
             from dba_ind_statistics a, dba_tables b, dba_indexes c 
             where a.table_name = b.table_name 
                 and a.index_name = c.index_name 

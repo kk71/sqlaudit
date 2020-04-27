@@ -49,7 +49,10 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
         schema_name: str = kwargs["schema_name"]
 
         rule_jar: [CMDBRule] = cls.generate_rule_jar(
-            cmdb_id, task_record_id=task_record_id)
+            cmdb_id,
+            task_record_id=task_record_id,
+            append_data={"schema_name": schema_name}
+        )
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()

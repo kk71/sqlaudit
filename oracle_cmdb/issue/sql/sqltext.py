@@ -36,7 +36,10 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
         schema_name: str = kwargs["schema_name"]
 
         rule_jar: [CMDBRule] = cls.generate_rule_jar(
-            cmdb_id, task_record_id=task_record_id)
+            cmdb_id,
+            task_record_id=task_record_id,
+            append_data = {"schema_name": schema_name}
+        )
         sqltext = list(cls.get_sql_qs(task_record_id, schema_name))
         with make_session() as session:
             the_cmdb = session.query(
