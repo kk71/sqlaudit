@@ -23,7 +23,7 @@ class CMDBTaskStats(BaseDoc):
     cmdb_id = IntField(required=True)
     connect_name = StringField(required=True)
     origin = StringField(required=True, null=True)
-    stats_type = StringField(
+    stats_type = IntField(
         required=True, choices=const.ALL_CMDB_TASK_STATS_TYPE)
     data = StringField(required=True, default="")
 
