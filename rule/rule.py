@@ -27,9 +27,10 @@ class RuleParams(EmbeddedDocument):
     """规则的参数"""
 
     name = StringField(required=True)  # 唯一
-    desc = StringField()  # 描述
-    unit = StringField()  # 单位
-    data_type = StringField(choices=const.ALL_RULE_PARAM_TYPES)  # 数据类型
+    desc = StringField(default="")  # 描述
+    unit = StringField(default="")  # 单位
+    data_type = StringField(
+        required=True, choices=const.ALL_RULE_PARAM_TYPES)  # 数据类型
 
     meta = {
         "allow_inheritance": True
@@ -65,7 +66,7 @@ class RuleParams(EmbeddedDocument):
 class RuleInputParams(RuleParams):
     """输入参数"""
 
-    value = DynamicField(default=None, required=False, null=True)
+    value = DynamicField(default=None, required=True, null=True)
 
     def validate_input_data(self):
         """验证数据类型是否正确"""
@@ -76,9 +77,9 @@ class RuleOutputParams(RuleParams):
     """输出参数"""
 
     # 标志此参数是否可以不返回
-    # True则返回的时候会强制该字段必须出现且符合校验，
-    # False则表示该字段可以不返回，或者返回None
-    optional = BooleanField()
+    # False则返回的时候会强制该字段必须出现且符合校验，
+    # True则表示该字段可以不返回，或者返回None
+    optional = BooleanField(default=False)
 
     @classmethod
     def validate_output_data(
@@ -93,8 +94,6 @@ class RuleOutputParams(RuleParams):
         """
         try:
             # 校验函数返回的结构是否合乎预期
-            """
-            """
             ret = Schema(
                 [
                     scm_optional(Or(
@@ -248,7 +247,7 @@ def code(rule, entries: [str], **kwargs):
 
 
 code_hole.append(code)  # 务必加上这一句
-        '''
+'''
 
     def gip(self, param_name: str) -> dict:
         """
@@ -317,4 +316,3 @@ code_hole.append(code)  # 务必加上这一句
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.filter(status=True).filter(*args, **kwargs)
-
