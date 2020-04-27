@@ -130,7 +130,7 @@ class RuleOutputParams(RuleParams):
                             the_output_param.name not in a_ret_dict.keys():
                     # 逐输出字段并且逐输出数据检查必选的输出字段是否输出了
                     raise exceptions.RuleCodeInvalidReturnException(
-                        f"requires {the_output_param.name}")
+                        f"{the_rule} requires output: {the_output_param.name}")
                 if the_output_param.name in a_ret_dict.keys():
                     the_output_param.validate_data_type(
                         a_ret_dict[the_output_param.name])

@@ -2403,7 +2403,7 @@
                 "optional": false
             },
             {
-                "name": "index_describe",
+                "name": "index_description",
                 "desc": "索引描述",
                 "unit": null,
                 "data_type": "STR",
@@ -2411,7 +2411,7 @@
                 "optional": false
             }
         ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.COLUMN_EXPRESSION \n        from dba_indexes t, dba_ind_expressions s \n        where t.index_name = s.index_name \n            and t.table_name = s.TABLE_NAME\n            and t.index_name not like 'BIN%'  \n            and t.owner = '{schema_name}'\n            and t.index_type like '%FUNCTION%' \n        order by t.table_name, t.index_name\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.INDEX_NAME, \n            t.INDEX_TYPE, \n            t.TABLE_NAME, \n            s.COLUMN_EXPRESSION index_description\n        from dba_indexes t, dba_ind_expressions s \n        where t.index_name = s.index_name \n            and t.table_name = s.TABLE_NAME\n            and t.index_name not like 'BIN%'  \n            and t.owner = '{schema_name}'\n            and t.index_type like '%FUNCTION%' \n        order by t.table_name, t.index_name\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "若使用函数索引，则说明列上使用了表达式，应检查查询列是否使用了表达式",
         "solution": [
@@ -2456,6 +2456,195 @@
         "summary": "在对分区表进行维护时，全局分区索引冗余导致失效",
         "solution": [
             "根据业务场景，创建分区索引"
+        ],
+        "weight": 0.3,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TRIGGERS_NUM",
+        "desc": "存在触发器",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "trigger_name",
+                "desc": "触发器名称",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "trigger_type",
+                "desc": "类型",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select trigger_name, 'TRIGGER' as trigger_type\n        from dba_triggers \n        where owner = '{schema_name}'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "触发器将影响数据库的异构迁移能力，并存在代码维护性较差等原因",
+        "solution": [
+            "用应用端程序实现触发器"
+        ],
+        "weight": 1.0,
+        "max_score": 5,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "BIG_TABLE_COUNT",
+        "desc": "大表数量过多",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "tab_phy_size",
+                "desc": "表大小",
+                "unit": "MB",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 10240
+            }
+        ],
+        "output_params": [
+            {
+                "name": "segment_name",
+                "desc": "段名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "segment_type",
+                "desc": "段类型",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "tab_space",
+                "desc": "表大小",
+                "unit": "MB",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT segment_name, segment_type, bytes / 1024 / 1024 tab_space\n        FROM dba_segments\n        WHERE segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND owner = '{schema_name}'\n            AND segment_name NOT LIKE 'BIN%'\n            and bytes / 1024 / 1024 >= {rule.gip('tab_phy_size')}\n        ORDER BY 3 DESC\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
+        "solution": [
+            "1.建议分库,分表,分区",
+            "2.历史数据归档"
+        ],
+        "weight": 1.0,
+        "max_score": 5,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "IDX_BITMAP",
+        "desc": "是否使用位图索引",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_type",
+                "desc": "索引类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "idx_col_name",
+                "desc": "索引列",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.column_name idx_col_name\n        from dba_indexes t, dba_ind_columns s \n        where t.owner = s.table_owner \n            and t.index_name = s.index_name \n            and t.index_name not like 'BIN%' \n            and t.owner = '{schema_name}'\n            and t.index_type = 'BITMAP' \n        order by t.table_name, t.index_name\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "在OLTP在线交易系统中，如果有位图索引，则在DML操作时会产生大量的行锁",
+        "solution": [
+            "OLTP在线交易系统禁用位图索引"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TABLE_LOB",
+        "desc": "包含有大字段类型的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_name",
+                "desc": "字段名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select table_name, column_name \n        from dba_lobs \n        where owner='{schema_name}'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "不仅占用更多空间，而且维护起来困难，比如导入导出慢",
+        "solution": [
+            "建议在数据库外部进行存储大字段"
         ],
         "weight": 0.3,
         "max_score": 3,

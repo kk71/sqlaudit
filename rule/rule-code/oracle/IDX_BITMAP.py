@@ -6,16 +6,13 @@ def code(rule, entries, **kwargs):
     cmdb_connector = kwargs["cmdb_connector"]
 
     sql = f"""
-    select t.INDEX_NAME, 
-            t.INDEX_TYPE, 
-            t.TABLE_NAME, 
-            s.COLUMN_EXPRESSION index_description
-        from dba_indexes t, dba_ind_expressions s 
-        where t.index_name = s.index_name 
-            and t.table_name = s.TABLE_NAME
-            and t.index_name not like 'BIN%'  
+    select t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.column_name idx_col_name
+        from dba_indexes t, dba_ind_columns s 
+        where t.owner = s.table_owner 
+            and t.index_name = s.index_name 
+            and t.index_name not like 'BIN%' 
             and t.owner = '{schema_name}'
-            and t.index_type like '%FUNCTION%' 
+            and t.index_type = 'BITMAP' 
         order by t.table_name, t.index_name
     """
     for i in cmdb_connector.select_dict(sql):

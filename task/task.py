@@ -91,8 +91,8 @@ class BaseTask(celery_app.Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         failure_info = traceback.format_exc()
-        print(f"task {self.task_type}(task_record_id:{self.task_record_id}) just failed: "
-              f"\n\n{failure_info}\n")
+        print(f"task {const.ALL_TASK_TYPE_CHINESE[self.task_type]}"
+              f"({self.task_type}, task_record_id:{self.task_record_id}) just failed.")
         with make_session() as session:
             task_record = session.query(TaskRecord). \
                 filter_by(task_record_id=self.task_record_id).first()
