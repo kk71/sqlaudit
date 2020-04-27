@@ -43,7 +43,7 @@ class OracleSQLStat(TwoDaysSQLCapturingDoc):
     per_row_blk = FloatField(null=True)
 
     meta = {
-        "collection": "sqlstat",
+        "collection": "oracle_sqlstat",
         "allow_inheritance": True,
         "indexes": [
             "sql_id",

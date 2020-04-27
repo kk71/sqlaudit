@@ -12,7 +12,6 @@ from mongoengine import IntField, StringField
 import settings
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
-from rule.rule_jar import *
 from issue.issue import *
 from ..cmdb import OracleCMDB
 
@@ -26,7 +25,7 @@ class OracleOnlineIssue(OnlineIssue):
     meta = {
         "allow_inheritance": True,
         "collection": "oracle_online_issue",
-        "index": [
+        "indexes": [
             "task_record_id",
             "schema_name"
         ]

@@ -22,7 +22,7 @@ class OracleObjIndColInfo(SchemaObjectCapturingDoc):
     column_position = IntField(null=True)
 
     meta = {
-        "collection": "obj_ind_col_info",
+        "collection": "oracle_obj_ind_col_info",
         "indexes": [
             "index_owner",
             "index_name",

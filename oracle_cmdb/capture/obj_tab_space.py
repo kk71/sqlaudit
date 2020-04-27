@@ -22,7 +22,7 @@ class OracleObjTabSpace(ObjectCapturingDoc):
     usage_ratio = FloatField()
 
     meta = {
-        "collection": "obj_tab_space",
+        "collection": "oracle_obj_tab_space",
         "indexes": ["tablespace_name"]
     }
 

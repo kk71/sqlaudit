@@ -93,7 +93,8 @@ class OnlineIssue(
             "cmdb_id",
             "rule_name",
             "entries",
-            "level"
+            "level",
+            "output_params"
         ]
     }
 

@@ -22,7 +22,7 @@ class OracleObjViewInfo(SchemaObjectCapturingDoc):
     referenced_type = StringField(null=True)
 
     meta = {
-        "collection": "obj_view_info",
+        "collection": "oracle_obj_view_info",
         "indexes": [
             "obj_pk",
             "owner",

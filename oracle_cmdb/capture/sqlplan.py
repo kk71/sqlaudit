@@ -53,7 +53,7 @@ class OracleSQLPlan(TwoDaysSQLCapturingDoc):
     time = StringField(null=True)
 
     meta = {
-        "collection": "sqlplan",
+        "collection": "oracle_sqlplan",
         "allow_inheritance": True,
         "indexes": [
             "sql_id",

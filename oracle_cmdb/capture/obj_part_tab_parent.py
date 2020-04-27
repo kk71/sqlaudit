@@ -31,7 +31,7 @@ class OracleObjPartTabParent(SchemaObjectCapturingDoc):
     phy_size_mb = FloatField(null=True)
 
     meta = {
-        "collection": "obj_part_tab_parent",
+        "collection": "oracle_obj_part_tab_parent",
         "indexes": [
             "owner",
             "table_name",

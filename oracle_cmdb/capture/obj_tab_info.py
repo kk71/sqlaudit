@@ -30,7 +30,7 @@ class OracleObjTabInfo(SchemaObjectCapturingDoc):
     phy_size_mb = FloatField(null=True)
 
     meta = {
-        "collection": "obj_tab_info",
+        "collection": "oracle_obj_tab_info",
         "indexes": [
             "owner",
             "table_name"

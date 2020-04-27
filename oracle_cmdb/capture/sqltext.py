@@ -20,7 +20,7 @@ class OracleSQLText(SQLCapturingDoc):
     longer_sql_text = StringField(null=True)
 
     meta = {
-        "collection": "sqltext",
+        "collection": "oracle_sqltext",
         "indexes": [
             "sql_id"
         ]

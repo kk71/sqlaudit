@@ -26,7 +26,7 @@ class OracleObjTabCol(SchemaObjectCapturingDoc):
     avg_col_len = FloatField(null=True)
 
     meta = {
-        "collection": "obj_tab_col",
+        "collection": "oracle_obj_tab_col",
         "indexes": [
             "owner",
             "table_name",

@@ -24,7 +24,7 @@ class OracleObjSeqInfo(SchemaObjectCapturingDoc):
     last_number = StringField(null=True)
 
     meta = {
-        "collection": "obj_seq_info",
+        "collection": "oracle_obj_seq_info",
         "indexes": [
             "sequence_name",
             "sequence_owner"
