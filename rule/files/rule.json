@@ -2214,5 +2214,111 @@
         "max_score": 9,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "COUNT_SUBPART_TAB",
+        "desc": "复合分区数量过多",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "subpart_tab_num",
+                "desc": "复合分区个数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 200
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "partition_name",
+                "desc": "分区名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "subpart_count",
+                "desc": "子分区数量",
+                "unit": null,
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name, t.partition_name, count(1) as subpart_count\n        from DBA_TAB_SUBPARTITIONS t  \n        where t.table_owner = '{schema_name}'\n        group by t.table_name, t.partition_name \n        having count(1) >= {rule.gip('subpart_tab_num')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
+        "solution": [
+            "1.建议重新分库，分表，分区",
+            "2.历史数据归档"
+        ],
+        "weight": 0.5,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "COUNT_SUMPART_SINGLE_TAB",
+        "desc": "分区数量过多",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "part_tab_num",
+                "desc": "分区个数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 200
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "part_tab_num",
+                "desc": "分区数量",
+                "unit": null,
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name, count(1) as part_tab_num\n        from DBA_TAB_PARTITIONS t \n        where t.table_owner = '{schema_name}'\n        group by t.table_name \n        having count(1) >= {rule.gip('part_tab_num')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
+        "solution": [
+            "1.建议重新分库，分表，分区",
+            "2.历史数据归档"
+        ],
+        "weight": 0.5,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
