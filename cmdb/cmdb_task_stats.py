@@ -5,7 +5,7 @@ __all__ = [
     "CMDBTaskStatsProcessor"
 ]
 
-from mongoengine import IntField, StringField
+from mongoengine import IntField, StringField, DynamicField
 
 from . import const
 from models.mongoengine import *
@@ -25,7 +25,7 @@ class CMDBTaskStats(BaseDoc):
     origin = StringField(required=True, null=True)
     stats_type = IntField(
         required=True, choices=const.ALL_CMDB_TASK_STATS_TYPE)
-    data = StringField(required=True, default="")
+    data = DynamicField(required=True, default="")
 
     meta = {
         "collection": "cmdb_task_stats",
