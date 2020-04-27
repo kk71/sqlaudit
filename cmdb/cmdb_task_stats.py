@@ -27,6 +27,15 @@ class CMDBTaskStats(BaseDoc):
         required=True, choices=const.ALL_CMDB_TASK_STATS_TYPE)
     data = StringField(required=True, default="")
 
+    meta = {
+        "collection": "cmdb_task_stats",
+        "indexes": [
+            "task_record_id",
+            "cmdb_id",
+            "stats_type"
+        ]
+    }
+
 
 class CMDBTaskStatsProcessor:
     """纳管库任务状态信息的相关类，需要整合到纳管库任务，以及纳管库任务阶段的类中使用"""
