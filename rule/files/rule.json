@@ -2320,5 +2320,146 @@
         "max_score": 3,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "DBLINKS_NUM",
+        "desc": "存在DBLINK",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "dblink_name",
+                "desc": "dblink名字",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "username",
+                "desc": "访问的用户",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "hostname",
+                "desc": "访问的主机",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select db_link as dblink_name, username, host as hostname\n        from dba_db_links \n        where owner = '{schema_name}'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "数据库之间会同步SCN",
+        "solution": [
+            "禁用dblink，在应用程序端连接多个数据库操作"
+        ],
+        "weight": 10.0,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "IDX_FUNC",
+        "desc": "使用函数索引",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_type",
+                "desc": "索引类型",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_describe",
+                "desc": "索引描述",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.INDEX_NAME, t.INDEX_TYPE, t.TABLE_NAME, s.COLUMN_EXPRESSION \n        from dba_indexes t, dba_ind_expressions s \n        where t.index_name = s.index_name \n            and t.table_name = s.TABLE_NAME\n            and t.index_name not like 'BIN%'  \n            and t.owner = '{schema_name}'\n            and t.index_type like '%FUNCTION%' \n        order by t.table_name, t.index_name\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "若使用函数索引，则说明列上使用了表达式，应检查查询列是否使用了表达式",
+        "solution": [
+            "1.函数在表达式右侧实现",
+            "2.应用程序替换数据库函数"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "GLOBAL_PART_INDEX",
+        "desc": "存在全局分区索引",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": null,
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT X.INDEX_NAME, X.TABLE_NAME \n        FROM DBA_INDEXES X, DBA_PART_TABLES Y \n        WHERE X.OWNER = Y.OWNER \n            AND X.TABLE_NAME = Y.TABLE_NAME  \n            AND X.PARTITIONED = 'NO' \n            and X.OWNER = '{schema_name}'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "在对分区表进行维护时，全局分区索引冗余导致失效",
+        "solution": [
+            "根据业务场景，创建分区索引"
+        ],
+        "weight": 0.3,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
