@@ -53,7 +53,7 @@ def import_from_json_file(filename: str):
     return len(rules_to_import), len(rules)
 
 
-def set_all_rules_as_risk_rule(session):
+def set_all_rules_as_risk_rule(session,filename):
     """把当前mongo的全部rule都设置为风险规则"""
     risks = []
     # 需要把DDL的规则排除
@@ -66,7 +66,12 @@ def set_all_rules_as_risk_rule(session):
             print(chardet.detect(rule.rule_desc))
         rr = RiskSQLRule(**key)
         rr.risk_name = json.loads(json.dumps(rule.rule_desc))
-        rr.severity = json.loads(json.dumps("严重"))
+        with open(filename,"r") as f:
+            risk_rules = json.load(f)
+        for r_r in risk_rules:
+            if r_r["rule_name"]==rule.rule_name:
+                rr.severity=r_r['severity']
+        # rr.severity = json.loads(json.dumps("严重"))
         rr.optimized_advice = ", ".join(json.loads(json.dumps(rule.solution)))
         rr.influence =json.loads(json.dumps(rule.rule_summary))
         risks.append(rr)
