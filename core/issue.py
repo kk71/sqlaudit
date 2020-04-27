@@ -37,29 +37,27 @@ class BaseIssue(abc.ABC):
 class BaseOnlineIssueMetaClass(type):
     """元类：基础线上审核的问题"""
 
-    def __new__(mcs, name, bases, attrs):
-
-        # 构建inherited_entries
-        INHERITED_ENTRIES = "INHERITED_ENTRIES"
-        inherited_entries = []
-
-        for b in bases:
-            upper_inherited_entries = getattr(b, INHERITED_ENTRIES, None)
-            if upper_inherited_entries is not None:
-                inherited_entries = set(b.ENTRIES) | set(upper_inherited_entries)
-
-        attrs[INHERITED_ENTRIES] = list(inherited_entries)
-
-        # 记录父类的引用
-        attrs["BASECLASS"] = bases[-1]
-
-        return super().__new__(mcs, name, bases, attrs)
-
     def __init__(cls, name, bases, attrs):
 
         super().__init__(name, bases, attrs)
-        ENTRIES = getattr(cls, "ENTRIES", ())
-        cls.INHERITED_ENTRIES = tuple(set(cls.INHERITED_ENTRIES + list(ENTRIES)))
+
+        # 构建inherited_entries
+        inherited_entries_key = "INHERITED_ENTRIES"
+        inherited_entries = []
+        for b in bases:
+            inherited_entries_of_b = getattr(b, inherited_entries_key, None)
+            if inherited_entries_of_b is not None:
+                inherited_entries = list(
+                    set(inherited_entries) | set(inherited_entries_of_b))
+        current_entries = getattr(cls, "ENTRIES", ())
+        setattr(
+            cls,
+            inherited_entries_key,
+            tuple(set(inherited_entries + list(current_entries)))
+        )
+
+        # 记录父类的引用
+        cls.BASECLASS = bases[-1]
 
 
 class BaseOnlineIssueMetaclassWithABCMetaClass(BaseOnlineIssueMetaClass, abc.ABCMeta):
