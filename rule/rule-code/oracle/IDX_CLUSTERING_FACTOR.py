@@ -24,7 +24,7 @@ def code(rule, entries, **kwargs):
                 and a.index_name not like '%BIN$%' 
                 and a.owner = '{schema_name}'
             order by 1, 6) 
-        where ratio > {rule.gip('cluster_row_ratio')}
+        where cluster_row_ratio > {rule.gip('cluster_row_ratio')}
     """
     for i in cmdb_connector.select_dict(sql):
         yield i

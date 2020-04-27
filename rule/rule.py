@@ -81,6 +81,11 @@ class RuleOutputParams(RuleParams):
     # True则表示该字段可以不返回，或者返回None
     optional = BooleanField(default=False)
 
+    def validate_data_type(self, the_value):
+        if self.optional and the_value is None:
+            return
+        super().validate_data_type(the_value)
+
     @classmethod
     def validate_output_data(
             cls,
