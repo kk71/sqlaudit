@@ -66,3 +66,6 @@ class BaseCMDBTask(BaseTask):
                 id=self.cmdb_task_id).first()
             cmdb_task.exec_count += 1
             session.add(cmdb_task)
+
+
+

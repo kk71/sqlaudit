@@ -13,12 +13,14 @@ import arrow
 from mongoengine import IntField, StringField
 
 import settings
+import cmdb.const
 from .base import *
 from utils.log_utils import *
 from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
 from oracle_cmdb import exceptions, const
 from oracle_cmdb.plain_db import OraclePlainConnector
 from utils.datetime_utils import dt_to_str
+from cmdb.cmdb_task_stats import *
 
 
 class SQLCapturingDoc(
@@ -220,6 +222,12 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         now: arrow = kwargs["now"]
 
         snap_id_s, snap_id_e = cls.query_snap_id_today(cmdb_conn, now)
+        CMDBTaskStatsProcessor(task_record_id).write_stats(
+            # 记录当日采集的snap shot id pairs
+            cls,
+            cmdb.const.STATS_TYPE_SNAP_SHOT_ID,
+            (snap_id_s, snap_id_e)
+        )
 
         for i, m in enumerate(collected):
             i += 1

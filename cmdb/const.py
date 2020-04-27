@@ -29,3 +29,11 @@ CMDB_TASK_OPERATOR_CHINESE = lambda x: {
         CMDB_TASK_OPERATOR_PERIODICAL: "周期任务",
         CMDB_TASK_OPERATOR_CLI: "命令行"
     }.get(x, x)
+
+
+# 纳管库任务的统计数据类型
+
+ALL_CMDB_TASK_STATS_TYPE = (
+    STATS_TYPE_RULE_NAMES := 1,  # 记录当前分析使用的规则名称
+    STATS_TYPE_SNAP_SHOT_ID := 2,  # 记录当前采到的snap shot id pairs
+)

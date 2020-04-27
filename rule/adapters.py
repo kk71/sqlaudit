@@ -29,7 +29,8 @@ class CMDBRuleAdapterSQL:
             schema_name: str = None,
             task_record_id: int = None,
             statement_id: str = None,
-            sql_id: str = None
+            sql_id: str = None,
+            snap_ids: (int, int) = None
             ):
         """
         :param entries:
@@ -43,6 +44,7 @@ class CMDBRuleAdapterSQL:
         :param task_record_id: 线上审核
         :param statement_id: 工单审核
         :param sql_id: 线上审核
+        :param snap_ids: 线上审核
         :return:
         """
         return self.a_rule.run(
@@ -57,5 +59,6 @@ class CMDBRuleAdapterSQL:
             schema_name=schema_name,
             task_record_id=task_record_id,
             statement_id=statement_id,
-            sql_id=sql_id
+            sql_id=sql_id,
+            snap_ids=snap_ids
         )

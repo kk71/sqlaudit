@@ -1909,7 +1909,7 @@
             {
                 "name": "sequence_name",
                 "desc": "序列名称",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -1917,7 +1917,7 @@
             {
                 "name": "cache_size",
                 "desc": "缓存大小",
-                "unit": null,
+                "unit": "",
                 "data_type": "NUM",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2238,7 +2238,7 @@
             {
                 "name": "table_name",
                 "desc": "表名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2246,7 +2246,7 @@
             {
                 "name": "partition_name",
                 "desc": "分区名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2254,7 +2254,7 @@
             {
                 "name": "subpart_count",
                 "desc": "子分区数量",
-                "unit": null,
+                "unit": "",
                 "data_type": "INT",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2295,7 +2295,7 @@
             {
                 "name": "table_name",
                 "desc": "表名称",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2303,7 +2303,7 @@
             {
                 "name": "part_tab_num",
                 "desc": "分区数量",
-                "unit": null,
+                "unit": "",
                 "data_type": "INT",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2334,7 +2334,7 @@
             {
                 "name": "dblink_name",
                 "desc": "dblink名字",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2342,7 +2342,7 @@
             {
                 "name": "username",
                 "desc": "访问的用户",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2350,7 +2350,7 @@
             {
                 "name": "hostname",
                 "desc": "访问的主机",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2381,7 +2381,7 @@
             {
                 "name": "index_name",
                 "desc": "索引名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2389,7 +2389,7 @@
             {
                 "name": "index_type",
                 "desc": "索引类型",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2397,7 +2397,7 @@
             {
                 "name": "table_name",
                 "desc": "表名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2405,7 +2405,7 @@
             {
                 "name": "index_description",
                 "desc": "索引描述",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2437,7 +2437,7 @@
             {
                 "name": "index_name",
                 "desc": "索引名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2445,7 +2445,7 @@
             {
                 "name": "table_name",
                 "desc": "表名称",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2475,7 +2475,7 @@
             {
                 "name": "trigger_name",
                 "desc": "触发器名称",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2483,7 +2483,7 @@
             {
                 "name": "trigger_type",
                 "desc": "类型",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2523,7 +2523,7 @@
             {
                 "name": "segment_name",
                 "desc": "段名",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2531,7 +2531,7 @@
             {
                 "name": "segment_type",
                 "desc": "段类型",
-                "unit": null,
+                "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
                 "optional": false
@@ -2648,6 +2648,359 @@
         ],
         "weight": 0.3,
         "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "IDX_CLUSTERING_FACTOR",
+        "desc": "索引的聚簇因子",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [
+            {
+                "name": "cluster_row_ratio",
+                "desc": "聚簇因子与表记录数比率",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 70
+            }
+        ],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_type",
+                "desc": "索引类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "idx_clustering_factor",
+                "desc": "聚簇因子",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "row_num",
+                "desc": "表记录数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "cluster_row_ratio",
+                "desc": "比率",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select * from (\n        select a.owner, \n                a.index_name, \n                decode(\n                    INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type, 'LOB', 'Lob'))))\n                ) as type,\n                a.clustering_factor,\n                a.table_name,\n                b.num_rows,\n                trunc((a.clustering_factor - a.leaf_blocks) /(a.num_rows - a.leaf_blocks + 1) * 100,2) ratio\n            from dba_ind_statistics a, dba_tables b, dba_indexes c \n            where a.table_name = b.table_name \n                and a.index_name = c.index_name \n                and a.num_rows > 200000 \n                and ((a.clustering_factor - a.leaf_blocks) / (a.num_rows - a.leaf_blocks + 1) > 0.7 or a.blevel > 4) \n                and a.index_name not like '%BIN$%' \n                and a.owner = '{schema_name}'\n            order by 1, 6) \n        where ratio > {rule.gip('cluster_row_ratio')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "索引的聚簇因子大，容易造成该索引用不上",
+        "solution": [
+            "表数据重新存储"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TAB_EXISTS_FK",
+        "desc": "表中存在外键约束",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "constraint_name",
+                "desc": "约束名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_name",
+                "desc": "列名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "rel_tab_name",
+                "desc": "关联表",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "rel_con_name",
+                "desc": "关联约束名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select c.table_name,  \n            c.constraint_name,  \n            t.column_name, \n            (select distinct a.table_name  \n                from dba_constraints a  \n                where a.constraint_name = c.r_constraint_name \n                    and a.owner = c.owner) rel_tab_name,\n            c.r_constraint_name rel_con_name\n        from dba_constraints c, dba_cons_columns t  \n        where t.owner = c.owner  \n            and t.constraint_name = c.constraint_name \n            and c.owner = '{schema_name}'   \n            and c.table_name not like 'BIN$%'  \n            and c.constraint_type = 'R'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据",
+        "solution": [
+            "1.在应用端实现外键约束",
+            "2.无法去除外键,必须添加外键索引"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_BUFFER_GETS",
+        "desc": "SQL消耗逻辑读过高",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "buffer_gets",
+                "desc": "buffer gets",
+                "unit": "bytes",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 1000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "cpu_time_delta",
+                "desc": "使用的cpu资源",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "execution_delta",
+                "desc": "执行次数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "buffer_gets_delta",
+                "desc": "使用buffer的资源",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "disk_reads_delta",
+                "desc": "物理读情况",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "elapsed_time_delta",
+                "desc": "解析的时间",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_stat_qs = kwargs[\"sql_stat_qs\"]\n\n    qs = sql_stat_qs.filter(per_buffer_gets__gte=rule.gip(\"buffer_gets\"))\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\",\n                         \"cpu_time_delta\",\n                         \"execution_delta\",\n                         \"buffer_gets_delta\",\n                         \"disk_reads_delta\",\n                         \"elapsed_time_delta\"):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "sql执行 buffer get过大",
+        "solution": [
+            "1.对sql执行计划进行分析并进行优化",
+            "2.SQL执行次数是否合理"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "IDX_BLEVEL",
+        "desc": "索引对象高度过高",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [
+            {
+                "name": "idx_level",
+                "desc": "索引高度",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 3
+            }
+        ],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_type",
+                "desc": "索引类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_blevel",
+                "desc": "索引高度",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select index_name,\n            type as index_type,\n            idx_blevel as index_blevel, \n            table_name \n        from (\n            select \n                    distinct t.INDEX_NAME as INDEX_NAME,\n                    decode(INDEX_TYPE,'NORMAL','B-tree',decode(index_type,'BITMAP','BitMap',decode(INDEX_TYPE,'FUNCTION-BASED NORMAL','Func',decode(table_type,'IOT','IOT',decode(index_type,'LOB','Lob'))))) as type,\n                    t.TABLE_NAME,\n                    t.blevel as idx_blevel \n                from dba_indexes t\n                where t.index_name not like 'BIN%'  \n                    and t.owner = '{schema_name}'\n                    and t.blevel > {rule.gip('idx_level')}\n                order by t.table_name, t.index_name)\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "索引高度越高，在进行读取时会产生更多的逻辑读",
+        "solution": [
+            "索引高度越高，说明数据越大，需要重新分库，分表，分区或者 历史数据归档"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_SUB_CURSOR_COUNT",
+        "desc": "SQL子游标过多",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "cursor_num",
+                "desc": "子游标的数量",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 30
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "version_count",
+                "desc": "子游标数量",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n    snap_id_s, snap_id_e = kwargs[\"snap_ids\"]\n\n    sql = f\"\"\"\n        SELECT sql_id, plan_hash_value, version_count\n        FROM\n          (SELECT t.parsing_schema_name AS username,\n                  t.sql_id,\n                  t.plan_hash_value,\n                  t.version_count,\n                  row_number() over(partition BY t.sql_id\n                                    ORDER BY t.plan_hash_value DESC) rank\n           FROM dba_hist_sqlstat t\n           WHERE t.parsing_schema_name = '{schema_name}'\n             AND (t.snap_id BETWEEN '{snap_id_s}' AND '{snap_id_e}')) e\n        WHERE e.rank = 1 and e.version_count >= {rule.gip('cursor_num')}\n    \"\"\"\n    for d in cmdb_connector.select_dict(sql):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "子游标过多",
+        "solution": [
+            "参考 SQLs With Bind Variable Has Very High Version Count (Doc ID 258742.1)定位原因"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
         "level": 2,
         "db_model": "OLTP"
     }

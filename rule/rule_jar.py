@@ -4,6 +4,8 @@ __all__ = [
     "RuleJar"
 ]
 
+from typing import List
+
 
 class RuleJar(list):
     """
@@ -28,3 +30,6 @@ class RuleJar(list):
         new_jar.entries = args
         return new_jar
 
+    def get_unique_keys(self) -> List[tuple]:
+        """获取规则的唯一键值去重列表"""
+        return list({i.unique_key() for i in self})

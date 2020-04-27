@@ -162,7 +162,7 @@ FROM
     def post_captured(cls, **kwargs) -> NoReturn:
         docs: [cls] = kwargs["docs"]
 
-        TwoDaysSQLCapturingDoc.post_captured(**kwargs)
+        super().post_captured(**kwargs)
         for doc in docs:
             if doc.cost:
                 doc.cost = str(int(doc.cost))

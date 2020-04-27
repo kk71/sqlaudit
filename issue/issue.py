@@ -14,8 +14,10 @@ import core.issue
 import rule.cmdb_rule
 import rule.const
 import issue.exceptions
+import cmdb.const
 from rule.rule_jar import *
 from models.mongoengine import *
+from cmdb.cmdb_task_stats import *
 
 
 class OnlineIssueOutputParams(DynamicEmbeddedDocument):
@@ -104,9 +106,18 @@ class OnlineIssue(
     @classmethod
     def generate_rule_jar(cls,
                           cmdb_id: int,
+                          task_record_id: int = None,
                           **kwargs) -> RuleJar:
         entries = cls.INHERITED_ENTRIES
-        return RuleJar.gen_jar_with_entries(*entries, cmdb_id=cmdb_id, **kwargs)
+        the_jar = RuleJar.gen_jar_with_entries(*entries, cmdb_id=cmdb_id, **kwargs)
+        if task_record_id:
+            # 保存当前使用的规则唯一标识
+            CMDBTaskStatsProcessor(task_record_id).write_stats(
+                cls,
+                cmdb.const.STATS_TYPE_RULE_NAMES,
+                the_jar.get_unique_keys()
+            )
+        return the_jar
 
     def as_issue_of(self,
                     the_rule: rule.cmdb_rule.CMDBRule,

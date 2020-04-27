@@ -48,10 +48,12 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
         cmdb_id: int = kwargs["cmdb_id"]
         schema_name: str = kwargs["schema_name"]
 
-        rule_jar: [CMDBRule] = cls.generate_rule_jar(cmdb_id)
+        rule_jar: [CMDBRule] = cls.generate_rule_jar(
+            cmdb_id, task_record_id=task_record_id)
         with make_session() as session:
             the_cmdb = session.query(
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+            cmdb_connector = the_cmdb.build_connector()
             for the_rule in rule_jar:
                 ret = CMDBRuleAdapterSQL(the_rule).run(
                     entries=rule_jar.entries,
@@ -59,6 +61,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
                     cmdb=the_cmdb,
                     task_record_id=task_record_id,
                     schema_name=schema_name,
+                    cmdb_connector=cmdb_connector,
                     **cls.params_to_append_to_rule(task_record_id, schema_name)
                 )
                 docs = cls.pack_rule_ret_to_doc(the_rule, ret)

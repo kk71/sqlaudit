@@ -43,3 +43,4 @@ class CMDBTaskRecord(BaseModel):
     group_name = Column("group_name", String)
     # 操作来源：定时任务，频率任务，页面发起(记录是的login_user)，命令行发起
     operator = Column("operator", String)
+
