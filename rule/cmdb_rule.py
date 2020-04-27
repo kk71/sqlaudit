@@ -24,7 +24,7 @@ class CMDBRule(BaseRule):
         "collection": "cmdb_rule",
         "indexes": [
             {'fields': UNIQUE_KEYS, 'unique': True},
-            "cmdb_id"
+            *UNIQUE_KEYS
         ]
     }
 

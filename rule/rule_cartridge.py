@@ -30,5 +30,6 @@ class RuleCartridge(BaseRule):
         "collection": "rule_cartridge",
         "indexes": [
             {'fields': UNIQUE_KEYS, 'unique': True},
+            *UNIQUE_KEYS
         ]
     }
