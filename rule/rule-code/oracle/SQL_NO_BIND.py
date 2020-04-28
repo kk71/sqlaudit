@@ -22,7 +22,7 @@ def code(rule, entries, **kwargs):
             and t.sql_id in ({sql_ids_text})
         group by t.sql_id, t.plan_hash_value, t.force_matching_signature
         having count(*) >= {rule.gip('sql_no_bind_count')}
-        order by 4 desc
+        order by 3 desc
 """
     for i in cmdb_connector.select_dict(sql):
         yield i

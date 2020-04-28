@@ -19,7 +19,7 @@ from rule.adapters import CMDBRuleAdapterSQL
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineSQLTextIssueBulkAnalyse(OracleOnlineSQLTextIssue):
-    """sql文本问题"""
+    """sql文本问题(批量分析)"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_BULK,)
 
