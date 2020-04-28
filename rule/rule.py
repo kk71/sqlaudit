@@ -40,7 +40,7 @@ class RuleParams(EmbeddedDocument):
         return f"<RuleParams {self.name}-{self.data_type}>"
 
     def validate_data_type(self, the_value):
-        s = f"{self}: {the_value}"
+        s = f"{self} in {self._instance} got {the_value=}, {type(the_value)=}"
         if self.data_type == const.RULE_PARAM_TYPE_STR:
             if not isinstance(the_value, str):
                 raise exceptions.RuleCodeInvalidParamTypeException(s)
