@@ -3003,5 +3003,278 @@
         "max_score": 10,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "TAB_PARALLEL_ON",
+        "desc": "表对象开启并行访问",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_type",
+                "desc": "表类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "parallel_count",
+                "desc": "并行度",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name, \n            decode(t.partitioned, 'YES', 'PART',  decode(t.temporary, 'Y', 'TEMP', decode (t.iot_type,'IOT','IOT','NORMAL'))) table_type,\n            t.degree parallel_count\n        from dba_tables t  \n        where t.table_name not like 'BIN%'  \n            and t.owner = '{schema_name}'\n            and to_number(replace(ltrim(t.degree),'DEFAULT',0))  > 1 \n        order by table_type, table_name\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "当表被并发访问时，会引起资源竞争",
+        "solution": [
+            "关闭表的并行度，默认为1"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "BIG_TABLE",
+        "desc": "超过指定规模且没有分区的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "tab_phy_size",
+                "desc": "表大小",
+                "unit": "GB",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 10
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "tab_phy_size",
+                "desc": "表大小",
+                "unit": "GB",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select * \n        from (\n            select segment_name as table_name,\n                    round(sum(bytes) / 1024 / 1024 / 1024, 2) as tab_phy_size \n                from dba_segments \n                where segment_type = 'TABLE' \n                    and owner = '{schema_name}'\n                    and segment_name not like 'BIN$%'  \n                group by segment_name\n            ) a  \n        where tab_phy_size > {rule.gip('tab_phy_size')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
+        "solution": [
+            "1.建议分库,分表,分区",
+            "2.历史数据归档"
+        ],
+        "weight": 1.0,
+        "max_score": 5,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TABLE_MIS_PK",
+        "desc": "没有主键的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select a.table_name \n        from dba_tables a \n        where a.owner = '{schema_name}'\n            and a.table_name not like 'BIN$%' \n        minus select b.table_name \n            from dba_constraints b \n            where b.owner = '{schema_name}'\n                and b.table_name not like 'BIN$%' \n                and b.constraint_type = 'P'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "主键是关系型数据库中唯一确定一条记录的依据,可强制表的实体完整性",
+        "solution": [
+            "创建表时应定义一个字段为主键"
+        ],
+        "weight": 1.0,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TABLE_COL_NUM",
+        "desc": "大于阀值数量字段的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "column_count",
+                "desc": "字段数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 60
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_count",
+                "desc": "字段数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select table_name, \n            count(1) column_count\n        from dba_tab_cols\n        where owner = '{schema_name}'\n        group by table_name\n        having count(1) > {rule.gip('column_count')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表字段数量过多，往往会导致一个数据块存放的行数越少，因此读取数据时IO发生次数越多",
+        "solution": [
+            "表设计时尽量符合三范式来避免数据冗余,使用频率低的字段拆到另外一张表,必要时做表关联取数"
+        ],
+        "weight": 1.0,
+        "max_score": 5,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "COUNT_RECORD_TAB",
+        "desc": "单表或单分区记录数量过大",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "record_count",
+                "desc": "记录数",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 10000000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "record_count",
+                "desc": "数据量",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name,\n            t.num_rows \n        from DBA_TABLES t  \n        where t.partitioned='NO' \n            and t.owner='{schema_name}' \n            and t.num_rows > {rule.gip('record_count')}\n        union \n            select t.table_name||'.'||t.table_name||':'||t.PARTITION_NAME,\n                    t.num_rows  \n                from  dba_tab_PARTITIONS t  \n                where t.table_owner='{schema_name}'\n                    and t.num_rows > {rule.gip('record_count')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
+        "solution": [
+            "1.建议分库,分表,分区",
+            "2.历史数据归档"
+        ],
+        "weight": 0.5,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_CPU_TIME",
+        "desc": "SQL消耗CPU时间过长",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "cpu_time",
+                "desc": "cpu时间",
+                "unit": "秒",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 100
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_stat_qs = kwargs[\"sql_stat_qs\"]\n\n    qs = sql_stat_qs.filter(per_cpu_time__gte=rule.gip(\"cpu_time\"))\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\"):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "SQL执行消耗cpu时间过长",
+        "solution": [
+            "1.对sql执行计划进行分析并进行优化",
+            "2.SQL执行次数是否合理"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
