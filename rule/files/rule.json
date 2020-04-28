@@ -33,7 +33,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs[\"single_sql\"]\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") >= rule.gip(\"in_list_num\") - 1:\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs[\"single_sql\"]\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    sql_content = [\n        x\n        for x in re.findall(r\"\\s+in\\s+\\((.*?)\\)\", sql_text, re.I+re.S)\n        if 'select' not in x.lower()\n    ]\n    for value in sql_content:\n        if value.count(\",\") >= rule.gip(\"in_list_num\") - 1:\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "IN List元素过多",
         "solution": [
@@ -93,7 +93,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\", re.M+re.I)\n\n    if cross_outer_join.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    cross_outer_join = re.compile(r\"(cross join)|(outer join)\", re.M+re.I)\n\n    if cross_outer_join.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "存在全连接或外连接,cross join或outer join情况",
         "solution": [
@@ -129,7 +129,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I+re.M):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I+re.M):\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I+re.M):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I+re.M):\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -164,7 +164,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -200,7 +200,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -236,7 +236,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    if 'parallel' not in sql_text.lower():\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I+re.M)\n    if parallel and int(parallel.group(1)) > 1:\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    if 'parallel' not in sql_text.lower():\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I+re.M)\n    if parallel and int(parallel.group(1)) > 1:\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -272,7 +272,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -308,7 +308,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I+re.M):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -344,7 +344,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -380,7 +380,7 @@
                 "optional": false
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n            return\n\n\ncode_hole.append(code)\n\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            yield single_sql\n            return\n\n\ncode_hole.append(code)\n\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -416,7 +416,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n            return\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DROP\":\n            yield single_sql\n            return\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -452,7 +452,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -488,7 +488,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I+re.M):\n        if not re.search(r\"\\s+online\", sql_text, re.I+re.M):\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I+re.M):\n        if not re.search(r\"\\s+online\", sql_text, re.I+re.M):\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "创建索引的时候加上online,否则索引创建期间会锁表",
         "solution": [
@@ -524,7 +524,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (\n            not re.search(r\"create\\s+table\", sql_text, re.I)\n            and not re.search(r\"alter\\s+table\", sql_text, re.I)\n    ) or any([\n        x in sql_text.lower()\n        for x in ['blob', 'clob', 'bfile', 'xmltype']\n    ]):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (\n            not re.search(r\"create\\s+table\", sql_text, re.I)\n            and not re.search(r\"alter\\s+table\", sql_text, re.I)\n    ) or any([\n        x in sql_text.lower()\n        for x in ['blob', 'clob', 'bfile', 'xmltype']\n    ]):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -560,7 +560,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+modify', sql_text, re.I+re.M):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+modify', sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -596,7 +596,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I+re.M):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I+re.M):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -632,7 +632,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n            return\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"TRUNCATE\":\n            yield single_sql\n            return\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -668,7 +668,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'revoke\\s+', sql_text, re.I+re.M):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'revoke\\s+', sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -704,7 +704,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))', re.M+re.I)\n    pat1 = re.compile(r'\\s+where\\s+', re.S+re.I)\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))', re.M+re.I)\n    pat1 = re.compile(r'\\s+where\\s+', re.S+re.I)\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -740,7 +740,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(r\"(\\s)?((update )|(delete )).*order by\", re.M+re.I)\n\n    if dml_sort.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    dml_sort = re.compile(r\"(\\s)?((update )|(delete )).*order by\", re.M+re.I)\n\n    if dml_sort.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "",
         "solution": [
@@ -776,7 +776,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(r\"like\\s+\\.?%\", re.M+re.I)\n\n    if like_unindex.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    like_unindex = re.compile(r\"like\\s+\\.?%\", re.M+re.I)\n\n    if like_unindex.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词条件使用like %xxx,无法使用索引",
         "solution": [
@@ -822,7 +822,7 @@
                 "optional": true
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    length = len(sql_text)\n    if length >= rule.gip(\"char_num\"):\n        yield {\n            \"char_num\": length,\n            \"sql_id\": kwargs.get(\"sql_id\", None)\n        }\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text\"]\n\n    length = len(sql_text)\n    if length >= rule.gip(\"char_num\"):\n        yield {\n            \"char_num\": length,\n            \"sql_id\": single_sql.get(\"sql_id\", None)\n        }\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "SQL文本过长",
         "solution": [
@@ -858,7 +858,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    select_any = re.compile(\"(select \\\\*)|(select .*\\\\.\\\\*)\")\n\n    if re.search(select_any, sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用select *,必须明确选择所需的列",
         "solution": [
@@ -894,7 +894,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
@@ -930,7 +930,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"HAVING\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"HAVING\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "having段出现子查询",
         "solution": [
@@ -966,7 +966,7 @@
                 "optional": true
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value.lower() and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value.lower() and value in subquery:\n            yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    \"\"\"重复查询子句\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    str_len = len(sql_text)\n    left_bracket = []\n    sql_content = []\n    subquery = []\n\n    for i in range(str_len):\n        if sql_text[i] == \"(\":\n            left_bracket.append(i)\n        if sql_text[i] == \")\":\n            start = sum(left_bracket[-1:-2:-1]) + 1\n            stop = i - 1\n            sql_content.append(sql_text[start:stop])\n    for value in sql_content:\n        if \"select\" in value.lower() and value not in subquery:\n            subquery.append(value)\n        elif \"select\" in value.lower() and value in subquery:\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止使用重复的查询子句,应使用with as替换子句(仅限Oracle)来提升SQL执行效率",
         "solution": [
@@ -1003,7 +1003,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"SELECT\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"SELECT\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "select段出现子查询",
         "solution": [
@@ -1039,7 +1039,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"WHERE\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"WHERE\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "where段出现子查询",
         "solution": [
@@ -1085,7 +1085,7 @@
                 "optional": false
             }
         ],
-        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") >= rule.gip(\"num_of_bound_var\"):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") >= rule.gip(\"num_of_bound_var\"):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "绑定变量过多",
         "solution": [
@@ -1130,7 +1130,7 @@
                 "optional": false
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            >= rule.gip(\"or_num\"):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            >= rule.gip(\"or_num\"):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "多个过滤条件通过or连接,防止优化器出现选择异常",
         "solution": [
@@ -1166,7 +1166,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r\"\\s+union\\s+\", re.I+re.M)\n\n    if pat.findall(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "出现union,防止出现不必要的排序动作",
         "solution": [
@@ -1202,7 +1202,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_func = re.compile(r\"where\\s+.*?[+\\-*/()].*[<>=]{1,2}?\", re.I+re.S)\n\n    if where_func.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "禁止在where语句的比较符左侧使用运算表达式，或者函数表达式",
         "solution": [
@@ -1239,7 +1239,7 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        yield {\"sql_id\": kwargs.get(\"sql_id\", None)}\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    where_not = re.compile(\"(!=)|(<>)|(!>)|(!<)\")\n\n    if re.search(where_not, sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "谓词中存在负向操作符,!=,<>,!<,!>,not exists,not",
         "solution": [
