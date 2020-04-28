@@ -4,6 +4,7 @@ __all__ = [
     "OracleOnlineSQLTextIssue"
 ]
 
+from copy import deepcopy
 from typing import Generator, List
 
 import rule.const
@@ -58,7 +59,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
             for the_rule in rule_jar:
                 yield from cls._single_rule(
                     the_rule=the_rule,
-                    sqls=sqls,
+                    sqls=deepcopy(sqls),
                     cmdb_connector=cmdb_connector,
                     entries=rule_jar.entries,
                     the_cmdb=the_cmdb,

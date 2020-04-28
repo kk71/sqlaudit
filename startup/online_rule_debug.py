@@ -32,3 +32,11 @@ def main():
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 
+    # from oracle_cmdb.issue import OracleOnlineSQLTextIssueSingleAnalyse
+    # OracleOnlineIssue.collect()
+    # OracleOnlineIssue.process(
+    #     collected=[OracleOnlineSQLTextIssueSingleAnalyse],
+    #     task_record_id=84,
+    #     cmdb_id=cmdb_id,
+    #     schemas=["SQLAUDIT_TEST"]
+    # )

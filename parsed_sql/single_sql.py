@@ -22,4 +22,4 @@ class SingleSQL(dict):
             position=position,
             sql_type=sql_type,
         )
-        super(SingleSQL, self).__init__(**kwargs)
+        super().__init__(**kwargs)
