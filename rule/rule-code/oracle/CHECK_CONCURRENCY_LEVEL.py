@@ -12,7 +12,7 @@ def code(rule, entries, **kwargs):
         return
     parallel = re.search(r"parallel\s+(\d)", sql_text, re.I+re.M)
     if parallel and int(parallel.group(1)) > 1:
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)

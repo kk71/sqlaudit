@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     cross_outer_join = re.compile(r"(cross join)|(outer join)", re.M+re.I)
 
     if cross_outer_join.search(sql_text):
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)

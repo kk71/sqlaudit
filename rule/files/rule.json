@@ -10,7 +10,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [
             {
@@ -78,7 +79,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -113,7 +115,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -147,7 +150,8 @@
             "DDL",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -182,7 +186,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -217,7 +222,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -252,7 +258,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -287,7 +294,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -322,7 +330,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -357,7 +366,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -392,7 +402,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -427,7 +438,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -462,7 +474,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -497,7 +510,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -532,7 +546,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -567,7 +582,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -602,7 +618,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -637,7 +654,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -672,7 +690,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -707,7 +726,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -742,7 +762,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -776,7 +797,10 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE",
+            "DDL",
+            "DML"
         ],
         "input_params": [
             {
@@ -820,7 +844,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -855,7 +880,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -890,7 +916,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -925,7 +952,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -961,7 +989,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -996,7 +1025,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -1032,7 +1062,8 @@
             "DDL",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [
             {
@@ -1076,7 +1107,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [
             {
@@ -1120,7 +1152,8 @@
             "DML",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -1155,7 +1188,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -1191,7 +1225,8 @@
             "TICKET_STATIC_CMDB_INDEPENDENT",
             "ONLINE",
             "SQL",
-            "SQL_TEXT"
+            "SQL_TEXT",
+            "SINGLE"
         ],
         "input_params": [],
         "output_params": [
@@ -3404,9 +3439,9 @@
                 "name": "parallel_count",
                 "desc": "并行度",
                 "unit": "",
-                "data_type": "NUM",
+                "data_type": "STR",
                 "_cls": "RuleOutputParams",
-                "optional": true
+                "optional": false
             },
             {
                 "name": "table_name",
@@ -3560,6 +3595,63 @@
         ],
         "weight": 0.1,
         "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_NO_BIND",
+        "desc": "SQL未使用绑定变量",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_TEXT",
+            "BULK"
+        ],
+        "input_params": [
+            {
+                "name": "sql_no_bind_count",
+                "desc": "相似sql的数量",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 100
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "force_matching_signature",
+                "desc": "force_matching_signature",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "sql_no_bind_count",
+                "desc": "相似sql的数量",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n    schema_name: str = kwargs[\"schema_name\"]\n    sqls = kwargs[\"sqls\"]\n\n    # 拼接sql_id批量查询\n    sql_ids = [i[\"sql_id\"] for i in sqls]\n    sql_ids_text = \"\"\n    if sql_ids:\n        sql_ids_text = \",\".join([f\"'{sql_id}'\" for sql_id in sql_ids])\n\n    sql = f\"\"\"\n    select t.sql_id, \n            t.force_matching_signature, \n            count(*) sql_no_bind_count\n        from dba_hist_sqlstat t, dba_hist_sqlstat x\n        where t.force_matching_signature = x.force_matching_signature\n            and t.PARSING_SCHEMA_NAME = '{schema_name}'\n            and t.sql_id in ({sql_ids_text})\n        group by t.sql_id, t.plan_hash_value, t.force_matching_signature\n        having count(*) >= {rule.gip('sql_no_bind_count')}\n        order by 4 desc\n\"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "未使用绑定变量",
+        "solution": [
+            "强选择性谓词使用绑定变量写法"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
         "level": 2,
         "db_model": "OLTP"
     }

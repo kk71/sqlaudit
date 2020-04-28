@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     if length >= rule.gip("char_num"):
         yield {
             "char_num": length,
-            "sql_id": kwargs.get("sql_id", None)
+            "sql_id": single_sql.get("sql_id", None)
         }
 
 

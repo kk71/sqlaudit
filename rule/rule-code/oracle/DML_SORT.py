@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     dml_sort = re.compile(r"(\s)?((update )|(delete )).*order by", re.M+re.I)
 
     if dml_sort.search(sql_text):
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)

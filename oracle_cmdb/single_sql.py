@@ -23,7 +23,8 @@ class SingleSQLForOnline(SingleSQL):
                 sql_text_no_comment=sql_text.longer_sql_text,
                 comments="",
                 position=0,
-                sql_type=parsed_sql.const.SQL_ANY
+                sql_type=parsed_sql.const.SQL_ANY,
+                sql_id=sql_text.sql_id
             )
         else:
             sql: ParsedSQLStatement = sqls[0]
@@ -32,6 +33,7 @@ class SingleSQLForOnline(SingleSQL):
                 sql_text_no_comment=sql.normalized_without_comment,
                 comments="",
                 position=0,
-                sql_type=sql.sql_type
+                sql_type=sql.sql_type,
+                sql_id=sql_text.sql_id
             )
 

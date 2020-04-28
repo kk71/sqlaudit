@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     where_not = re.compile("(!=)|(<>)|(!>)|(!<)")
 
     if re.search(where_not, sql_text):
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)

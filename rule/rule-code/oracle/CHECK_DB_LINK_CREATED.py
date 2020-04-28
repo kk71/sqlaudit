@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     sql_text: str = single_sql["sql_text_no_comment"]
 
     if re.search(r'create\s+database\s+link', sql_text, re.I+re.M):
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)

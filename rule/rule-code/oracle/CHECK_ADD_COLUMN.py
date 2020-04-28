@@ -7,7 +7,7 @@ def code(rule, entries, **kwargs):
 
     if re.search(r'alter\s+table\s+.+\s+add', sql_text, re.I+re.M):
         if not re.search(r".+\s+default\s+.+", sql_text, re.I+re.M):
-            yield {"sql_id": kwargs.get("sql_id", None)}
+            yield single_sql
 
 
 code_hole.append(code)

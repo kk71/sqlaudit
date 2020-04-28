@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     select_any = re.compile("(select \\*)|(select .*\\.\\*)")
 
     if re.search(select_any, sql_text):
-        yield {"sql_id": kwargs.get("sql_id", None)}
+        yield single_sql
 
 
 code_hole.append(code)
