@@ -3276,5 +3276,291 @@
         "max_score": 10,
         "level": 2,
         "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_ELAPSED_TIME",
+        "desc": "SQL执行时间过长",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "elapsed_time",
+                "desc": "执行时间",
+                "unit": "秒",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 100
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_stat_qs = kwargs[\"sql_stat_qs\"]\n\n    qs = sql_stat_qs.filter(per_elapsed_time__gte=rule.gip(\"elapsed_time\"))\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\"):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "sql执行时间过长",
+        "solution": [
+            "对sql执行次数评估是否合理,能否优化"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_DISK_READS",
+        "desc": "SQL消耗物理读过高",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "disk_reads",
+                "desc": "磁盘读",
+                "unit": "bytes",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 1000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_stat_qs = kwargs[\"sql_stat_qs\"]\n\n    qs = sql_stat_qs.filter(per_disk_reads__gte=rule.gip(\"disk_reads\"))\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\"):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "disk_reads量大",
+        "solution": [
+            "对sql消耗资源评估是否合理,能否优化"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "IDX_PARALLEL_ON",
+        "desc": "索引对象开启并行度",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_INDEX"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "index_name",
+                "desc": "索引名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "index_type",
+                "desc": "索引类型",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "parallel_count",
+                "desc": "并行度",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select index_name, type, degree, table_name  \n        from (\n            select \n                    distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,\n                    decode(INDEX_TYPE,  'NORMAL',  'B-tree',  decode(index_type,  'BITMAP',  'BitMap',  decode(INDEX_TYPE,  'FUNCTION-BASED NORMAL', 'Func',  decode(table_type,  'IOT',  'IOT',  decode(index_type,  'LOB',  'Lob'))))) as type,\n                    t.TABLE_NAME,  \n                    t.degree   \n                from dba_indexes t  \n                where t.index_name not like 'BIN%'  \n                    and t.owner = '{schema_name}'\n                    and to_number(replace(ltrim(t.degree),'DEFAULT',0)) >1  \n                order by t.table_name, t.owner||'.'||t.index_name\n        )\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "当索引被并发访问时，会引起资源竞争",
+        "solution": [
+            "关闭索引的并行度，默认为1"
+        ],
+        "weight": 0.5,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "SQL_DIRECT_WRITES",
+        "desc": "SQL直接路径写过高",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "SQL",
+            "SQL_STAT"
+        ],
+        "input_params": [
+            {
+                "name": "direct_writes",
+                "desc": "直接路径写数据量",
+                "unit": "bytes",
+                "data_type": "INT",
+                "_cls": "RuleInputParams",
+                "value": 1000
+            }
+        ],
+        "output_params": [
+            {
+                "name": "sql_id",
+                "desc": "SQL ID",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "plan_hash_value",
+                "desc": "执行计划ID",
+                "unit": "",
+                "data_type": "INT",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_stat_qs = kwargs[\"sql_stat_qs\"]\n\n    qs = sql_stat_qs.filter(per_direct_writes__gte=rule.gip(\"direct_writes\"))\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\"):\n        yield d\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "direct_wirtes 量大",
+        "solution": [
+            "对sql消耗资源评估是否合理,能否优化"
+        ],
+        "weight": 0.1,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TABLE_FK_NOIND",
+        "desc": "外键没有索引的表",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名称",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "column_name",
+                "desc": "字段名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    with tc as (\n        select table_name, column_name \n            from dba_cons_columns \n            where owner||'.'||constraint_name in (\n                select owner||'.'||constraint_name \n                    from dba_constraints \n                    where owner = '{schema_name}' \n                        and constraint_type = 'R')  \n                        and owner = '{schema_name}')\n    select table_name, column_name  \n        from tc  \n        where (table_name, column_name) not in (\n            select table_name, column_name  \n                from tc intersect   select table_name, column_name \n                    from dba_ind_columns  \n                    where index_owner = '{schema_name}')\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "存在外键约束时，当对主表的记录进行update或delete时，为了校验从表上是否存在依赖该记录的数据，如果从表上外键上不存在索引，则需要在从表增加表锁，此时从表的增删改将被阻塞，业务将被阻塞",
+        "solution": [
+            "外键必须建立索引"
+        ],
+        "weight": 1.0,
+        "max_score": 10,
+        "level": 2,
+        "db_model": "OLTP"
+    },
+    {
+        "name": "TABLE_NO_INDEX",
+        "desc": "没有索引",
+        "db_type": "oracle",
+        "entries": [
+            "ONLINE",
+            "OBJECT",
+            "OBJECT_TABLE"
+        ],
+        "input_params": [
+            {
+                "name": "tab_phy_size",
+                "desc": "表大小",
+                "unit": "MB",
+                "data_type": "NUM",
+                "_cls": "RuleInputParams",
+                "value": 10240
+            }
+        ],
+        "output_params": [
+            {
+                "name": "table_name",
+                "desc": "表名",
+                "unit": "",
+                "data_type": "STR",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            },
+            {
+                "name": "size",
+                "desc": "表大小",
+                "unit": "",
+                "data_type": "NUM",
+                "_cls": "RuleOutputParams",
+                "optional": false
+            }
+        ],
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select a.table_name, b.bytes / 1024 / 1024 size\n        from dba_tables a, dba_segments b\n        where a.table_name = b.segment_name\n            and b.segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND b.owner = '{schema_name}'\n            AND b.segment_name NOT LIKE 'BIN%'\n            and b.bytes / 1024 / 1024 >= '{rule.gip('tab_phy_size')}'\n            and a.table_name not in (\n                select table_name from dba_indexes)\n\"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "status": true,
+        "summary": "表的规模过大,且没任何索引时，任何查询都是全表扫描",
+        "solution": [
+            "根据谓词条件的选择率创建合适的索引"
+        ],
+        "weight": 0.1,
+        "max_score": 3,
+        "level": 2,
+        "db_model": "OLTP"
     }
 ]
