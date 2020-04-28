@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     cmdb_connector = kwargs["cmdb_connector"]
 
     sql = f"""
-    select index_name, type, degree, table_name  
+    select index_name, type as index_type, degree as parallel_count, table_name  
         from (
             select 
                     distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,

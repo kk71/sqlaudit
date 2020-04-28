@@ -77,14 +77,20 @@ class RuleOutputParams(RuleParams):
     """输出参数"""
 
     # 标志此参数是否可以不返回
-    # False则返回的时候会强制该字段必须出现且符合校验，
-    # True则表示该字段可以不返回，或者返回None
+    # False 字段必须出现，数据类型必须符合预期，可为None
+    # True 字段可选出现，数据类型不做检查，可为None
     optional = BooleanField(default=False)
 
     def validate_data_type(self, the_value):
-        if self.optional and the_value is None:
+        if the_value is None:
             return
-        super().validate_data_type(the_value)
+        try:
+            super().validate_data_type(the_value)
+        except exceptions.RuleCodeInvalidParamTypeException as e:
+            if not self.optional:
+                raise e
+            else:
+                print(e)  # 如果当前输出可选，则只打印但不报错
 
     @classmethod
     def validate_output_data(

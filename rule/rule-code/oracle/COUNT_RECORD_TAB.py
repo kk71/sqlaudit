@@ -7,7 +7,7 @@ def code(rule, entries, **kwargs):
 
     sql = f"""
     select t.table_name,
-            t.num_rows 
+            t.num_rows record_count
         from DBA_TABLES t  
         where t.partitioned='NO' 
             and t.owner='{schema_name}' 

@@ -3216,7 +3216,7 @@
                 "optional": false
             }
         ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name,\n            t.num_rows \n        from DBA_TABLES t  \n        where t.partitioned='NO' \n            and t.owner='{schema_name}' \n            and t.num_rows > {rule.gip('record_count')}\n        union \n            select t.table_name||'.'||t.table_name||':'||t.PARTITION_NAME,\n                    t.num_rows  \n                from  dba_tab_PARTITIONS t  \n                where t.table_owner='{schema_name}'\n                    and t.num_rows > {rule.gip('record_count')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select t.table_name,\n            t.num_rows record_count\n        from DBA_TABLES t  \n        where t.partitioned='NO' \n            and t.owner='{schema_name}' \n            and t.num_rows > {rule.gip('record_count')}\n        union \n            select t.table_name||'.'||t.table_name||':'||t.PARTITION_NAME,\n                    t.num_rows  \n                from  dba_tab_PARTITIONS t  \n                where t.table_owner='{schema_name}'\n                    and t.num_rows > {rule.gip('record_count')}\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "solution": [
@@ -3406,7 +3406,7 @@
                 "unit": "",
                 "data_type": "NUM",
                 "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             },
             {
                 "name": "table_name",
@@ -3417,7 +3417,7 @@
                 "optional": false
             }
         ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select index_name, type, degree, table_name  \n        from (\n            select \n                    distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,\n                    decode(INDEX_TYPE,  'NORMAL',  'B-tree',  decode(index_type,  'BITMAP',  'BitMap',  decode(INDEX_TYPE,  'FUNCTION-BASED NORMAL', 'Func',  decode(table_type,  'IOT',  'IOT',  decode(index_type,  'LOB',  'Lob'))))) as type,\n                    t.TABLE_NAME,  \n                    t.degree   \n                from dba_indexes t  \n                where t.index_name not like 'BIN%'  \n                    and t.owner = '{schema_name}'\n                    and to_number(replace(ltrim(t.degree),'DEFAULT',0)) >1  \n                order by t.table_name, t.owner||'.'||t.index_name\n        )\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select index_name, type as index_type, degree as parallel_count, table_name  \n        from (\n            select \n                    distinct t.owner||'.'||t.INDEX_NAME as INDEX_NAME ,\n                    decode(INDEX_TYPE,  'NORMAL',  'B-tree',  decode(index_type,  'BITMAP',  'BitMap',  decode(INDEX_TYPE,  'FUNCTION-BASED NORMAL', 'Func',  decode(table_type,  'IOT',  'IOT',  decode(index_type,  'LOB',  'Lob'))))) as type,\n                    t.TABLE_NAME,  \n                    t.degree   \n                from dba_indexes t  \n                where t.index_name not like 'BIN%'  \n                    and t.owner = '{schema_name}'\n                    and to_number(replace(ltrim(t.degree),'DEFAULT',0)) >1  \n                order by t.table_name, t.owner||'.'||t.index_name\n        )\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "当索引被并发访问时，会引起资源竞争",
         "solution": [
@@ -3544,7 +3544,7 @@
                 "optional": false
             },
             {
-                "name": "size",
+                "name": "table_size",
                 "desc": "表大小",
                 "unit": "",
                 "data_type": "NUM",
@@ -3552,7 +3552,7 @@
                 "optional": false
             }
         ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select a.table_name, b.bytes / 1024 / 1024 size\n        from dba_tables a, dba_segments b\n        where a.table_name = b.segment_name\n            and b.segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND b.owner = '{schema_name}'\n            AND b.segment_name NOT LIKE 'BIN%'\n            and b.bytes / 1024 / 1024 >= '{rule.gip('tab_phy_size')}'\n            and a.table_name not in (\n                select table_name from dba_indexes)\n\"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select a.table_name, b.bytes / 1024 / 1024 table_size\n        from dba_tables a, dba_segments b\n        where a.table_name = b.segment_name\n            and b.segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND b.owner = '{schema_name}'\n            AND b.segment_name NOT LIKE 'BIN%'\n            and b.bytes / 1024 / 1024 >= {rule.gip('tab_phy_size')}\n            and a.table_name not in (\n                select table_name from dba_indexes)\n\"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "表的规模过大,且没任何索引时，任何查询都是全表扫描",
         "solution": [
