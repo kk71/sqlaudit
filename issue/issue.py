@@ -203,7 +203,7 @@ class OnlineIssue(
             if remain_score < 0:
                 remain_score = 0
             remain_score_sum += remain_score
-        score = round(remain_score_sum / max_score_sum, 2)
+        score = round(remain_score_sum / max_score_sum, 2) * 100
         if at_least is not None and score < at_least:
             score = at_least
         return score
