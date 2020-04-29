@@ -36,8 +36,7 @@ class OracleBaseCurrentTaskSchemaStatistics(OracleBaseCurrentTaskCMDBStatistics)
     def post_generated(cls, **kwargs):
         super().post_generated(**kwargs)
         schema_name: str = kwargs["schema_name"]
-        docs: List["OracleBaseCurrentTaskSchemaStatistics"] = kwargs["docs"]
+        doc: "OracleBaseCurrentTaskSchemaStatistics" = kwargs["doc"]
 
-        for doc in docs:
-            doc.schema_name = schema_name
+        doc.schema_name = schema_name
 
