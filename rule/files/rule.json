@@ -2031,7 +2031,8 @@
         "db_type": "oracle",
         "entries": [
             "ONLINE",
-            "OBJECT"
+            "OBJECT",
+            "OBJECT_TABLE"
         ],
         "input_params": [
             {

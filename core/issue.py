@@ -70,10 +70,14 @@ class BaseOnlineIssue(
 
     entries = None  # 该问题分析时候传入的entries
 
-    # 规则分析的时候接受的entries
-    # TODO 子类仅填写当前子类需要的entries，如果需要查找当前子类所需的全部entries,
-    #      使用inherited_entries查找继承的entries
-    ENTRIES = ()
+    # 当前类所在的规则分析的时候接受的entries
+    ENTRIES: tuple = ()
+
+    # 当前类收集到的全部entries的集合（实际类型是tuple）
+    COLLECTED_ENTRIES_SET: tuple = None
+
+    # 当前类以及父类继承过来的entries集合（实际类型是tuple）
+    INHERITED_ENTRIES: tuple = None
 
     @classmethod
     def simple_analyse(cls, **kwargs):
@@ -84,3 +88,12 @@ class BaseOnlineIssue(
     def post_analysed(cls, **kwargs) -> NoReturn:
         """规则分析结束后处理"""
         pass
+
+    @classmethod
+    def collect(cls):
+        super().collect()
+        entries_set = set()
+        for collected_models in cls.COLLECTED:
+            entries_set.update(collected_models.ENTRIES)
+        cls.COLLECTED_ENTRIES_SET = tuple(entries_set)
+

@@ -46,7 +46,7 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
         rule_jar: [CMDBRule] = cls.generate_rule_jar(
             cmdb_id,
             task_record_id=task_record_id,
-            append_data={"schema_name": schema_name}
+            schema_name=schema_name
         )
         sqls: List[SingleSQLForOnline] = [
             SingleSQLForOnline.gen_from_sql_text(i)

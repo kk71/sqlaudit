@@ -1,13 +1,11 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "CMDBTaskStats",
-    "CMDBTaskStatsProcessor"
+    "CMDBTaskStats"
 ]
 
-from mongoengine import IntField, StringField, DynamicField
+from mongoengine import IntField, StringField
 
-from . import const
 from models.mongoengine import *
 from models.sqlalchemy import *
 from .cmdb_task import *
@@ -23,30 +21,24 @@ class CMDBTaskStats(BaseDoc):
     cmdb_id = IntField(required=True)
     connect_name = StringField(required=True)
     origin = StringField(required=True, null=True)
-    stats_type = IntField(
-        required=True, choices=const.ALL_CMDB_TASK_STATS_TYPE)
-    data = DynamicField(required=True, default="")
 
     meta = {
         "collection": "cmdb_task_stats",
+        "allow_inheritance": True,
         "indexes": [
             "task_record_id",
-            "cmdb_id",
-            "stats_type"
+            "cmdb_id"
         ]
     }
 
-
-class CMDBTaskStatsProcessor:
-    """纳管库任务状态信息的相关类，需要整合到纳管库任务，以及纳管库任务阶段的类中使用"""
-
-    def __init__(self, task_record_id: int, **kwargs):
-        self.task_record_id = task_record_id
+    @classmethod
+    def write_stats(cls, task_record_id: int, origin, **kwargs):
+        origin_name = origin.__name__
         with make_session() as session:
             cmdb_task_record = session.query(
                 CMDBTaskRecord).filter_by(
                 task_record_id=task_record_id).first()
-            self.keys = cmdb_task_record.to_dict(iter_if=lambda k, v: k in (
+            keys = cmdb_task_record.to_dict(iter_if=lambda k, v: k in (
                 "task_record_id",
                 "cmdb_task_id",
                 "task_type",
@@ -54,14 +46,9 @@ class CMDBTaskStatsProcessor:
                 "cmdb_id",
                 "connect_name"
             ))
-
-    def write_stats(self, origin, stats_type, data=None, **kwargs):
-        origin_name = origin.__name__
         stats = CMDBTaskStats(
-            **self.keys,
+            **keys,
             origin=origin_name,
-            stats_type=stats_type,
-            data=data,
             **kwargs
         )
         stats.save()

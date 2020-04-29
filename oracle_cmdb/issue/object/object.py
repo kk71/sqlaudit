@@ -53,7 +53,7 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
             rule_jar: [CMDBRule] = cls.generate_rule_jar(
                 cmdb_id,
                 task_record_id=task_record_id,
-                append_data={"schema_name": schema_name}
+                schema_name=schema_name
             )
             cmdb_connector = cmdb.build_connector()
             for the_rule in rule_jar:

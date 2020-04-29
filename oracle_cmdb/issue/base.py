@@ -10,9 +10,11 @@ from typing import NoReturn, Generator, List
 from mongoengine import IntField, StringField
 
 import settings
+from rule.rule_jar import *
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
 from issue.issue import *
+from ..task.cmdb_task_stats import *
 from ..cmdb import OracleCMDB
 
 
@@ -69,6 +71,29 @@ class OracleOnlineIssue(OnlineIssue):
             )
             docs.append(doc)
         return docs
+
+    @classmethod
+    def generate_rule_jar(cls,
+                          cmdb_id: int,
+                          task_record_id: int = None,
+                          **kwargs) -> RuleJar:
+        the_jar = super().generate_rule_jar(cmdb_id, task_record_id, **kwargs)
+
+        schema_name: str = kwargs.get("schema_name", None)
+        if schema_name is None:
+            print(f"{schema_name=} so the stats record of entries "
+                  f"and rule unique keys is ignored.")
+            return the_jar
+
+        # 保存当前使用的规则唯一标识以及entries，记录schema
+        OracleCMDBTaskStatsEntriesAndRules.write_stats(
+            task_record_id,
+            cls,
+            entries=the_jar.entries,
+            rule_unique_keys=the_jar.get_unique_keys(),
+            schema_name=schema_name
+        )
+        return the_jar
 
     @classmethod
     def process(cls, collected=None, **kwargs):

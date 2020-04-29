@@ -5,25 +5,28 @@ __all__ = [
 ]
 
 import abc
-from typing import Union
+from typing import Union, NoReturn
+
+from .self_collecting_class import *
 
 
-class BaseStatisticItem(abc.ABC):
+class BaseStatisticItem(SelfCollectingFramework):
     """基础统计对象"""
 
     cmdb_id = None  # 纳管库id
     task_record_id = None  # 任务id
     create_time = None  # 统计时间
 
-    # 要统计的模块
-    MODELS = []
-
     # 依赖关系
     REQUIRES = []
 
     @classmethod
     @abc.abstractmethod
-    def generate(cls, task_record_id: int, cmdb_id: Union[int, None]):
+    def generate(
+            cls,
+            task_record_id: int,
+            cmdb_id: Union[int, None],
+            **kwargs) -> NoReturn:
         """
         产生统计数据
         :param task_record_id: 调度当前统计的任务id
@@ -32,21 +35,18 @@ class BaseStatisticItem(abc.ABC):
         pass
 
     @classmethod
-    def need_stats(cls):
-        """装饰需要采集的model"""
-        def inner(model):
-            assert issubclass(model, cls)
-            cls.MODELS.append(model)
-            return model
-        return inner
-
-    @classmethod
-    @abc.abstractmethod
     def check_requires(cls):
         """检查依赖关系"""
         pass
 
-    @abc.abstractmethod
-    def run(self):
-        """启动统计"""
-        return
+    # @classmethod
+    # def collect(cls):
+    #     """
+    #     重载collect，以实现收集之后即检查依赖关系的功能
+    #     检查完依赖关系，会构建一个依赖关系树，方便以后做分布式
+    #     :return:
+    #     """
+    #     super().collect()
+    #
+    #     return
+
