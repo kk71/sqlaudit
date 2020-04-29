@@ -327,3 +327,11 @@ code_hole.append(code)  # 务必加上这一句
     def filter_enabled(cls, *args, **kwargs):
         """仅过滤出开启的规则"""
         return cls.filter(status=True).filter(*args, **kwargs)
+
+    def to_dict(self, *args, need_unique_key=False, **kwargs) -> dict:
+        origin_ret = super().to_dict(*args, **kwargs)
+        if need_unique_key:
+            # 为输出的字典增加规则唯一键
+            for k in self.UNIQUE_KEYS:
+                origin_ret[k] = getattr(self, k)
+        return origin_ret

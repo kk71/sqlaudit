@@ -5,7 +5,8 @@ __all__ = [
     "OnlineIssueOutputParams"
 ]
 
-from typing import Union, Generator
+from collections import defaultdict
+from typing import Union, Generator, List
 
 from mongoengine import StringField, FloatField, DictField, IntField,\
     ListField, EmbeddedDocumentField, DynamicEmbeddedDocument
@@ -14,6 +15,7 @@ import core.issue
 import rule.cmdb_rule
 import rule.const
 import issue.exceptions
+from rule.cmdb_rule import CMDBRule
 from rule.rule_jar import *
 from models.mongoengine import *
 
@@ -171,3 +173,38 @@ class OnlineIssue(
     def filter_with_entries(cls, *args, **kwargs):
         return cls.BASECLASS.filter(
             entries__all=cls.ENTRIES).filter(*args, **kwargs)
+
+    @classmethod
+    def calc_score(
+            cls,
+            issues: Union[List["OnlineIssue"], mongoengine_qs],
+            rules: Union[List[dict], mongoengine_qs],
+            at_least: float = None) -> float:
+        """
+        计算分数
+        :param issues:
+        :param rules: CMDBRule的dict，包含唯一键，外加一个max_score；或者查询集
+        :param at_least: 遮羞分数，默认不需要
+        :return:
+        """
+        if isinstance(rules, mongoengine_qs):
+            rules = [r.to_dict() for r in rules]
+        # {rule_name: [max_score, minus_score], ...}
+        rule_score = defaultdict(lambda: [0, 0])
+        for the_rule_dict in rules:
+            rule_score[the_rule_dict["name"]][0] = the_rule_dict["max_score"]
+        for the_issue in issues:
+            rule_score[the_issue.rule_name][1] += the_issue.minus_score
+        max_score_sum = 0
+        remain_score_sum = 0
+        for rule_name, (max_score, minus_score) in rule_score.items():
+            max_score_sum += max_score
+            remain_score = max_score + minus_score
+            if remain_score < 0:
+                remain_score = 0
+            remain_score_sum += remain_score
+        score = round(remain_score_sum / max_score_sum, 2)
+        if at_least is not None and score < at_least:
+            score = at_least
+        return score
+

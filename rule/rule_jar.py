@@ -33,3 +33,6 @@ class RuleJar(list):
     def get_unique_keys(self) -> List[tuple]:
         """获取规则的唯一键值去重列表"""
         return list({i.unique_key() for i in self})
+
+    def bulk_to_dict(self, *args, **kwargs):
+        return [i.to_dict(*args, **kwargs) for i in self]

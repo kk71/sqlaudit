@@ -51,7 +51,8 @@ class SelfCollectingFramework(metaclass=SelfCollectingFrameworkMeta):
     @classmethod
     @abc.abstractmethod
     def process(cls, collected=None, **kwargs):
-        pass
+        if collected is None:
+            collected = cls.COLLECTED
 
     @classmethod
     def collect(cls):

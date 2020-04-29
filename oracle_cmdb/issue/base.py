@@ -90,7 +90,10 @@ class OracleOnlineIssue(OnlineIssue):
             task_record_id,
             cls,
             entries=the_jar.entries,
-            rule_unique_keys=the_jar.get_unique_keys(),
+            rule_info=the_jar.bulk_to_dict(
+                iter_if=lambda k, v: k in ("max_score",),
+                need_unique_key=True
+            ),
             schema_name=schema_name
         )
         return the_jar

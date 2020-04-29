@@ -2,7 +2,8 @@
 
 __all__ = [
     "OracleCMDBTaskStatsSnapIDPairs",
-    "OracleCMDBTaskStatsEntriesAndRules"
+    "OracleCMDBTaskStatsEntriesAndRules",
+    "OracleCMDBTaskStatsReferredTaskRecordID"
 ]
 
 from mongoengine import ListField, StringField
@@ -28,4 +29,10 @@ class OracleCMDBTaskStatsEntriesAndRules(OracleCMDBTaskStats):
 
     schema_name = StringField(required=True)
     entries = ListField(default=list)
-    rule_unique_keys = ListField(default=list)
+    rule_info = ListField(default=list)
+
+
+class OracleCMDBTaskStatsReferredTaskRecordID(OracleCMDBTaskStats):
+    """跨库或者跨任务级别的统计，依赖的task_record_id"""
+
+    referred_task_record_id_list = ListField(default=list)

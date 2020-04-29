@@ -12,8 +12,7 @@ __all__ = [
 
 import abc
 import json
-from typing import NoReturn, List
-from types import FunctionType
+from typing import NoReturn, List, Callable
 
 import arrow
 from bson import ObjectId
@@ -59,13 +58,13 @@ class BaseDoc(DynamicDocument):
 
     def from_dict(self,
                   d: dict,
-                  iter_if: FunctionType = None,
-                  iter_by: FunctionType = None,
-                  ) -> NoReturn:
+                  iter_if: Callable = None,
+                  iter_by: Callable = None,
+                  **kwargs) -> NoReturn:
         """update a record by given dict,
         with an iter function(mostly a lambda) to judge whether applies the change"""
         for k, v in d.items():
-            if isinstance(iter_if, FunctionType) and not iter_if(k, v):
+            if callable(iter_if) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
@@ -76,11 +75,11 @@ class BaseDoc(DynamicDocument):
             setattr(self, k, v)
 
     def to_dict(self,
-                iter_if: FunctionType = None,
-                iter_by: FunctionType = None,
+                iter_if: Callable = None,
+                iter_by: Callable = None,
                 datetime_to_str: bool = True,
-                recurse: dict = None
-                ) -> dict:
+                recurse: dict = None,
+                **kwargs) -> dict:
         d = {}
         if isinstance(recurse, dict):
             items = recurse.items()
@@ -91,7 +90,7 @@ class BaseDoc(DynamicDocument):
         for k, v in items:
             if k in ("auto_id_0",):
                 continue
-            if isinstance(iter_if, FunctionType) and not iter_if(k, v):
+            if callable(iter_if) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
