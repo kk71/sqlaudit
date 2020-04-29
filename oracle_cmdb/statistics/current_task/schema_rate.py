@@ -68,7 +68,7 @@ class StatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 )
                 rule_dicts = []
                 for stats in stats_qs:
-                    rule_dicts.append(stats.rule_info)
+                    rule_dicts.extend(stats.rule_info)
                 doc.entry[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
             scores = doc.entry.values()
             doc.score_average = sum(scores) / len(scores)
