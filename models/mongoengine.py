@@ -3,6 +3,7 @@
 __all__ = [
     "ABCDocumentMetaclass",
     "ABCTopLevelDocumentMetaclass",
+    "SelfCollectingTopLevelDocumentMetaclass",
     "BaseDoc",
     "values_dict",
     "mongoengine_qs",
@@ -17,22 +18,27 @@ from types import FunctionType
 import arrow
 from bson import ObjectId
 from mongoengine.base.datastructures import EmbeddedDocumentList
-from mongoengine import Document, EmbeddedDocument, DateTimeField, DynamicDocument
+from mongoengine import EmbeddedDocument, DateTimeField, DynamicDocument
 # TODO do not delete Document!!!
 from mongoengine.base.metaclasses import TopLevelDocumentMetaclass, DocumentMetaclass
 from mongoengine import Q, QuerySet as mongoengine_qs
 
+import core.self_collecting_class
 from utils import const
 from utils import datetime_utils
 
 
 class ABCTopLevelDocumentMetaclass(TopLevelDocumentMetaclass, abc.ABCMeta):
-    """顶级document的元类，Document, BaseDoc请优先使用这个"""
+    pass
+
+
+class SelfCollectingTopLevelDocumentMetaclass(
+        TopLevelDocumentMetaclass,
+        core.self_collecting_class.SelfCollectingFrameworkMeta):
     pass
 
 
 class ABCDocumentMetaclass(DocumentMetaclass, abc.ABCMeta):
-    """普通document的元类，给EmbeddedDocument使用"""
     pass
 
 

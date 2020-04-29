@@ -11,14 +11,14 @@ from mongoengine import ObjectIdField, IntField, StringField
 
 from .base import *
 from utils.log_utils import *
-from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
+from models.mongoengine import *
 from oracle_cmdb.plain_db import OraclePlainConnector
 
 
 class ObjectCapturingDoc(
         BaseDoc,
         BaseOracleCapture,
-        metaclass=ABCTopLevelDocumentMetaclass):
+        metaclass=SelfCollectingTopLevelDocumentMetaclass):
     """对象采集"""
 
     _id = ObjectIdField()

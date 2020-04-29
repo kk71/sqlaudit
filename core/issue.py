@@ -56,18 +56,16 @@ class BaseOnlineIssueMetaClass(type):
             tuple(set(inherited_entries + list(current_entries)))
         )
 
-        # 记录父类的引用
-        cls.BASECLASS = bases[-1]
 
-
-class BaseOnlineIssueMetaclassWithABCMetaClass(BaseOnlineIssueMetaClass, abc.ABCMeta):
+class BaseOnlineIssueMetaclassWithSelfCollectingMeta(
+        BaseOnlineIssueMetaClass, SelfCollectingFrameworkMeta):
     pass
 
 
 class BaseOnlineIssue(
         BaseIssue,
         SelfCollectingFramework,
-        metaclass=BaseOnlineIssueMetaclassWithABCMetaClass):
+        metaclass=BaseOnlineIssueMetaclassWithSelfCollectingMeta):
     """基础线上审核的问题"""
 
     entries = None  # 该问题分析时候传入的entries

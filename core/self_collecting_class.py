@@ -1,7 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "SelfCollectingFramework"
+    "SelfCollectingFramework",
+    "SelfCollectingFrameworkMeta"
 ]
 
 import abc
@@ -11,7 +12,19 @@ from pathlib import Path
 from typing import Union, Callable, List
 
 
-class SelfCollectingFramework(abc.ABC):
+class SelfCollectingFrameworkMeta(abc.ABCMeta):
+
+    def __init__(cls, name, bases, attrs):
+
+        super().__init__(name, bases, attrs)
+
+        # 记录父类的引用
+        cls.BASECLASS = None
+        if bases:
+            cls.BASECLASS = bases[-1]
+
+
+class SelfCollectingFramework(metaclass=SelfCollectingFrameworkMeta):
     """子类自收集框架"""
 
     # 需要索引的路径

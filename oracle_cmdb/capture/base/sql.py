@@ -16,7 +16,7 @@ import settings
 import cmdb.const
 from .base import *
 from utils.log_utils import *
-from models.mongoengine import BaseDoc, ABCTopLevelDocumentMetaclass
+from models.mongoengine import *
 from oracle_cmdb import exceptions, const
 from oracle_cmdb.plain_db import OraclePlainConnector
 from utils.datetime_utils import dt_to_str
@@ -26,7 +26,7 @@ from cmdb.cmdb_task_stats import *
 class SQLCapturingDoc(
         BaseDoc,
         BaseOracleCapture,
-        metaclass=ABCTopLevelDocumentMetaclass):
+        metaclass=SelfCollectingTopLevelDocumentMetaclass):
     """采集sql数据"""
 
     cmdb_id = IntField(required=True)

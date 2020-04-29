@@ -64,16 +64,16 @@ class OnlineIssueOutputParams(DynamicEmbeddedDocument):
             setattr(self, k, v)
 
 
-class IssueMetaABCMetaTopLevelDocMeta(
+class IssueMetaSelfCollectingMetaTopLevelDocMeta(
         ABCTopLevelDocumentMetaclass,
-        core.issue.BaseOnlineIssueMetaclassWithABCMetaClass):
+        core.issue.BaseOnlineIssueMetaclassWithSelfCollectingMeta):
     pass
 
 
 class OnlineIssue(
         BaseDoc,
         core.issue.BaseOnlineIssue,
-        metaclass=IssueMetaABCMetaTopLevelDocMeta):
+        metaclass=IssueMetaSelfCollectingMetaTopLevelDocMeta):
     """common online issue"""
 
     cmdb_id = IntField(required=True)
