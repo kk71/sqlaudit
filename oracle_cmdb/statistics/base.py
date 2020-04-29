@@ -60,7 +60,10 @@ class OracleBaseStatistics(
             collected = cls.COLLECTED
         with grouped_count_logger(
                 cls.__doc__, item_type_name="统计") as counter:
-            for m in collected:
+            for i, m in enumerate(collected):
+                i += 1
+                total = len(collected)
+                print(f"* running {i} of {total}: {m.__doc__}")
                 docs = list(m.generate(**kwargs))
                 if docs:
                     m.objects.insert(docs)
