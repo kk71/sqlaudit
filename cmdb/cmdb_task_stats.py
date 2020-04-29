@@ -46,9 +46,10 @@ class CMDBTaskStats(BaseDoc):
                 "cmdb_id",
                 "connect_name"
             ))
-        stats = CMDBTaskStats(
+        stats = cls(
             **keys,
             origin=origin_name,
             **kwargs
         )
+        stats.validate()
         stats.save()
