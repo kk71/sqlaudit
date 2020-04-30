@@ -53,7 +53,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
             ret = OracleOnlineIssue.objects.aggregate(
                 {
                     "$unwind": {
-                        "path": "entries"
+                        "path": "$entries"
                     }
                 },
                 {
