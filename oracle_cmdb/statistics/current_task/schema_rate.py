@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["StatsSchemaRate"]
+__all__ = ["OracleStatsSchemaRate"]
 
 from typing import NoReturn, Union, List
 
@@ -16,17 +16,17 @@ from oracle_cmdb.rate import *
 
 
 @OracleBaseStatistics.need_collect()
-class StatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
+class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
     """schema各个维度的评分"""
 
     score_average = FloatField(required=True)
     score_lowest = FloatField(required=True)
-    entry = DictField(default=dict)
+    entry_score = DictField(default=dict)
     add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分
     rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
 
     meta = {
-        "collection": "stats_schema_rate",
+        "collection": "oracle_stats_schema_rate",
     }
 
     ENTRIES_TO_CALC = (rule.const.RULE_ENTRY_ONLINE_OBJECT,
@@ -60,6 +60,7 @@ class StatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
             for entry in cls.ENTRIES_TO_CALC:
                 issues = OracleOnlineIssue.filter(
                     task_record_id=task_record_id,
+                    schema_name=schema_name,
                     entries=entry
                 )
                 stats_qs = OracleCMDBTaskStatsEntriesAndRules.filter(
@@ -69,8 +70,8 @@ class StatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 rule_dicts = []
                 for stats in stats_qs:
                     rule_dicts.extend(stats.rule_info)
-                doc.entry[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
-            scores = doc.entry.values()
+                doc.entry_score[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
+            scores = doc.entry_score.values()
             doc.score_average = sum(scores) / len(scores)
             doc.score_lowest = min(scores)
             if schema_name in rating_schemas.keys():

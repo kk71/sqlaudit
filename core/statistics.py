@@ -18,7 +18,13 @@ class BaseStatisticItem(SelfCollectingFramework):
     create_time = None  # 统计时间
 
     # 依赖关系
-    REQUIRES = []
+    REQUIRES: tuple = ()
+
+    # 收集到的子类按照互相的依赖关系排序的结果
+    SORTED_COLLECTED_BY_REQUIREMENT: tuple = ()
+
+    # 检查依赖关系时最大的循环次数
+    MAX_REQUIREMENT_LOOP = 99
 
     @classmethod
     @abc.abstractmethod
@@ -39,14 +45,23 @@ class BaseStatisticItem(SelfCollectingFramework):
         """检查依赖关系"""
         pass
 
-    # @classmethod
-    # def collect(cls):
-    #     """
-    #     重载collect，以实现收集之后即检查依赖关系的功能
-    #     检查完依赖关系，会构建一个依赖关系树，方便以后做分布式
-    #     :return:
-    #     """
-    #     super().collect()
-    #
-    #     return
+    @classmethod
+    def collect(cls):
+        """
+        重载collect，以实现收集之后即检查依赖关系的功能
+        目前按照线性执行方式，确定收集到的子类的执行顺序
+        :return:
+        """
+        super().collect()
+        collected = list(cls.COLLECTED)
+        ordered_collected = []
+        loop_times = 0
+        while collected:
+            loop_times += 1
+            assert loop_times <= cls.MAX_REQUIREMENT_LOOP
+            if set(collected[0].REQUIRES).issubset(ordered_collected):
+                ordered_collected.append(collected[0])
+                del collected[0]
+
+        cls.SORTED_COLLECTED_BY_REQUIREMENT = tuple(ordered_collected)
 

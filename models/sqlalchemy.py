@@ -11,8 +11,7 @@ __all__ = [
 import abc
 import json
 from contextlib import contextmanager
-from typing import *
-from types import FunctionType
+from typing import NoReturn, List, Callable
 
 import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -78,31 +77,31 @@ class BaseModel(base):
 
     def from_dict(self,
                   d: dict,
-                  iter_if: FunctionType = None,
-                  iter_by: FunctionType = None,
-                  ) -> NoReturn:
+                  iter_if: Callable = None,
+                  iter_by: Callable = None,
+                  **kwargs) -> NoReturn:
         """update a record by given dict,
         with an iter function(mostly a lambda) to judge whether applies the change"""
         for k, v in d.items():
             if k not in dir(self):
                 continue
-            if isinstance(iter_if, FunctionType) and not iter_if(k, v):
+            if callable(iter_if) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
             setattr(self, k, v)
 
     def to_dict(self,
-                iter_if: FunctionType = None,
-                iter_by: FunctionType = None,
-                datetime_to_str: bool = True
-                ) -> dict:
+                iter_if: Callable = None,
+                iter_by: Callable = None,
+                datetime_to_str: bool = True,
+                **kwargs) -> dict:
         d = {}
         for k in self.__dict__:
             if k in ("_sa_instance_state",):
                 continue
             v = getattr(self, k)
-            if isinstance(iter_if, FunctionType) and not iter_if(k, v):
+            if callable(iter_if) and not iter_if(k, v):
                 continue
             if iter_by:
                 v = iter_by(k, v)
