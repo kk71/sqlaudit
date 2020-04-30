@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = []
+__all__ = ["OracleStatsSchemaRiskRule"]
 
 from typing import NoReturn, Union
 
