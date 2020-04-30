@@ -1,14 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleBaseStatistics",
-    "OracleBaseTargetLoginUserStatistics"
+    "OracleBaseStatistics"
 ]
 
 import os.path
 from typing import List
 
-from mongoengine import IntField, StringField
+from mongoengine import IntField
 
 import settings
 import core.statistics
@@ -42,6 +41,7 @@ class OracleBaseStatistics(
 
     PATH_TO_IMPORT = os.path.dirname(__file__)
 
+
     @classmethod
     def post_generated(cls, **kwargs):
         doc: "OracleBaseStatistics" = kwargs["doc"]
@@ -57,7 +57,7 @@ class OracleBaseStatistics(
         assert "task_record_id" in kwargs.keys()
         assert "schemas" in kwargs.keys()
         if collected is None:
-            collected = cls.COLLECTED
+            collected = cls.SORTED_COLLECTED_BY_REQUIREMENT
         with grouped_count_logger(
                 cls.__doc__, item_type_name="统计") as counter:
             for i, m in enumerate(collected):
@@ -69,28 +69,3 @@ class OracleBaseStatistics(
                     m.objects.insert(docs)
                 counter(m.__doc__, len(docs))
 
-
-class OracleBaseTargetLoginUserStatistics(OracleBaseStatistics):
-    """登录用户级别的统计"""
-
-    target_login_user = StringField(required=True, null=True)
-
-    meta = {
-        "abstract": True,
-        "indexes": [
-            "target_login_user"
-        ]
-    }
-
-    @classmethod
-    def post_generated(cls, **kwargs):
-        super().post_generated(**kwargs)
-        target_login_user: str = kwargs["target_login_user"]
-        doc: "OracleBaseTargetLoginUserStatistics" = kwargs["doc"]
-
-        doc.target_login_user = target_login_user
-
-    @classmethod
-    def login_users(cls) -> List[str]:
-        """获取login_user列表"""
-        return []
