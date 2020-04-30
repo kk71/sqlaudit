@@ -8,6 +8,7 @@ from auth.const import PRIVILEGE
 from restful_api.modules import as_view
 from models.sqlalchemy import *
 from auth.user import *
+from ..role import RoleOracleCMDBSchema
 from ...cmdb import *
 
 
@@ -61,7 +62,7 @@ class OracleRelatedUserHandler(auth.restful_api.user.UserHandler):
 
                 role_cmdb = [list(x) for x in role_cmdb]
                 role_cmdb = [b for b in role_cmdb for c in x['role'] if c['role_id'] in b]
-
+                #去重
                 x['cmdbs'] = reduce(
                     lambda x, y: x if y in x else x + [y],
                     [[], ] + [{'connect_name': a[0], 'cmdb_id': a[1]} for a in role_cmdb]

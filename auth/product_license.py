@@ -80,6 +80,7 @@ def decrypt_msg(encoded, private_key_file=settings.PRIVATE_KEY):
 
 
 class DecryptError(Exception):
+    """解密失败"""
     pass
 
 

@@ -8,6 +8,7 @@ from auth.restful_api.base import *
 from auth.const import PRIVILEGE
 from utils.schema_utils import *
 from auth.user import *
+from ..auth.role import RoleOracleCMDBSchema
 from ..cmdb import *
 
 
@@ -83,8 +84,9 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
                     session.rollback()
                     return self.resp_bad_req(msg="cmdb_id={cmdb_id}存在重复项")
                 cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+
                 try:
-                    available_schema: set = set(get_cmdb_available_schemas(cmdb))
+                    available_schema: set = set(cmdb.get_available_schemas())
                 except Exception as e:
                     session.rollback()
                     return self.resp(msg=f"获取可用的schema失败(cmdb_id: {cmdb_id})：{str(e)}")

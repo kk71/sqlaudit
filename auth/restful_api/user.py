@@ -57,7 +57,7 @@ class UserHandler(AuthReq):
         """新增用户"""
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
-            "user_name": scm_unempty_str,
+            "username": scm_unempty_str,
             "password": scm_unempty_str,
             "email": scm_str,
             "mobile_phone": scm_str,
@@ -79,7 +79,7 @@ class UserHandler(AuthReq):
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
 
-            scm_optional("user_name"): scm_unempty_str,
+            scm_optional("username"): scm_unempty_str,
             scm_optional("old_password", default=None): scm_unempty_str,
             scm_optional("password"): scm_unempty_str,
             scm_optional("email"): scm_unempty_str,
@@ -97,7 +97,8 @@ class UserHandler(AuthReq):
                     return self.resp_bad_req(msg="老密码不正确")
 
             the_user.from_dict(params)
-            self.resp_created(the_user.to_dict())
+            the_user=the_user.to_dict()
+        self.resp_created(the_user)
 
     def delete(self):
         """删除用户"""

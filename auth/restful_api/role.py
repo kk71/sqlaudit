@@ -118,6 +118,18 @@ class RoleHandler(PrivilegeReq):
                 ) for i in privileges])
         self.resp_created(msg="finished.")
 
+    def delete(self):
+        params=self.get_json_args(Schema({
+            "role_id":scm_int
+        }))
+        with make_session() as session:
+            session.query(RolePrivilege).filter_by(**params). \
+                delete(synchronize_session=False)
+            session.query(UserRole).filter_by(**params). \
+                delete(synchronize_session=False)
+            session.query(Role).filter_by(**params). \
+                delete(synchronize_session=False)
+        self.resp_created(msg="删除成功")
 
 @as_view("role_user", group="role")
 class RoleUserHandler(PrivilegeReq):
