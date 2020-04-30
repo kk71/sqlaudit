@@ -21,7 +21,7 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
 
     score_average = FloatField(required=True)
     score_lowest = FloatField(required=True)
-    entry = DictField(default=dict)
+    entry_score = DictField(default=dict)
     add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分
     rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
 
@@ -70,8 +70,8 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 rule_dicts = []
                 for stats in stats_qs:
                     rule_dicts.extend(stats.rule_info)
-                doc.entry[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
-            scores = doc.entry.values()
+                doc.entry_socre[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
+            scores = doc.entry_score.values()
             doc.score_average = sum(scores) / len(scores)
             doc.score_lowest = min(scores)
             if schema_name in rating_schemas.keys():

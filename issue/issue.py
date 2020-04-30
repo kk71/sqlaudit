@@ -76,6 +76,8 @@ class OnlineIssue(
         metaclass=IssueMetaSelfCollectingMetaTopLevelDocMeta):
     """common online issue"""
 
+    # TODO 凡是issue中保留的rule冗余字段，尽量优先用issue的
+
     cmdb_id = IntField(required=True)
     db_type = StringField(required=True)
     rule_name = StringField(required=True)
@@ -87,7 +89,7 @@ class OnlineIssue(
     output_params = EmbeddedDocumentField(
         OnlineIssueOutputParams, default=OnlineIssueOutputParams)  # 运行输出
     minus_score = FloatField(default=0)  # 当前规则的扣分，负数
-    level = IntField()  # 规则优先级
+    level = IntField()  # 规则优先级 TODO 尽量优先用这个字段
 
     meta = {
         "abstract": True,
