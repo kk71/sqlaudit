@@ -2,7 +2,7 @@
 
 __all__ = ["OracleStatsCMDBRate"]
 
-from typing import NoReturn, Union
+from typing import Union, Generator
 
 from mongoengine import FloatField
 
@@ -32,7 +32,7 @@ class OracleStatsCMDBRate(OracleBaseCurrentTaskCMDBStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> NoReturn:
+            **kwargs) -> Generator["OracleStatsCMDBRate", None, None]:
         doc = cls()
         schema_rates = OracleStatsSchemaRate.objects(
             task_record_id=task_record_id,

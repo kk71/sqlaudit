@@ -7,6 +7,7 @@ __all__ = [
 from sqlalchemy import Column, String, Integer, Boolean
 
 from models.sqlalchemy import *
+from .cmdb_task import CMDBTask
 
 
 class CMDB(BaseModel):
@@ -46,3 +47,11 @@ class CMDB(BaseModel):
         with make_session() as session:
             the_cmdb = session.query(cls).filter_by(cmdb_id=cmdb_id).first()
             return the_cmdb.build_connector()
+
+    def cmdb_task(self, session, **kwargs) -> CMDBTask:
+        """获取当前纳管库对象的纳管库任务对象"""
+        q = session.query(CMDBTask).filter(CMDBTask.cmdb_id == self.cmdb_id)
+        if kwargs:
+            q = q.filter_by(**kwargs)
+        return q.first()
+

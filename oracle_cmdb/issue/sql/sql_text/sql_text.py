@@ -23,6 +23,8 @@ class OracleOnlineSQLTextIssue(OracleOnlineSQLIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_TEXT,)
 
+    RELATED_CAPTURE = (OracleSQLText,)
+
     @classmethod
     def _single_rule(cls,
                      the_rule,

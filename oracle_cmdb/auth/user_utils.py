@@ -8,7 +8,7 @@ __all__ = [
 from typing import Union
 
 import auth.utils
-from models.sqlalchemy import make_session, QueryEntity
+from models.sqlalchemy import *
 from auth.user import *
 from ..cmdb import *
 from .role import *
@@ -67,15 +67,15 @@ def current_schema(
                     q = q.join(Role, Role.role_id == RoleOracleCMDBSchema.role_id)
         else:
             q = session.query(RoleOracleCMDBSchema.schema_name.distinct())
-    if login_user:
-        role_ids: list = list(auth.utils.role_of_user(login_user=login_user).
-                              get(login_user, set([])))
-        q = q.filter(RoleOracleCMDBSchema.role_id.in_(role_ids))
-    if cmdb_id:
-        q = q.filter(RoleOracleCMDBSchema.cmdb_id == cmdb_id)
-    if verbose:
-        return list(set(q))
-    elif verbose_dict:
-        return [qe.to_dict(i) for i in set(q)]
-    else:
-        return [i[0] for i in q]
+        if login_user:
+            role_ids: list = list(auth.utils.role_of_user(login_user=login_user).
+                                  get(login_user, set([])))
+            q = q.filter(RoleOracleCMDBSchema.role_id.in_(role_ids))
+        if cmdb_id:
+            q = q.filter(RoleOracleCMDBSchema.cmdb_id == cmdb_id)
+        if verbose:
+            return list(set(q))
+        elif verbose_dict:
+            return [qe.to_dict(i) for i in set(q)]
+        else:
+            return [i[0] for i in q]

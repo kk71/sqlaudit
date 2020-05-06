@@ -2,3 +2,4 @@
 
 from .bulk_analyse import *
 from .single_analyse import *
+from .sql_text import *

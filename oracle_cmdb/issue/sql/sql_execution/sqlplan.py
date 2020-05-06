@@ -7,7 +7,7 @@ __all__ = [
 import rule.const
 from oracle_cmdb.issue.base import OracleOnlineIssue
 from oracle_cmdb.issue.sql.sql_execution import OracleOnlineSQLExecutionIssue
-from oracle_cmdb.capture import OracleSQLPlanToday
+from ....capture import OracleSQLPlanToday
 
 
 @OracleOnlineIssue.need_collect()
@@ -15,6 +15,8 @@ class OracleOnlineSQLPlanIssue(OracleOnlineSQLExecutionIssue):
     """sql执行计划问题"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_PLAN,)
+
+    RELATED_CAPTURE = (OracleSQLPlanToday,)
 
     @classmethod
     def params_to_append_to_rule(cls,

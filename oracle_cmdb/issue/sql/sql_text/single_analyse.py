@@ -13,6 +13,7 @@ from ....single_sql import SingleSQLForOnline
 from ....cmdb import OracleCMDB
 from ....plain_db import *
 from rule.adapters import CMDBRuleAdapterSQL
+from ....capture import OracleSQLText
 
 
 @OracleOnlineIssue.need_collect()

@@ -1,41 +1,28 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleOnlineObjectIssue",
-    "OracleOnlineIssueOutputParamsObject"
+    "OracleOnlineObjectIssue"
 ]
 
 from typing import Generator
 
-from mongoengine import EmbeddedDocumentField
-
 import rule.const
 from models.sqlalchemy import *
 from rule.cmdb_rule import CMDBRule
-from issue.issue import OnlineIssueOutputParams
 from oracle_cmdb.issue.base import *
 from oracle_cmdb.cmdb import *
-
-
-class OracleOnlineIssueOutputParamsObject(OnlineIssueOutputParams):
-    """针对对象的输出字段"""
-
-    # object_name = StringField(required=True, default=None)
-    # object_type = StringField(required=True, default=None)
-    pass
+from ...capture.base.obj import ObjectCapturingDoc
 
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
 
-    # 请注意，虽然"对象问题"有子类，但是子类并没有囊括全部的"对象问题"！
-
-    output_params = EmbeddedDocumentField(
-        OracleOnlineIssueOutputParamsObject,
-        default=OracleOnlineIssueOutputParamsObject)
+    # TODO 请注意，虽然"对象问题"有子类，但是子类并没有囊括全部的"对象问题"！
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
+
+    RELATED_CAPTURE = (ObjectCapturingDoc,)
 
     meta = {
         "allow_inheritance": True
@@ -72,4 +59,3 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
                     schema_name=schema_name
                 )
                 yield from docs
-

@@ -5,7 +5,6 @@ __all__ = [
 ]
 
 import rule.const
-import cmdb.const
 from .sql_execution import OracleOnlineSQLExecutionIssue
 from ....issue.base import OracleOnlineIssue
 from ....capture import OracleSQLStatToday
@@ -17,6 +16,8 @@ class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
     """sql执行特征问题"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL_STAT,)
+
+    RELATED_CAPTURE = (OracleSQLStatToday,)
 
     @classmethod
     def params_to_append_to_rule(cls,
