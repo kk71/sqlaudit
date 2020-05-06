@@ -9,6 +9,10 @@ class OracleStatsMixOfLoginUserAndTargetSchema(
         OracleBaseTargetLoginUserStatistics,
         OracleBaseTargetSchemaStatistics):
 
+    meta = {
+        "abstract": True
+    }
+
     @classmethod
     def post_generated(cls, **kwargs):
         OracleBaseTargetLoginUserStatistics.post_generated(**kwargs)
