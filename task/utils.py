@@ -12,9 +12,9 @@ from typing import NoReturn
 from redis import StrictRedis
 
 import settings
-from utils.conc_utils import *
-from models.sqlalchemy import *
 from . import const, celery_conf
+from utils.conc_utils import *
+from oracle_cmdb.task_record_id_utils import *
 
 redis_celery_broker = StrictRedis(
     host=settings.REDIS_BROKER_IP,
@@ -49,17 +49,16 @@ async def get_task(
     with make_session() as session:
         cmdb_capture_task_latest_task_id = await async_thr(
             get_latest_task_record_id,
-            session,
             status=None  # None表示不过滤状态
         )
         for t in task_q:
             t_dict = t.to_dict()
             t_dict["last_result"] = t_dict["execution_status"] = const.TASK_NEVER_RAN
-            last_task_exec_history = session.query(TaskExecHistory).filter(
-                TaskExecHistory.id == cmdb_capture_task_latest_task_id.get(t.cmdb_id, None)
+            last_task_exec_record= session.query(CMDBTaskRecord).filter(
+                CMDBTaskRecord.task_record_id == cmdb_capture_task_latest_task_id.get(t.cmdb_id, None)
             ).first()
-            if last_task_exec_history:
-                t_dict["last_result"] = last_task_exec_history.status
+            if last_task_exec_record:
+                t_dict["last_result"] = last_task_exec_record.status
             if execution_status == const.TASK_NEVER_RAN:
                 if t_dict["last_result"] is not const.TASK_NEVER_RAN:
                     continue

@@ -10,6 +10,7 @@ __all__ = [
 
 import abc
 import json
+from decimal import Decimal
 from contextlib import contextmanager
 from typing import NoReturn, List, Callable
 
@@ -55,6 +56,7 @@ class QueryEntity(List):
                 else i
                 for i in v
             ]
+        v=[float(i) if isinstance(i,Decimal) else i for i in v]
         return dict(zip(self.keys, v))
 
     @classmethod
