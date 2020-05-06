@@ -13,7 +13,6 @@ import arrow
 from mongoengine import IntField, StringField
 
 import settings
-import cmdb.const
 from .base import *
 from ...task.cmdb_task_stats import *
 from utils.log_utils import *

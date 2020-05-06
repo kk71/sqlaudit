@@ -10,12 +10,17 @@ from typing import NoReturn, Generator, List
 from mongoengine import IntField, StringField
 
 import settings
+from models.mongoengine import *
 from rule.rule_jar import *
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
 from issue.issue import *
 from ..task.cmdb_task_stats import *
 from ..cmdb import OracleCMDB
+from ..capture.base import BaseOracleCapture
+
+# 用于存放全部oracle的问题子类
+ALL_ISSUE_MODELS = []
 
 
 class OracleOnlineIssue(OnlineIssue):
@@ -41,6 +46,9 @@ class OracleOnlineIssue(OnlineIssue):
 
     COLLECTED: ["OracleOnlineIssue"] = []
 
+    # 用于存放全部oracle的问题子类
+    ALL_SUB_CLASSES = ALL_ISSUE_MODELS
+
     @staticmethod
     def build_connector(cmdb_id: int):
         return OracleCMDB.build_connector_by_cmdb_id(cmdb_id=cmdb_id)
@@ -54,6 +62,20 @@ class OracleOnlineIssue(OnlineIssue):
         for doc in docs:
             doc.task_record_id = task_record_id
             doc.schema_name = schema_name
+
+    @classmethod
+    def referred_capture(
+            cls,
+            capture_model: BaseOracleCapture,
+            **kwargs) -> mongoengine_qs:
+        """
+        按照采集模块，查找给予的问题对应的原始采集信息
+        给予的可以是issue对象，也可是issue的queryset，返回的是采集的queryset
+        :param capture_model:
+        :param kwargs:
+        :return:
+        """
+        assert capture_model in cls.RELATED_CAPTURE
 
     @classmethod
     def pack_rule_ret_to_doc(

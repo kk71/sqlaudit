@@ -2,15 +2,16 @@
 
 __all__ = ["OracleStatsSchemaRate"]
 
-from typing import NoReturn, Union, List
+from typing import Union, List, Generator
 
 from mongoengine import FloatField, DictField, BooleanField
 
-import rule.const
 from models.sqlalchemy import *
 from ..base import *
 from .base import *
-from oracle_cmdb.issue import OracleOnlineIssue
+from oracle_cmdb.issue import OracleOnlineIssue,\
+    OracleOnlineObjectIssue, OracleOnlineSQLTextIssue, \
+    OracleOnlineSQLPlanIssue, OracleOnlineSQLStatIssue, OracleOnlineSQLIssue
 from ...task.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
 from oracle_cmdb.rate import *
 
@@ -29,18 +30,20 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
         "collection": "oracle_stats_schema_rate",
     }
 
-    ENTRIES_TO_CALC = (rule.const.RULE_ENTRY_ONLINE_OBJECT,
-                       rule.const.RULE_ENTRY_ONLINE_SQL_TEXT,
-                       rule.const.RULE_ENTRY_ONLINE_SQL_PLAN,
-                       rule.const.RULE_ENTRY_ONLINE_SQL_STAT,
-                       rule.const.RULE_ENTRY_ONLINE_SQL)
+    ISSUES = (
+        OracleOnlineObjectIssue,
+        OracleOnlineSQLTextIssue,
+        OracleOnlineSQLPlanIssue,
+        OracleOnlineSQLStatIssue,
+        OracleOnlineSQLIssue
+    )
 
     @classmethod
     def generate(
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> NoReturn:
+            **kwargs) -> Generator["OracleStatsSchemaRate", None, None]:
         # 因为是针对当前库当前任务的，所以schemas以当前任务的schema为准
         schemas: List[str] = kwargs["schemas"]
 
@@ -57,7 +60,7 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
 
         for schema_name in schemas:
             doc = cls()
-            for entry in cls.ENTRIES_TO_CALC:
+            for entry in cls.issue_entries():
                 issues = OracleOnlineIssue.filter(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
@@ -70,7 +73,8 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 rule_dicts = []
                 for stats in stats_qs:
                     rule_dicts.extend(stats.rule_info)
-                doc.entry_score[entry] = OracleOnlineIssue.calc_score(issues, rule_dicts)
+                doc.entry_score[entry] = OracleOnlineIssue.calc_score(
+                    issues, rule_dicts)
             scores = doc.entry_score.values()
             doc.score_average = sum(scores) / len(scores)
             doc.score_lowest = min(scores)

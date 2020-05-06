@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 import abc
-from typing import Union, NoReturn
+from typing import Union, NoReturn, List
 
 from .rule import BaseRuleItem
 from .self_collecting_class import *
@@ -79,6 +79,9 @@ class BaseOnlineIssue(
     # 当前类以及父类继承过来的entries集合（实际类型是tuple）
     INHERITED_ENTRIES: tuple = None
 
+    # 当前类相关的采集（实际类型是tuple）
+    RELATED_CAPTURE: tuple = None
+
     @classmethod
     def simple_analyse(cls, **kwargs):
         """简单规则分析"""
@@ -97,3 +100,14 @@ class BaseOnlineIssue(
             entries_set.update(collected_models.ENTRIES)
         cls.COLLECTED_ENTRIES_SET = tuple(entries_set)
 
+    @classmethod
+    def related_capture(cls, entries: List[str]):
+        """找到issue相关的采集"""
+        assert cls.ALL_SUB_CLASSES
+        related_captures = []
+        for i in cls.ALL_SUB_CLASSES:
+            if set(i.INHERITED_ENTRIES).issuperset(entries):
+                for j in i.RELATED_CAPTURES:
+                    if j not in related_captures:
+                        related_captures.append(j)
+        return related_captures

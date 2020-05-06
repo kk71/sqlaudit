@@ -13,6 +13,7 @@ import settings
 import core.statistics
 from utils.log_utils import *
 from models.mongoengine import *
+from ..issue import OracleOnlineIssue
 
 
 class OracleBaseStatistics(
@@ -23,7 +24,7 @@ class OracleBaseStatistics(
 
     # TODO 注意，这个任务记录id和纳管库id只是说当前的统计数据是哪次任务触发的
     # TODO 并不代表当前的统计数据是这个库的
-    # TODO 因此尽量不要直接使用本基类，而是使用下面具体细化的基类进行编码
+    # TODO 因此不要直接使用本基类，而是使用下面具体细化的基类进行编码
     task_record_id = IntField(required=True)
     cmdb_id = IntField(required=True)
 
@@ -41,6 +42,8 @@ class OracleBaseStatistics(
 
     PATH_TO_IMPORT = os.path.dirname(__file__)
 
+    # 需要作统计的issue models
+    ISSUES: tuple = (OracleOnlineIssue,)
 
     @classmethod
     def post_generated(cls, **kwargs):
@@ -69,3 +72,8 @@ class OracleBaseStatistics(
                     m.objects.insert(docs)
                 counter(m.__doc__, len(docs))
 
+    @classmethod
+    def issue_entries(cls) -> tuple:
+        """返回ISSUES内所有issue的models的entries合集"""
+        ret = {j for i in cls.ISSUES for j in i.ENTRIES}
+        return tuple(ret)

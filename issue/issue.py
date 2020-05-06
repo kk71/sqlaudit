@@ -15,7 +15,6 @@ import core.issue
 import rule.cmdb_rule
 import rule.const
 import issue.exceptions
-from rule.cmdb_rule import CMDBRule
 from rule.rule_jar import *
 from models.mongoengine import *
 
@@ -168,12 +167,12 @@ class OnlineIssue(
         :param kwargs:
         :return:
         """
-        return cls.BASECLASS.filter(
+        return cls.BASE_CLASS.filter(
             entries__all=cls.INHERITED_ENTRIES).filter(*args, **kwargs)
 
     @classmethod
     def filter_with_entries(cls, *args, **kwargs):
-        return cls.BASECLASS.filter(
+        return cls.BASE_CLASS.filter(
             entries__all=cls.ENTRIES).filter(*args, **kwargs)
 
     @classmethod

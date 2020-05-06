@@ -2,14 +2,14 @@
 
 __all__ = ["OracleStatsSchemaRiskRule"]
 
-from typing import NoReturn, Union
+from typing import Union, Generator
 
 from mongoengine import DictField, IntField, StringField
 
-import rule.const as rule_const
 from ..base import *
 from .base import *
-from oracle_cmdb.issue import OracleOnlineIssue
+from oracle_cmdb.issue import \
+    OracleOnlineIssue, OracleOnlineObjectIssue, OracleOnlineSQLIssue
 from rule.cmdb_rule import CMDBRule
 
 
@@ -37,20 +37,28 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
         ]
     }
 
-    ENTRIES_TO_CALC = (rule_const.RULE_ENTRY_ONLINE_OBJECT,
-                       rule_const.RULE_ENTRY_ONLINE_SQL)
+    ISSUES = (
+        OracleOnlineObjectIssue,
+        OracleOnlineSQLIssue
+    )
 
     @classmethod
     def generate(
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> NoReturn:
+            **kwargs) -> Generator["OracleStatsSchemaRiskRule", None, None]:
         schemas: [str] = kwargs["schemas"]
         cmdb_rule_dict = dict()  # 放个缓存
 
         for schema_name in schemas:
             ret = OracleOnlineIssue.objects.aggregate(
+                {
+                    "$match": {
+                        "task_record_id": task_record_id,
+                        "schema_name": schema_name
+                    }
+                },
                 {
                     "$unwind": {
                         "path": "$entries"
@@ -58,9 +66,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                 },
                 {
                     "$match": {
-                        "task_record_id": task_record_id,
-                        "schema_name": schema_name,
-                        "entries": {"$in": cls.ENTRIES_TO_CALC}
+                        "entries": {"$in": cls.issue_entries()}
                     }
                 },
                 {

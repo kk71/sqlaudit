@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import abc
-from typing import Union, NoReturn
+from typing import Union, Generator
 
 from .self_collecting_class import *
 
@@ -32,7 +32,7 @@ class BaseStatisticItem(SelfCollectingFramework):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> NoReturn:
+            **kwargs) -> Generator["BaseStatisticItem", None, None]:
         """
         产生统计数据
         :param task_record_id: 调度当前统计的任务id

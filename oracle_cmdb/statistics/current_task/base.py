@@ -5,8 +5,6 @@ __all__ = [
     "OracleBaseCurrentTaskSchemaStatistics"
 ]
 
-from typing import List
-
 from mongoengine import StringField
 
 from ..base import OracleBaseStatistics

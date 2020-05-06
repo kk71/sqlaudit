@@ -2,7 +2,7 @@
 
 __all__ = ["OracleStatsCMDBPhySize"]
 
-from typing import NoReturn, Union
+from typing import Union, Generator
 
 from mongoengine import FloatField
 
@@ -29,7 +29,7 @@ class OracleStatsCMDBPhySize(OracleBaseCurrentTaskCMDBStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> NoReturn:
+            **kwargs) -> Generator["OracleStatsCMDBPhySize", None, None]:
         doc = cls(
             total=0,
             free=0,

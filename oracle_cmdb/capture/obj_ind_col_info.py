@@ -4,7 +4,6 @@ __all__ = [
     "OracleObjIndColInfo"
 ]
 
-
 from mongoengine import StringField, IntField
 
 from .base import SchemaObjectCapturingDoc

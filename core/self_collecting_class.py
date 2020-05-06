@@ -19,9 +19,18 @@ class SelfCollectingFrameworkMeta(abc.ABCMeta):
         super().__init__(name, bases, attrs)
 
         # 记录父类的引用
-        cls.BASECLASS = None
+        # TODO 实际只会记录最后一个父类
+        cls.BASE_CLASS = None
         if bases:
-            cls.BASECLASS = bases[-1]
+            cls.BASE_CLASS = bases[-1]
+
+        # 把当前类存入全部子类的list中
+        # TODO 暂时不支持ALL_SUB_CLASSES的重载
+        # 重载ALL_SUB_CLASSES后的子类将无法传递给上层的父类
+        if cls.ALL_SUB_CLASSES is not None \
+                and isinstance(cls.ALL_SUB_CLASSES, list):
+            if cls not in cls.ALL_SUB_CLASSES:
+                cls.ALL_SUB_CLASSES.append(cls)
 
 
 class SelfCollectingFramework(metaclass=SelfCollectingFrameworkMeta):
@@ -34,8 +43,15 @@ class SelfCollectingFramework(metaclass=SelfCollectingFrameworkMeta):
     # 执行import时文件相对路径的前缀
     RELATIVE_IMPORT_TOP_PATH_PREFIX: str = None
 
-    # 需要收集的子类
+    # 收集到的子类
+    # TODO 使用@cls.need_collect()去收集需要的子类
     COLLECTED: ["SelfCollectingFramework"] = []
+
+    # 全部子类
+    # TODO 这个地方需要放一个全局list的引用，用以存放全部子类，如果为None则不会收集
+    # 请注意这个和COLLECTED的区别，COLLECTED是收集业务所需的子类，这个是误差别的记录全部子类
+    # TODO 虽然这个和COLLECTED无关，但如果不运行cls.collect仍然会影响ALL_SUB_CLASSES内的子类
+    ALL_SUB_CLASSES = None
 
     @classmethod
     def need_collect(cls):
