@@ -1,21 +1,20 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleStatsDashboardDrilldown"
+    "OracleStatsDashboardDrillDown"
 ]
 
 from typing import Union, Generator
 
 from mongoengine import LongField, FloatField
 
-import rule.const
 from ..current_task.schema_rate import *
-from ...issue import OracleOnlineIssue
+from ...issue import *
 from .base import *
 
 
-@OracleBaseStatistics.need_collect()
-class OracleStatsDashboardDrilldown(OracleStatsMixOfLoginUserAndTargetSchema):
+# @OracleBaseStatistics.need_collect()
+class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     """仪表盘下钻数据"""
 
     num = LongField(default=0, help_text="采集到的总数")
@@ -26,17 +25,19 @@ class OracleStatsDashboardDrilldown(OracleStatsMixOfLoginUserAndTargetSchema):
     score = FloatField(default=0)
 
     meta = {
-        "collection": "oracle_stats_dashboard_drilldown"
+        "collection": "oracle_stats_dashboard_drill_down"
     }
 
     REQUIRES = (OracleStatsSchemaRate,)
 
-    ENTRIES_TO_CALC = (rule.const.RULE_ENTRY_ONLINE_SQL_TEXT,
-                       rule.const.RULE_ENTRY_ONLINE_SQL_PLAN,
-                       rule.const.RULE_ENTRY_ONLINE_SQL_STAT,
-                       rule.const.RULE_ENTRY_ONLINE_TABLE,
-                       rule.const.RULE_ENTRY_ONLINE_SEQUENCE,
-                       rule.const.RULE_ENTRY_ONLINE_INDEX)
+    ISSUES = (
+        OracleOnlineSQLTextIssue,
+        OracleOnlineSQLPlanIssue,
+        OracleOnlineSQLStatIssue,
+        OracleOnlineObjectIssueTable,
+        OracleOnlineObjectIssueSequence,
+        OracleOnlineObjectIssueIndex
+    )
 
     @classmethod
     def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
@@ -48,7 +49,7 @@ class OracleStatsDashboardDrilldown(OracleStatsMixOfLoginUserAndTargetSchema):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsDashboardDrilldown", None, None]:
+            **kwargs) -> Generator["OracleStatsDashboardDrillDown", None, None]:
         with make_session() as session:
             for the_user in cls.users(session):
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):
@@ -56,22 +57,25 @@ class OracleStatsDashboardDrilldown(OracleStatsMixOfLoginUserAndTargetSchema):
                             session,
                             cmdb_id=the_cmdb.cmdb_id,
                             login_user=the_user.login_user):
-                        for the_entry in cls.ENTRIES_TO_CALC:
+                        for issue_model in cls.ISSUES:
                             doc = cls()
                             issue_q = OracleOnlineIssue.filter(
                                 task_record_id=the_cmdb.cmdb_task(session),
                                 schema_name=the_schema_name,
-                                entries=the_entry
+                                entries__all=issue_model.ENTRIES
                             )
                             doc.problem_num += issue_q.count()
-                            related_models = OracleOnlineIssue.related_capture(
-                                [the_entry])
-                            for rm in related_models:
-                                captured_q = rm.filter(
+                            related_capture_models = \
+                                OracleOnlineIssue.related_capture(
+                                    issue_model.ENTRIES)
+                            for rcm in related_capture_models:
+                                captured_q = rcm.filter(
                                     # todo 这里必须要用model.filter
                                     task_record_id=the_cmdb.cmdb_task(session),
                                     schema_name=the_schema_name,
-                                    entries=the_entry
+                                    entries__all=issue_model.ENTRIES
                                 )
                                 doc.num += captured_q.count()
+                                doc.num_with_risk += issue_model.referred_capture(
+                                    rcm, issue_qs=captured_q).count()
                             yield doc
