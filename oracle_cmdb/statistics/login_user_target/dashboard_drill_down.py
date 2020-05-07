@@ -71,18 +71,41 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 schema_name=the_schema_name,
                                 entries__all=issue_model.ENTRIES
                             )
+                            print(f"{issue_q._query=}")
+                            # 计算问题数量
                             doc.problem_num += issue_q.count()
+
+                            # 计算问题对应的原始对象/sql数量（亦即采集到的有问题的数目）
                             related_capture_models = \
                                 OracleOnlineIssue.related_capture(
                                     issue_model.ENTRIES)
                             for rcm in related_capture_models:
+                                print(f"{rcm=}")
                                 captured_q = rcm.filter(
                                     # todo 这里必须要用model.filter
                                     task_record_id=the_cmdb_last_success_task_record_id,
-                                    schema_name=the_schema_name,
-                                    entries__all=issue_model.ENTRIES
+                                    schema_name=the_schema_name
                                 )
+                                print(f"{captured_q._query=}")
                                 doc.num += captured_q.count()
-                                doc.num_with_risk += issue_model.referred_capture(
-                                    rcm, issue_qs=captured_q).count()
+                                doc.num_with_risk += len(issue_model.referred_capture_distinct(
+                                    rcm, issue_qs=issue_q))
+
+                            # 从schema分数统计表取得分数
+                            the_score_stats = OracleStatsSchemaRate.filter(
+                                task_record_id=the_cmdb_last_success_task_record_id,
+                                schema_name=the_schema_name
+                            ).first()
+                            if the_score_stats:
+                                doc.score = the_score_stats.score_average  # 使用平均分
+
+                            cls.post_generated(
+                                doc=doc,
+                                task_record_id=task_record_id,
+                                cmdb_id=cmdb_id,
+                                target_login_user=the_user.login_user,
+                                target_schema_name=the_schema_name,
+                                target_cmdb_id=the_cmdb.cmdb_id,
+                                target_task_record_id=the_cmdb_last_success_task_record_id
+                            )
                             yield doc

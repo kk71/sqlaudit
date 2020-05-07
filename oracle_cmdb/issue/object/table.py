@@ -61,3 +61,10 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                 )
         return capture_model.filter(q)
 
+    @classmethod
+    def referred_capture_distinct(
+            cls,
+            capture_model: OracleObjectCapturingDoc,
+            **kwargs) -> list:
+        return cls.referred_capture(capture_model, **kwargs).distinct("table_name")
+
