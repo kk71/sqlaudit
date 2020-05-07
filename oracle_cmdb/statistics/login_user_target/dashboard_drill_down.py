@@ -13,7 +13,7 @@ from ...issue import *
 from .base import *
 
 
-# @OracleBaseStatistics.need_collect()
+@OracleBaseStatistics.need_collect()
 class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     """仪表盘下钻数据"""
 
