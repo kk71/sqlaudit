@@ -1,8 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "ObjectCapturingDoc",
-    "SchemaObjectCapturingDoc"
+    "OracleObjectCapturingDoc",
+    "OracleSchemaObjectCapturingDoc"
 ]
 
 from typing import NoReturn
@@ -15,7 +15,7 @@ from models.mongoengine import *
 from oracle_cmdb.plain_db import OraclePlainConnector
 
 
-class ObjectCapturingDoc(
+class OracleObjectCapturingDoc(
         BaseDoc,
         BaseOracleCapture,
         metaclass=SelfCollectingTopLevelDocumentMetaclass):
@@ -37,7 +37,7 @@ class ObjectCapturingDoc(
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
-        docs: ["ObjectCapturingDoc"] = kwargs["docs"]
+        docs: ["OracleObjectCapturingDoc"] = kwargs["docs"]
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
 
@@ -48,7 +48,7 @@ class ObjectCapturingDoc(
             })
 
     @classmethod
-    def process(cls, collected: ["ObjectCapturingDoc"] = None, **kwargs):
+    def process(cls, collected: ["OracleObjectCapturingDoc"] = None, **kwargs):
         if collected is None:
             collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
@@ -75,7 +75,7 @@ class ObjectCapturingDoc(
             print(f"{len(docs_inserted)} captured.")
 
 
-class SchemaObjectCapturingDoc(ObjectCapturingDoc):
+class OracleSchemaObjectCapturingDoc(OracleObjectCapturingDoc):
     """面向schema的对象采集"""
 
     schema_name = StringField(required=True)
@@ -91,7 +91,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
-        docs: ["SchemaObjectCapturingDoc"] = kwargs["docs"]
+        docs: ["OracleSchemaObjectCapturingDoc"] = kwargs["docs"]
         cmdb_id: int = kwargs["cmdb_id"]
         task_record_id: int = kwargs["task_record_id"]
         obj_owner: str = kwargs["obj_owner"]
@@ -104,7 +104,7 @@ class SchemaObjectCapturingDoc(ObjectCapturingDoc):
             })
 
     @classmethod
-    def process(cls, collected: ["SchemaObjectCapturingDoc"] = None, **kwargs):
+    def process(cls, collected: ["OracleSchemaObjectCapturingDoc"] = None, **kwargs):
         if collected is None:
             collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]

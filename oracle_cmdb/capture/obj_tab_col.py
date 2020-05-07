@@ -6,11 +6,11 @@ __all__ = [
 
 from mongoengine import StringField, IntField, FloatField, DynamicField
 
-from .base import SchemaObjectCapturingDoc
+from .base import OracleSchemaObjectCapturingDoc
 
 
-@SchemaObjectCapturingDoc.need_collect()
-class OracleObjTabCol(SchemaObjectCapturingDoc):
+@OracleSchemaObjectCapturingDoc.need_collect()
+class OracleObjTabCol(OracleSchemaObjectCapturingDoc):
     """表列信息"""
 
     owner = StringField(null=True)

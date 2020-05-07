@@ -41,11 +41,6 @@ class BaseStatisticItem(SelfCollectingFramework):
         pass
 
     @classmethod
-    def check_requires(cls):
-        """检查依赖关系"""
-        pass
-
-    @classmethod
     def collect(cls):
         """
         重载collect，以实现收集之后即检查依赖关系的功能
@@ -59,6 +54,8 @@ class BaseStatisticItem(SelfCollectingFramework):
         while collected:
             loop_times += 1
             assert loop_times <= cls.MAX_REQUIREMENT_LOOP
+            for a_require in collected[0].REQUIRES:
+                assert issubclass(a_require, cls)
             if set(collected[0].REQUIRES).issubset(ordered_collected):
                 ordered_collected.append(collected[0])
                 del collected[0]

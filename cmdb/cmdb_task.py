@@ -8,7 +8,6 @@ __all__ = [
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 
 from models.sqlalchemy import BaseModel
-from task.const import ALL_TASK_EXECUTION_STATUS
 
 
 class CMDBTask(BaseModel):
@@ -23,7 +22,6 @@ class CMDBTask(BaseModel):
     group_name = Column("group_name", String)
     db_type = Column("db_type", String)
     status = Column("status", Boolean, default=True)  # 启用或者禁用
-    execution_status = Column("execution_status",Integer,default=ALL_TASK_EXECUTION_STATUS[0])
     schedule_time = Column("schedule_time", String, default="22:00", nullable=True)
     frequency = Column("frequency", Integer, default=60*60*24, nullable=True)  # 单位分钟
     exec_count = Column("exec_count", Integer, default=0)

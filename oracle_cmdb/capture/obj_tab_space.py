@@ -8,11 +8,11 @@ from typing import NoReturn
 
 from mongoengine import StringField, FloatField
 
-from .base import ObjectCapturingDoc
+from .base import OracleObjectCapturingDoc
 
 
-@ObjectCapturingDoc.need_collect()
-class OracleObjTabSpace(ObjectCapturingDoc):
+@OracleObjectCapturingDoc.need_collect()
+class OracleObjTabSpace(OracleObjectCapturingDoc):
     """表空间信息"""
 
     tablespace_name = StringField(null=True)
@@ -45,7 +45,7 @@ class OracleObjTabSpace(ObjectCapturingDoc):
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
-        ObjectCapturingDoc.post_captured(**kwargs)
+        OracleObjectCapturingDoc.post_captured(**kwargs)
         docs: ["OracleObjTabSpace"] = kwargs["docs"]
         for d in docs:
             d.total = float(d.total)

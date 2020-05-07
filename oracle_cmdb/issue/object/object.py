@@ -11,7 +11,7 @@ from models.sqlalchemy import *
 from rule.cmdb_rule import CMDBRule
 from oracle_cmdb.issue.base import *
 from oracle_cmdb.cmdb import *
-from ...capture.base.obj import ObjectCapturingDoc
+from ...capture.base.obj import OracleObjectCapturingDoc
 
 
 @OracleOnlineIssue.need_collect()
@@ -22,7 +22,7 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_OBJECT,)
 
-    RELATED_CAPTURE = (ObjectCapturingDoc,)
+    RELATED_CAPTURE = (OracleObjectCapturingDoc,)
 
     meta = {
         "allow_inheritance": True

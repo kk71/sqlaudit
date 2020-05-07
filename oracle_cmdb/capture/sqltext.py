@@ -7,11 +7,11 @@ __all__ = [
 
 from mongoengine import StringField, IntField
 
-from .base import SQLCapturingDoc
+from .base import OracleSQLCapturingDoc
 
 
-@SQLCapturingDoc.need_collect()
-class OracleSQLText(SQLCapturingDoc):
+@OracleSQLCapturingDoc.need_collect()
+class OracleSQLText(OracleSQLCapturingDoc):
     """sql文本信息"""
 
     dbid = IntField(null=True)

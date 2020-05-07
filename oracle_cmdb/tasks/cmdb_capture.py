@@ -43,14 +43,14 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         BaseOracleCapture.collect()
 
         print("================== CMDB capture ==================")
-        ObjectCapturingDoc.process(
+        OracleObjectCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn
         )
 
         print("============== Schema Object capture ==============")
-        SchemaObjectCapturingDoc.process(
+        OracleSchemaObjectCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,
@@ -58,7 +58,7 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         )
 
         print("=============== Schema SQL capture ===============")
-        SQLCapturingDoc.process(
+        OracleSQLCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,
@@ -67,7 +67,7 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
         )
 
         print("=========== Schema SQL two-days capture ===========")
-        TwoDaysSQLCapturingDoc.process(
+        OracleTwoDaysSQLCapturingDoc.process(
             cmdb_id=cmdb_id,
             task_record_id=task_record_id,
             cmdb_connector=cmdb_conn,

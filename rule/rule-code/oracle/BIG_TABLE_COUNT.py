@@ -6,7 +6,7 @@ def code(rule, entries, **kwargs):
     cmdb_connector = kwargs["cmdb_connector"]
 
     sql = f"""
-    SELECT segment_name, segment_type, bytes / 1024 / 1024 tab_space
+    SELECT segment_name as table_name, segment_type, bytes / 1024 / 1024 tab_space
         FROM dba_segments
         WHERE segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')
             AND owner = '{schema_name}'

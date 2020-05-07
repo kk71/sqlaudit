@@ -8,11 +8,11 @@ from typing import NoReturn
 
 from mongoengine import StringField, IntField
 
-from .base import SchemaObjectCapturingDoc
+from .base import OracleSchemaObjectCapturingDoc
 
 
-@SchemaObjectCapturingDoc.need_collect()
-class OracleObjSeqInfo(SchemaObjectCapturingDoc):
+@OracleSchemaObjectCapturingDoc.need_collect()
+class OracleObjSeqInfo(OracleSchemaObjectCapturingDoc):
     """序列信息"""
 
     min_value = StringField(null=True)
@@ -47,7 +47,7 @@ class OracleObjSeqInfo(SchemaObjectCapturingDoc):
 
     @classmethod
     def post_captured(cls, **kwargs) -> NoReturn:
-        SchemaObjectCapturingDoc.post_captured(**kwargs)
+        OracleSchemaObjectCapturingDoc.post_captured(**kwargs)
         docs: ["OracleObjSeqInfo"] = kwargs["docs"]
         for d in docs:
             d.min_value = str(d.min_value)

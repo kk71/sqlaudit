@@ -6,11 +6,11 @@ __all__ = [
 
 from mongoengine import StringField, IntField
 
-from .base import SchemaObjectCapturingDoc
+from .base import OracleSchemaObjectCapturingDoc
 
 
-@SchemaObjectCapturingDoc.need_collect()
-class OracleObjIndColInfo(SchemaObjectCapturingDoc):
+@OracleSchemaObjectCapturingDoc.need_collect()
+class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
     """索引列信息"""
 
     index_owner = StringField(null=True)

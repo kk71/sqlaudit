@@ -9,7 +9,7 @@ from collections import defaultdict
 import rule.const
 from models.mongoengine import *
 from .object import *
-from ...capture.obj_seq_info import OracleObjSeqInfo
+from ...capture import OracleObjSeqInfo, OracleObjectCapturingDoc
 
 
 class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
@@ -25,7 +25,7 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
     @classmethod
     def referred_capture(
             cls,
-            capture_model,
+            capture_model: OracleObjectCapturingDoc,
             **kwargs) -> mongoengine_qs:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]

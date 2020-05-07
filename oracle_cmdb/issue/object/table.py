@@ -9,7 +9,8 @@ from collections import defaultdict
 import rule.const
 from models.mongoengine import *
 from .object import *
-from ...capture import OracleObjTabCol, OracleObjTabInfo, OracleObjPartTabParent
+from ...capture import OracleObjTabCol, OracleObjTabInfo, \
+    OracleObjPartTabParent, OracleObjectCapturingDoc
 
 
 class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
@@ -29,7 +30,7 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
     @classmethod
     def referred_capture(
             cls,
-            capture_model,
+            capture_model: OracleObjectCapturingDoc,
             **kwargs) -> mongoengine_qs:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
@@ -41,8 +42,8 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                 "schema_name",
                 "output_params"):
             index_unique_key = (
-                output_params.owner,
-                output_params.table_name
+                # output_params.table_owner,
+                output_params.table_name,
             )
             if not all(index_unique_key):
                 continue

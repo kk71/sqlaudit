@@ -1,8 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "SQLCapturingDoc",
-    "TwoDaysSQLCapturingDoc"
+    "OracleSQLCapturingDoc",
+    "OracleTwoDaysSQLCapturingDoc"
 ]
 
 from datetime import datetime
@@ -22,7 +22,7 @@ from oracle_cmdb.plain_db import OraclePlainConnector
 from utils.datetime_utils import dt_to_str
 
 
-class SQLCapturingDoc(
+class OracleSQLCapturingDoc(
         BaseDoc,
         BaseOracleCapture,
         metaclass=SelfCollectingTopLevelDocumentMetaclass):
@@ -167,7 +167,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
     @classmethod
     def _schema_sql_capture(cls,
                             a_schema: str,
-                            m: "SQLCapturingDoc",
+                            m: "OracleSQLCapturingDoc",
                             **kwargs) -> int:
         """
         单个schema的sql采集
@@ -211,7 +211,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
         return len(docs_inserted)
 
     @classmethod
-    def process(cls, collected: ["SQLCapturingDoc"] = None, **kwargs):
+    def process(cls, collected: ["OracleSQLCapturingDoc"] = None, **kwargs):
         if collected is None:
             collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]
@@ -248,7 +248,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
                     schema_counter(a_schema, captured_num)
 
 
-class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
+class OracleTwoDaysSQLCapturingDoc(OracleSQLCapturingDoc):
     """需要采集两天的sql数据"""
 
     two_days_capture = StringField(choices=const.ALL_TWO_DAYS_CAPTURE)
@@ -267,12 +267,12 @@ class TwoDaysSQLCapturingDoc(SQLCapturingDoc):
         docs: [cls] = kwargs["docs"]
         two_days_capture: str = kwargs["two_days_capture"]
 
-        SQLCapturingDoc.post_captured(**kwargs)
+        OracleSQLCapturingDoc.post_captured(**kwargs)
         for doc in docs:
             doc.two_days_capture = two_days_capture
 
     @classmethod
-    def process(cls, collected: ["TwoDaysSQLCapturingDoc"] = None, **kwargs):
+    def process(cls, collected: ["OracleTwoDaysSQLCapturingDoc"] = None, **kwargs):
         if collected is None:
             collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]

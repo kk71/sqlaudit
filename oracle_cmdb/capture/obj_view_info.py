@@ -6,11 +6,11 @@ __all__ = [
 
 from mongoengine import StringField
 
-from .base import SchemaObjectCapturingDoc
+from .base import OracleSchemaObjectCapturingDoc
 
 
-@SchemaObjectCapturingDoc.need_collect()
-class OracleObjViewInfo(SchemaObjectCapturingDoc):
+@OracleSchemaObjectCapturingDoc.need_collect()
+class OracleObjViewInfo(OracleSchemaObjectCapturingDoc):
     """视图信息"""
 
     obj_pk = StringField(null=True)

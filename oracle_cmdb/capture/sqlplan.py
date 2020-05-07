@@ -10,12 +10,12 @@ from typing import NoReturn
 
 from mongoengine import StringField, IntField
 
-from .base import TwoDaysSQLCapturingDoc
+from .base import OracleTwoDaysSQLCapturingDoc
 from .. import const
 
 
-@TwoDaysSQLCapturingDoc.need_collect()
-class OracleSQLPlan(TwoDaysSQLCapturingDoc):
+@OracleTwoDaysSQLCapturingDoc.need_collect()
+class OracleSQLPlan(OracleTwoDaysSQLCapturingDoc):
     """sql执行计划"""
 
     # 带缩进用于展示的执行计划

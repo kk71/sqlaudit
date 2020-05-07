@@ -8,12 +8,12 @@ __all__ = [
 
 from mongoengine import StringField, IntField, FloatField
 
-from .base import TwoDaysSQLCapturingDoc
+from .base import OracleTwoDaysSQLCapturingDoc
 from .. import const
 
 
-@TwoDaysSQLCapturingDoc.need_collect()
-class OracleSQLStat(TwoDaysSQLCapturingDoc):
+@OracleTwoDaysSQLCapturingDoc.need_collect()
+class OracleSQLStat(OracleTwoDaysSQLCapturingDoc):
     """sql执行特征"""
 
     sql_id = StringField(null=True)
