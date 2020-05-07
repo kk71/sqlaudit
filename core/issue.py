@@ -111,5 +111,4 @@ class BaseOnlineIssue(
                 for j in i.RELATED_CAPTURE:
                     if j not in related_captures:
                         related_captures.append(j)
-        print(related_captures)
         return related_captures

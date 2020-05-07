@@ -71,6 +71,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 schema_name=the_schema_name,
                                 entries__all=issue_model.ENTRIES
                             )
+                            print(f"{issue_q._query=}")
                             # 计算问题数量
                             doc.problem_num += issue_q.count()
 
@@ -79,14 +80,16 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 OracleOnlineIssue.related_capture(
                                     issue_model.ENTRIES)
                             for rcm in related_capture_models:
+                                print(f"{rcm=}")
                                 captured_q = rcm.filter(
                                     # todo 这里必须要用model.filter
                                     task_record_id=the_cmdb_last_success_task_record_id,
                                     schema_name=the_schema_name
                                 )
+                                print(f"{captured_q._query=}")
                                 doc.num += captured_q.count()
                                 doc.num_with_risk += issue_model.referred_capture_count(
-                                    rcm, issue_qs=captured_q)
+                                    rcm, issue_qs=issue_q)
 
                             # 从schema分数统计表取得分数
                             the_score_stats = OracleStatsSchemaRate.filter(
