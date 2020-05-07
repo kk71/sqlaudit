@@ -171,6 +171,22 @@
                 "kai.fang",
                 "yongjie.han"
             ]
+        },
+        {
+            "create_time": "2020-05-07 21:31:29",
+            "version": [
+                1,
+                1,
+                6
+            ],
+            "version_name": "updated",
+            "client_name": "bsz",
+            "msg": "调整默认规则，风险排名按严重程度及触犯次数综合排名等",
+            "developers": [
+                "cuicui.zhang",
+                "kai.fang",
+                "yongjie.han"
+            ]
         }
     ]
 }
