@@ -53,6 +53,13 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
         with make_session() as session:
             for the_user in cls.users(session):
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):
+
+                    # 当前库的最后一次成功采集
+                    the_cmdb_last_success_task_record_id = the_cmdb.cmdb_task(
+                        session).last_success_task_record_id
+                    if not the_cmdb_last_success_task_record_id:
+                        continue  # 如果一次成功都没有则忽略当前库
+
                     for the_schema_name in cls.schemas(
                             session,
                             cmdb_id=the_cmdb.cmdb_id,
@@ -60,7 +67,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                         for issue_model in cls.ISSUES:
                             doc = cls()
                             issue_q = OracleOnlineIssue.filter(
-                                task_record_id=the_cmdb.cmdb_task(session),
+                                task_record_id=the_cmdb_last_success_task_record_id,
                                 schema_name=the_schema_name,
                                 entries__all=issue_model.ENTRIES
                             )
@@ -71,7 +78,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                             for rcm in related_capture_models:
                                 captured_q = rcm.filter(
                                     # todo 这里必须要用model.filter
-                                    task_record_id=the_cmdb.cmdb_task(session),
+                                    task_record_id=the_cmdb_last_success_task_record_id,
                                     schema_name=the_schema_name,
                                     entries__all=issue_model.ENTRIES
                                 )
