@@ -108,7 +108,7 @@ class BaseOnlineIssue(
         related_captures = []
         for i in cls.ALL_SUB_CLASSES:
             if set(i.INHERITED_ENTRIES).issuperset(entries):
-                for j in i.RELATED_CAPTURES:
+                for j in i.RELATED_CAPTURE:
                     if j not in related_captures:
                         related_captures.append(j)
         return related_captures
