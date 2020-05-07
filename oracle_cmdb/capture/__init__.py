@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from .base import *
+
 from .obj_ind_col_info import *
 from .obj_part_tab_parent import *
 from .obj_seq_info import *

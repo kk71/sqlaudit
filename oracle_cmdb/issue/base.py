@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import os.path
-from typing import NoReturn, Generator, List
+from typing import NoReturn, Generator, List, Union
 
 from mongoengine import IntField, StringField
 
@@ -17,7 +17,8 @@ from rule.cmdb_rule import CMDBRule
 from issue.issue import *
 from ..task.cmdb_task_stats import *
 from ..cmdb import OracleCMDB
-from ..capture.base import BaseOracleCapture
+from ..capture.base import BaseOracleCapture, OracleSQLCapturingDoc,\
+    OracleObjectCapturingDoc
 
 # 用于存放全部oracle的问题子类
 ALL_ISSUE_MODELS = []
@@ -69,13 +70,26 @@ class OracleOnlineIssue(OnlineIssue):
             capture_model: BaseOracleCapture,
             **kwargs) -> mongoengine_qs:
         """
-        按照采集模块，查找给予的问题对应的原始采集信息
+        按照采集模块，查找给予的问题对应的采集信息
+        issue的输出数据会因为原始数据的不同而格式不同，
+        比如对于sql来说，原始数据实际就是schema_name+sql_id，
+        对于对象而言，各种对象的唯一表示字段名不尽相同，
+        因此需要分门别类处理不同的issue对应的采集信息
+        对于issue的输出，也需要rule在输出字段中配合
+
         给予的可以是issue对象，也可是issue的queryset，返回的是采集的queryset
         :param capture_model:
         :param kwargs:
         :return:
         """
         assert capture_model in cls.RELATED_CAPTURE
+
+    @classmethod
+    def related_capture(
+            cls,
+            entries: List[str]) -> List[
+                Union[OracleSQLCapturingDoc, OracleObjectCapturingDoc]]:
+        return super().related_capture(entries)
 
     @classmethod
     def pack_rule_ret_to_doc(

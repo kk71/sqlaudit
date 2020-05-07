@@ -2557,8 +2557,8 @@
         ],
         "output_params": [
             {
-                "name": "segment_name",
-                "desc": "段名",
+                "name": "table_name",
+                "desc": "表名（段名）",
                 "unit": "",
                 "data_type": "STR",
                 "_cls": "RuleOutputParams",
@@ -2581,7 +2581,7 @@
                 "optional": false
             }
         ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT segment_name, segment_type, bytes / 1024 / 1024 tab_space\n        FROM dba_segments\n        WHERE segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND owner = '{schema_name}'\n            AND segment_name NOT LIKE 'BIN%'\n            and bytes / 1024 / 1024 >= {rule.gip('tab_phy_size')}\n        ORDER BY 3 DESC\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
+        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    SELECT segment_name as table_name, segment_type, bytes / 1024 / 1024 tab_space\n        FROM dba_segments\n        WHERE segment_type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION')\n            AND owner = '{schema_name}'\n            AND segment_name NOT LIKE 'BIN%'\n            and bytes / 1024 / 1024 >= {rule.gip('tab_phy_size')}\n        ORDER BY 3 DESC\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "表的规模过大,将影响表的访问效率、增加维护成本等",
         "solution": [
@@ -3169,7 +3169,7 @@
     },
     {
         "name": "TABLE_COL_NUM",
-        "desc": "大于阀值数量字段的表",
+        "desc": "大于阈值数量字段的表",
         "db_type": "oracle",
         "entries": [
             "ONLINE",

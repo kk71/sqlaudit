@@ -8,12 +8,12 @@ from typing import NoReturn
 
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
-from .base import SchemaObjectCapturingDoc
+from .base import OracleSchemaObjectCapturingDoc
 from ..plain_db import OraclePlainConnector
 
 
-@SchemaObjectCapturingDoc.need_collect()
-class OracleObjPartTabParent(SchemaObjectCapturingDoc):
+@OracleSchemaObjectCapturingDoc.need_collect()
+class OracleObjPartTabParent(OracleSchemaObjectCapturingDoc):
     """分区表父"""
 
     owner = StringField(null=True)

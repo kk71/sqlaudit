@@ -9,6 +9,7 @@ import abc
 from typing import Union, NoReturn, List
 
 from .rule import BaseRuleItem
+from .capture import BaseCaptureItem
 from .self_collecting_class import *
 
 
@@ -101,8 +102,8 @@ class BaseOnlineIssue(
         cls.COLLECTED_ENTRIES_SET = tuple(entries_set)
 
     @classmethod
-    def related_capture(cls, entries: List[str]):
-        """找到issue相关的采集"""
+    def related_capture(cls, entries: List[str]) -> List[BaseCaptureItem]:
+        """找到issue相关的capture"""
         assert cls.ALL_SUB_CLASSES
         related_captures = []
         for i in cls.ALL_SUB_CLASSES:

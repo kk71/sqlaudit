@@ -13,7 +13,7 @@ from models.mongoengine import *
 from issue.issue import OnlineIssueOutputParams
 import rule.const
 from oracle_cmdb.issue.base import *
-from ...capture.base.sql import SQLCapturingDoc
+from ...capture.base.sql import OracleSQLCapturingDoc
 
 
 class OracleOnlineIssueOutputParamsSQL(OnlineIssueOutputParams):
@@ -39,12 +39,12 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL,)
 
-    RELATED_CAPTURE = (SQLCapturingDoc,)
+    RELATED_CAPTURE = (OracleSQLCapturingDoc,)
 
     @classmethod
     def referred_capture(
             cls,
-            capture_model,
+            capture_model: OracleSQLCapturingDoc,
             **kwargs) -> mongoengine_qs:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
