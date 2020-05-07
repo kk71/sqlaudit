@@ -98,6 +98,8 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
 
                             cls.post_generated(
                                 doc=doc,
+                                task_record_id=task_record_id,
+                                cmdb_id=cmdb_id,
                                 target_login_user=the_user.login_user,
                                 target_schema_name=the_schema_name,
                                 target_cmdb_id=the_cmdb.cmdb_id,
