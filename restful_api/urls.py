@@ -16,6 +16,7 @@ dynamic_url_modules = [
     "oracle_cmdb",
     "task",
     "rule",
+    "coupling",
 ]
 
 urls = [

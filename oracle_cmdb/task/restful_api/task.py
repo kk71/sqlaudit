@@ -44,7 +44,7 @@ class TaskHandler(PrivilegeReq):
                                             CMDBTask.status,
                                             CMDBTask.execution_status,
                                             CMDBTask.cmdb_id)
-            current_cmdb_ids = current_cmdb(self.current_user)
+            current_cmdb_ids = current_cmdb(session,self.current_user)
             if not self.is_admin():
                 task_q = task_q.filter(CMDBTask.cmdb_id.in_(current_cmdb_ids))
             ret = await utils.get_task(

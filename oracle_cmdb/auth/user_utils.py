@@ -14,17 +14,17 @@ from ..cmdb import *
 from .role import *
 
 
-def current_cmdb(login_user: str) -> [int]:
+def current_cmdb(session,login_user: str) -> [int]:
     """获取某个用户可见的cmdb_id"""
     role_ids: list = list(auth.utils.role_of_user(login_user=login_user).
                           get(login_user, set([])))
-    with make_session() as session:
-        return [
-            i[0]
-            for i in session.query(RoleOracleCMDBSchema.cmdb_id.distinct()).
-            join(OracleCMDB, OracleCMDB.cmdb_id == RoleOracleCMDBSchema.cmdb_id).
-            filter(RoleOracleCMDBSchema.role_id.in_(role_ids))
-        ]
+
+    return [
+        i[0]
+        for i in session.query(RoleOracleCMDBSchema.cmdb_id.distinct()).
+        join(OracleCMDB, OracleCMDB.cmdb_id == RoleOracleCMDBSchema.cmdb_id).
+        filter(RoleOracleCMDBSchema.role_id.in_(role_ids))
+    ]
 
 
 def current_schema(

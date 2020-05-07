@@ -5,12 +5,13 @@ from collections import defaultdict
 
 from ..cmdb import *
 from ..auth.user_utils import *
-from ..cmdb_utils import get_latest_cmdb_score
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from models.sqlalchemy import *
 from restful_api.modules import as_view
 from auth.restful_api.base import AuthReq
+from oracle_cmdb.cmdb_utils import get_latest_cmdb_score
+
 
 @as_view("score_trend", group="cmdb")
 class CMDBHealthTrendHandler(AuthReq):
@@ -25,11 +26,11 @@ class CMDBHealthTrendHandler(AuthReq):
 
         with make_session() as session:
             if not cmdb_id_list:
-                cmdb_id_list = current_cmdb(user_login=self.current_user)
+                cmdb_id_list = current_cmdb(session,user_login=self.current_user)
                 # 如果没有给出cmdb_id，则把最差的前十个拿出来
                 cmdb_id_list = [
                                    i
-                                   for i in get_latest_cmdb_score().keys()
+                                   for i in get_latest_cmdb_score(session).keys()
                                    if i in cmdb_id_list
                                ][:10]
             fields = set()
