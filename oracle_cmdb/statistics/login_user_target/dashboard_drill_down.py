@@ -88,8 +88,8 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 )
                                 print(f"{captured_q._query=}")
                                 doc.num += captured_q.count()
-                                doc.num_with_risk += issue_model.referred_capture_count(
-                                    rcm, issue_qs=issue_q)
+                                doc.num_with_risk += len(issue_model.referred_capture_distinct(
+                                    rcm, issue_qs=issue_q))
 
                             # 从schema分数统计表取得分数
                             the_score_stats = OracleStatsSchemaRate.filter(

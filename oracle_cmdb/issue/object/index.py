@@ -57,9 +57,9 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
         return capture_model.filter(q)
 
     @classmethod
-    def referred_capture_count(
+    def referred_capture_distinct(
             cls,
             capture_model: OracleObjectCapturingDoc,
-            **kwargs) -> int:
+            **kwargs) -> list:
         return cls.referred_capture(capture_model, **kwargs).distinct("index_name")
 
