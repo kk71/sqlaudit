@@ -71,3 +71,10 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
                 )
         return capture_model.filter(q)
 
+    @classmethod
+    def referred_capture_count(
+            cls,
+            capture_model: OracleSQLCapturingDoc,
+            **kwargs) -> int:
+        return cls.referred_capture(capture_model, **kwargs).distinct("sql_id")
+

@@ -85,6 +85,14 @@ class OracleOnlineIssue(OnlineIssue):
         assert capture_model in cls.RELATED_CAPTURE
 
     @classmethod
+    def referred_capture_count(
+            cls,
+            capture_model: BaseOracleCapture,
+            **kwargs) -> int:
+        """cls.referred_capture返回的是查询集，这里会去重计算个数"""
+        raise NotImplementedError
+
+    @classmethod
     def related_capture(
             cls,
             entries: List[str]) -> List[
