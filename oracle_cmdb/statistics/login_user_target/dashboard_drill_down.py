@@ -73,7 +73,6 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 schema_name=the_schema_name,
                                 entries__all=issue_model.ENTRIES
                             )
-                            print(f"{issue_q._query=}")
                             # 计算问题数量
                             doc.problem_num += issue_q.count()
 
@@ -88,7 +87,6 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                     task_record_id=the_cmdb_last_success_task_record_id,
                                     schema_name=the_schema_name
                                 )
-                                print(f"{captured_q._query=}")
                                 doc.num += captured_q.count()
                                 doc.num_with_risk += len(issue_model.referred_capture_distinct(
                                     rcm, issue_qs=issue_q))
@@ -99,8 +97,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 schema_name=the_schema_name
                             ).first()
                             if the_score_stats:
-                                doc.score = getattr(
-                                    the_score_stats.entry_score, doc.entry, None)
+                                doc.score = the_score_stats.entry_score.get(doc.entry, None)
 
                             cls.post_generated(
                                 doc=doc,

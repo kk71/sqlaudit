@@ -38,9 +38,7 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
                 "output_params"):
             if getattr(output_params, "index_name", None) is None:
                 continue
-            index_unique_key = (
-                output_params.index_name,
-            )
+            index_unique_key = output_params.index_name
             if not all(index_unique_key):
                 continue
             l = obj[task_record_id][schema_name]
@@ -52,7 +50,7 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
                 q = q | Q(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
-                    index_name=obj_unique_key[0]
+                    index_name__in=obj_unique_key
                 )
         return capture_model.filter(q)
 

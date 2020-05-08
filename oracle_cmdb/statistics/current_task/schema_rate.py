@@ -75,7 +75,8 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 rule_dicts = []
                 for stats in stats_qs:
                     rule_dicts.extend(stats.rule_info)
-                print(f"{rule_dicts=}")
+                if not rule_dicts:
+                    print(f"{rule_dicts=}")
                 doc.entry_score[entry] = oracle_cmdb.issue.OracleOnlineIssue.calc_score(
                     issues, rule_dicts)
             scores = doc.entry_score.values()
