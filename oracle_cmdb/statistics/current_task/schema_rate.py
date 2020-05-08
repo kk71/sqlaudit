@@ -6,12 +6,10 @@ from typing import Union, List, Generator
 
 from mongoengine import FloatField, DictField, BooleanField
 
+import oracle_cmdb.issue
 from models.sqlalchemy import *
 from ..base import *
 from .base import *
-from oracle_cmdb.issue import OracleOnlineIssue,\
-    OracleOnlineObjectIssue, OracleOnlineSQLTextIssue, \
-    OracleOnlineSQLPlanIssue, OracleOnlineSQLStatIssue, OracleOnlineSQLIssue
 from ...task.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
 from oracle_cmdb.rate import *
 
@@ -31,11 +29,14 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
     }
 
     ISSUES = (
-        OracleOnlineObjectIssue,
-        OracleOnlineSQLTextIssue,
-        OracleOnlineSQLPlanIssue,
-        OracleOnlineSQLStatIssue,
-        OracleOnlineSQLIssue
+        oracle_cmdb.issue.OracleOnlineObjectIssue,
+        oracle_cmdb.issue.OracleOnlineSQLTextIssue,
+        oracle_cmdb.issue.OracleOnlineSQLPlanIssue,
+        oracle_cmdb.issue.OracleOnlineSQLStatIssue,
+        oracle_cmdb.issue.OracleOnlineSQLIssue,
+        oracle_cmdb.issue.OracleOnlineObjectIssueIndex,
+        oracle_cmdb.issue.OracleOnlineObjectIssueTable,
+        oracle_cmdb.issue.OracleOnlineObjectIssueSequence
     )
 
     @classmethod
@@ -61,7 +62,7 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
         for schema_name in schemas:
             doc = cls()
             for entry in cls.issue_entries():
-                issues = OracleOnlineIssue.filter(
+                issues = oracle_cmdb.issue.OracleOnlineIssue.filter(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
                     entries=entry

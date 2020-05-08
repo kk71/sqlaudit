@@ -17,6 +17,7 @@ from .base import *
 class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     """仪表盘下钻数据"""
 
+    entry = StringField()
     num = LongField(default=0, help_text="采集到的总数")
     num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
     # num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
@@ -65,7 +66,8 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                             cmdb_id=the_cmdb.cmdb_id,
                             login_user=the_user.login_user):
                         for issue_model in cls.ISSUES:
-                            doc = cls()
+                            # 假设这里的entries元组长度为1
+                            doc = cls(entry=issue_model.ENTRIES[0])
                             issue_q = OracleOnlineIssue.filter(
                                 task_record_id=the_cmdb_last_success_task_record_id,
                                 schema_name=the_schema_name,
@@ -97,7 +99,8 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 schema_name=the_schema_name
                             ).first()
                             if the_score_stats:
-                                doc.score = the_score_stats.score_average  # 使用平均分
+                                doc.score = getattr(
+                                    the_score_stats.entry_score, doc.entry, None)
 
                             cls.post_generated(
                                 doc=doc,
