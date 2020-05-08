@@ -42,7 +42,6 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                 "schema_name",
                 "output_params"):
             index_unique_key = (
-                # output_params.table_owner,
                 output_params.table_name,
             )
             if not all(index_unique_key):

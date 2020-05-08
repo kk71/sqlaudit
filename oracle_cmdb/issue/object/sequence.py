@@ -37,7 +37,6 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
                 "schema_name",
                 "output_params"):
             index_unique_key = (
-                output_params.sequence_owner,
                 output_params.sequence_name
             )
             if not all(index_unique_key):
