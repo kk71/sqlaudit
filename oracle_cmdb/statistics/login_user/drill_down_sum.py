@@ -60,7 +60,10 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
                         doc.num += drill_down_stats.num
                         doc.num_with_risk += drill_down_stats.num_with_risk
                         doc.issue_num += drill_down_stats.issue_num
-                    doc.num_with_risk_rate = round(doc.num_with_risk / doc.num, 4)
+                    if doc.num > 0:
+                        doc.num_with_risk_rate = round(doc.num_with_risk / doc.num, 4)
+                    else:
+                        doc.num_with_risk_rate = 0
                     cls.post_generated(
                         doc=doc,
                         task_record_id=task_record_id,
