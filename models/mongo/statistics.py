@@ -694,7 +694,7 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                                 risk_rule_name_sql_num_dict[rule_name]["violation_num"] += 1
                                 risk_rule_name_sql_num_dict[rule_name]["schema_set"]. \
                                     add(result.schema_name)
-                    doc.risk_rule_rank = [
+                    risk_rule_ranks=[
                         {
                             "rule_name": rule_name,
                             "num": k["violation_num"],
@@ -702,6 +702,12 @@ class StatsCMDBLoginUser(BaseStatisticsDoc):
                             "severity": k["severity"],
                         } for rule_name, k in risk_rule_name_sql_num_dict.items()
                     ]
+                    risk_rule_rank = []
+                    for x in risk_rule_ranks:
+                        if x['num'] == 0:
+                            continue
+                        risk_rule_rank.append(x)
+                    doc.risk_rule_rank = risk_rule_rank
                     doc.risk_rule_rank = sorted(doc.risk_rule_rank, key=lambda x: (x["severity"], -x['num']))
 
                     # top 10 execution cost by sum and by average
