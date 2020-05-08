@@ -16,7 +16,7 @@ def main():
 
     # TODO 给一个测试库验证用
     cmdb_id = 2526
-    task_record_id = 123
+    task_record_id = 125
 
     # 先把规则代码更新到规则墨盒
     update_code(compare=False)
@@ -35,12 +35,13 @@ def main():
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 
-    from oracle_cmdb.statistics import OracleBaseStatistics
+    from oracle_cmdb.statistics import OracleBaseStatistics, OracleStatsDashboardDrillDown
     OracleBaseStatistics.collect()
     with make_session() as session:
         the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
         schemas: [str] = the_cmdb.get_bound_schemas(session)
     OracleBaseStatistics.process(
+        collected=[OracleStatsDashboardDrillDown],
         cmdb_id=cmdb_id,
         task_record_id=task_record_id,
         schemas=schemas
