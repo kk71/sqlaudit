@@ -37,7 +37,7 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
                 "schema_name",
                 "output_params"):
             index_unique_key = (
-                output_params.sequence_name
+                output_params.sequence_name,
             )
             if not all(index_unique_key):
                 continue
@@ -50,8 +50,7 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
                 q = q | Q(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
-                    sequence_owner=obj_unique_key[0],
-                    sequence_name=obj_unique_key[1]
+                    sequence_name=obj_unique_key[0]
                 )
         return capture_model.filter(q)
 

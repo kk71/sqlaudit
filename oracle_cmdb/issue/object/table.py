@@ -55,8 +55,7 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                 q = q | Q(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
-                    owner=obj_unique_key[0],
-                    table_name=obj_unique_key[1]
+                    table_name=obj_unique_key[0]
                 )
         return capture_model.filter(q)
 
