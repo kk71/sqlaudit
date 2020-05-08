@@ -36,8 +36,9 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
                 "task_record_id",
                 "schema_name",
                 "output_params"):
+            if getattr(output_params, "index_name", None) is None:
+                continue
             index_unique_key = (
-                output_params.index_owner,
                 output_params.index_name
             )
             if not all(index_unique_key):
