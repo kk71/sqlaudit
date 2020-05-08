@@ -6,7 +6,7 @@ __all__ = [
 
 from typing import Union, Generator
 
-from mongoengine import LongField, FloatField
+from mongoengine import LongField, FloatField, ListField, StringField
 
 from ..current_task.schema_rate import *
 from ...issue import *
@@ -18,11 +18,10 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     """仪表盘下钻数据"""
 
     entry = StringField()
+    entries = ListField()
     num = LongField(default=0, help_text="采集到的总数")
     num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
-    # num_with_risk_rate = FloatField(help_text="有问题的采到的个数rate")
-    problem_num = LongField(default=0, help_text="问题个数")
-    # problem_num_rate = FloatField(help_text="问题个数rate(风险率)")
+    issue_num = LongField(default=0, help_text="问题个数")
     score = FloatField(default=0)
 
     meta = {
@@ -71,21 +70,23 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                             login_user=the_user.login_user):
                         for issue_model in cls.ISSUES:
                             # 假设这里的entries元组长度为1
-                            doc = cls(entry=issue_model.ENTRIES[0])
+                            doc = cls(
+                                entry=issue_model.ENTRIES[0],  # 假设只有一个entry
+                                entries=issue_model.INHERITED_ENTRIES
+                            )
                             issue_q = OracleOnlineIssue.filter(
                                 task_record_id=the_cmdb_last_success_task_record_id,
                                 schema_name=the_schema_name,
                                 entries__all=issue_model.ENTRIES
                             )
                             # 计算问题数量
-                            doc.problem_num += issue_q.count()
+                            doc.issue_num += issue_q.count()
 
                             # 计算问题对应的原始对象/sql数量（亦即采集到的有问题的数目）
                             related_capture_models = \
                                 OracleOnlineIssue.related_capture(
                                     issue_model.ENTRIES)
                             for rcm in related_capture_models:
-                                print(f"{rcm=}")
                                 captured_q = rcm.filter(
                                     # todo 这里必须要用model.filter
                                     task_record_id=the_cmdb_last_success_task_record_id,
@@ -96,6 +97,8 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                     rcm, issue_qs=issue_q))
                             if doc.num_with_risk > doc.num:
                                 print(f"warning: {the_schema_name=} {issue_model=} {doc.num=} {doc.num_with_risk=}")
+                                # 偷偷的修正一下这个数字~
+                                doc.num_with_risk = doc.num
 
                             # 从schema分数统计表取得分数
                             the_score_stats = OracleStatsSchemaRate.filter(
