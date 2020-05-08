@@ -5,6 +5,7 @@ __all__ = [
     "OracleOnlineIssueOutputParamsSQL"
 ]
 
+from typing import Optional
 from collections import defaultdict
 
 from mongoengine import StringField, EmbeddedDocumentField
@@ -45,9 +46,11 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
     def referred_capture(
             cls,
             capture_model: OracleSQLCapturingDoc,
-            **kwargs) -> mongoengine_qs:
+            **kwargs) -> Optional[mongoengine_qs]:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
+        if not issue_qs:
+            return
 
         # task_record_id: schema_name: [sql_id, ...]
         sqls = defaultdict(lambda: defaultdict(list))

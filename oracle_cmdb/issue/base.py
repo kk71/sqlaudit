@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import os.path
-from typing import NoReturn, Generator, List, Union
+from typing import NoReturn, Generator, List, Union, Optional
 
 from mongoengine import IntField, StringField
 
@@ -68,7 +68,7 @@ class OracleOnlineIssue(OnlineIssue):
     def referred_capture(
             cls,
             capture_model: BaseOracleCapture,
-            **kwargs) -> mongoengine_qs:
+            **kwargs) -> Optional[mongoengine_qs]:
         """
         按照采集模块，查找给予的问题对应的采集信息
         issue的输出数据会因为原始数据的不同而格式不同，
@@ -83,6 +83,7 @@ class OracleOnlineIssue(OnlineIssue):
         :return:
         """
         assert capture_model in cls.RELATED_CAPTURE
+        return None
 
     @classmethod
     def referred_capture_distinct(

@@ -4,6 +4,7 @@ __all__ = [
     "OracleOnlineObjectIssueTable"
 ]
 
+from typing import Optional
 from collections import defaultdict
 
 import rule.const
@@ -31,9 +32,11 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
     def referred_capture(
             cls,
             capture_model: OracleObjectCapturingDoc,
-            **kwargs) -> mongoengine_qs:
+            **kwargs) -> Optional[mongoengine_qs]:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
+        if not issue_qs:
+            return
 
         # task_record_id: schema_name: [(sequence_owner, sequence_name), ]
         obj = defaultdict(lambda: defaultdict(list))

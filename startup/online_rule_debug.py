@@ -3,10 +3,12 @@
 from models import init_models
 init_models()
 
+from models.sqlalchemy import *
 from rule.rule_cartridge_utils import *
 from rule.rule_cartridge import *
 from rule.cmdb_rule_utils import initiate_cmdb_rule
 from oracle_cmdb.issue.base import *
+from oracle_cmdb.cmdb import *
 
 
 def main():
@@ -14,6 +16,7 @@ def main():
 
     # TODO 给一个测试库验证用
     cmdb_id = 2526
+    task_record_id = 123
 
     # 先把规则代码更新到规则墨盒
     update_code(compare=False)
@@ -32,11 +35,13 @@ def main():
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 
-    # from oracle_cmdb.issue import OracleOnlineSQLTextIssueSingleAnalyse
-    # OracleOnlineIssue.collect()
-    # OracleOnlineIssue.process(
-    #     collected=[OracleOnlineSQLTextIssueSingleAnalyse],
-    #     task_record_id=84,
-    #     cmdb_id=cmdb_id,
-    #     schemas=["SQLAUDIT_TEST"]
-    # )
+    from oracle_cmdb.statistics import OracleBaseStatistics
+    OracleBaseStatistics.collect()
+    with make_session() as session:
+        the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+        schemas: [str] = the_cmdb.get_bound_schemas(session)
+    OracleBaseStatistics.process(
+        cmdb_id=cmdb_id,
+        task_record_id=task_record_id,
+        schemas=schemas
+    )
