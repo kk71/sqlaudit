@@ -62,5 +62,8 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
             cls,
             capture_model: OracleObjectCapturingDoc,
             **kwargs) -> list:
-        return cls.referred_capture(capture_model, **kwargs).distinct("index_name")
+        ret = cls.referred_capture(capture_model, **kwargs)
+        if ret is None:
+            return []
+        return ret.distinct("index_name")
 

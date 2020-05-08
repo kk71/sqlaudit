@@ -79,5 +79,8 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
             cls,
             capture_model: OracleSQLCapturingDoc,
             **kwargs) -> list:
-        return cls.referred_capture(capture_model, **kwargs).distinct("sql_id")
+        ret = cls.referred_capture(capture_model, **kwargs)
+        if ret is None:
+            return []
+        return ret.distinct("sql_id")
 

@@ -55,9 +55,13 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
             for the_user in cls.users(session):
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):
 
-                    # 当前库的最后一次成功采集
-                    the_cmdb_last_success_task_record_id = the_cmdb.cmdb_task(
-                        session).last_success_task_record_id
+                    the_cmdb_last_success_task_record_id = \
+                        cls.cmdb_latest_available_task_record_id_for_stats(
+                            session,
+                            cmdb_id=cmdb_id,
+                            task_record_id=task_record_id,
+                            target_cmdb=the_cmdb
+                        )
                     if not the_cmdb_last_success_task_record_id:
                         continue  # 如果一次成功都没有则忽略当前库
 
