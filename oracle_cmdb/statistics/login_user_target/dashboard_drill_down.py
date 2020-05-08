@@ -25,7 +25,11 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     score = FloatField(default=0)
 
     meta = {
-        "collection": "oracle_stats_dashboard_drill_down"
+        "collection": "oracle_stats_dashboard_drill_down",
+        "indexes": [
+            "entry",
+            "entries"
+        ]
     }
 
     REQUIRES = (OracleStatsSchemaRate,)

@@ -24,6 +24,13 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
     num_with_risk_rate = FloatField(default=0.0)  # problem_num/num
     issue_num = LongField(default=0)  # 问题数
 
+    meta = {
+        "collection": "oracle_stats_drill_down_sum",
+        "indexes": [
+            "entry"
+        ]
+    }
+
     REQUIRES = (OracleStatsDashboardDrillDown,)
 
     ISSUES = (
