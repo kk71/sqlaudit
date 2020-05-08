@@ -27,9 +27,9 @@ class OracleCMDBTaskStatsSnapIDPairs(OracleCMDBTaskStats):
 class OracleCMDBTaskStatsEntriesAndRules(OracleCMDBTaskStats):
     """每次使用的entries以及涉及的规则unique_key"""
 
-    schema_name = StringField(required=True)
+    schema_name = StringField(required=True)  # 这个entries存放的是调用规则的时候传入的entries
     entries = ListField(default=list)
-    rule_info = ListField(default=list)
+    rule_info = ListField(default=list)  # 这里面存放的都是纳管库规则的字段
 
 
 class OracleCMDBTaskStatsReferredTaskRecordID(OracleCMDBTaskStats):

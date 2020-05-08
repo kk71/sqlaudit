@@ -70,7 +70,7 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 )
                 stats_qs = OracleCMDBTaskStatsEntriesAndRules.filter(
                     task_record_id=task_record_id,
-                    entries=entry
+                    rule_info__entries=entry
                 )
                 rule_dicts = []
                 for stats in stats_qs:

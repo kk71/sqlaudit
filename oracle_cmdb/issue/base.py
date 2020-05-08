@@ -135,7 +135,7 @@ class OracleOnlineIssue(OnlineIssue):
             cls,
             entries=the_jar.entries,
             rule_info=the_jar.bulk_to_dict(
-                iter_if=lambda k, v: k in ("max_score",),
+                iter_if=lambda k, v: k in ("max_score", "entries"),
                 need_unique_key=True
             ),
             schema_name=schema_name
