@@ -95,7 +95,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 doc.num_with_risk += len(issue_model.referred_capture_distinct(
                                     rcm, issue_qs=issue_q))
                             if doc.num_with_risk > doc.num:
-                                print(f"{issue_model=} {doc.num=} {doc.num_with_risk=}")
+                                print(f"warning: {the_schema_name=} {issue_model=} {doc.num=} {doc.num_with_risk=}")
 
                             # 从schema分数统计表取得分数
                             the_score_stats = OracleStatsSchemaRate.filter(

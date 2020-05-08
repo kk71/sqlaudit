@@ -30,8 +30,6 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
             **kwargs) -> Optional[mongoengine_qs]:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
-        if not issue_qs:
-            return
 
         # task_record_id: schema_name: [(index_owner, index_name), ]
         obj = defaultdict(lambda: defaultdict(list))
@@ -42,11 +40,13 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
             if getattr(output_params, "index_name", None) is None:
                 continue
             index_unique_key = output_params.index_name
-            if not all(index_unique_key):
+            if not index_unique_key:
                 continue
             l = obj[task_record_id][schema_name]
             if index_unique_key not in l:
                 l.append(index_unique_key)
+        if not obj:
+            return
         q = Q()
         for task_record_id, i1 in obj.items():
             for schema_name, obj_unique_key in i1.items():

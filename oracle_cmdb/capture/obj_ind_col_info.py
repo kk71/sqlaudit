@@ -13,7 +13,6 @@ from .base import OracleSchemaObjectCapturingDoc
 class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
     """索引列信息"""
 
-    index_owner = StringField(null=True)
     index_name = StringField(null=True)
     table_owner = StringField(null=True)
     table_name = StringField(null=True)
@@ -23,7 +22,6 @@ class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
     meta = {
         "collection": "oracle_obj_ind_col_info",
         "indexes": [
-            "index_owner",
             "index_name",
             "table_owner",
             "table_name",
@@ -36,7 +34,6 @@ class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
         obj_owner: str = kwargs["obj_owner"]
         return f"""
     select
-    INDEX_OWNER,
     INDEX_NAME,
     TABLE_OWNER,
     TABLE_NAME,

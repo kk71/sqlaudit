@@ -16,7 +16,7 @@ def main():
 
     # TODO 给一个测试库验证用
     cmdb_id = 2526
-    task_record_id = 125
+    task_record_id = 126
 
     # 先把规则代码更新到规则墨盒
     update_code(compare=False)

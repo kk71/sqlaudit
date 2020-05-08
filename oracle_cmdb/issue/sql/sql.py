@@ -49,8 +49,6 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
             **kwargs) -> Optional[mongoengine_qs]:
         super().referred_capture(capture_model, **kwargs)
         issue_qs: mongoengine_qs = kwargs["issue_qs"]
-        if not issue_qs:
-            return
 
         # task_record_id: schema_name: [sql_id, ...]
         sqls = defaultdict(lambda: defaultdict(list))
@@ -64,6 +62,8 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
             l = sqls[task_record_id][schema_name]
             if sql_id not in l:
                 l.append(sql_id)
+        if not sqls:
+            return
         q = Q()
         for task_record_id, i1 in sqls.items():
             for schema_name, sql_ids in i1.items():
