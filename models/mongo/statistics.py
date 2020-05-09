@@ -797,7 +797,7 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                         if not doc.last_appearance or appearance_time > doc.last_appearance:
                             doc.last_appearance = appearance_time
                         doc.rule_num += 1
-                        doc.severity=rst.severity
+                        doc.severity=rst['severity']
                     if not doc.rule_num:
                         continue
                     yield doc
