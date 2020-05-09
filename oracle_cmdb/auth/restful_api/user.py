@@ -12,7 +12,7 @@ from ..role import RoleOracleCMDBSchema
 from ...cmdb import *
 
 
-@as_view(group="oracle_user")
+@as_view(group="user")
 class OracleRelatedUserHandler(auth.restful_api.user.UserHandler):
     SUPPORTED_METHODS = ("GET",)
 

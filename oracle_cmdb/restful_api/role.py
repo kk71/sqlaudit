@@ -12,7 +12,7 @@ from ..auth.role import RoleOracleCMDBSchema
 from ..cmdb import *
 
 
-@as_view("cmdb_schema", group="oracle_role")
+@as_view("cmdb_schema", group="role")
 class RoleCMDBSchemaRelationHandler(PrivilegeReq):
 
     def get(self):
