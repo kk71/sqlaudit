@@ -1,6 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["OracleStatsCMDBPhySize"]
+__all__ = [
+    "OracleStatsCMDBPhySize"
+]
 
 from typing import Union, Generator
 

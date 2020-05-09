@@ -6,11 +6,12 @@ __all__ = [
 
 from typing import Union, Generator
 
-from mongoengine import LongField, FloatField
+from mongoengine import LongField, FloatField, StringField
 
 from models.sqlalchemy import *
 from .base import *
 from ...issue import *
+from ..base import *
 from ..login_user_target import OracleStatsDashboardDrillDown
 
 

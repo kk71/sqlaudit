@@ -1,6 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["OracleStatsSchemaRate"]
+__all__ = [
+    "OracleStatsSchemaRate"
+]
 
 from typing import Union, List, Generator
 
@@ -88,3 +90,4 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 cmdb_id=cmdb_id,
                 schema_name=schema_name)
             yield doc
+
