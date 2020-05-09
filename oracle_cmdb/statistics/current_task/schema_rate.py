@@ -1,6 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["OracleStatsSchemaRate"]
+__all__ = [
+    "OracleStatsSchemaRate"
+]
 
 from typing import Union, List, Generator
 
@@ -38,6 +40,9 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
         oracle_cmdb.issue.OracleOnlineObjectIssueTable,
         oracle_cmdb.issue.OracleOnlineObjectIssueSequence
     )
+
+    # 默认使用这个分数来代表schema的分数，并按照这个分数的升序排序
+    DEFAULT_SCHEMA_SCORE = "score_average"
 
     @classmethod
     def generate(
@@ -88,3 +93,11 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
                 cmdb_id=cmdb_id,
                 schema_name=schema_name)
             yield doc
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return super().filter(*args, **kwargs).order_by(cls.DEFAULT_SCHEMA_SCORE)
+
+    def get_schema_score(self):
+        return getattr(self, self.DEFAULT_SCHEMA_SCORE, None)
+

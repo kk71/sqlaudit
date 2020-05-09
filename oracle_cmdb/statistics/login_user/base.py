@@ -1,10 +1,13 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "OracleBaseTargetLoginUserStatistics"
+]
+
 from typing import Generator
 
 from mongoengine import StringField
 
-from models.sqlalchemy import *
 from auth.user import User
 from oracle_cmdb.statistics import OracleBaseStatistics
 

@@ -1,5 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "OracleBaseTargetCMDBStatistics",
+    "OracleBaseTargetSchemaStatistics"
+]
+
 from typing import Generator
 
 from mongoengine import IntField, StringField

@@ -8,9 +8,12 @@ from typing import Union, Generator
 
 from mongoengine import LongField, FloatField, ListField, StringField
 
+from models.sqlalchemy import *
 from ..current_task.schema_rate import *
+from ...auth import user_utils
 from ...issue import *
 from .base import *
+from ..base import *
 
 
 @OracleBaseStatistics.need_collect()
@@ -46,7 +49,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     @classmethod
     def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
         login_user: str = kwargs["login_user"]
-        yield from current_schema(session, login_user, cmdb_id)
+        yield from user_utils.current_schema(session, login_user, cmdb_id)
 
     @classmethod
     def generate(
