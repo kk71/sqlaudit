@@ -790,14 +790,14 @@ class StatsRiskSqlRule(BaseStatisticsDoc):
                         cmdb_id=cmdb_id,
                         schema=schema,
                         rule=rule.to_dict(
-                            iter_if=lambda k, v: k in ("rule_name", "rule_desc")),
-                        severity="严重"
+                            iter_if=lambda k, v: k in ("rule_name", "rule_desc"))
                     )
                     for rst in rsts:
                         appearance_time = arrow.get(rst["last_appearance"]).datetime
                         if not doc.last_appearance or appearance_time > doc.last_appearance:
                             doc.last_appearance = appearance_time
                         doc.rule_num += 1
+                        doc.severity=rst.severity
                     if not doc.rule_num:
                         continue
                     yield doc
