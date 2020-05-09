@@ -42,7 +42,7 @@ class OracleStatsCMDBRate(OracleBaseCurrentTaskCMDBStatistics):
         for schema_rate in schema_rates:
             # 三个分数都是schema平均分乘以权重之和再除以schema数
             weight = float(dict(schema_rate.rate_info).get("weight", 1))
-            doc.score += schema_rate.score_average * weight
+            doc.score += schema_rate.get_schema_score() * weight
             doc.score_sql += schema_rate.entry_score.get(
                 rule.const.RULE_ENTRY_ONLINE_SQL, 0) * weight
             doc.score_obj += schema_rate.entry_score.get(

@@ -45,6 +45,7 @@ class OracleStatsTableSpaceRank(OracleStatsMixOfLoginUserAndTargetCMDBRank):
                     )
                     if latri and latri not in latris:
                         latris.append(latri)
+
                 tab_space_q = OracleObjTabSpace.filter(
                     task_record_id__in=latris).order_by("-usage_ratio")
                 for i, a_tab_space in enumerate(tab_space_q):
