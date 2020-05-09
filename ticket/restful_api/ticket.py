@@ -139,7 +139,18 @@ class TicketHandler(TicketReq):
                 }
             }
             ret.append(ret_item)
-
+        #工单加入每个脚本文件的动静态问题数量
+        for x in ret:
+            for script in x['scripts']:
+                sub_q=SubTicket.objects(script__script_id=script['script_id'])
+                sub_d_y_sum = []
+                for s_q in sub_q:
+                    sub_d_y_sum.append({'static': len(s_q.static), 'dynamic': len(s_q.dynamic)})
+                script['static']=0
+                script['dynamic']=0
+                for sub_d_y in sub_d_y_sum:
+                    script['static']+=sub_d_y['static']
+                    script['dynamic']+=sub_d_y['dynamic']
         self.resp(ret, **p)
 
     def post(self):
