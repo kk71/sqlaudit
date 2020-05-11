@@ -60,7 +60,7 @@ def get_sql_id_sqlstat_dict(record_id: Union[tuple, list, str]) -> dict:
             record_id = [record_id]
         else:
             assert 0
-    keys = ["sql_id", "elapsed_time_delta", "executions_delta", "schema"]
+    keys = ["sql_id", "elapsed_time_delta", "executions_total", "schema"]
     return {i[0]: dict(zip(keys[1:], i[1:])) for i in
             SQLStat.objects(record_id__in=record_id).order_by("etl_date").values_list(*keys)}
 
@@ -217,10 +217,10 @@ def get_risk_sql_list(session,
                                 continue
 
                 execution_time_cost_sum = round(sqlstat_dict["elapsed_time_delta"], 2)  # in ms
-                execution_times = sqlstat_dict.get('executions_delta', 0)
+                execution_total = sqlstat_dict.get('executions_total', 0)
                 execution_time_cost_on_average = 0
-                if execution_times:
-                    execution_time_cost_on_average = round(execution_time_cost_sum / execution_times, 2)
+                if execution_total:
+                    execution_time_cost_on_average = round(execution_time_cost_sum / execution_total, 2)
                 r = {
                     "sql_id": sql_id,
                     "schema": sqlstat_dict["schema"],
@@ -230,7 +230,7 @@ def get_risk_sql_list(session,
                     "severity": risk_rule_object.severity,
                     "similar_sql_num": 1,  # sql_text_stats[sql_id]["count"],  # TODO 这是啥？
                     "execution_time_cost_sum": execution_time_cost_sum,
-                    "execution_times": execution_times,
+                    "execution_total": execution_total,
                     "execution_time_cost_on_average": execution_time_cost_on_average,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
                 }

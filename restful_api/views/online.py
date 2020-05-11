@@ -317,7 +317,7 @@ class SQLRiskDetailHandler(AuthReq):
 
             # 全部plan数据以及stats数据(后续需要出平均值)
             sql_stats = {
-                "executions_delta": [],
+                "executions_total": [],
                 "io_cost": [],
                 "elapsed_time_delta": [],
             }
@@ -346,8 +346,8 @@ class SQLRiskDetailHandler(AuthReq):
                     sql_stat_objects = sql_stat_objects.filter(etl_date__lte=date_end)
                 sql_stats["elapsed_time_delta"] += \
                     list(sql_stat_objects.values_list("elapsed_time_delta"))
-                sql_stats["executions_delta"] += \
-                    list(sql_stat_objects.values_list("executions_delta"))
+                sql_stats["executions_total"] += \
+                    list(sql_stat_objects.values_list("executions_total"))
                 gp = graphs[plan_hash_value]
                 for sql_stat_obj in sql_stat_objects:
                     etl_date = sql_stat_obj.etl_date
