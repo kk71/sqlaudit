@@ -1,6 +1,7 @@
 
 import json
 
+from models.mongo.rule import Rule
 from models.oracle import RiskSQLRule,make_session,Role
 
 
@@ -31,4 +32,26 @@ def import_from_risk_rule_json_file(filename: str):
             risks_rules.append(r_r)
         session.add_all(risks_rules)
         session.commit()
-        return len(risks_rules)
+
+        risk_rules_adjust=session.query(RiskSQLRule)
+        rules_adjust=Rule.objects()
+        rules_return=[]
+        for x in rules_adjust:
+            for y in risk_rules_adjust:
+                if x.rule_name == y.rule_name:
+                    if x in rules_return:
+                        continue
+                    if y.severity=="严重":
+                        x.weight=10
+                        x.max_score=20
+                    if y.severity=="告警":
+                        x.weight=5
+                        x.max_score=10
+                    if y.severity=="提示":
+                        x.weight=0.5
+                        x.max_score=5
+                    rules_return.append(x)
+        if rules_return:
+            Rule.objects().delete()
+            Rule.objects().insert(rules_return)
+        return len(risks_rules),len(rules_return)
