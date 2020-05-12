@@ -31,7 +31,7 @@ class OracleStatsMixOfLoginUserAndCurrentCMDB(
     def users(cls, session, **kwargs) -> Generator[User, None, None]:
         """只yield绑定了当前任务的纳管库的用户"""
         cmdb_id: int = kwargs["cmdb_id"]
-        for the_user in cls.users(session):
+        for the_user in super().users(session):
             current_cmdb_id: [int] = current_cmdb(
                 session, login_user=the_user.login_user)
             if cmdb_id in current_cmdb_id:
