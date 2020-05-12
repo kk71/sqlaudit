@@ -12,7 +12,7 @@ import abc
 import json
 from decimal import Decimal
 from contextlib import contextmanager
-from typing import NoReturn, List, Callable
+from typing import NoReturn, List, Callable, Dict
 
 import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -51,7 +51,7 @@ class QueryEntity(List):
         super(QueryEntity, self).__init__(args)
         self.keys = [i.key for i in self]
 
-    def to_dict(self, v, datetime_to_str: bool = True):
+    def to_dict(self, v, datetime_to_str: bool = True) -> Dict:
         if datetime_to_str:
             v = [
                 datetime_utils.dt_to_str(i)
@@ -61,6 +61,9 @@ class QueryEntity(List):
             ]
         v = [float(i) if isinstance(i, Decimal) else i for i in v]
         return dict(zip(self.keys, v))
+
+    def to_list(self, *args, **kwargs) -> List:
+        return list(self.to_dict(*args, **kwargs).values())
 
     @classmethod
     def to_plain_list(cls, v):

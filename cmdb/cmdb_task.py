@@ -86,7 +86,8 @@ class CMDBTask(BaseModel):
             d.date(): None
             for d in arrow.Arrow.range("day", date_start, date_end)
         }
-        for dt, task_record_id in list(q):
+        for i in q:
+            dt, task_record_id = qe.to_list(i)
             ret[dt.date()] = task_record_id
         return ret
 
