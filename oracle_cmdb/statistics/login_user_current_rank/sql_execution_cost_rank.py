@@ -25,6 +25,10 @@ class OracleStatsCMDBSQLExecutionCostRank(
     sql_id = StringField()
     time = FloatField()
 
+    meta = {
+        "collection": "oracle_stats_cmdb_sql_exec_cost_rank"
+    }
+
     @classmethod
     def generate(
             cls,
