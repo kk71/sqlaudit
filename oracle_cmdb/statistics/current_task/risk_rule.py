@@ -108,3 +108,8 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                     schema_name=schema_name
                 )
                 yield doc
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return super().filter(*args, **kwargs).order_by(
+            "-level", "-issue_num")
