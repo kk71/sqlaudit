@@ -17,7 +17,7 @@ from ..base import *
 
 @OracleBaseStatistics.need_collect()
 class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
-    """仪表盘下钻数据"""
+    """各个维度对象数问题数和风险率(仪表盘下钻、概览页)"""
 
     entry = StringField()
     entries = ListField()
