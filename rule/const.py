@@ -46,6 +46,21 @@ RULE_LEVELS_CHINESE = {
     RULE_LEVEL_WARNING: "警告",
     RULE_LEVEL_SEVERE: "严重"
 }
+RULE_LEVEL_SCORE = {
+    # 规则优先级与规则权重/最大扣分的关系
+    RULE_LEVEL_INFO: {
+        "weight": 0.1,
+        "max_score": 5
+    },
+    RULE_LEVEL_WARNING: {
+        "weight": 10,
+        "max_score": 20
+    },
+    RULE_LEVEL_SEVERE: {
+        "weight": 30,
+        "max_score": 30
+    }
+}
 
 
 # 规则输入输出的对象类型校验

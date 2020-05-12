@@ -19,3 +19,11 @@ class EntryHandler(AuthReq):
     def get(self):
         """规则的可用entries列表,不分页"""
         self.resp(rule.const.ALL_RULE_ENTRIES)
+
+
+@as_view("level_score", group="rule")
+class LevelScoreHandler(AuthReq):
+
+    def get(self):
+        """规则等级和最高分，权重的关系，不分页"""
+        self.resp(rule.const.RULE_LEVEL_SCORE)
