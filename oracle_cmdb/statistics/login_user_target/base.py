@@ -35,11 +35,6 @@ class OracleStatsMixOfLoginUserAndTargetCMDB(
             if a_cmdb.cmdb_id in cmdb_ids:
                 yield a_cmdb
 
-    @classmethod
-    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
-        login_user: str = kwargs["login_user"]
-        yield from current_schema(session, login_user, cmdb_id)
-
 
 class OracleStatsMixOfLoginUserAndTargetSchema(
         OracleStatsMixOfLoginUserAndTargetCMDB,

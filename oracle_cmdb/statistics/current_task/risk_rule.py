@@ -4,7 +4,7 @@ __all__ = [
     "OracleStatsSchemaRiskRule"
 ]
 
-from typing import Union, Generator
+from typing import Union, Generator, List
 
 from mongoengine import DictField, IntField, StringField
 
@@ -50,7 +50,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
             task_record_id: int,
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsSchemaRiskRule", None, None]:
-        schemas: [str] = kwargs["schemas"]
+        schemas: List[str] = kwargs["schemas"]
         cmdb_rule_dict = dict()  # 放个缓存
 
         for schema_name in schemas:

@@ -4,8 +4,11 @@ __all__ = [
     "OracleBaseTargetLoginUserStatistics"
 ]
 
+from typing import Generator
+
 from mongoengine import StringField
 
+from ...auth.user_utils import *
 from oracle_cmdb.statistics import OracleBaseStatistics
 
 
@@ -28,4 +31,9 @@ class OracleBaseTargetLoginUserStatistics(OracleBaseStatistics):
         doc: "OracleBaseTargetLoginUserStatistics" = kwargs["doc"]
 
         doc.target_login_user = target_login_user
+
+    @classmethod
+    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
+        login_user: str = kwargs["login_user"]
+        yield from current_schema(session, login_user, cmdb_id)
 

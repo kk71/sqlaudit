@@ -89,9 +89,3 @@ class OracleBaseStatistics(
     def cmdbs(cls, session, **kwargs) -> Generator[OracleCMDB, None, None]:
         yield from session.query(OracleCMDB)
 
-    @classmethod
-    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
-        the_cmdb = session.query(OracleCMDB).filter_by(
-            cmdb_id=cmdb_id).first()
-        yield from the_cmdb.get_bound_schemas()
-

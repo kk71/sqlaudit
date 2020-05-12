@@ -1,7 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleStatsMixOfLoginUserAndCurrentCMDB"
+    "OracleStatsMixOfLoginUserAndCurrentCMDB",
+    "OracleStatsMixOfLoginUserAndCurrentTask"
 ]
 
 from typing import Generator
@@ -11,6 +12,7 @@ from auth.user import User
 from ...auth.user_utils import current_cmdb
 from ..login_user import OracleBaseTargetLoginUserStatistics
 from ..current_cmdb import *
+from ..current_task import *
 
 
 class OracleStatsMixOfLoginUserAndCurrentCMDB(
@@ -44,3 +46,17 @@ class OracleStatsMixOfLoginUserAndCurrentCMDB(
             if the_cmdb.cmdb_id == cmdb_id:
                 yield the_cmdb
 
+
+class OracleStatsMixOfLoginUserAndCurrentTask(
+        OracleStatsMixOfLoginUserAndCurrentCMDB,
+        OracleBaseCurrentTaskStatistics):
+    """登录用户与当前纳管库当前任务的统计"""
+
+    meta = {
+        "abstract": True
+    }
+
+    @classmethod
+    def post_generated(cls, **kwargs):
+        OracleStatsMixOfLoginUserAndCurrentCMDB.post_generated(**kwargs)
+        OracleBaseCurrentTaskStatistics.post_generated(**kwargs)
