@@ -56,10 +56,10 @@ class CMDBTask(BaseModel):
         # 这里以任务开始时间作为判断采集到的数据的时间
         # 因为sql的采集都是根据snapshotid去判断，开始时间更接近获取snap_shot_id的时间
         # 实际肯定有误差，这个误差暂时就不管了，极限情况的发生概率很低
-        q = session.query(*(qe := QueryEntity([
+        q = session.query(*(qe := QueryEntity(
             TaskRecord.start_time,
             CMDBTaskRecord.task_record_id
-        ]))).filter(TaskRecord.status == task.const.TASK_DONE).order_by(
+        ))).filter(TaskRecord.status == task.const.TASK_DONE).order_by(
             TaskRecord.start_time)  # 排序很关键
         # 确保输入的是日期（而非日期时间）
         if isinstance(date_start, datetime):

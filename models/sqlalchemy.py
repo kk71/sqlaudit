@@ -18,7 +18,6 @@ import arrow
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy import Column, DateTime
 
-
 # TODO must initiate models first!
 from . import Session, base
 
@@ -43,6 +42,10 @@ def make_session():
 
 
 class QueryEntity(List):
+    """
+    用于查询单个字段，并且包装返回的值
+    用法：QueryEntity(a, b, ...)
+    """
 
     def __init__(self, *args, **kwargs):
         super(QueryEntity, self).__init__(args)
@@ -56,7 +59,7 @@ class QueryEntity(List):
                 else i
                 for i in v
             ]
-        v=[float(i) if isinstance(i,Decimal) else i for i in v]
+        v = [float(i) if isinstance(i, Decimal) else i for i in v]
         return dict(zip(self.keys, v))
 
     @classmethod
@@ -107,6 +110,8 @@ class BaseModel(base):
                 continue
             if iter_by:
                 v = iter_by(k, v)
+            if isinstance(v, Decimal):
+                v = float(v)
             d[k] = v
             if datetime_to_str and isinstance(d[k], datetime_utils.datetime):
                 d[k] = arrow.get(d[k]).format(const.COMMON_DATETIME_FORMAT)
