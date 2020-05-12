@@ -17,10 +17,6 @@ class OracleStatsCMDBSQLExecutionCostRank(
         OracleStatsMixOfLoginUserAndCurrentCMDB):
     """登录用户与当前库的SQL执行效率排名统计"""
 
-    date_period = IntField(help_text="时间区间", choices=DATE_PERIOD)
-    active = ListField(default=list)
-    at_risk = ListField(default=list)
-
     @classmethod
     def generate(
             cls,
