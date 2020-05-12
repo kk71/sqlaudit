@@ -42,7 +42,8 @@ class BaseCMDBTask(BaseTask):
                 cmdb_id=cmdb_task.cmdb_id,
                 connect_name=cmdb_task.connect_name,
                 group_name=cmdb_task.group_name,
-                operator=operator
+                operator=operator,
+                last_task_record_id=task_record_id
             )
             session.add(cmdb_task_record)
         print(f"* going to start a cmdb task {cmdb_task_id=} with {task_record_id=} ...")

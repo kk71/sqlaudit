@@ -31,7 +31,7 @@ class CMDBTask(BaseModel):
     frequency = Column("frequency", Integer, default=60*60*24, nullable=True)  # 单位分钟
     exec_count = Column("exec_count", Integer, default=0)
     success_count = Column("success_count", Integer, default=0)
-    last_task_record_id = Column("last_task_record_id", Integer)
+    last_task_record_id = Column("last_task_record_id", Integer, nullable=True)
     last_success_task_record_id = Column("last_success_task_record_id", nullable=True)
     last_success_time = Column("last_success_time", DateTime, nullable=True)
 
