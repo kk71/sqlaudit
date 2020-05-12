@@ -87,8 +87,7 @@ class CMDBTask(BaseModel):
             CMDBTaskRecord.task_record_id
         ))).filter(q).order_by(
             TaskRecord.start_time)  # 排序很关键
-        for i in qs:
-            dt, task_record_id = qe.to_list(i)
+        for dt, task_record_id in qs:
             ret[dt.date()] = task_record_id
         return ret
 
