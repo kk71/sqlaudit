@@ -43,9 +43,11 @@ class BaseCMDBTask(BaseTask):
                 connect_name=cmdb_task.connect_name,
                 group_name=cmdb_task.group_name,
                 operator=operator,
-                last_task_record_id=task_record_id
             )
             session.add(cmdb_task_record)
+            cmdb_task.exec_count += 1
+            cmdb_task.last_task_record_id = task_record_id
+            session.add(cmdb_task)
         print(f"* going to start a cmdb task {cmdb_task_id=} with {task_record_id=} ...")
         cls.task_instance.delay(task_record_id, **kwargs)
 
@@ -57,16 +59,5 @@ class BaseCMDBTask(BaseTask):
             cmdb_task.last_success_task_record_id = self.task_record_id
             cmdb_task.last_success_time = arrow.now().datetime
             cmdb_task.success_count += 1
-            cmdb_task.exec_count += 1
             session.add(cmdb_task)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        super(BaseCMDBTask, self).on_failure(exc, task_id, args, kwargs, einfo)
-        with make_session() as session:
-            cmdb_task = session.query(CMDBTask).filter_by(
-                id=self.cmdb_task_id).first()
-            cmdb_task.exec_count += 1
-            session.add(cmdb_task)
-
-
 
