@@ -20,6 +20,7 @@ class OracleStatsCMDBSQLExecutionCostRank(
     """登录用户与当前库的SQL执行效率排名统计"""
 
     BY_WHAT = ("elapsed_time_total", "elapsed_time_delta")
+    LIMITATION_PER = 10
 
     by_what = StringField(choices=BY_WHAT)
     sql_id = StringField()
@@ -47,7 +48,7 @@ class OracleStatsCMDBSQLExecutionCostRank(
                     stat_q = OracleSQLStat.filter(
                         task_record_id=task_record_id,
                         schema_name__in=schemas
-                    ).order_by(f"-{by_what}")
+                    ).order_by(f"-{by_what}")[:cls.LIMITATION_PER]
                     for i, stat in enumerate(stat_q):
                         doc = cls(by_what=by_what)
                         doc.sql_id = stat.sql_id
