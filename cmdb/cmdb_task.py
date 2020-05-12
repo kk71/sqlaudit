@@ -7,7 +7,7 @@ __all__ = [
 
 from typing import Dict, Union, Optional
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_, and_
 
 import task.const
 from utils.datetime_utils import *
@@ -56,11 +56,7 @@ class CMDBTask(BaseModel):
         # 这里以任务开始时间作为判断采集到的数据的时间
         # 因为sql的采集都是根据snapshotid去判断，开始时间更接近获取snap_shot_id的时间
         # 实际肯定有误差，这个误差暂时就不管了，极限情况的发生概率很低
-        q = session.query(*(qe := QueryEntity(
-            TaskRecord.start_time,
-            CMDBTaskRecord.task_record_id
-        ))).filter(TaskRecord.status == task.const.TASK_DONE).order_by(
-            TaskRecord.start_time)  # 排序很关键
+        q = TaskRecord.status == task.const.TASK_DONE
         # 确保输入的是日期（而非日期时间）
         if isinstance(date_start, datetime):
             date_start = date_start.date()
@@ -72,8 +68,8 @@ class CMDBTask(BaseModel):
         if not isinstance(date_end, arrow.Arrow):
             date_end = arrow.get(date_end)
         # 过滤日期
-        q = q.filter(TaskRecord.start_time >= date_start.date())
-        q = q.filter(TaskRecord.start_time <= date_end.shift(days=+1).date())
+        q = and_(q, TaskRecord.start_time >= date_start.date())
+        q = and_(q, TaskRecord.start_time <= date_end.shift(days=+1).date())
         # 考虑task_record_id_supposed_to_be_succeed
         if task_record_id_supposed_to_be_succeed:
             q = or_(
@@ -86,7 +82,12 @@ class CMDBTask(BaseModel):
             d.date(): None
             for d in arrow.Arrow.range("day", date_start, date_end)
         }
-        for i in q:
+        qs = session.query(*(qe := QueryEntity(
+            TaskRecord.start_time,
+            CMDBTaskRecord.task_record_id
+        ))).filter(q).order_by(
+            TaskRecord.start_time)  # 排序很关键
+        for i in qs:
             dt, task_record_id = qe.to_list(i)
             ret[dt.date()] = task_record_id
         return ret
