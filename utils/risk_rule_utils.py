@@ -42,14 +42,14 @@ def import_from_risk_rule_json_file(filename: str):
                     if x in rules_return:
                         continue
                     if y.severity=="严重":
-                        x.weight=10
-                        x.max_score=20
+                        x.weight=100
+                        x.max_score=100
                     if y.severity=="告警":
-                        x.weight=5
-                        x.max_score=10
+                        x.weight=50
+                        x.max_score=100
                     if y.severity=="提示":
-                        x.weight=0.5
-                        x.max_score=5
+                        x.weight=10
+                        x.max_score=100
                     rules_return.append(x)
         if rules_return:
             Rule.objects().delete()
