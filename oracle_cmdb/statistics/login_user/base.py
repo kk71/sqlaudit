@@ -4,11 +4,8 @@ __all__ = [
     "OracleBaseTargetLoginUserStatistics"
 ]
 
-from typing import Generator
-
 from mongoengine import StringField
 
-from auth.user import User
 from oracle_cmdb.statistics import OracleBaseStatistics
 
 
@@ -32,7 +29,3 @@ class OracleBaseTargetLoginUserStatistics(OracleBaseStatistics):
 
         doc.target_login_user = target_login_user
 
-    @classmethod
-    def users(cls, session) -> Generator[User, None, None]:
-        """获取login_user列表"""
-        yield from session.query(User)

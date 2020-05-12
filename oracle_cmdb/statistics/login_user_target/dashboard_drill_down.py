@@ -10,7 +10,6 @@ from mongoengine import LongField, FloatField, ListField, StringField
 
 from models.sqlalchemy import *
 from ..current_task.schema_rate import *
-from ...auth import user_utils
 from ...issue import *
 from .base import *
 from ..base import *
@@ -47,11 +46,6 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     )
 
     @classmethod
-    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
-        login_user: str = kwargs["login_user"]
-        yield from user_utils.current_schema(session, login_user, cmdb_id)
-
-    @classmethod
     def generate(
             cls,
             task_record_id: int,
@@ -63,7 +57,6 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
 
                     the_cmdb_last_success_task_record_id = \
                         cls.cmdb_latest_available_task_record_id_for_stats(
-                            session,
                             cmdb_id=cmdb_id,
                             task_record_id=task_record_id,
                             target_cmdb=the_cmdb

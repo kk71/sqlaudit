@@ -5,15 +5,17 @@ __all__ = [
 ]
 
 import os.path
-from typing import List
+from typing import List, Generator
 
 from mongoengine import IntField
 
 import settings
 import core.statistics
+from auth.user import User
 from utils.log_utils import *
 from models.mongoengine import *
 from ..issue import OracleOnlineIssue
+from ..cmdb import *
 
 
 class OracleBaseStatistics(
@@ -77,3 +79,19 @@ class OracleBaseStatistics(
         """返回ISSUES内所有issue的models的entries合集"""
         ret = {j for i in cls.ISSUES for j in i.ENTRIES}
         return tuple(ret)
+
+    @classmethod
+    def users(cls, session, **kwargs) -> Generator[User, None, None]:
+        """获取login_user列表"""
+        yield from session.query(User)
+
+    @classmethod
+    def cmdbs(cls, session, **kwargs) -> Generator[OracleCMDB, None, None]:
+        yield from session.query(OracleCMDB)
+
+    @classmethod
+    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
+        the_cmdb = session.query(OracleCMDB).filter_by(
+            cmdb_id=cmdb_id).first()
+        yield from the_cmdb.get_bound_schemas()
+

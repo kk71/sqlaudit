@@ -1,16 +1,15 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleBaseCurrentTaskCMDBStatistics",
+    "OracleBaseCurrentTaskStatistics",
     "OracleBaseCurrentTaskSchemaStatistics"
 ]
 
-from mongoengine import StringField
 
-from ..base import OracleBaseStatistics
+from ..current_cmdb import *
 
 
-class OracleBaseCurrentTaskCMDBStatistics(OracleBaseStatistics):
+class OracleBaseCurrentTaskStatistics(OracleBaseCurrentCMDBStatistics):
     """当前任务库的统计"""
 
     meta = {
@@ -18,23 +17,11 @@ class OracleBaseCurrentTaskCMDBStatistics(OracleBaseStatistics):
     }
 
 
-class OracleBaseCurrentTaskSchemaStatistics(OracleBaseCurrentTaskCMDBStatistics):
+class OracleBaseCurrentTaskSchemaStatistics(
+        OracleBaseCurrentTaskStatistics,
+        OracleBaseCurrentCMDBSchemaStatistics):
     """当前任务库的schema的统计"""
 
-    schema_name = StringField(required=True, null=True)
-
     meta = {
-        "abstract": True,
-        "indexes": [
-            "schema_name"
-        ]
+        "abstract": True
     }
-
-    @classmethod
-    def post_generated(cls, **kwargs):
-        super().post_generated(**kwargs)
-        schema_name: str = kwargs["schema_name"]
-        doc: "OracleBaseCurrentTaskSchemaStatistics" = kwargs["doc"]
-
-        doc.schema_name = schema_name
-

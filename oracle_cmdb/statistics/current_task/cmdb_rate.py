@@ -13,7 +13,7 @@ from .schema_rate import *
 
 
 @OracleBaseStatistics.need_collect()
-class OracleStatsCMDBRate(OracleBaseCurrentTaskCMDBStatistics):
+class OracleStatsCMDBRate(OracleBaseCurrentTaskStatistics):
     """CMDB加权评分"""
 
     score = FloatField(default=0)

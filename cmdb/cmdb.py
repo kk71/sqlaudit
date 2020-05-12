@@ -48,8 +48,9 @@ class CMDB(BaseModel):
             the_cmdb = session.query(cls).filter_by(cmdb_id=cmdb_id).first()
             return the_cmdb.build_connector()
 
-    def cmdb_task(self, session, **kwargs) -> CMDBTask:
+    def cmdb_task(self, **kwargs) -> CMDBTask:
         """获取当前纳管库对象的纳管库任务对象"""
+        session = self._sa_instance_state.session
         q = session.query(CMDBTask).filter(CMDBTask.cmdb_id == self.cmdb_id)
         if kwargs:
             q = q.filter_by(**kwargs)

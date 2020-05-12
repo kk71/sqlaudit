@@ -38,20 +38,14 @@ class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
         doc.target_task_record_id = target_task_record_id
 
     @classmethod
-    def cmdbs(cls, session, **kwargs) -> Generator[OracleCMDB, None, None]:
-        yield from session.query(OracleCMDB)
-
-    @classmethod
     def cmdb_latest_available_task_record_id_for_stats(
             cls,
-            session,
             cmdb_id: int,
             task_record_id: int,
             target_cmdb: OracleCMDB,
             **kwargs) -> int:
         """
         判断当前处理的纳管库的最后一次可供统计用的task_record_id应该取哪个
-        :param session:
         :param cmdb_id: 当前任务发起的cmdb_id
         :param task_record_id: 当前任务的task_record_id
         :param target_cmdb: 当前想要统计的纳管库的cmdb对象
@@ -63,7 +57,7 @@ class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
             # 那么就取当前任务的task_record_id最为当前库的最后可用task_record_id
             return task_record_id
         else:
-            return target_cmdb.cmdb_task(session).last_success_task_record_id
+            return target_cmdb.cmdb_task().last_success_task_record_id
 
 
 class OracleBaseTargetSchemaStatistics(OracleBaseTargetCMDBStatistics):
@@ -86,8 +80,3 @@ class OracleBaseTargetSchemaStatistics(OracleBaseTargetCMDBStatistics):
 
         doc.target_schema_name = target_schema_name
 
-    @classmethod
-    def schemas(cls, session, cmdb_id: int, **kwargs) -> Generator[str, None, None]:
-        the_cmdb = session.query(OracleCMDB).filter_by(
-                cmdb_id=cmdb_id).first()
-        yield from the_cmdb.get_bound_schemas()

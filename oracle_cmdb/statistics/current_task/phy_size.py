@@ -14,7 +14,7 @@ from ...capture import OracleObjTabSpace
 
 
 @OracleBaseStatistics.need_collect()
-class OracleStatsCMDBPhySize(OracleBaseCurrentTaskCMDBStatistics):
+class OracleStatsCMDBPhySize(OracleBaseCurrentTaskStatistics):
     """CMDB容量信息"""
 
     total = FloatField(help_text="bytes")

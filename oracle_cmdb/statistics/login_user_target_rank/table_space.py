@@ -38,7 +38,6 @@ class OracleStatsTableSpaceRank(OracleStatsMixOfLoginUserAndTargetCMDBRank):
                 latris: List[int] = []
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):
                     latri = cls.cmdb_latest_available_task_record_id_for_stats(
-                        session,
                         cmdb_id=cmdb_id,
                         task_record_id=task_record_id,
                         target_cmdb=the_cmdb
