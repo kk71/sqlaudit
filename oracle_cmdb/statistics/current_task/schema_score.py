@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleStatsSchemaRate"
+    "OracleStatsSchemaScore"
 ]
 
 from typing import Union, List, Generator
@@ -17,7 +17,7 @@ from oracle_cmdb.rate import *
 
 
 @OracleBaseStatistics.need_collect()
-class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
+class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
     """schema各个维度的评分"""
 
     score_average = FloatField(required=True)
@@ -49,7 +49,7 @@ class OracleStatsSchemaRate(OracleBaseCurrentTaskSchemaStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsSchemaRate", None, None]:
+            **kwargs) -> Generator["OracleStatsSchemaScore", None, None]:
         # 因为是针对当前库当前任务的，所以schemas以当前任务的schema为准
         schemas: List[str] = kwargs["schemas"]
 

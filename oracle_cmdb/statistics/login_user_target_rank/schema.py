@@ -11,7 +11,7 @@ from mongoengine import FloatField
 from models.sqlalchemy import *
 from ..base import OracleBaseStatistics
 from .base import OracleStatsMixOfLoginUserAndTargetSchemaRank
-from ..current_task import OracleStatsSchemaRate
+from ..current_task import OracleStatsSchemaScore
 
 
 @OracleBaseStatistics.need_collect()
@@ -24,7 +24,7 @@ class OracleStatsSchemaRank(OracleStatsMixOfLoginUserAndTargetSchemaRank):
         "collection": "oracle_stats_schema_rank"
     }
 
-    REQUIRES = (OracleStatsSchemaRate,)
+    REQUIRES = (OracleStatsSchemaScore,)
 
     @classmethod
     def generate(
@@ -46,7 +46,7 @@ class OracleStatsSchemaRank(OracleStatsMixOfLoginUserAndTargetSchemaRank):
                     if latri and latri not in latris:
                         latris.append(latri)
 
-                schema_rate_q = OracleStatsSchemaRate.filter(
+                schema_rate_q = OracleStatsSchemaScore.filter(
                     task_record_id__in=latris)
                 for i, a_schema_rate in enumerate(schema_rate_q):
                     doc = cls(score=a_schema_rate.get_schema_score())

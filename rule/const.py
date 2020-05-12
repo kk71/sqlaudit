@@ -37,6 +37,7 @@ ALL_RULE_ENTRIES = (
 # 规则优先级
 
 ALL_RULE_LEVELS = (
+    # 这个数字越大，表示越紧急
     RULE_LEVEL_INFO := 1,
     RULE_LEVEL_WARNING := 2,
     RULE_LEVEL_SEVERE := 3

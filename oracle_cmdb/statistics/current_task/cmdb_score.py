@@ -1,6 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["OracleStatsCMDBRate"]
+__all__ = ["OracleStatsCMDBScore"]
 
 from typing import Union, Generator
 
@@ -9,11 +9,11 @@ from mongoengine import FloatField
 import rule.const
 from ..base import *
 from .base import *
-from .schema_rate import *
+from .schema_score import *
 
 
 @OracleBaseStatistics.need_collect()
-class OracleStatsCMDBRate(OracleBaseCurrentTaskStatistics):
+class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
     """CMDB加权评分"""
 
     score = FloatField(default=0)
@@ -25,16 +25,16 @@ class OracleStatsCMDBRate(OracleBaseCurrentTaskStatistics):
         "indexes": ["score"]
     }
 
-    REQUIRES = (OracleStatsSchemaRate,)
+    REQUIRES = (OracleStatsSchemaScore,)
 
     @classmethod
     def generate(
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsCMDBRate", None, None]:
+            **kwargs) -> Generator["OracleStatsCMDBScore", None, None]:
         doc = cls()
-        schema_rates = OracleStatsSchemaRate.objects(
+        schema_rates = OracleStatsSchemaScore.objects(
             task_record_id=task_record_id,
             add_to_rate=True  # 只计算纳入评分的schema
         )

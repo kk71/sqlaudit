@@ -9,7 +9,7 @@ from typing import Union, Generator
 from mongoengine import LongField, FloatField, ListField, StringField
 
 from models.sqlalchemy import *
-from ..current_task.schema_rate import *
+from ..current_task.schema_score import *
 from ...issue import *
 from .base import *
 from ..base import *
@@ -23,6 +23,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     entries = ListField()
     num = LongField(default=0, help_text="采集到的总数")
     num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
+    risk_rate = FloatField(default=0, help_text="风险率")
     issue_num = LongField(default=0, help_text="问题个数")
     score = FloatField(default=0)
 
@@ -34,7 +35,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
         ]
     }
 
-    REQUIRES = (OracleStatsSchemaRate,)
+    REQUIRES = (OracleStatsSchemaScore,)
 
     ISSUES = (
         OracleOnlineSQLTextIssue,
@@ -99,9 +100,11 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
                                 print(f"warning: {the_schema_name=} {issue_model=} {doc.num=} {doc.num_with_risk=}")
                                 # 偷偷的修正一下这个数字~
                                 doc.num_with_risk = doc.num
+                            if doc.num:
+                                doc.risk_rate = doc.num_with_risk / doc.num
 
                             # 从schema分数统计表取得分数
-                            the_score_stats = OracleStatsSchemaRate.filter(
+                            the_score_stats = OracleStatsSchemaScore.filter(
                                 task_record_id=the_cmdb_last_success_task_record_id,
                                 schema_name=the_schema_name
                             ).first()
