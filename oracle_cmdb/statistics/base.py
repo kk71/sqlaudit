@@ -76,7 +76,10 @@ class OracleBaseStatistics(
 
     @classmethod
     def issue_entries(cls) -> tuple:
-        """返回ISSUES内所有issue的models的entries合集"""
+        """
+        返回ISSUES内所有issue的models的entries合集
+        :return:
+        """
         ret = {j for i in cls.ISSUES for j in i.ENTRIES}
         return tuple(ret)
 

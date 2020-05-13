@@ -4,9 +4,9 @@ __all__ = ["OracleStatsCMDBScore"]
 
 from typing import Union, Generator
 
-from mongoengine import FloatField
+from mongoengine import DictField
 
-import rule.const
+import oracle_cmdb.issue
 from ..base import *
 from .base import *
 from .schema_score import *
@@ -16,16 +16,24 @@ from .schema_score import *
 class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
     """CMDB加权评分"""
 
-    score = FloatField(default=0)
-    score_sql = FloatField(default=0)
-    score_obj = FloatField(default=0)
+    # 注意，这里涉及的schema并不是登录用户绑定的schema，是纳入评分的schema
+    # 因此与登录用户无关
+    entry_score = DictField(default=dict)
 
     meta = {
-        "collection": "oracle_stats_cmdb_rate",
+        "collection": "oracle_stats_cmdb_score",
         "indexes": ["score"]
     }
 
     REQUIRES = (OracleStatsSchemaScore,)
+
+    ISSUES = (
+        oracle_cmdb.issue.OracleOnlineIssue,
+        oracle_cmdb.issue.OracleOnlineSQLIssue,
+        oracle_cmdb.issue.OracleOnlineObjectIssue
+    )
+    # 纳管库评分的维度必须是schema的子集
+    assert set(ISSUES).issubset(OracleStatsSchemaScore.ISSUES)
 
     @classmethod
     def generate(
@@ -34,27 +42,30 @@ class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsCMDBScore", None, None]:
         doc = cls()
-        schema_rates = OracleStatsSchemaScore.objects(
+        schema_rates = OracleStatsSchemaScore.filter(
             task_record_id=task_record_id,
-            add_to_rate=True  # 只计算纳入评分的schema
+            add_to_rate=True  # TODO 必须过滤出只计算纳入评分的schema
         )
-        schema_num = 0
         for schema_rate in schema_rates:
-            # 三个分数都是schema平均分乘以权重之和再除以schema数
+            # 分数是schema平均分乘以权重之和再除以schema数
             weight = float(dict(schema_rate.rate_info).get("weight", 1))
-            doc.score += schema_rate.get_schema_score() * weight
-            doc.score_sql += schema_rate.entry_score.get(
-                rule.const.RULE_ENTRY_ONLINE_SQL, 0) * weight
-            doc.score_obj += schema_rate.entry_score.get(
-                rule.const.RULE_ENTRY_ONLINE_OBJECT, 0) * weight
-            schema_num += 1
-        if schema_num:
-            schema_num = float(schema_num)
-            doc.score = round(doc.score / schema_num, 2)
-            doc.score_sql = round(doc.score_sql / schema_num, 2)
-            doc.score_obj = round(doc.score_obj / schema_num, 2)
+            for entry in cls.issue_entries():
+                if doc.entry_score.get(entry, None) is None:
+                    doc.entry_score[entry] = 0
+                doc.entry_score[entry] += schema_rate.entry_score[entry] * weight
+        schema_count = float(schema_rates.count())
+        doc.entry_score = {
+            entry: round(score_sum / schema_count, 2)
+            for entry, score_sum in doc.entry_score.items()
+        }
         cls.post_generated(
             doc=doc,
             task_record_id=task_record_id,
-            cmdb_id=cmdb_id)
+            cmdb_id=cmdb_id
+        )
         yield doc
+
+    def cmdb_score(self):
+        return self.entry_score.get(
+            oracle_cmdb.issue.OracleOnlineIssue.entries[0], None)
+

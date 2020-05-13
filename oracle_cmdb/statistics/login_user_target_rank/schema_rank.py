@@ -16,7 +16,7 @@ from ..current_task import OracleStatsSchemaScore
 
 @OracleBaseStatistics.need_collect()
 class OracleStatsSchemaRank(OracleStatsMixOfLoginUserAndTargetSchemaRank):
-    """用户的纳管库schema排名"""
+    """登录用户全部纳管库的schema排名"""
 
     score = FloatField()
 
@@ -49,7 +49,9 @@ class OracleStatsSchemaRank(OracleStatsMixOfLoginUserAndTargetSchemaRank):
                 schema_rate_q = OracleStatsSchemaScore.filter(
                     task_record_id__in=latris)
                 for i, a_schema_rate in enumerate(schema_rate_q):
-                    doc = cls(score=a_schema_rate.get_schema_score())
+                    doc = cls(
+                        score=a_schema_rate.schema_score()
+                    )
                     cls.post_generated(
                         doc=doc,
                         cmdb_id=cmdb_id,

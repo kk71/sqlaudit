@@ -2,4 +2,4 @@
 
 from .base import *
 from .table_space import *
-from .schema import *
+from .schema_rank import *

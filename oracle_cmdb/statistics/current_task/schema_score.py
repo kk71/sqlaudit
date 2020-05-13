@@ -6,7 +6,7 @@ __all__ = [
 
 from typing import Union, List, Generator
 
-from mongoengine import FloatField, DictField, BooleanField
+from mongoengine import DictField, BooleanField
 
 import oracle_cmdb.issue
 from models.sqlalchemy import *
@@ -20,17 +20,18 @@ from oracle_cmdb.rate import *
 class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
     """schema各个维度的评分"""
 
-    score_average = FloatField(required=True)
-    score_lowest = FloatField(required=True)
     entry_score = DictField(default=dict)
+    # TODO 请注意是否加入评分这个选项。仅仅在计算纳管库分数的时候！才过滤该字段！
+    # TODO 其他地方一律用登录用户绑定纳管库的schema来展示评分，包括统计的分数
     add_to_rate = BooleanField(default=False)  # 分析时，当前用户是否加入了评分
     rate_info = DictField(default=lambda: {})  # 分析时，当前用户的评分配置信息
 
     meta = {
-        "collection": "oracle_stats_schema_rate",
+        "collection": "oracle_stats_schema_score",
     }
 
     ISSUES = (
+        oracle_cmdb.issue.OracleOnlineIssue,
         oracle_cmdb.issue.OracleOnlineObjectIssue,
         oracle_cmdb.issue.OracleOnlineSQLTextIssue,
         oracle_cmdb.issue.OracleOnlineSQLPlanIssue,
@@ -40,9 +41,6 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
         oracle_cmdb.issue.OracleOnlineObjectIssueTable,
         oracle_cmdb.issue.OracleOnlineObjectIssueSequence
     )
-
-    # 默认使用这个分数来代表schema的分数，并按照这个分数的升序排序
-    DEFAULT_SCHEMA_SCORE = "score_average"
 
     @classmethod
     def generate(
@@ -81,9 +79,6 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
                     rule_dicts.extend(stats.rule_info)
                 doc.entry_score[entry] = oracle_cmdb.issue.OracleOnlineIssue.calc_score(
                     issues, rule_dicts)
-            scores = doc.entry_score.values()
-            doc.score_average = sum(scores) / len(scores)
-            doc.score_lowest = min(scores)
             if schema_name in rating_schemas.keys():
                 doc.add_to_rate = True
                 doc.rate_info = rating_schemas[schema_name]
@@ -91,13 +86,11 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
                 doc=doc,
                 task_record_id=task_record_id,
                 cmdb_id=cmdb_id,
-                schema_name=schema_name)
+                schema_name=schema_name
+            )
             yield doc
 
-    @classmethod
-    def filter(cls, *args, **kwargs):
-        return super().filter(*args, **kwargs).order_by(cls.DEFAULT_SCHEMA_SCORE)
-
-    def get_schema_score(self):
-        return getattr(self, self.DEFAULT_SCHEMA_SCORE, None)
+    def schema_score(self):
+        return self.entry_score.get(
+            oracle_cmdb.issue.OracleOnlineIssue.entries[0], None)
 
