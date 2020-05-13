@@ -38,7 +38,7 @@ SELECT sql_id,
 plan_hash_value,
 parsing_schema_name
 FROM table(dbms_sqltune.select_workload_repository(&beg_snap, &end_snap, 'parsing_schema_name=''&username''', NULL, '&parameter', NULL, NULL, NULL, NULL)) 
-where plan_hash_value is not null
+where plan_hash_value !=0
 """
 # SELECT sql_id, plan_hash_value, parsing_schema_name
 #   FROM table(dbms_sqltune.select_workload_repository(&beg_snap,
