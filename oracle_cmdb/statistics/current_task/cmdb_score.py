@@ -70,5 +70,5 @@ class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
 
     def cmdb_score(self):
         return self.entry_score.get(
-            oracle_cmdb.issue.OracleOnlineIssue.entries[0], None)
+            issue.OnlineIssue.entries[0], None)
 
