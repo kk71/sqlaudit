@@ -8,6 +8,7 @@ from typing import Union, List, Generator
 
 from mongoengine import DictField, BooleanField
 
+import issue
 import oracle_cmdb.issue
 from models.sqlalchemy import *
 from ..base import *
@@ -31,7 +32,7 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
     }
 
     ISSUES = (
-        oracle_cmdb.issue.OracleOnlineIssue,
+        issue.OnlineIssue,
         oracle_cmdb.issue.OracleOnlineObjectIssue,
         oracle_cmdb.issue.OracleOnlineSQLTextIssue,
         oracle_cmdb.issue.OracleOnlineSQLPlanIssue,

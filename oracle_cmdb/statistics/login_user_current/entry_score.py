@@ -8,8 +8,8 @@ from typing import Union, List, Generator
 
 from mongoengine import DictField
 
-from models.sqlalchemy import *
 import oracle_cmdb.issue
+from models.sqlalchemy import *
 from .base import *
 from ..base import *
 from ...task.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules

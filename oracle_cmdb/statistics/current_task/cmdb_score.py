@@ -1,11 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["OracleStatsCMDBScore"]
+__all__ = [
+    "OracleStatsCMDBScore"
+]
 
 from typing import Union, Generator
 
 from mongoengine import DictField
 
+import issue
 import oracle_cmdb.issue
 from ..base import *
 from .base import *
@@ -28,7 +31,7 @@ class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
     REQUIRES = (OracleStatsSchemaScore,)
 
     ISSUES = (
-        oracle_cmdb.issue.OracleOnlineIssue,
+        issue.OnlineIssue,
         oracle_cmdb.issue.OracleOnlineSQLIssue,
         oracle_cmdb.issue.OracleOnlineObjectIssue
     )
