@@ -1,4 +1,3 @@
-
 __all__ = [
     "BaseCMDBHandler"
 ]
@@ -14,7 +13,6 @@ from auth.user import *
 from auth.restful_api.base import *
 from auth.product_license import *
 from oracle_cmdb.cmdb import OracleCMDB
-from oracle_cmdb.cmdb_utils import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import *
@@ -23,6 +21,7 @@ from ticket.sub_ticket import SubTicket
 from restful_api.modules import as_view
 from oracle_cmdb.auth.user_utils import current_cmdb
 from oracle_cmdb.auth.role import RoleOracleCMDBSchema
+
 
 @as_view(group="cmdb")
 class BaseCMDBHandler(AuthReq):
@@ -45,13 +44,13 @@ class BaseCMDBHandler(AuthReq):
             scm_optional("keyword", default=None): scm_str,
 
             # 只返回当前登录用户可见的cmdb
-            ** self.gen_current(),
+            **self.gen_current(),
 
             # 排序
             scm_optional("sort", default=SORT_DESC): And(
                 scm_str, self.scm_one_of_choices(ALL_SORTS)),
 
-            ** self.gen_p()
+            **self.gen_p()
         }, ignore_extra_keys=True))
         keyword = params.pop("keyword")
         current = params.pop("current")
@@ -61,18 +60,18 @@ class BaseCMDBHandler(AuthReq):
         cmdb_q = session.query(CMDB).filter_by(**params)
         if keyword:
             cmdb_q = self.query_keyword(cmdb_q, keyword,
-                                    CMDB.cmdb_id,
-                                    CMDB.connect_name,
-                                    CMDB.group_name,
-                                    CMDB.business_name,
-                                    CMDB.server_name,
-                                    CMDB.ip_address)
-        return cmdb_q,paging,current,sort
+                                        CMDB.cmdb_id,
+                                        CMDB.connect_name,
+                                        CMDB.group_name,
+                                        CMDB.business_name,
+                                        CMDB.server_name,
+                                        CMDB.ip_address)
+        return cmdb_q, paging, current, sort
 
     async def get(self):
         """查询cmdb列表"""
         with make_session() as session:
-            cmdb_q,paging,current,sort=self.get_queryset(session)
+            cmdb_q, paging, current, sort = self.get_queryset(session)
             # 获取纳管库的评分
             all_db_data_health = get_latest_cmdb_score(session).values()
             if current:
@@ -111,7 +110,7 @@ class BaseCMDBHandler(AuthReq):
             ret, p = self.paginate(ret, **paging)
 
             # 对分页之后的纳管库列表补充额外数据
-            #TODO stats
+            # TODO stats
             login_stats = StatsLoginUser.objects(login_user=self.current_user). \
                 order_by("-etl_date").first()
             if login_stats:
@@ -164,7 +163,6 @@ class BaseCMDBHandler(AuthReq):
                     ]
                 )
             self.resp(ret, **p)
-
 
     def post(self):
         """增加CMDB"""
@@ -321,10 +319,11 @@ class BaseCMDBHandler(AuthReq):
         }))
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(**params).first()
-            resp = await async_thr(cmdb.test_cmdb_connectivity)#TODO
+            resp = await async_thr(cmdb.test_cmdb_connectivity)  # TODO
             self.resp(resp)
 
-@as_view("cmdb_aggregation",group="cmdb")
+
+@as_view("aggregation", group="cmdb")
 class CMDBAggregationHandler(PrivilegeReq):
 
     def get(self):
@@ -343,7 +342,7 @@ class CMDBAggregationHandler(PrivilegeReq):
             query_ret = session.query(CMDB).with_entities(*real_keys)
             if not self.is_admin():
                 query_ret = query_ret.filter(
-                    CMDB.cmdb_id.in_(current_cmdb(session,self.current_user)))
+                    CMDB.cmdb_id.in_(current_cmdb(session, self.current_user)))
             for i, k in enumerate(key):
                 for qr in query_ret:
                     ret[k].add(qr[i])

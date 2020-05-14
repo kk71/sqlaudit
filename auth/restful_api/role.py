@@ -10,7 +10,7 @@ from models.sqlalchemy import *
 from restful_api import *
 
 
-@as_view(group="role")
+@as_view(group="auth")
 class RoleHandler(PrivilegeReq):
 
     def get(self):
@@ -132,7 +132,7 @@ class RoleHandler(PrivilegeReq):
         self.resp_created(msg="删除成功")
 
 
-@as_view("role_user", group="role")
+@as_view("user", group="auth")
 class RoleUserHandler(PrivilegeReq):
 
     def get(self):

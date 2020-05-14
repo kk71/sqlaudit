@@ -13,7 +13,7 @@ from utils.schema_utils import *
 from ..const import PRIVILEGE
 
 
-@as_view(group="user")
+@as_view(group="auth")
 class UserHandler(AuthReq):
 
     @classmethod

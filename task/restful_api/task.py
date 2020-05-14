@@ -1,20 +1,16 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-
-
 from sqlalchemy.exc import DatabaseError
 
 from utils.schema_utils import *
 from task import utils
 from task.const import *
 from task.task_record import TaskRecord
-from cmdb.task import CMDBTask,CMDBTaskRecord
 from auth.const import PRIVILEGE
 from auth.restful_api.base import PrivilegeReq, AuthReq
 from restful_api.modules import as_view
 from models.sqlalchemy import make_session
 from oracle_cmdb.auth.user_utils import current_cmdb
-
 
 
 @as_view(group="task")

@@ -212,4 +212,3 @@ class OnlineIssue(
         if at_least is not None and score < at_least:
             score = at_least
         return score
-

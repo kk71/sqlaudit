@@ -5,8 +5,8 @@ __all__ = [
 ]
 
 import task.const
+from cmdb.cmdb_task import BaseCMDBTask
 from utils.datetime_utils import *
-from cmdb.task import *
 from cmdb.cmdb_task import *
 from task.task import *
 from ..capture.base import *

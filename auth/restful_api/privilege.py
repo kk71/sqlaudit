@@ -8,7 +8,7 @@ from models.sqlalchemy import *
 from restful_api.modules import *
 
 
-@as_view(group="privilege")
+@as_view(group="auth")
 class PrivilegeHandler(PrivilegeReq):
 
     def get(self):
