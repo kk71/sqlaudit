@@ -6,7 +6,7 @@ __all__ = [
 
 from typing import Union, Generator, List
 
-from mongoengine import DictField, IntField, StringField
+from mongoengine import DictField, IntField, StringField, ListField
 
 from ..base import *
 from .base import *
@@ -20,6 +20,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
     """schema存在风险的规则"""
 
     entry = StringField(required=True)
+    entries = ListField(default=list)
     rule = DictField(default=lambda: {
         # 这里的数据来自规则仓库
         "name": "",
@@ -62,13 +63,22 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                     }
                 },
                 {
+                    "$addFields": {
+                        # 用于保留原本的entries上下层结构
+                        "original_entries": "$entries"
+                    }
+                },
+                {
                     "$unwind": {
                         "path": "$entries"
                     }
                 },
                 {
                     "$match": {
-                        "entries": {"$in": cls.issue_entries()}
+                        "entries": {
+                            # 注意这里的entries已经不是list了
+                            "$in": cls.issue_entries()
+                        }
                     }
                 },
                 {
@@ -76,14 +86,17 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                         "_id": {
                             "rule_name": "$rule_name",
                             "level": "$level",
-                            "entry": "$entries"
+                            "entry": "$entries",
+                            "entries": "$original_entries"
                         },
                         "issue_num": {"$sum": 1}
                     }
                 }
             )
             for i in ret:
-                doc = cls()
+                doc = cls(
+                    entries=i["_id"]["entries"]
+                )
                 doc.entry = i["_id"]["entry"]
                 doc.level = i["_id"]["level"]
                 doc.issue_num = i["issue_num"]
