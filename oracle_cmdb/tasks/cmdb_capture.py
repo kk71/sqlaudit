@@ -36,7 +36,7 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
             the_cmdb = session.query(OracleCMDB).filter_by(
                 cmdb_id=the_cmdb_task.cmdb_id).first()
             cmdb_id = the_cmdb.cmdb_id
-            schemas: [str] = the_cmdb.get_bound_schemas(session)
+            schemas: [str] = the_cmdb.related_schemas()
             cmdb_conn: OraclePlainConnector = the_cmdb.build_connector()
             print(f"{len(schemas)} schema(s) to run: {schemas}")
 

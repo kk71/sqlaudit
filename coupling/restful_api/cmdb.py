@@ -14,7 +14,7 @@ from auth.user import *
 from auth.restful_api.base import *
 from auth.product_license import *
 from oracle_cmdb.cmdb import OracleCMDB
-from oracle_cmdb.cmdb_utils import get_latest_cmdb_score
+from oracle_cmdb.cmdb_utils import *
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import *

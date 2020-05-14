@@ -1,6 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-
 from collections import defaultdict
 
 from ..cmdb import *
@@ -10,7 +9,7 @@ from utils.datetime_utils import *
 from models.sqlalchemy import *
 from restful_api.modules import as_view
 from auth.restful_api.base import AuthReq
-from oracle_cmdb.cmdb_utils import get_latest_cmdb_score
+from oracle_cmdb.cmdb_utils import *
 
 
 @as_view("score_trend", group="cmdb")
@@ -26,16 +25,16 @@ class CMDBHealthTrendHandler(AuthReq):
 
         with make_session() as session:
             if not cmdb_id_list:
-                cmdb_id_list = current_cmdb(session,user_login=self.current_user)
+                cmdb_id_list = current_cmdb(session, user_login=self.current_user)
                 # 如果没有给出cmdb_id，则把最差的前十个拿出来
                 cmdb_id_list = [
                                    i
-                                   for i in get_latest_cmdb_score(session).keys()
+                                   for i in latest_cmdb_score(session).keys()
                                    if i in cmdb_id_list
                                ][:10]
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
-            for cmdb_id in cmdb_id_list:#TODO stats
+            for cmdb_id in cmdb_id_list:  # TODO stats
                 dh_q = StatsCMDBRate.objects(
                     cmdb_id=cmdb_id,
                     etl_date__gt=now.shift(weeks=-2).datetime

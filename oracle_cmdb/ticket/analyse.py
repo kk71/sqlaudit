@@ -15,7 +15,6 @@ import ticket.exceptions
 import cmdb.const
 import ticket.sub_ticket
 from models.mongoengine import *
-from plain_db.oracleob import *
 from parsed_sql.parsed_sql import ParsedSQL
 from ticket.analyse import SubTicketAnalyse
 from .sub_ticket import OracleSubTicket
@@ -37,10 +36,10 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
         return sql.strip()
 
     def __init__(self, **kwargs):
-        super(OracleSubTicketAnalyse, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.schema_name = self.ticket.schema_name \
             if self.ticket.schema_name else self.cmdb.user_name
-        self.cmdb_connector = OracleCMDBConnector(self.cmdb)
+        self.cmdb_connector = self.cmdb.build_connector()
         self.cmdb_connector.execute(f"alter session set current_schema={self.schema_name}")
         self.statement_id = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
 
@@ -143,16 +142,12 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
 
     def sql_online(self, sql: str, **kwargs):
         """上线sql脚本"""
-        username = kwargs["username"]
-        password = kwargs["password"]
-        odb = OracleCMDBConnector(
-            self.cmdb, username=username, password=password)
         try:
-            odb.execute(sql)
-            odb.conn.commit()
+            self.cmdb_connector.execute(sql)
+            self.cmdb_connector.conn.commit()
             return ""
         except Exception as e:
-            odb.conn.rollback()
+            self.cmdb_connector.conn.rollback()
             return str(e)
         finally:
-            odb.conn.close()
+            self.cmdb_connector.conn.close()

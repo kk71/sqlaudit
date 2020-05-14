@@ -4,6 +4,8 @@ __all__ = [
     "OracleCMDB"
 ]
 
+from typing import List
+
 from sqlalchemy import Column, String, Boolean
 
 import cmdb.const
@@ -38,7 +40,7 @@ class OracleCMDB(CMDB):
         return OraclePlainConnector(
             **self.to_dict(iter_if=lambda k, v: k in ret_params))
 
-    def get_available_schemas(self) -> [str]:
+    def get_available_schemas(self) -> List[str]:
         """获取可用的全部schema"""
         sql = """
             SELECT username
@@ -56,10 +58,11 @@ class OracleCMDB(CMDB):
         # TODO 需要判断 cx_Oracle.DatabaseError
         return schemas
 
-    def get_bound_schemas(self, session) -> [str]:
+    def related_schemas(self) -> List[str]:
         """获取当前纳管库全部涉及到的schema（评分schema+纳管schema的合集）"""
         from .auth.role import RoleOracleCMDBSchema
         from .rate import OracleRatingSchema
+        session = self._sa_instance_state.session
         return list({
             *[
                 i[0]

@@ -5,7 +5,7 @@ __all__ = [
     "current_schema"
 ]
 
-from typing import Union
+from typing import Union, List
 
 import auth.utils
 from models.sqlalchemy import *
@@ -14,7 +14,7 @@ from ..cmdb import *
 from .role import *
 
 
-def current_cmdb(session, login_user: str) -> [int]:
+def current_cmdb(session, login_user: str) -> List[int]:
     """获取某个用户可见的cmdb_id"""
     role_ids: list = list(auth.utils.role_of_user(login_user=login_user).
                           get(login_user, set([])))
@@ -33,7 +33,7 @@ def current_schema(
         cmdb_id: int = None,
         verbose: bool = False,
         verbose_dict: bool = False,
-        query_entity: Union[tuple, list] = ()) -> list:
+        query_entity: Union[tuple, list] = ()) -> List:
     """
     获取某个用户可见的schema
     :param session:
