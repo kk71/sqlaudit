@@ -11,7 +11,6 @@ import traceback
 from prettytable import PrettyTable
 
 from models.mongoengine import *
-from plain_db.mongo_operat import MongoHelper
 from .ticket import Ticket
 from .sub_ticket import SubTicketIssue
 from rule.rule_jar import *
@@ -133,7 +132,6 @@ class SubTicketAnalyse(
         self.cmdb = cmdb
         self.ticket = ticket
         self.cmdb_connector = None
-        self.mongo_connector = MongoHelper.get_db()
 
     def run_static(
             self,
