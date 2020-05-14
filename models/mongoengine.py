@@ -120,3 +120,7 @@ class BaseDoc(DynamicDocument):
     @classmethod
     def filter(cls, *args, **kwargs):
         return cls.objects(*args, **kwargs)
+
+    @classmethod
+    def aggregate(cls, *args, **kwargs):
+        return cls.objects.aggregate(*args, **kwargs)
