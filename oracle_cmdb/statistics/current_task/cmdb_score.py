@@ -10,6 +10,7 @@ from mongoengine import DictField
 
 import issue
 import oracle_cmdb.issue
+from utils.datetime_utils import *
 from ..base import *
 from .base import *
 from .schema_score import *
@@ -71,4 +72,47 @@ class OracleStatsCMDBScore(OracleBaseCurrentTaskStatistics):
     def cmdb_score(self):
         return self.entry_score.get(
             issue.OnlineIssue.ENTRIES[0], None)
+
+    @classmethod
+    def latest_cmdb_score(cls, months: int = 1):
+        """
+        查询全部有记录的库的最后一次纳管库评分
+        :param months: 几个月内？默认近一个月
+        :return:
+        """
+        ret = cls.aggregate(
+            {
+                "$match": {
+                    "create_time": {
+                        "$gte": arrow.get(
+                            arrow.now().shift(months=-months).date()).datetime
+                    }
+                }
+            },
+            {
+                "$sort": {
+                    "create_time": -1
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "cmdb_id": "$cmdb_id"
+                    },
+                    "entry_score": {
+                        "$first": "$entry_score"
+                    },
+                    "create_time": {
+                        "$first": "$create_time"
+                    }
+                }
+            }
+        )
+        return {
+            i["_id"]["cmdb_id"]: {
+                "cmdb_score": i["entry_score"].get(issue.OnlineIssue.ENTRIES[0], None),
+                "create_time": i["create_time"]
+            }
+            for i in ret
+        }
 

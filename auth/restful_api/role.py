@@ -2,12 +2,12 @@
 
 from sqlalchemy.exc import IntegrityError
 
-from auth.user import *
+from ..user import *
 from .base import PrivilegeReq
 from ..const import PRIVILEGE
 from utils.schema_utils import *
 from models.sqlalchemy import *
-from restful_api.modules import as_view
+from restful_api import *
 
 
 @as_view(group="role")
@@ -119,8 +119,8 @@ class RoleHandler(PrivilegeReq):
         self.resp_created(msg="finished.")
 
     def delete(self):
-        params=self.get_json_args(Schema({
-            "role_id":scm_int
+        params = self.get_json_args(Schema({
+            "role_id": scm_int
         }))
         with make_session() as session:
             session.query(RolePrivilege).filter_by(**params). \
@@ -130,6 +130,7 @@ class RoleHandler(PrivilegeReq):
             session.query(Role).filter_by(**params). \
                 delete(synchronize_session=False)
         self.resp_created(msg="删除成功")
+
 
 @as_view("role_user", group="role")
 class RoleUserHandler(PrivilegeReq):

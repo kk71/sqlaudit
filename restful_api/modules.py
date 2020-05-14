@@ -1,6 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-__all__ = ["as_view"]
+__all__ = [
+    "as_view"
+]
 
 import importlib
 from glob import glob

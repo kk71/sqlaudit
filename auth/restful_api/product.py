@@ -1,27 +1,23 @@
-
-
-from models.sqlalchemy import make_session
-from restful_api.modules import as_view
+from models.sqlalchemy import *
+from restful_api import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from utils.version_utils import get_versions
-
-from .base import BaseReq
 from ..product_license import *
 from ..license import License
 
 
-@as_view("product_license",group="auth")
+@as_view("license", group="product")
 class ProductLicenseHandler(BaseReq):
 
     def get(self):
         """查询产品纳管套数、可用天数、过期时间"""
         try:
             with make_session() as session:
-                license=session.query(License).order_by(License.create_time.desc()).first()
+                license = session.query(License).order_by(License.create_time.desc()).first()
                 if not license:
                     self.resp(msg="not license")
-                license_key=license.license_key
+                license_key = license.license_key
                 license_key_ins = SqlAuditLicenseKey.decode(license_key)
                 if not license_key_ins.is_valid():
                     raise DecryptError("license info is invalid")
@@ -59,7 +55,7 @@ class ProductLicenseHandler(BaseReq):
                 print(f"receive_license {license_text}")
                 raise DecryptError("the license code is invalid")
             with make_session() as session:
-                license=License(license_key=license_text,license_status=1)
+                license = License(license_key=license_text, license_status=1)
                 session.add(license)
                 session.commit()
             return self.resp_created(msg="")
@@ -73,7 +69,7 @@ class ProductLicenseHandler(BaseReq):
             return self.resp_bad_req(msg=str(e))
 
 
-@as_view("product_version",group="auth")
+@as_view("version", group="version")
 class VersionHandler(BaseReq):
 
     def get(self):
