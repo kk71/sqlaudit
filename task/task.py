@@ -115,7 +115,8 @@ class BaseTask(celery_app.Task):
             return task_record.task_record_id
 
     @classmethod
-    def shoot(cls, **kwargs):
+    def shoot(cls, **kwargs) -> int:
         """使用该方法启动任务而不是用delay"""
         task_record_id = cls._shoot(**kwargs)
         cls.task_instance.delay(task_record_id, **kwargs)
+        return task_record_id

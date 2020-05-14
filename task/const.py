@@ -4,14 +4,10 @@
 # 任务种类
 
 ALL_TASK_TYPES = (
-    TASK_TYPE_TEST := "TEST",
-
     TASK_TYPE_CAPTURE := "CAPTURE",
     TASK_TYPE_TICKET := "TICKET",
 )
 ALL_TASK_TYPE_CHINESE = {
-    TASK_TYPE_TEST: "测试任务",
-
     TASK_TYPE_CAPTURE: "采集",
     TASK_TYPE_TICKET: "工单分析"
 }

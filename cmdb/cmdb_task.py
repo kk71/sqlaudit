@@ -8,8 +8,10 @@ __all__ = [
 
 from typing import Dict, Union, Optional, Tuple
 
+from redis import StrictRedis
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_, and_
 
+import settings
 import task.const
 from task.task import BaseTask
 from utils.datetime_utils import *
@@ -38,6 +40,14 @@ class CMDBTask(BaseModel):
     # 最后一次成功的任务记录id
     last_success_task_record_id = Column("last_success_task_record_id", nullable=True)
     last_success_time = Column("last_success_time", DateTime, nullable=True)
+
+    def flush_celery_q(self):
+        redis_celery_broker = StrictRedis(
+            host=settings.REDIS_BROKER_IP,
+            port=settings.REDIS_BROKER_PORT,
+            db=settings.REDIS_BROKER_DB
+        )
+        redis_celery_broker.ltrim(self.task_type, 1, 0)
 
     def day_last_succeed_task_record_id(
             self,
@@ -135,13 +145,11 @@ class CMDBTaskRecord(BaseModel):
     # 操作来源：定时任务，频率任务，页面发起(记录是的login_user)，命令行发起
     operator = Column("operator", String)
 
-    def query_record(self):
-        """
-        返回当前任务最后一次记录，注意并不必须是成功的记录
-        记录是纳管库任务记录和任务记录的合体
-        :return:
-        """
-        session = self._sa_instance_state.session
+    @classmethod
+    def query_cmdb_task_record_with_task_record(
+            cls,
+            session) -> Tuple[sqlalchemy_q, QueryEntity]:
+        """联合查询纳管库任务和任务纪录表"""
         ret = session.query(*(qe := QueryEntity(
             CMDBTaskRecord.task_record_id,
             CMDBTaskRecord.cmdb_task_id,
@@ -154,13 +162,13 @@ class CMDBTaskRecord(BaseModel):
             TaskRecord.start_time,
             TaskRecord.end_time,
             TaskRecord.status,
-            TaskRecord.error_info
+            TaskRecord.error_info,
+            TaskRecord.input,
+            TaskRecord.output
         ))).filter(
-            CMDBTaskRecord.task_record_id == TaskRecord.task_record_id,
-            CMDBTaskRecord.task_type == self.task_type,
-            CMDBTaskRecord.cmdb_task_id == self.id
+            CMDBTaskRecord.task_record_id == TaskRecord.task_record_id
         ).first()
-        return qe.to_dict(ret[0])
+        return ret, qe
 
 
 class BaseCMDBTask(BaseTask):
@@ -175,7 +183,7 @@ class BaseCMDBTask(BaseTask):
         super(BaseCMDBTask, self).run(task_record_id, **kwargs)
 
     @classmethod
-    def shoot(cls, **kwargs):
+    def shoot(cls, **kwargs) -> int:
         """使用该方法启动任务而不是用delay"""
 
         cmdb_task_id: int = kwargs["cmdb_task_id"]
@@ -201,6 +209,7 @@ class BaseCMDBTask(BaseTask):
             session.add(cmdb_task)
         print(f"* going to start a cmdb task {cmdb_task_id=} with {task_record_id=} ...")
         cls.task_instance.delay(task_record_id, **kwargs)
+        return task_record_id
 
     def on_success(self, retval, task_id, args, kwargs):
         super(BaseCMDBTask, self).on_success(retval, task_id, args, kwargs)
