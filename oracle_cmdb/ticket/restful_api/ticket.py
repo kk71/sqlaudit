@@ -7,7 +7,7 @@ from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from ..ticket import OracleTicket
 from ...cmdb import *
-from .. import ticket_utils, task
+from .. import task
 from ticket.task_name_utils import *
 
 
@@ -30,11 +30,11 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
         script_ids: list = params.pop("script_ids")
 
         with make_session() as session:
-            cmdb = session.query(OracleCMDB).filter(
+            the_cmdb = session.query(OracleCMDB).filter(
                 OracleCMDB.cmdb_id == params["cmdb_id"]).first()
-            if not ticket_utils.check_cmdb_privilege(cmdb):
+            if the_cmdb.check_privilege():
                 return self.resp_forbidden(
-                    msg=f"当前纳管库的登录用户({cmdb.user_name})权限不足，"
+                    msg=f"当前纳管库的登录用户({the_cmdb.username})权限不足，"
                         "无法做诊断分析。"
                 )
 
@@ -46,7 +46,7 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 # 否则无法确定他的对象是处在哪个schema下面的
                 # 默认的纳管库用户是需要打开权限的，以保证能够在访问别的schema的对象
                 # 所以需要在前面先验证纳管库登录的用户是否有足够的权限。
-                params["schema_name"] = cmdb.user_name
+                params["schema_name"] = the_cmdb.username
             if not params["task_name"]:
                 params['task_name'] = get_available_task_name(
                     submit_owner=params["submit_owner"]

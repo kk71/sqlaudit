@@ -56,3 +56,7 @@ class CMDB(BaseModel):
             q = q.filter_by(**kwargs)
         return q.first()
 
+    def check_privilege(self):
+        """检查纳管库是否具有必要的权限"""
+        raise NotImplementedError
+
