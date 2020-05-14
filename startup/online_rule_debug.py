@@ -35,14 +35,14 @@ def main():
     for m in OracleOnlineIssue.COLLECTED:
         m.check_rule_output_and_issue(cmdb_id=cmdb_id)
 
-    from oracle_cmdb.statistics import OracleBaseStatistics, OracleStatsDashboardDrillDown
-    OracleBaseStatistics.collect()
-    with make_session() as session:
-        the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-        schemas: [str] = the_cmdb.get_bound_schemas(session)
-    OracleBaseStatistics.process(
-        collected=[OracleStatsDashboardDrillDown],
-        cmdb_id=cmdb_id,
-        task_record_id=task_record_id,
-        schemas=schemas
-    )
+    # from oracle_cmdb.statistics import OracleBaseStatistics, OracleStatsDashboardDrillDown
+    # OracleBaseStatistics.collect()
+    # with make_session() as session:
+    #     the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+    #     schemas: [str] = the_cmdb.get_bound_schemas(session)
+    # OracleBaseStatistics.process(
+    #     collected=[OracleStatsDashboardDrillDown],
+    #     cmdb_id=cmdb_id,
+    #     task_record_id=task_record_id,
+    #     schemas=schemas
+    # )

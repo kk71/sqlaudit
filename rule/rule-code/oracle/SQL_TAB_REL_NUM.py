@@ -5,7 +5,7 @@ def code(rule, entries, **kwargs):
     task_record_id: int = kwargs["task_record_id"]
     schema_name: str = kwargs["schema_name"]
 
-    ret = OracleSQLPlan.objects.aggregate(
+    ret = OracleSQLPlan.aggregate(
         {
             "$match": {
                 "task_record_id": task_record_id,

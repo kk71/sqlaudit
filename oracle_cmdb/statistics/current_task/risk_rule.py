@@ -20,7 +20,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
     """schema存在风险的规则"""
 
     entry = StringField(required=True)
-    entries = ListField(default=list)
+    inherited_entries = ListField(default=list)
     rule = DictField(default=lambda: {
         # 这里的数据来自规则仓库
         "name": "",
@@ -34,6 +34,8 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
     meta = {
         "collection": "oracle_stats_schema_risk_rule",
         "indexes": [
+            "entry",
+            "inherited_entries",
             "rule.name",
             "level",
             "issue_num"
@@ -52,6 +54,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsSchemaRiskRule", None, None]:
         schemas: List[str] = kwargs["schemas"]
+
         cmdb_rule_dict = dict()  # 放个缓存
 
         for schema_name in schemas:
@@ -66,7 +69,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                     {
                         "$addFields": {
                             # 用于保留原本的entries上层结构
-                            "original_entries": issue_model.INHERITED_ENTRIES
+                            "issue_inherited_entries": issue_model.INHERITED_ENTRIES
                         }
                     },
                     {
@@ -88,7 +91,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                                 "rule_name": "$rule_name",
                                 "level": "$level",
                                 "entry": "$entries",
-                                "entries": "$original_entries"
+                                "issue_inherited_entries": "$issue_inherited_entries"
                             },
                             "issue_num": {"$sum": 1}
                         }
@@ -96,7 +99,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
                 )
                 for i in ret:
                     doc = cls(
-                        entries=i["_id"]["entries"]
+                        inherited_entries=i["_id"]["issue_inherited_entries"]
                     )
                     doc.entry = i["_id"]["entry"]
                     doc.level = i["_id"]["level"]

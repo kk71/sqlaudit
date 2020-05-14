@@ -16,7 +16,7 @@ def code(rule, entries, **kwargs):
 
     if const.RULE_ENTRY_TICKET_DYNAMIC in entries:
         statement_id: str = kwargs["statement_id"]
-        ret = OracleTicketSQLPlan.objects.aggregate(
+        ret = OracleTicketSQLPlan.aggregate(
             {
                 "$match": {
                     "statement_id": statement_id,
@@ -46,7 +46,7 @@ def code(rule, entries, **kwargs):
         schema_name: str = kwargs["schema_name"]
         task_record_id: int = kwargs["task_record_id"]
 
-        ret = OracleSQLPlan.objects.aggregate(
+        ret = OracleSQLPlan.aggregate(
             {
                 "$match": {
                     "task_record_id": task_record_id,

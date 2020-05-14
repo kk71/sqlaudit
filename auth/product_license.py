@@ -7,7 +7,6 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 
 import settings
-from plain_db.oracleob import OracleHelper, DBError
 
 
 def count_time(start):

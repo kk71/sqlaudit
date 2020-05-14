@@ -14,7 +14,7 @@ from redis import StrictRedis
 import settings
 from . import const, celery_conf
 from utils.conc_utils import *
-from oracle_cmdb.task_record_id_utils import *
+
 
 redis_celery_broker = StrictRedis(
     host=settings.REDIS_BROKER_IP,
