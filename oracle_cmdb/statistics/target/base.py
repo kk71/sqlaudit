@@ -5,12 +5,11 @@ __all__ = [
     "OracleBaseTargetSchemaStatistics"
 ]
 
-from typing import Generator
-
 from mongoengine import IntField, StringField
 
 from ...cmdb import *
 from oracle_cmdb.statistics import OracleBaseStatistics
+from ...tasks.capture.cmdb_task_capture import *
 
 
 class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
@@ -57,7 +56,8 @@ class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
             # 那么就取当前任务的task_record_id最为当前库的最后可用task_record_id
             return task_record_id
         else:
-            return target_cmdb.cmdb_task().last_success_task_record_id
+            return OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(
+                target_cmdb).last_success_task_record_id
 
 
 class OracleBaseTargetSchemaStatistics(OracleBaseTargetCMDBStatistics):

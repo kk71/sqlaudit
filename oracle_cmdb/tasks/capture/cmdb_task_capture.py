@@ -10,7 +10,7 @@ import task.const
 import cmdb.cmdb_task
 import rule.const
 from models.sqlalchemy import *
-from models.mongoengine import *
+from ...cmdb import *
 from ...statistics import *
 
 
@@ -20,6 +20,15 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
     __mapper_args__ = {
         'polymorphic_identity': task.const.TASK_TYPE_CAPTURE
     }
+
+    @classmethod
+    def get_cmdb_task_by_cmdb(
+            cls,
+            the_cmdb: OracleCMDB,
+            **kwargs) -> "OracleCMDBTaskCapture":
+        return super().get_cmdb_task_by_cmdb(
+            the_cmdb, **kwargs).filter(
+            cls.task_type == task.const.TASK_TYPE_CAPTURE).first()
 
     @classmethod
     def query_cmdb_task_with_last_record(

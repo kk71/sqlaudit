@@ -46,6 +46,11 @@ class CMDBTask(BaseModel):
         'polymorphic_on': task_type
     }
 
+    @classmethod
+    def get_cmdb_task_by_cmdb(cls, the_cmdb: CMDB, **kwargs) -> sqlalchemy_q:
+        session = the_cmdb._sa_instance_state.session
+        return session.query(cls).filter(cls.cmdb_id == the_cmdb.cmdb_id)
+
     def flush_celery_q(self):
         redis_celery_broker = StrictRedis(
             host=settings.REDIS_BROKER_IP,

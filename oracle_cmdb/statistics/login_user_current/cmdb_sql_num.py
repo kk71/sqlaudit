@@ -12,6 +12,7 @@ from utils.datetime_utils import *
 from models.sqlalchemy import *
 from ...capture import OracleSQLText
 from ...issue.sql import OracleOnlineSQLIssue
+from ...tasks.capture.cmdb_task_capture import *
 from ..base import *
 from .base import *
 
@@ -47,7 +48,8 @@ class OracleStatsCMDBSQLNum(OracleStatsMixOfLoginUserAndCurrentCMDB):
 
                     for date_period in cls.DATE_PERIOD:
                         doc = cls(date_period=date_period)
-                        the_cmdb_task = the_cmdb.cmdb_task()
+                        the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(
+                            the_cmdb)
                         date_tri = the_cmdb_task.day_last_succeed_task_record_id(
                             date_start=period_now.shift(days=-date_period),
                             date_end=period_now,
