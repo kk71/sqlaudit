@@ -42,7 +42,7 @@ def collect_dynamic_modules(module_names: [str]):
 
     global url_table
     url_table = prettytable.PrettyTable([
-        "group name", "url", "request methods", "request handler"])
+        "group", "URL", "request methods & usage"])
     url_table.align = "l"
     url_table.hrules = prettytable.ALL
     for group_name, urls in restful_api.urls.verbose_structured_urls.items():
@@ -52,8 +52,7 @@ def collect_dynamic_modules(module_names: [str]):
             url_table.add_row((
                 group_name,
                 url,
-                methods_str,
-                req_handler
+                methods_str
             ))
     if settings.URL_STATS:
         # 打印url信息
