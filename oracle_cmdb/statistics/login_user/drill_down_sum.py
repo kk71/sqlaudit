@@ -8,6 +8,7 @@ from typing import Union, Generator
 
 from mongoengine import LongField, FloatField, StringField
 
+import issue.issue
 from models.sqlalchemy import *
 from .base import *
 from ...issue import *
@@ -22,7 +23,7 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
     entry = StringField()
     num = LongField(default=0)  # 采集到的[sql/object]总数（去重）
     num_with_risk = LongField(default=0)  # 包含问题的[sql/object]数（去重）
-    num_with_risk_rate = FloatField(default=0.0)  # problem_num/num
+    risk_rate = FloatField(default=0.0)  # problem_num/num
     issue_num = LongField(default=0)  # 问题数
 
     meta = {
@@ -35,6 +36,7 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
     REQUIRES = (OracleStatsDashboardDrillDown,)
 
     ISSUES = (
+        issue.issue.OnlineIssue,
         OracleOnlineSQLIssue,
         OracleOnlineObjectIssueTable,
         OracleOnlineObjectIssueSequence,
@@ -62,9 +64,9 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
                         doc.num_with_risk += drill_down_stats.num_with_risk
                         doc.issue_num += drill_down_stats.issue_num
                     if doc.num > 0:
-                        doc.num_with_risk_rate = round(doc.num_with_risk / doc.num, 4)
+                        doc.risk_rate = round(doc.num_with_risk / doc.num, 4)
                     else:
-                        doc.num_with_risk_rate = 0
+                        doc.risk_rate = 0
                     cls.post_generated(
                         doc=doc,
                         task_record_id=task_record_id,

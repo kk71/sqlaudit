@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "latest_cmdb_score"
+    "oracle_latest_cmdb_score"
 ]
 
 from typing import Dict, Any
@@ -11,7 +11,7 @@ from .cmdb import *
 from .statistics import OracleStatsCMDBScore
 
 
-def latest_cmdb_score(session) -> Dict[str, Dict[str, Any]]:
+def oracle_latest_cmdb_score(session) -> Dict[str, Dict[str, Any]]:
     """
     查询纳管库最近一次评分信息
     """

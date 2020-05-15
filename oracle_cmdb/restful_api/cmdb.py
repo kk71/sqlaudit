@@ -29,7 +29,7 @@ class CMDBHealthTrendHandler(AuthReq):
                 # 如果没有给出cmdb_id，则把最差的前十个拿出来
                 cmdb_id_list = [
                                    i
-                                   for i in latest_cmdb_score(session).keys()
+                                   for i in oracle_latest_cmdb_score(session).keys()
                                    if i in cmdb_id_list
                                ][:10]
             fields = set()

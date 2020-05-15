@@ -2,17 +2,17 @@ __all__ = [
     "BaseCMDBHandler"
 ]
 
-from sqlalchemy import or_
+from typing import Union, List, Dict
 from functools import reduce
 from collections import defaultdict
+
+from sqlalchemy import or_
 
 from ..const import *
 from cmdb.cmdb import *
 from cmdb.cmdb_task import CMDBTask
 from auth.user import *
-from auth.restful_api.base import *
 from auth.product_license import *
-from oracle_cmdb.cmdb import OracleCMDB
 from utils.schema_utils import *
 from utils.conc_utils import async_thr
 from models.sqlalchemy import *
@@ -21,10 +21,13 @@ from ticket.sub_ticket import SubTicket
 from restful_api.modules import as_view
 from oracle_cmdb.auth.user_utils import current_cmdb
 from oracle_cmdb.auth.role import RoleOracleCMDBSchema
+from oracle_cmdb.restful_api.base import *
+from oracle_cmdb.statistics import *
+from oracle_cmdb.cmdb_utils import *
 
 
 @as_view(group="cmdb")
-class BaseCMDBHandler(AuthReq):
+class BaseCMDBHandler(OraclePrivilegeReq):
 
     def gen_current(self):
         """是否仅返回当前登录用户纳管的库,如果是admin则返回所有"""
@@ -32,7 +35,9 @@ class BaseCMDBHandler(AuthReq):
             scm_optional("current", default=not self.is_admin()): scm_bool
         }
 
-    def get_queryset(self, session):
+    def get(self):
+        """cmdb列表"""
+
         params = self.get_query_args(Schema({
             # 精确匹配
             scm_optional("cmdb_id"): scm_gt0_int,
@@ -55,63 +60,30 @@ class BaseCMDBHandler(AuthReq):
         keyword = params.pop("keyword")
         current = params.pop("current")
         sort = params.pop("sort")
-        paging = self.pop_p(params)
+        p = self.pop_p(params)
 
-        cmdb_q = session.query(CMDB).filter_by(**params)
-        if keyword:
-            cmdb_q = self.query_keyword(cmdb_q, keyword,
-                                        CMDB.cmdb_id,
-                                        CMDB.connect_name,
-                                        CMDB.group_name,
-                                        CMDB.business_name,
-                                        CMDB.server_name,
-                                        CMDB.ip_address)
-        return cmdb_q, paging, current, sort
-
-    async def get(self):
-        """查询cmdb列表"""
         with make_session() as session:
-            cmdb_q, paging, current, sort = self.get_queryset(session)
-            # 获取纳管库的评分
-            all_db_data_health = get_latest_cmdb_score(session).values()
-            if current:
-                current_cmdb_ids: list = await async_thr(
-                    current_cmdb, session, self.current_user)
-                cmdb_q = cmdb_q.filter(CMDB.cmdb_id.in_(current_cmdb_ids))
-                all_db_data_health = [
-                    stats_cmdb_rate
-                    for stats_cmdb_rate in all_db_data_health
-                    if stats_cmdb_rate.cmdb_id in current_cmdb_ids
-                ]
-            if all_db_data_health:
-                all_db_data_health = sorted(
-                    all_db_data_health,
-                    key=lambda da: da.score if da.score is not None else 0,
-                    reverse=True)
-                if sort == SORT_DESC:
-                    pass
-                elif sort == SORT_ASC:
-                    all_db_data_health.reverse()
-                else:
-                    assert 0
-
-            # 构建输出的纳管库信息（分页前）
-            ret = []
-            all_current_cmdb = {cmdb.cmdb_id: cmdb for cmdb in cmdb_q}
-            for data_health in all_db_data_health:
-                cmdb_obj_of_this_dh = all_current_cmdb.get(data_health.cmdb_id)
-                if not cmdb_obj_of_this_dh:
-                    print(f"{data_health.cmdb_id} not found")
-                    continue
-                ret.append({
-                    **cmdb_obj_of_this_dh.to_dict(),
-                    "data_health": data_health.to_dict()
-                })
-            ret, p = self.paginate(ret, **paging)
+            cmdb_q = self.cmdbs(session).filter_by(**params)
+            if keyword:
+                cmdb_q = self.query_keyword(cmdb_q, keyword,
+                                            CMDB.cmdb_id,
+                                            CMDB.connect_name,
+                                            CMDB.group_name,
+                                            CMDB.business_name,
+                                            CMDB.server_name,
+                                            CMDB.ip_address)
+            # 构建输出的纳管库信息，带上评分
+            all_current_cmdb: Dict[int, dict] = {}
+            latest_score = oracle_latest_cmdb_score(session)
+            for a_cmdb in cmdb_q:
+                all_current_cmdb[a_cmdb.cmdb_id] = {
+                    "data_health": latest_score.get(a_cmdb.cmdb_id, None),
+                    **a_cmdb.to_dict()
+                }
+            ret, p = self.paginate(all_current_cmdb, **p)
 
             # 对分页之后的纳管库列表补充额外数据
-            # TODO stats
-            login_stats = StatsLoginUser.objects(login_user=self.current_user). \
+            login_stats = OracleStatsCM.objects(login_user=self.current_user). \
                 order_by("-etl_date").first()
             if login_stats:
                 login_stats = login_stats.to_dict()
@@ -324,7 +296,7 @@ class BaseCMDBHandler(AuthReq):
 
 
 @as_view("aggregation", group="cmdb")
-class CMDBAggregationHandler(PrivilegeReq):
+class CMDBAggregationHandler(OraclePrivilegeReq):
 
     def get(self):
         """获取cmdb某个或某些字段的聚合值"""
