@@ -8,7 +8,7 @@ import rule.const
 from .sql_execution import OracleOnlineSQLExecutionIssue
 from ....issue.base import OracleOnlineIssue
 from ....capture import OracleSQLStatToday
-from ....task.cmdb_task_stats import *
+from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 
 
 @OracleOnlineIssue.need_collect()

@@ -5,21 +5,19 @@ __all__ = [
 ]
 
 import task.const
-from cmdb.cmdb_task import BaseCMDBTask
 from utils.datetime_utils import *
 from cmdb.cmdb_task import *
 from task.task import *
-from ..capture.base import *
-from ..cmdb import *
-from ..plain_db import *
+from oracle_cmdb.capture.base import *
+from oracle_cmdb.cmdb import *
+from oracle_cmdb.plain_db import *
 from models.sqlalchemy import *
-from ..issue import OracleOnlineIssue
-from ..statistics import OracleBaseStatistics
+from oracle_cmdb.issue import OracleOnlineIssue
+from oracle_cmdb.statistics import OracleBaseStatistics
 
 
 @register_task(task.const.TASK_TYPE_CAPTURE)
 class OracleCMDBCaptureTask(BaseCMDBTask):
-
     """纳管库采集（包括采集、分析、统计三步骤）"""
 
     @classmethod
@@ -90,5 +88,3 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
             task_record_id=task_record_id,
             schemas=schemas
         )
-
-

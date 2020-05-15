@@ -2,12 +2,12 @@ __all__ = [
     "BaseCMDBHandler"
 ]
 
-from typing import Union, List, Dict
-from functools import reduce
+from typing import List, Dict
 from collections import defaultdict
 
 from sqlalchemy import or_
 
+import utils.const
 from ..const import *
 from cmdb.cmdb import *
 from cmdb.cmdb_task import CMDBTask
@@ -19,11 +19,12 @@ from models.sqlalchemy import *
 from ticket.ticket import *
 from ticket.sub_ticket import SubTicket
 from restful_api.modules import as_view
+from oracle_cmdb.cmdb import *
 from oracle_cmdb.auth.user_utils import current_cmdb
 from oracle_cmdb.auth.role import RoleOracleCMDBSchema
 from oracle_cmdb.restful_api.base import *
 from oracle_cmdb.statistics import *
-from oracle_cmdb.cmdb_utils import *
+from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
 
 
 @as_view(group="cmdb")
@@ -52,11 +53,13 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             **self.gen_current(),
 
             # 排序
-            scm_optional("sort", default=SORT_DESC): And(
-                scm_str, self.scm_one_of_choices(ALL_SORTS)),
+            scm_optional("sort", default=utils.const.SORT_DESC): And(
+                scm_str,
+                self.scm_one_of_choices(utils.const.ALL_SORTS)
+            ),
 
             **self.gen_p()
-        }, ignore_extra_keys=True))
+        }))
         keyword = params.pop("keyword")
         current = params.pop("current")
         sort = params.pop("sort")
@@ -74,66 +77,52 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                                             CMDB.ip_address)
             # 构建输出的纳管库信息，带上评分
             all_current_cmdb: Dict[int, dict] = {}
-            latest_score = oracle_latest_cmdb_score(session)
+            last_cmdb_score = OracleCMDBTaskCapture.last_cmdb_score(session)
             for a_cmdb in cmdb_q:
                 all_current_cmdb[a_cmdb.cmdb_id] = {
-                    "data_health": latest_score.get(a_cmdb.cmdb_id, None),
+                    "data_health": last_cmdb_score[a_cmdb.cmdb_id],
+                    "rating_schemas": a_cmdb.rating_schemas(),
                     **a_cmdb.to_dict()
                 }
-            ret, p = self.paginate(all_current_cmdb, **p)
+            all_current_cmdb_list: List = list(all_current_cmdb.items())
+            all_current_cmdb_list = sorted(
+                all_current_cmdb_list,
+                key=lambda k: k["data_health"]["score"]
+            )
+            if sort == utils.const.SORT_DESC:
+                all_current_cmdb_list.reverse()
+            ret, p = self.paginate(all_current_cmdb_list, **p)
 
             # 对分页之后的纳管库列表补充额外数据
-            login_stats = OracleStatsCM.objects(login_user=self.current_user). \
-                order_by("-etl_date").first()
-            if login_stats:
-                login_stats = login_stats.to_dict()
-                cmdb_stats = {c["cmdb_id"]: c for c in login_stats["cmdb"]}
-                the_etl_date = login_stats["etl_date"]
-            else:
-                cmdb_stats = {}
-                the_etl_date = None
+            last_cmdb_task_record_id_dict = OracleCMDBTaskCapture.\
+                last_login_user_entry_cmdb(
+                    session,
+                    self.current_user)
             for i in ret:
-                i["stats"] = cmdb_stats.get(i["cmdb_id"], {})
-                i["stats"]["etl_date"] = the_etl_date
-                # TODO 这里给ret加上纳管它的角色信息（角色名，角色id）
-                #  以及纳管它的用户(login_user, user_name)
-                qe = QueryEntity(CMDB.connect_name,
-                                 CMDB.cmdb_id,
-                                 RoleOracleCMDBSchema.schema_name,
-                                 RoleOracleCMDBSchema.create_time,
-                                 RoleOracleCMDBSchema.comments,
-                                 Role.role_name,
-                                 Role.role_id)
-                cmdb_role = session.query(*qe). \
-                    join(CMDB, RoleOracleCMDBSchema.cmdb_id == CMDB.cmdb_id). \
-                    join(Role, Role.role_id == RoleOracleCMDBSchema.role_id)
+                i["stats"] = last_cmdb_task_record_id_dict[i["cmdb_id"]]
 
-                cmdb_role = [list(x) for x in cmdb_role]
-                cmdb_role = [x for x in cmdb_role if i['cmdb_id'] in x]
-
-                i['role'] = reduce(lambda x, y: x if y in x else x + [y],
-                                   [[], ] + [{'role_id': a[6], 'role_name': a[5]} for a in cmdb_role])
-
-                keys = QueryEntity(
-                    UserRole.role_id,
+            # 给ret加上纳管它的角色信息（角色名，角色id）
+            #  以及纳管它的用户(login_user, user_name)
+            for i in ret:
+                # 绑定当前库的角色
+                cmdb_role = session.query(*(cmdb_role_qe := QueryEntity(
                     Role.role_name,
+                    Role.role_id
+                ))).filter(
+                    Role.role_id == RoleOracleCMDBSchema.role_id,
+                    RoleOracleCMDBSchema.cmdb_id == i["cmdb_id"]
+                )
+                i["role"] = [cmdb_role_qe.to_dict(i) for i in cmdb_role]
+                role_ids = [i["role_id"] for i in i["role"]]
+
+                # 绑定当前库的用户
+                role_user = session.query(*(cmdb_user_qe := QueryEntity(
                     User.login_user,
                     User.username
-                )
-                role_user = session.query(*keys). \
-                    join(Role, UserRole.role_id == Role.role_id). \
-                    join(User, UserRole.login_user == User.login_user)
-
-                role_user = [list(x) for x in role_user]
-                role_user = [y for y in role_user for d in i['role'] if d['role_id'] in y]
-
-                i['combined_user'] = reduce(
-                    lambda x, y: x if y in x else x + [y],
-                    [[]] + [
-                        {'combined_login_user': c[2], 'combined_user_name': c[3]}
-                        for c in role_user
-                    ]
-                )
+                ))).filter(
+                    UserRole.role_id.in_(role_ids),
+                    UserRole.login_user == User.login_user)
+                i['user'] = [cmdb_user_qe.to_dict(i) for i in role_user]
             self.resp(ret, **p)
 
     def post(self):
@@ -291,7 +280,7 @@ class BaseCMDBHandler(OraclePrivilegeReq):
         }))
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(**params).first()
-            resp = await async_thr(cmdb.test_cmdb_connectivity)  # TODO
+            resp = await async_thr(cmdb.test_connectivity)  # TODO
             self.resp(resp)
 
 

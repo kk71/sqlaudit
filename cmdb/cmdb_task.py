@@ -6,13 +6,14 @@ __all__ = [
     "BaseCMDBTask"
 ]
 
-from typing import Dict, Union, Optional, Tuple
+from typing import Dict, Union, Optional, Tuple, List
 
 from redis import StrictRedis
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_, and_
 
 import settings
 import task.const
+from cmdb.cmdb import *
 from task.task import BaseTask
 from utils.datetime_utils import *
 from models.sqlalchemy import *
@@ -41,6 +42,10 @@ class CMDBTask(BaseModel):
     last_success_task_record_id = Column("last_success_task_record_id", nullable=True)
     last_success_time = Column("last_success_time", DateTime, nullable=True)
 
+    __mapper_args__ = {
+        'polymorphic_on': task_type
+    }
+
     def flush_celery_q(self):
         redis_celery_broker = StrictRedis(
             host=settings.REDIS_BROKER_IP,
@@ -68,7 +73,10 @@ class CMDBTask(BaseModel):
         # 这里以任务开始时间作为判断采集到的数据的时间
         # 因为sql的采集都是根据snapshotid去判断，开始时间更接近获取snap_shot_id的时间
         # 实际肯定有误差，这个误差暂时就不管了，极限情况的发生概率很低
-        q = TaskRecord.status == task.const.TASK_DONE
+        q = and_(
+            TaskRecord.status == task.const.TASK_DONE,
+            CMDBTaskRecord.task_type == self.task_type
+        )
         # 确保输入的是日期（而非日期时间）
         if isinstance(date_start, datetime):
             date_start = date_start.date()
@@ -106,29 +114,60 @@ class CMDBTask(BaseModel):
     @classmethod
     def query_cmdb_task_with_last_record(
             cls,
-            session) -> Tuple[sqlalchemy_q, QueryEntity]:
+            session,
+            **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
         """查询纳管库任务，以及各自最后一次任务记录"""
+        task_type: str = kwargs["task_type"]
         ret = session.query(*(qe := QueryEntity(
-            CMDBTask.id,
-            CMDBTask.task_type,
-            CMDBTask.task_name,
-            CMDBTask.cmdb_id,
-            CMDBTask.connect_name,
-            CMDBTask.group_name,
-            CMDBTask.status,
-            CMDBTask.schedule_time,
-            CMDBTask.frequency,
-            CMDBTask.exec_count,
-            CMDBTask.success_count,
-            CMDBTask.last_success_time,
+            cls.id,
+            cls.task_type,
+            cls.task_name,
+            cls.cmdb_id,
+            cls.connect_name,
+            cls.group_name,
+            cls.status,
+            cls.schedule_time,
+            cls.frequency,
+            cls.exec_count,
+            cls.success_count,
+            cls.last_success_time,
             TaskRecord.status.label("execution_status"),
             TaskRecord.error_info,
             CMDBTaskRecord.operator
         ))).filter(
-            CMDBTask.id == CMDBTaskRecord.cmdb_task_id,
-            CMDBTask.last_task_record_id == TaskRecord.task_record_id
+            cls.id == CMDBTaskRecord.cmdb_task_id,
+            cls.last_task_record_id == TaskRecord.task_record_id
         )
+        if task_type:
+            ret = ret.filter(cls.task_type == task_type)
         return ret, qe
+
+    @classmethod
+    def last_success_task_record_id_dict(
+            cls,
+            session,
+            cmdbs: Optional[Union[int, CMDB, List[int], List[CMDB]]] = None,
+            **kwargs) -> Dict[int, int]:
+        """查询给定库对应的任务的最后一次成功task_record_id"""
+        qs, _ = cls.query_cmdb_task_with_last_record(session, **kwargs)
+        if cmdbs is not None:
+            if isinstance(cmdbs, int):
+                qs = qs.filter(cls.cmdb_id == cmdbs)
+            elif isinstance(cmdbs, CMDB):
+                qs = qs.filter(cls.cmdb_id == cmdbs.cmdb_id)
+            elif isinstance(cmdbs, (list, tuple)):
+                cmdb_ids = []
+                for i in cmdbs:
+                    if isinstance(i, int):
+                        cmdb_ids.append(i)
+                    elif isinstance(i, CMDB):
+                        cmdb_ids.append(i.cmdb_id)
+                    else:
+                        assert 0
+                if cmdb_ids:
+                    qs = qs.filter(cls.cmdb_id.in_(cmdb_ids))
+        qs = qs.with_entities(cls.cmdb_id, cls.last_success_task_record_id)
+        return dict([tuple(i) for i in qs])
 
 
 class CMDBTaskRecord(BaseModel):
@@ -148,8 +187,10 @@ class CMDBTaskRecord(BaseModel):
     @classmethod
     def query_cmdb_task_record_with_task_record(
             cls,
-            session) -> Tuple[sqlalchemy_q, QueryEntity]:
+            session,
+            **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
         """联合查询纳管库任务和任务纪录表"""
+        task_type: str = kwargs["task_type"]
         ret = session.query(*(qe := QueryEntity(
             CMDBTaskRecord.task_record_id,
             CMDBTaskRecord.cmdb_task_id,
@@ -168,6 +209,8 @@ class CMDBTaskRecord(BaseModel):
         ))).filter(
             CMDBTaskRecord.task_record_id == TaskRecord.task_record_id
         ).first()
+        if task_type:
+            ret = ret.filter(cls.task_type == task_type)
         return ret, qe
 
 

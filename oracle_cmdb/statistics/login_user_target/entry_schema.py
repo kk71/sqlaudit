@@ -1,13 +1,14 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleStatsDashboardDrillDown"
+    "OracleStatsEntrySchema"
 ]
 
 from typing import Union, Generator
 
 from mongoengine import LongField, FloatField, ListField, StringField
 
+import issue.issue
 from models.sqlalchemy import *
 from ..current_task.schema_score import *
 from ...issue import *
@@ -16,19 +17,19 @@ from ..base import *
 
 
 @OracleBaseStatistics.need_collect()
-class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
-    """各个维度对象数问题数和风险率(仪表盘下钻、概览页)"""
+class OracleStatsEntrySchema(OracleStatsMixOfLoginUserAndTargetSchema):
+    """登录用户各库各schema各维度对象数问题数和风险率"""
 
     entry = StringField()
     entries = ListField()
-    num = LongField(default=0, help_text="采集到的总数")
-    num_with_risk = LongField(default=0, help_text="有问题的采到的个数")
-    risk_rate = FloatField(default=0, help_text="风险率")
-    issue_num = LongField(default=0, help_text="问题个数")
+    num = LongField(default=0)  # 采集到的[sql/object]总数（去重）
+    num_with_risk = LongField(default=0)  # 包含问题的[sql/object]数（去重）
+    risk_rate = FloatField(default=0)  # num_with_risk/num
+    issue_num = LongField(default=0)  # 问题数
     score = FloatField(default=0)
 
     meta = {
-        "collection": "oracle_stats_dashboard_drill_down",
+        "collection": "oracle_stats_entry_schema",
         "indexes": [
             "entry",
             "entries"
@@ -38,6 +39,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
     REQUIRES = (OracleStatsSchemaScore,)
 
     ISSUES = (
+        issue.issue.OnlineIssue,
         OracleOnlineSQLTextIssue,
         OracleOnlineSQLPlanIssue,
         OracleOnlineSQLStatIssue,
@@ -51,7 +53,7 @@ class OracleStatsDashboardDrillDown(OracleStatsMixOfLoginUserAndTargetSchema):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsDashboardDrillDown", None, None]:
+            **kwargs) -> Generator["OracleStatsEntrySchema", None, None]:
         with make_session() as session:
             for the_user in cls.users(session):
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):

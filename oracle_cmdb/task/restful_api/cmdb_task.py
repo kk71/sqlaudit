@@ -7,7 +7,7 @@ from utils.schema_utils import *
 from auth.const import PRIVILEGE
 from cmdb.cmdb_task import *
 from ...restful_api.base import *
-from ...tasks.cmdb_capture import *
+from oracle_cmdb.tasks.capture.capture import *
 
 
 @as_view(group="task")

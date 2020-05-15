@@ -13,7 +13,7 @@ import oracle_cmdb.issue
 from models.sqlalchemy import *
 from ..base import *
 from .base import *
-from ...task.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
+from oracle_cmdb.tasks.capture.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
 from oracle_cmdb.rate import *
 
 

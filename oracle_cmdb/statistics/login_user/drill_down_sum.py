@@ -4,26 +4,26 @@ __all__ = [
     "OracleStatsDashboardDrillDownSum"
 ]
 
-from typing import Union, Generator
+from typing import Union, Generator, List
 
-from mongoengine import LongField, FloatField, StringField
+from mongoengine import LongField, FloatField, StringField, IntField
 
-import issue.issue
 from models.sqlalchemy import *
 from .base import *
 from ...issue import *
 from ..base import *
-from ..login_user_target import OracleStatsDashboardDrillDown
+from ..login_user_target import OracleStatsEntrySchema
 
 
 @OracleBaseStatistics.need_collect()
 class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
-    """仪表盘下钻数据的和（即：下钻入口）"""
+    """登录用户所有库纳管的schema的数据和（仪表盘下钻入口）"""
 
     entry = StringField()
+    schema_num = IntField(default=0)  # 运行采集分析的schema个数
     num = LongField(default=0)  # 采集到的[sql/object]总数（去重）
     num_with_risk = LongField(default=0)  # 包含问题的[sql/object]数（去重）
-    risk_rate = FloatField(default=0.0)  # problem_num/num
+    risk_rate = FloatField(default=0.0)  # num_with_risk/num
     issue_num = LongField(default=0)  # 问题数
 
     meta = {
@@ -33,10 +33,9 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
         ]
     }
 
-    REQUIRES = (OracleStatsDashboardDrillDown,)
+    REQUIRES = (OracleStatsEntrySchema,)
 
     ISSUES = (
-        issue.issue.OnlineIssue,
         OracleOnlineSQLIssue,
         OracleOnlineObjectIssueTable,
         OracleOnlineObjectIssueSequence,
@@ -48,12 +47,16 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsDashboardDrillDown", None, None]:
+            **kwargs) -> Generator["OracleStatsEntrySchema", None, None]:
+        schemas: List[str] = kwargs["schemas"]
         with make_session() as session:
             for the_user in cls.users(session):
                 for entry in cls.issue_entries():
-                    doc = cls(entry=entry)
-                    drill_down_qs = OracleStatsDashboardDrillDown.filter(
+                    doc = cls(
+                        entry=entry,
+                        schema_num=len(schemas)
+                    )
+                    drill_down_qs = OracleStatsEntrySchema.filter(
                         task_record_id=task_record_id,
                         cmdb_id=cmdb_id,
                         target_login_user=the_user.login_user,

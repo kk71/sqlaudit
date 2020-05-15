@@ -9,7 +9,7 @@ from models import init_models
 init_models()
 
 import cmdb.const
-from oracle_cmdb.tasks.cmdb_capture import *
+from oracle_cmdb.tasks.capture.capture import *
 
 
 @click.argument("task_id", type=click.INT, required=True)

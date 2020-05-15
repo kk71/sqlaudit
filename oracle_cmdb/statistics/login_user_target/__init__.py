@@ -1,3 +1,4 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from .dashboard_drill_down import *
+from .entry_schema import *
+from .entry_cmdb import *

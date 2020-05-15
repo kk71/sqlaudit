@@ -9,6 +9,7 @@ from typing import List
 from sqlalchemy import Column, String, Boolean
 
 import cmdb.const
+from models.sqlalchemy import *
 from . import exceptions
 from cmdb.cmdb import CMDB
 from .plain_db import OraclePlainConnector
@@ -77,6 +78,14 @@ class OracleCMDB(CMDB):
                     cmdb_id=self.cmdb_id)
             ]
         })
+
+    def rating_schemas(self) -> List[str]:
+        """当前库的评分schema列表"""
+        from .rate import OracleRatingSchema
+        session = self._sa_instance_state.session
+        rating_schemas = session.query(OracleRatingSchema.schema_name).filter(
+            OracleRatingSchema.cmdb_id == self.cmdb_id)
+        return list(set([QueryEntity.to_plain_list(i) for i in rating_schemas]))
 
     def test_connectivity(self) -> bool:
         """测试连接性"""

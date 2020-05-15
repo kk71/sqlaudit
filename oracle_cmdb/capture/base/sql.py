@@ -14,7 +14,7 @@ from mongoengine import IntField, StringField
 
 import settings
 from .base import *
-from ...task.cmdb_task_stats import *
+from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 from utils.log_utils import *
 from models.mongoengine import *
 from oracle_cmdb import exceptions, const

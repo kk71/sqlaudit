@@ -15,7 +15,7 @@ from rule.rule_jar import *
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
 from issue.issue import *
-from ..task.cmdb_task_stats import *
+from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 from ..cmdb import OracleCMDB
 from ..capture.base import BaseOracleCapture, OracleSQLCapturingDoc,\
     OracleObjectCapturingDoc

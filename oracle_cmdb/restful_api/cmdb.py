@@ -9,7 +9,7 @@ from utils.datetime_utils import *
 from models.sqlalchemy import *
 from restful_api.modules import as_view
 from auth.restful_api.base import AuthReq
-from oracle_cmdb.cmdb_utils import *
+from oracle_cmdb.tasks.capture.cmdb_task_capture import oracle_latest_cmdb_score
 
 
 @as_view("score_trend", group="cmdb")
