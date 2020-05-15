@@ -14,7 +14,6 @@ from mongoengine import IntField, StringField
 
 import settings
 from .base import *
-from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 from utils.log_utils import *
 from models.mongoengine import *
 from oracle_cmdb import exceptions, const
@@ -212,6 +211,10 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
 
     @classmethod
     def process(cls, collected: ["OracleSQLCapturingDoc"] = None, **kwargs):
+
+        from oracle_cmdb.tasks.capture.cmdb_task_stats import \
+            OracleCMDBTaskStatsSnapIDPairs
+
         if collected is None:
             collected = cls.COLLECTED
         cmdb_id: int = kwargs["cmdb_id"]

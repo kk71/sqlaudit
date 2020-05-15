@@ -12,7 +12,6 @@ from utils.datetime_utils import *
 from models.sqlalchemy import *
 from ...capture import OracleSQLText
 from ...issue.sql import OracleOnlineSQLIssue
-from ...tasks.capture.cmdb_task_capture import *
 from ..base import *
 from .base import *
 
@@ -40,6 +39,9 @@ class OracleStatsCMDBSQLNum(OracleStatsMixOfLoginUserAndCurrentCMDB):
             task_record_id: int,
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsCMDBSQLNum", None, None]:
+
+        from ...tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
+
         period_now = arrow.now()
         with make_session() as session:
             for the_user in cls.users(session, cmdb_id=cmdb_id):

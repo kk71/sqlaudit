@@ -8,7 +8,6 @@ import rule.const
 from .sql_execution import OracleOnlineSQLExecutionIssue
 from ....issue.base import OracleOnlineIssue
 from ....capture import OracleSQLStatToday
-from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 
 
 @OracleOnlineIssue.need_collect()
@@ -23,6 +22,10 @@ class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
     def params_to_append_to_rule(cls,
                                  task_record_id: int,
                                  schema_name: str) -> dict:
+
+        from oracle_cmdb.tasks.capture.cmdb_task_stats import \
+            OracleCMDBTaskStatsSnapIDPairs
+
         # 有stat规则需要snap shot id
         cmdb_task_stats = OracleCMDBTaskStatsSnapIDPairs.objects(
             task_record_id=task_record_id

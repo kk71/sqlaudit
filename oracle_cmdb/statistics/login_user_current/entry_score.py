@@ -12,7 +12,6 @@ import oracle_cmdb.issue
 from models.sqlalchemy import *
 from .base import *
 from ..base import *
-from oracle_cmdb.tasks.capture.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
 
 
 @OracleBaseStatistics.need_collect()
@@ -41,6 +40,9 @@ class OracleStatsEntryScore(OracleStatsMixOfLoginUserAndCurrentTask):
             task_record_id: int,
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsEntryScore", None, None]:
+
+        from oracle_cmdb.tasks.capture.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
+
         with make_session() as session:
             for the_user in cls.users(session, cmdb_id=cmdb_id):
                 schemas: List[str] = list(cls.schemas(

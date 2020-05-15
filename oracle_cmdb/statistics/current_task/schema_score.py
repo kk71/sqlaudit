@@ -9,11 +9,10 @@ from typing import Union, List, Generator
 from mongoengine import DictField, BooleanField
 
 import issue
-import oracle_cmdb.issue
+from ...issue import *
 from models.sqlalchemy import *
 from ..base import *
 from .base import *
-from oracle_cmdb.tasks.capture.cmdb_task_stats import OracleCMDBTaskStatsEntriesAndRules
 from oracle_cmdb.rate import *
 
 
@@ -33,14 +32,14 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
 
     ISSUES = (
         issue.OnlineIssue,
-        oracle_cmdb.issue.OracleOnlineObjectIssue,
-        oracle_cmdb.issue.OracleOnlineSQLTextIssue,
-        oracle_cmdb.issue.OracleOnlineSQLPlanIssue,
-        oracle_cmdb.issue.OracleOnlineSQLStatIssue,
-        oracle_cmdb.issue.OracleOnlineSQLIssue,
-        oracle_cmdb.issue.OracleOnlineObjectIssueIndex,
-        oracle_cmdb.issue.OracleOnlineObjectIssueTable,
-        oracle_cmdb.issue.OracleOnlineObjectIssueSequence
+        OracleOnlineObjectIssue,
+        OracleOnlineSQLTextIssue,
+        OracleOnlineSQLPlanIssue,
+        OracleOnlineSQLStatIssue,
+        OracleOnlineSQLIssue,
+        OracleOnlineObjectIssueIndex,
+        OracleOnlineObjectIssueTable,
+        OracleOnlineObjectIssueSequence
     )
 
     @classmethod
@@ -49,6 +48,10 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
             task_record_id: int,
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsSchemaScore", None, None]:
+
+        from oracle_cmdb.tasks.capture.cmdb_task_stats import \
+            OracleCMDBTaskStatsEntriesAndRules
+
         # 因为是针对当前库当前任务的，所以schemas以当前任务的schema为准
         schemas: List[str] = kwargs["schemas"]
 

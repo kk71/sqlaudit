@@ -15,7 +15,6 @@ from rule.rule_jar import *
 from utils.log_utils import grouped_count_logger
 from rule.cmdb_rule import CMDBRule
 from issue.issue import *
-from oracle_cmdb.tasks.capture.cmdb_task_stats import *
 from ..cmdb import OracleCMDB
 from ..capture.base import BaseOracleCapture, OracleSQLCapturingDoc,\
     OracleObjectCapturingDoc
@@ -122,6 +121,9 @@ class OracleOnlineIssue(OnlineIssue):
                           cmdb_id: int,
                           task_record_id: int = None,
                           **kwargs) -> RuleJar:
+        from oracle_cmdb.tasks.capture.cmdb_task_stats import \
+            OracleCMDBTaskStatsEntriesAndRules
+
         the_jar = super().generate_rule_jar(cmdb_id, task_record_id, **kwargs)
 
         schema_name: str = kwargs.get("schema_name", None)
