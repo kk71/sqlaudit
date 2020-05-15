@@ -4,6 +4,8 @@ __all__ = [
     "as_view"
 ]
 
+from typing import Optional
+
 import importlib
 from glob import glob
 from pathlib import Path
@@ -13,6 +15,9 @@ import prettytable
 import settings
 import restful_api.urls
 from .base import *
+
+# 用于展示api文档
+url_table: Optional[prettytable.PrettyTable] = None
 
 
 def collect_dynamic_modules(module_names: [str]):
@@ -35,23 +40,24 @@ def collect_dynamic_modules(module_names: [str]):
         py_file_path_for_importing = ".".join(py_file_dot_split)[:-3]
         importlib.import_module(f"{py_file_path_for_importing}")
 
+    global url_table
+    url_table = prettytable.PrettyTable([
+        "group name", "url", "request methods", "request handler"])
+    url_table.align = "l"
+    url_table.hrules = prettytable.ALL
+    for group_name, urls in restful_api.urls.verbose_structured_urls.items():
+        for url, methods, req_handler in urls:
+            methods_str = "\n".join([": ".join(i) for i in methods.items()]) \
+                if methods.items() else " - "
+            url_table.add_row((
+                group_name,
+                url,
+                methods_str,
+                req_handler
+            ))
     if settings.URL_STATS:
         # 打印url信息
-        pt = prettytable.PrettyTable([
-            "group name", "url", "request methods", "request handler"])
-        pt.align = "l"
-        pt.hrules = prettytable.ALL
-        for group_name, urls in restful_api.urls.verbose_structured_urls.items():
-            for url, methods, req_handler in urls:
-                methods_str = "\n".join([": ".join(i) for i in methods.items()]) \
-                    if methods.items() else " - "
-                pt.add_row((
-                    group_name,
-                    url,
-                    methods_str,
-                    req_handler
-                ))
-        print(pt)
+        print(url_table)
 
 
 def pick_enabled_request_method(request_handler: BaseReq) -> {str: str}:
