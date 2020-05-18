@@ -55,6 +55,11 @@ class AuthHandler(BaseReq):
             self.resp_bad_username_password(
                 msg="请检查用户名密码，并确认该用户是启用状态。")
 
+    post.argument = {
+        "querystring": {},
+        "json": {}
+    }
+
 
 @as_view("current", group="auth")
 class CurrentUserHandler(AuthReq):

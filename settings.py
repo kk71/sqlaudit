@@ -28,7 +28,6 @@ def env_get(k, default, parser=None, comment=""):
 DEBUG = True
 RULE_DEBUG = env_get("RULE_DEBUG", 0, int)
 API_DOC = env_get("API_DOC", 0, int)
-URL_STATS = env_get("URL_STATS", 0, int)
 WEB_IP = env_get("WEB_IP", "193.0.0.9")
 WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
