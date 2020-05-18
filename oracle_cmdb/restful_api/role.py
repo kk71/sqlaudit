@@ -56,7 +56,7 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
             if cmdb_id:
                 perm_datas = perm_datas.filter(OracleCMDB.cmdb_id == cmdb_id)
             items, p = self.paginate(perm_datas, **p)
-            self.resp([qe.to_dict(i) for i in perm_datas], **p)
+            self.resp([qe.to_dict(i) for i in items], **p)
 
     def patch(self):
         """数据权限：角色-oracle库-schema的绑定关系修改"""
