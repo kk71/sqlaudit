@@ -164,7 +164,7 @@ class RoleUserHandler(PrivilegeReq):
                                                User.username,
                                                Role.role_name)
             items, p = self.paginate(user_role, **p)
-            self.resp([keys.to_dict(i) for i in items])
+            self.resp([keys.to_dict(i) for i in items],**p)
 
     def post(self):
         """用户绑定角色"""
