@@ -173,13 +173,12 @@ class RoleUserHandler(PrivilegeReq):
             "login_user": scm_unempty_str,
         }))
         with make_session() as session:
-            try:
-                ur = UserRole(**params)
-                session.add(ur)
-                session.commit()
-                session.refresh(ur)
-            except IntegrityError as e:
+            if session.query(UserRole).filter_by(**params).first():
                 return self.resp_bad_req(msg="角色已经绑定")
+            ur = UserRole(**params)
+            session.add(ur)
+            session.commit()
+            session.refresh(ur)
             self.resp_created(ur.to_dict())
 
     def delete(self):
