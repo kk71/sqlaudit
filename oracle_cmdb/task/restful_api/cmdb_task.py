@@ -27,13 +27,13 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         }))
         keyword = params.pop("keyword")
         p = self.pop_p(params)
-        execution_status = params.pop("status")
+        execution_status = params.pop("execution_status")
         del params
 
         with make_session() as session:
             cmdb_task_q, qe = CMDBTask.query_cmdb_task_with_last_record(session)
             cmdb_task_q = cmdb_task_q.filter(
-                CMDBTask.cmdb_id.in_(self.cmdb_ids(session)))
+                CMDBTask.cmdb_id.in_(OracleBaseReq.cmdb_ids(session)))
             if keyword:
                 cmdb_task_q = self.query_keyword(cmdb_task_q, keyword,
                                                  CMDBTask.cmdb_id,
@@ -92,12 +92,12 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
         """手动删除挂起的任务"""
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
 
-        params = self.get_json_args(Schema({
+        params = self.get_query_args(Schema({
             "task_record_id": scm_int,
         }))
         task_record_id = params.pop("task_record_id")
         with make_session() as session:
-            session.query(CMDBTaskRecord).filter_by(id=task_record_id).delete()
+            session.query(CMDBTaskRecord).filter_by(task_record_id=task_record_id).delete()
         self.resp_created()
 
 
@@ -108,7 +108,7 @@ class TaskManualExecuteHandler(OraclePrivilegeReq):
         """手动运行任务"""
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
 
-        params = self.get_json_args(Schema({
+        params = self.get_query_args(Schema({
             "cmdb_task_id": scm_int
         }))
         task_record_id = OracleCMDBCaptureTask.shoot(

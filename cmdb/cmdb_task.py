@@ -122,7 +122,7 @@ class CMDBTask(BaseModel):
             session,
             **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
         """查询纳管库任务，以及各自最后一次任务记录"""
-        task_type: str = kwargs["task_type"]
+        task_type: str = kwargs.get("task_type")
         ret = session.query(*(qe := QueryEntity(
             cls.id,
             cls.task_type,
@@ -193,7 +193,7 @@ class CMDBTaskRecord(BaseModel):
             session,
             **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
         """联合查询纳管库任务和任务纪录表"""
-        task_type: str = kwargs["task_type"]
+        task_type: str = kwargs.get("task_type")
         ret = session.query(*(qe := QueryEntity(
             CMDBTaskRecord.task_record_id,
             CMDBTaskRecord.cmdb_task_id,
