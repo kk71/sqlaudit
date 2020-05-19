@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import json
+
 import arrow
 from schema import And, Use, Optional as scm_optional, Schema, SchemaError
 
@@ -28,6 +30,7 @@ __all__ = [
     "scm_optional",
     "scm_raise_error",
     "scm_deduplicated_list",
+    "scm_json"
 ]
 
 
@@ -57,6 +60,7 @@ scm_something_split_str = lambda splitter, p=scm_str: \
 scm_dot_split_str = scm_something_split_str(",", scm_unempty_str)
 scm_subset_of_choices = lambda choices: lambda subset: set(subset).issubset(set(choices))
 scm_one_of_choices = lambda choices: lambda x: x in choices
+scm_json = lambda x: And(scm_str, Use(lambda v: Schema(x).validate(json.loads(v))))
 
 # for integer and float
 scm_float = Use(float)

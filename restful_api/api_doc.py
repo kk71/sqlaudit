@@ -2,10 +2,12 @@
 
 import json
 
-import requests
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest
+from tornado.httputil import url_concat
 from schema import Or
 from tornado.template import Template
 
+import settings
 from utils.schema_utils import *
 import restful_api.urls
 from .base import *
@@ -26,11 +28,14 @@ class APIDocHandler(BaseReq):
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.js"></script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     
     <title>SQLAudit API Documentation</title>
     
 <script>
 var token = "";
+var current_request_id = "";
+var aaa = null;
 function get_token() {
     $.ajax({
         type: "POST",
@@ -46,26 +51,66 @@ function get_token() {
             $("#token").text(s.content.token);
             token = s.content.token;
             $("#tokenModal").modal("hide");
+            $("#login_info").hide();
+        },
+        error: function(s) {
+            $("#login_info").show();
+            $("#login_info").text(JSON.stringify(s));
         }
     });
 }
 
 function show_req_modal(the_id) {
-    $("#reqModel").modal("show");
+    $("#reqModal").modal("show");
     $.ajax({
         type: "POST",
         url: "/apidoc", 
         async: false,
-        data: JSON.stringify({request_id: the_id}),
+        data: JSON.stringify({
+            request_id: the_id
+        }),
         dataType: "json",
         contentType: "application/json; charset=utf-8", 
         success: function(s){
             $("#argument").text(s.content.argument);
             $("#reqInfo").val(s.content.method + ": " + s.content.url);
             $("#docString").val(s.content.docstring);
+            current_request_id = the_id
+        },
+        error: function() {
+            current_request_id = null
         }
     });
 }
+
+function send_test() {
+    $.ajax({
+        type: "POST",
+        url: "/apidoc/test",
+        async: false,
+        data: JSON.stringify({
+            request_id: current_request_id,
+            argument: $("#argument").val(),
+            header: {token: token}
+        }),
+        dataType: "json",
+        contentType: "application/json; charset=utf-8", 
+        success: function(s){
+            $("#resp").text(s);
+            aaa = s;
+            hljs.highlightBlock($("#resp-outer")[0]);
+        },
+        error: function(s) {
+            $("#resp").text(s);
+        }
+    })
+}
+
+$(document).ready(function(){
+    
+    $("#login_info").hide();
+            
+});
 </script>
 </head>
 <body class="container-fluid">
@@ -91,6 +136,9 @@ function show_req_modal(the_id) {
     <label for="password">password(plain password, not md5 encoded)</label>
     <input type="text" class="form-control" id="password">
   </div>
+  <div class="alert alert-danger" role="alert" id="login_info">
+  some information...
+  </div>
 </form>
       
       </div>
@@ -106,7 +154,7 @@ function show_req_modal(the_id) {
 <div id="token"></div>
 
 
-<div class="modal fade" id="reqModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="reqModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
@@ -136,7 +184,7 @@ function show_req_modal(the_id) {
           </div>
           <div class="form-group">
             <label for="resp">response</label>
-            <pre><code class="json" id="resp"></code></pre>
+            <pre id="resp-outer"><code class="json" id="resp">{}</code></pre>
             
           </div>
       </form>
@@ -144,7 +192,7 @@ function show_req_modal(the_id) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">close</button>
-        <button type="button" class="btn btn-primary">send</button>
+        <button onclick="send_test()" type="button" class="btn btn-primary">send</button>
       </div>
     </div>
   </div>
@@ -205,17 +253,35 @@ function show_req_modal(the_id) {
 
 class APIDocTestHandler(BaseReq):
 
-    def post(self):
-        params = self.get_query_args(Schema({
+    async def post(self):
+        params = self.get_json_args(Schema({
             "request_id": scm_unempty_str,
-            "argument": {
-                "querystring": {
+            "argument": scm_json({
+                scm_optional("querystring", default={}): {
                     scm_optional(str): str
                 },
-                scm_optional("json"): Or(list, dict),
-                "header": {
-                    scm_optional("token"): scm_str
-                }
+                scm_optional("json", default=None): Or(list, dict),
+            }),
+            scm_optional("header", default={}): {
+                scm_optional("token"): scm_str
             }
         }))
+        request_id = params["request_id"]
+        argument: dict = params["argument"]
+        header = params["header"]
+        for group_name, reqs in restful_api.urls.verbose_structured_urls.items():
+            for req in reqs:
+                if req[-2] == request_id:
+                    async_req = HTTPRequest(
+                        method=req[1],
+                        url=url_concat(
+                            f"http://localhost:{settings.WEB_PORT}" + req[0],
+                            argument["querystring"],
+                        ),
+                        body=json.dumps(argument["json"]),
+                        headers=header
+                    )
+                    cli = AsyncHTTPClient()
+                    resp = await cli.fetch(async_req, raise_error=False)
+                    await self.finish(json.dumps(json.loads(resp.body), indent=4))
 

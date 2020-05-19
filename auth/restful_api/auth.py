@@ -57,7 +57,10 @@ class AuthHandler(BaseReq):
 
     post.argument = {
         "querystring": {},
-        "json": {}
+        "json": {
+            "login_user": settings.ADMIN_LOGIN_USER,
+            "password": "cba929b66a5c0b62e9da85c573399c5e"
+        }
     }
 
 
