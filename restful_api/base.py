@@ -8,8 +8,10 @@ import json
 from typing import *
 
 from tornado.web import RequestHandler
+from tornado.concurrent import Future
 from schema import SchemaError, Or
 from sqlalchemy import or_
+
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from models.sqlalchemy import sqlalchemy_q
@@ -113,7 +115,7 @@ class BaseReq(RequestHandler):
              msg: str = "",
              status_code: int = 200,
              **kwargs
-             ) -> NoReturn:
+             ) -> "Future[None]":
         content = dt_to_str(content)  # 直接把时间对象都转成文本
         resp_structure_base = {
             "msg": msg,  # 提示信息，多为错误信息
@@ -131,30 +133,30 @@ class BaseReq(RequestHandler):
         self.set_status(status_code)
         self.set_header("Content-Type", "application/json")
         self.set_header("Cache-control", "no-cache")
-        self.finish(json.dumps(resp_structure_base, ensure_ascii=False))
+        return self.finish(json.dumps(resp_structure_base, ensure_ascii=False))
 
-    def resp_created(self, *args, **kwargs) -> NoReturn:
+    def resp_created(self, *args, **kwargs) -> "Future[None]":
         kwargs["status_code"] = 201
-        self.resp(*args, **kwargs)
+        return self.resp(*args, **kwargs)
 
-    def resp_bad_req(self, msg: str = "bad request") -> NoReturn:
-        self.resp(msg=msg, status_code=400)
+    def resp_bad_req(self, msg: str = "bad request") -> "Future[None]":
+        return self.resp(msg=msg, status_code=400)
 
-    def resp_forbidden(self, msg: str = "forbidden") -> NoReturn:
-        self.resp(msg=msg, status_code=403)
+    def resp_forbidden(self, msg: str = "forbidden") -> "Future[None]":
+        return self.resp(msg=msg, status_code=403)
 
     def resp_not_found(
             self,
             msg: str = "not found",
-            content: Union[dict, list] = None, **kwargs) -> NoReturn:
-        self.resp(msg=msg, content=content, status_code=404, **kwargs)
+            content: Union[dict, list] = None, **kwargs) -> "Future[None]":
+        return self.resp(msg=msg, content=content, status_code=404, **kwargs)
 
-    def resp_unauthorized(self, msg: str = "未登录。") -> NoReturn:
-        self.resp(msg=msg, status_code=401)
+    def resp_unauthorized(self, msg: str = "未登录。") -> "Future[None]":
+        return self.resp(msg=msg, status_code=401)
 
     def resp_bad_username_password(
-            self, msg: str = "用户名或者密码错误。") -> NoReturn:
-        self.resp(msg=msg, status_code=400)
+            self, msg: str = "用户名或者密码错误。") -> "Future[None]":
+        return self.resp(msg=msg, status_code=400)
 
     @staticmethod
     def paginate(query, page: int = 1, per_page: int = 10) -> (list, dict):

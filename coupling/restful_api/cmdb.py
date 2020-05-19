@@ -116,6 +116,19 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                 i['user'] = [cmdb_user_qe.to_dict(i) for i in role_user]
             self.resp(ret, **p)
 
+    get.argument = {
+        "querystring": {
+            "//cmdb_id": 1,
+            "//connect_name": "",
+            "//group_name": "",
+            "//business_name": "",
+            "keyword": "",
+            "sort": "desc",
+            "page": 1,
+            "per_page": 10
+        }
+    }
+
     def post(self):
         """增加CMDB"""
         params = self.get_json_args(Schema({
@@ -191,6 +204,30 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             CMDBRule.objects.insert(cmdb_rules)
             self.resp_created(new_cmdb.to_dict())
 
+    post.argument = {
+        "json": {
+            "connect_name": "",
+            "group_name": "",
+            "business_name": "",
+            "db_type": "",
+            "server_name": "",
+            "ip_address": "",
+            "port": "",
+            "service_name": "",
+            "username": "",
+            "password": "",
+            "status": 1,
+            "domain_env": "",
+            "is_rac": 1,
+            "db_model": "",
+            "baseline": "0.8",
+            "is_pdb": 1,
+            "version": "",
+            "sid": "",
+            "allow_online": 1,
+        }
+    }
+
     def patch(self):
         """修改CMDB"""
         params = self.get_json_args(Schema({
@@ -251,6 +288,30 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             session.refresh(the_cmdb)
             self.resp_created(the_cmdb.to_dict())
 
+    patch.argument = {
+        "json": {
+            "cmdb_id": 1,
+            "ip_address": "",
+            "port": 1,
+            "service_name": "",
+            "group_name": "",
+            "business_name": "",
+            "db_type": "oracle",
+            "server_name": "",
+            "username": "",
+            "password": "",
+            "status": 1,
+            "domain_env": 1,
+            "is_rac": 1,
+            "db_model": "OLTP",
+            "baseline": 80,
+            "is_pdb": 1,
+            "version": "",
+            "sid": "",
+            "allow_online": 1
+        }
+    }
+
     def delete(self):
         """删除CMDB"""
         params = self.get_json_args(Schema({
@@ -274,6 +335,12 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             cmdb = session.query(CMDB).filter_by(**params).first()
             resp = cmdb.test_connectivity()
             self.resp(resp)
+
+    options.argument = delete.argument = {
+        "json": {
+            "cmdb_id": 1
+        }
+    }
 
 
 @as_view("aggregation", group="cmdb")
@@ -301,3 +368,9 @@ class CMDBAggregationHandler(OraclePrivilegeReq):
                     ret[k].add(qr[i])
             ret = {k: list(v) for k, v in ret.items()}
             self.resp(ret)
+
+    get.argument = {
+        "querystring": {
+            "key": "connect_name,group_name,business_name"
+        }
+    }
