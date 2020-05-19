@@ -6,6 +6,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.httputil import url_concat
 from schema import Or
 from tornado.template import Template
+from schema import Or as scm_or
 
 import settings
 from utils.schema_utils import *
@@ -253,12 +254,33 @@ $(document).ready(function(){
 
 class APIDocTestHandler(BaseReq):
 
+    @staticmethod
+    def recursive_delete_comment(dict_or_list):
+        if isinstance(dict_or_list, dict):
+            n = {}
+            for k, v in dict_or_list.items():
+                if k.startswith("//"):
+                    continue
+                if isinstance(v, (dict, list)):
+                    v = APIDocTestHandler.recursive_delete_comment(v)
+                n[k] = v
+            return n
+        elif isinstance(dict_or_list, list):
+            n = []
+            for i in dict_or_list:
+                if isinstance(i, (dict, list)):
+                    i = APIDocTestHandler.recursive_delete_comment(i)
+                n.append(i)
+            return n
+        else:
+            return dict_or_list
+
     async def post(self):
         params = self.get_json_args(Schema({
             "request_id": scm_unempty_str,
             "argument": scm_json({
                 scm_optional("querystring", default={}): {
-                    scm_optional(str): str
+                    scm_optional(str): scm_or(str, int)
                 },
                 scm_optional("json", default=None): Or(list, dict),
             }),
@@ -267,7 +289,7 @@ class APIDocTestHandler(BaseReq):
             }
         }))
         request_id = params["request_id"]
-        argument: dict = params["argument"]
+        argument: dict = self.recursive_delete_comment(params["argument"])
         header = params["header"]
         for group_name, reqs in restful_api.urls.verbose_structured_urls.items():
             for req in reqs:
@@ -278,7 +300,7 @@ class APIDocTestHandler(BaseReq):
                             f"http://localhost:{settings.WEB_PORT}" + req[0],
                             argument["querystring"],
                         ),
-                        body=json.dumps(argument["json"]),
+                        body=json.dumps(argument["json"]) if argument["json"] else None,
                         headers=header
                     )
                     cli = AsyncHTTPClient()

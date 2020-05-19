@@ -116,6 +116,19 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                 i['user'] = [cmdb_user_qe.to_dict(i) for i in role_user]
             self.resp(ret, **p)
 
+    get.argument = {
+        "querystring": {
+            "//cmdb_id": 1,
+            "//connect_name": "",
+            "//group_name": "",
+            "//business_name": "",
+            "keyword": "",
+            "sort": "desc",
+            "page": 1,
+            "per_page": 10
+        }
+    }
+
     def post(self):
         """增加CMDB"""
         params = self.get_json_args(Schema({
