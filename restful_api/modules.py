@@ -49,7 +49,7 @@ def pick_enabled_request_method(
         the_method = getattr(request_handler, request_method.lower(), None)
         if not the_method.__doc__:
             continue
-        ret[request_method] = the_method.__doc__, getattr(the_method, "argument", None)
+        ret[request_method] = the_method.__doc__, getattr(the_method, "argument", {})
     return ret
 
 

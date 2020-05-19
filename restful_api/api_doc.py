@@ -23,6 +23,7 @@ class APIDocHandler(BaseReq):
     <script src="https://code.jquery.com/jquery-3.5.1.min.js">
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.js"></script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
     
@@ -30,6 +31,25 @@ class APIDocHandler(BaseReq):
     
 <script>
 var token = "";
+function get_token() {
+    $.ajax({
+        type: "POST",
+        url: "/api/auth/auth/login",
+        async: false,
+        data: JSON.stringify({
+            "login_user": $("#login_user").val(),
+            "password": md5($("#password").val())
+        }),
+        dataType: "json",
+        contentType: "application/json; charset=utf-8", 
+        success: function(s) {
+            $("#token").text(s.content.token);
+            token = s.content.token;
+            $("#tokenModal").modal("hide");
+        }
+    });
+}
+
 function show_req_modal(the_id) {
     $("#reqModel").modal("show");
     $.ajax({
@@ -41,6 +61,8 @@ function show_req_modal(the_id) {
         contentType: "application/json; charset=utf-8", 
         success: function(s){
             $("#argument").text(s.content.argument);
+            $("#reqInfo").val(s.content.method + ": " + s.content.url);
+            $("#docString").val(s.content.docstring);
         }
     });
 }
@@ -53,7 +75,7 @@ function show_req_modal(the_id) {
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">获取token</h5>
+        <h5 class="modal-title" id="exampleModalLabel">get token</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -66,21 +88,21 @@ function show_req_modal(the_id) {
     <input type="text" class="form-control" id="login_user">
   </div>
   <div class="form-group">
-    <label for="password">password</label>
+    <label for="password">password(plain password, not md5 encoded)</label>
     <input type="text" class="form-control" id="password">
   </div>
 </form>
       
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-        <button type="button" class="btn btn-primary">发送请求</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">close</button>
+        <button onclick="get_token()" type="button" class="btn btn-primary">get token</button>
       </div>
     </div>
   </div>
 </div>
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#tokenModal">获取token</button>
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#tokenModal">get token</button>
 <div id="token"></div>
 
 
@@ -88,7 +110,7 @@ function show_req_modal(the_id) {
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">测试接口</h5>
+        <h5 class="modal-title" id="exampleModalLabel">test for RESTful API</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -96,12 +118,24 @@ function show_req_modal(the_id) {
       <div class="modal-body">
       
       <form>
+          <div class="form-group row">
+            <label for="reqInfo" class="col-sm-2 col-form-label">request</label>
+            <div class="col-sm-10">
+              <input type="text" readonly class="form-control-plaintext" id="reqInfo" value="">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="docString" class="col-sm-2 col-form-label">usage</label>
+            <div class="col-sm-10">
+              <input type="text" readonly class="form-control-plaintext" id="docString" value="">
+            </div>
+          </div>
           <div class="form-group">
-            <label for="argument">输入</label>
+            <label for="argument">input arguments</label>
             <textarea class="form-control" id="argument" rows="9"></textarea>
           </div>
           <div class="form-group">
-            <label for="resp">输出</label>
+            <label for="resp">response</label>
             <pre><code class="json" id="resp"></code></pre>
             
           </div>
@@ -109,8 +143,8 @@ function show_req_modal(the_id) {
       
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-        <button type="button" class="btn btn-primary">发送请求</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">close</button>
+        <button type="button" class="btn btn-primary">send</button>
       </div>
     </div>
   </div>
@@ -134,7 +168,7 @@ function show_req_modal(the_id) {
         <td>{{docstring}}</td>
         <td>
             <a href="javascript: show_req_modal('{{the_id}}')"><button type="button" class="btn btn-primary">
-            发送
+            send
             </button></a>
         </td>
     </tr>
@@ -175,11 +209,11 @@ class APIDocTestHandler(BaseReq):
         params = self.get_query_args(Schema({
             "request_id": scm_unempty_str,
             "argument": {
-                scm_optional("querystring"): {
-                    scm_optional(str): scm_str
+                "querystring": {
+                    scm_optional(str): str
                 },
                 scm_optional("json"): Or(list, dict),
-                scm_optional("header"): {
+                "header": {
                     scm_optional("token"): scm_str
                 }
             }
