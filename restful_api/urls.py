@@ -28,7 +28,8 @@ urls = [
         {"path": settings.STATIC_DIR}
     ),
     # api doc
-    ("/apidoc", api_doc.APIDocHandler)
+    ("/apidoc", api_doc.APIDocHandler),
+    ("/apidoc/test", api_doc.APIDocTestHandler)
 ]
 
 # 存放用于展示的url信息，按照group分组

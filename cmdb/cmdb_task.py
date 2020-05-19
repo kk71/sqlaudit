@@ -211,7 +211,7 @@ class CMDBTaskRecord(BaseModel):
             TaskRecord.output
         ))).filter(
             CMDBTaskRecord.task_record_id == TaskRecord.task_record_id
-        ).first()
+        )
         if task_type:
             ret = ret.filter(cls.task_type == task_type)
         return ret, qe
