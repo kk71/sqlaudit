@@ -85,7 +85,7 @@ class OracleCMDB(CMDB):
         session = self._sa_instance_state.session
         rating_schemas = session.query(OracleRatingSchema.schema_name).filter(
             OracleRatingSchema.cmdb_id == self.cmdb_id)
-        return list(set([QueryEntity.to_plain_list(i) for i in rating_schemas]))
+        return list(set(QueryEntity.to_plain_list(rating_schemas)))
 
     def test_connectivity(self) -> bool:
         """测试连接性"""

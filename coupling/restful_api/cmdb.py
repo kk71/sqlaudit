@@ -14,12 +14,13 @@ from cmdb.cmdb_task import CMDBTask
 from auth.user import *
 from auth.product_license import *
 from utils.schema_utils import *
-from utils.conc_utils import async_thr
 from models.sqlalchemy import *
 from ticket.ticket import *
 from ticket.sub_ticket import SubTicket
 from restful_api.modules import as_view
 from oracle_cmdb.cmdb import *
+from rule.cmdb_rule import CMDBRule
+from rule.rule_cartridge import RuleCartridge
 from oracle_cmdb.auth.user_utils import current_cmdb
 from oracle_cmdb.auth.role import RoleOracleCMDBSchema
 from oracle_cmdb.restful_api.base import *
@@ -29,12 +30,6 @@ from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
 
 @as_view(group="cmdb")
 class BaseCMDBHandler(OraclePrivilegeReq):
-
-    def gen_current(self):
-        """是否仅返回当前登录用户纳管的库,如果是admin则返回所有"""
-        return {
-            scm_optional("current", default=not self.is_admin()): scm_bool
-        }
 
     def get(self):
         """cmdb列表"""
@@ -49,9 +44,6 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             # 模糊匹配多个字段
             scm_optional("keyword", default=None): scm_str,
 
-            # 只返回当前登录用户可见的cmdb
-            **self.gen_current(),
-
             # 排序
             scm_optional("sort", default=utils.const.SORT_DESC): And(
                 scm_str,
@@ -61,7 +53,6 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
-        current = params.pop("current")
         sort = params.pop("sort")
         p = self.pop_p(params)
 
@@ -151,7 +142,7 @@ class BaseCMDBHandler(OraclePrivilegeReq):
         with make_session() as session:
 
             cmdb_count = len(session.query(CMDB).all())
-            license_key = SqlAuditLicenseKeyManager.latest_license_key()
+            license_key = SqlAuditLicenseKeyManager.latest_license_key(session)
             license_key_ins = SqlAuditLicenseKey.decode(license_key)
             if cmdb_count:
                 if cmdb_count >= license_key_ins.database_counts:
@@ -189,12 +180,21 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                 session.add(new_task)
             session.commit()
             session.refresh(new_cmdb)
+
+            # 增加库的规则
+            rules = RuleCartridge.objects(db_type=new_cmdb.db_type, db_model=new_cmdb.db_model)
+            cmdb_rules=[]
+            for rule in rules:
+                cmdb_rule=CMDBRule(cmdb_id=new_cmdb.cmdb_id)
+                cmdb_rule.from_rule_cartridge(rule,force=True)
+                cmdb_rules.append(cmdb_rule)
+            CMDBRule.objects.insert(cmdb_rules)
             self.resp_created(new_cmdb.to_dict())
 
     def patch(self):
         """修改CMDB"""
         params = self.get_json_args(Schema({
-            "cmdb_id": scm_unempty_str,
+            "cmdb_id": scm_int,
 
             scm_optional("ip_address"): scm_unempty_str,
             scm_optional("port"): scm_int,
@@ -229,8 +229,8 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                     CMDB.ip_address == params["ip_address"],
                     CMDB.port == params["port"],
                     or_(  # TODO 记得改，目前sid和sid的字段名和实际意义是反过来的
-                        CMDB.service_name == params["service_name"],
-                        CMDB.sid == params["sid"]
+                        OracleCMDB.service_name == params["service_name"],
+                        OracleCMDB.sid == params["sid"]
                     )
             ).first():
                 return self.resp_bad_req(msg="IP地址-端口-service_name与已有的纳管库重复。")
@@ -246,14 +246,6 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                 ))
             )
 
-            # 更新采集开关
-            if the_cmdb.is_collect:
-                session.query(CMDBTask).filter_by(cmdb_id=the_cmdb.cmdb_id). \
-                    update({"task_status": True})
-            else:
-                session.query(CMDBTask).filter_by(cmdb_id=the_cmdb.cmdb_id). \
-                    update({"task_status": False})
-
             session.add(the_cmdb)
             session.commit()
             session.refresh(the_cmdb)
@@ -262,25 +254,25 @@ class BaseCMDBHandler(OraclePrivilegeReq):
     def delete(self):
         """删除CMDB"""
         params = self.get_json_args(Schema({
-            "cmdb_id": scm_unempty_str,
+            "cmdb_id": scm_int,
         }))
         with make_session() as session:
             the_cmdb = session.query(CMDB).filter_by(**params).first()
             session.delete(the_cmdb)
             session.query(CMDBTask).filter_by(**params).delete(synchronize_session=False)
             session.query(RoleOracleCMDBSchema).filter_by(**params).delete(synchronize_session=False)
-            Ticket.objects().filter_by(**params).delete()
+            Ticket.objects(**params).delete()
             SubTicket.objects(**params).delete()
         self.resp_created(msg="已删除。")
 
-    async def options(self):
+    def options(self):
         """测试连接是否成功"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int
         }))
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(**params).first()
-            resp = await async_thr(cmdb.test_connectivity)  # TODO
+            resp = cmdb.test_connectivity()
             self.resp(resp)
 
 

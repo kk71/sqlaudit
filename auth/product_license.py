@@ -5,6 +5,7 @@ from functools import wraps
 
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
+from auth.license import License
 
 import settings
 
@@ -183,22 +184,11 @@ class SqlAuditLicenseKeyManager:
         self.license_status = license_status
         self.license_comment = comment
 
-    def insert(self):
-        sql = """INSERT INTO ISQLAUDIT.T_LICENSE_MANAGE
-                        (LICENSE_KEY, LICENSE_STATUS, ERROR_MSG)
-                        VALUES (:1, :2, :3)"""
-        params_list = [self.license_key, self.license_status, self.license_comment]
-        err = OracleHelper.insert(sql, params=params_list)
-        if err:
-            raise DBError(f"insert license to db failed, {err}")
+    @classmethod
+    def latest_license_key(cls,session):
+        res=session.query(License).order_by(License.create_time.desc()).first()
+        return res.license_key
 
-    @staticmethod
-    def latest_license_key():
-        sql = """SELECT * FROM (
-        SELECT * FROM T_LICENSE_MANAGE ORDER BY UPDATE_TIME DESC
-        ) WHERE rownum=1"""
-        res = OracleHelper.select_dict(sql, one=True)
-        return res.get("license_key")
 
 
 def available_license(method):
