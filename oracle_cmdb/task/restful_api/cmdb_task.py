@@ -8,6 +8,7 @@ from auth.const import PRIVILEGE
 from cmdb.cmdb_task import *
 from ...restful_api.base import *
 from oracle_cmdb.tasks.capture.capture import *
+from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
 
 
 @as_view(group="task")
@@ -31,15 +32,15 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         del params
 
         with make_session() as session:
-            cmdb_task_q, qe = CMDBTask.query_cmdb_task_with_last_record(session)
+            cmdb_task_q, qe = OracleCMDBTaskCapture.query_cmdb_task_with_last_record(session)
             cmdb_task_q = cmdb_task_q.filter(
-                CMDBTask.cmdb_id.in_(OracleBaseReq.cmdb_ids(session)))
+                OracleCMDBTaskCapture.cmdb_id.in_(OracleBaseReq.cmdb_ids(session)))
             if keyword:
                 cmdb_task_q = self.query_keyword(cmdb_task_q, keyword,
-                                                 CMDBTask.cmdb_id,
-                                                 CMDBTask.connect_name)
+                                                 OracleCMDBTaskCapture.cmdb_id,
+                                                 OracleCMDBTaskCapture.connect_name)
             if execution_status is not None:
-                cmdb_task_q = cmdb_task_q.filter(CMDBTask.status == execution_status)
+                cmdb_task_q = cmdb_task_q.filter(OracleCMDBTaskCapture.status == execution_status)
             rst, p = self.paginate(cmdb_task_q, **p)
             self.resp([qe.to_dict(i) for i in rst], **p)
 
@@ -60,7 +61,7 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         the_id = params.pop("id")
 
         with make_session() as session:
-            session.query(CMDBTask).filter_by(id=the_id).update(params)
+            session.query(OracleCMDBTaskCapture).filter_by(id=the_id).update(params)
         self.resp_created()
 
 
@@ -125,7 +126,7 @@ class FlushCeleryQHandler(OraclePrivilegeReq):
         """清理队列中等待执行的任务"""
         self.acquire_admin()
         with make_session() as session:
-            any_cmdb_task_object = session.query(CMDBTask).filter_by(
+            any_cmdb_task_object = session.query(OracleCMDBTaskCapture).filter_by(
                 task_type=task.const.TASK_TYPE_CAPTURE).first()
             any_cmdb_task_object.flush_celery_q()
         self.resp_created(msg="已清理待采集队列")
