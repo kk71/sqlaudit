@@ -304,7 +304,7 @@ class APIDocTestHandler(BaseReq):
                     async_req = HTTPRequest(
                         method=req[1],
                         url=url_concat(
-                            f"http://localhost:{settings.WEB_PORT}" + req[0],
+                            f"http://{settings.WEB_IP}:{settings.WEB_PORT}" + req[0],
                             argument["querystring"],
                         ),
                         body=json.dumps(argument["json"]) if argument["json"] else None,
