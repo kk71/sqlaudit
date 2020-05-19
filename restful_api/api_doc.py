@@ -35,7 +35,6 @@ class APIDocHandler(BaseReq):
 <script>
 var token = "";
 var current_request_id = "";
-var aaa = null;
 function get_token() {
     $.ajax({
         type: "POST",
@@ -96,12 +95,13 @@ function send_test() {
         dataType: "json",
         contentType: "application/json; charset=utf-8", 
         success: function(s){
-            $("#resp").text(s);
-            aaa = s;
+            real_resp = s.content.resp;
+            $("#resp").text(real_resp);
             hljs.highlightBlock($("#resp-outer")[0]);
         },
         error: function(s) {
-            $("#resp").text(s);
+            real_resp = s.content.resp;
+            $("#resp").text(real_resp);
         }
     })
 }
@@ -283,5 +283,7 @@ class APIDocTestHandler(BaseReq):
                     )
                     cli = AsyncHTTPClient()
                     resp = await cli.fetch(async_req, raise_error=False)
-                    await self.finish(json.dumps(json.loads(resp.body), indent=4))
+                    await self.resp({
+                        "resp": json.dumps(json.loads(resp.body), indent=4, ensure_ascii=False)
+                    })
 
