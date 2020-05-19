@@ -75,10 +75,15 @@ function show_req_modal(the_id) {
             $("#argument").text(s.content.argument);
             $("#reqInfo").val(s.content.method + ": " + s.content.url);
             $("#docString").val(s.content.docstring);
-            current_request_id = the_id
+            $("#resp").text("");
+            current_request_id = the_id;
         },
         error: function() {
-            current_request_id = null
+            $("#argument").text("");
+            $("#reqInfo").val("failed. you may need to refresh the page.");
+            $("#docString").val("");
+            $("#resp").text("");
+            current_request_id = null;
         }
     });
 }
@@ -131,11 +136,11 @@ $(document).ready(function(){
 <form>
   <div class="form-group">
     <label for="login_user">login_user</label>
-    <input type="text" class="form-control" id="login_user">
+    <input type="text" class="form-control" id="login_user" value="{{login_user}}">
   </div>
   <div class="form-group">
     <label for="password">password(plain password, not md5 encoded)</label>
-    <input type="text" class="form-control" id="password">
+    <input type="text" class="form-control" id="password" value="{{password}}">
   </div>
   <div class="alert alert-danger" role="alert" id="login_info">
   some information...
@@ -229,7 +234,9 @@ $(document).ready(function(){
 </body>
 </html>'''
         page_str = Template(s).generate(
-            verbose_structured_urls=restful_api.urls.verbose_structured_urls
+            verbose_structured_urls=restful_api.urls.verbose_structured_urls,
+            login_user="admin",
+            password="q72FT/iL5t/uJgjtMECdOA"
         )
         self.finish(page_str)
 
