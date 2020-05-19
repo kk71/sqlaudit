@@ -4,7 +4,8 @@ __all__ = [
     "as_view"
 ]
 
-from typing import Optional
+import uuid
+from typing import Optional, Dict, Tuple, Union
 
 import importlib
 from glob import glob
@@ -13,7 +14,6 @@ from pathlib import Path
 import prettytable
 
 import settings
-import restful_api.urls
 from .base import *
 
 # 用于展示api文档
@@ -40,33 +40,16 @@ def collect_dynamic_modules(module_names: [str]):
         py_file_path_for_importing = ".".join(py_file_dot_split)[:-3]
         importlib.import_module(f"{py_file_path_for_importing}")
 
-    global url_table
-    url_table = prettytable.PrettyTable([
-        "group", "URL", "request methods & usage"])
-    url_table.align = "l"
-    url_table.hrules = prettytable.ALL
-    for group_name, urls in restful_api.urls.verbose_structured_urls.items():
-        for url, methods, req_handler in urls:
-            methods_str = "\n".join([": ".join(i) for i in methods.items()]) \
-                if methods.items() else " - "
-            url_table.add_row((
-                group_name,
-                url,
-                methods_str
-            ))
-    if settings.URL_STATS:
-        # 打印url信息
-        print(url_table)
 
-
-def pick_enabled_request_method(request_handler: BaseReq) -> {str: str}:
+def pick_enabled_request_method(
+        request_handler: BaseReq) -> Dict[str, Tuple[str, Dict[str, Union[dict, list]]]]:
     """抓取request handler里启用的请求方法，以及docstring"""
     ret = {}
     for request_method in request_handler.SUPPORTED_METHODS:
         the_method = getattr(request_handler, request_method.lower(), None)
         if not the_method.__doc__:
             continue
-        ret[request_method] = the_method.__doc__
+        ret[request_method] = the_method.__doc__, getattr(the_method, "argument", None)
     return ret
 
 
@@ -92,9 +75,10 @@ def as_view(route_rule: str = "", group: str = ""):
         restful_api.urls.urls.append(
             (str(route), req_handler)
         )
-        restful_api.urls.verbose_structured_urls[group].append(
-            (str(route), pick_enabled_request_method(req_handler), req_handler)
-        )
+        for m, (docstring, argument) in pick_enabled_request_method(req_handler).items():
+            restful_api.urls.verbose_structured_urls[group].append(
+                (str(route), m, docstring, argument, uuid.uuid4().hex, req_handler)
+            )
         return req_handler
 
     return as_view_inner
