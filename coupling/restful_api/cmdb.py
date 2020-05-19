@@ -75,10 +75,10 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                     "rating_schemas": a_cmdb.rating_schemas(),
                     **a_cmdb.to_dict()
                 }
-            all_current_cmdb_list: List = list(all_current_cmdb.items())
+            all_current_cmdb_list: List = list(all_current_cmdb.values())
             all_current_cmdb_list = sorted(
                 all_current_cmdb_list,
-                key=lambda k: k["data_health"]["score"]
+                key=lambda k: k["data_health"].get("score", 0)
             )
             if sort == utils.const.SORT_DESC:
                 all_current_cmdb_list.reverse()

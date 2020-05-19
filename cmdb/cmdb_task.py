@@ -139,10 +139,8 @@ class CMDBTask(BaseModel):
             TaskRecord.status.label("execution_status"),
             TaskRecord.error_info,
             CMDBTaskRecord.operator
-        ))).filter(
-            cls.id == CMDBTaskRecord.cmdb_task_id,
-            cls.last_task_record_id == TaskRecord.task_record_id
-        )
+        ))).outerjoin(CMDBTaskRecord, cls.last_task_record_id == CMDBTaskRecord.task_record_id).\
+            outerjoin(TaskRecord, cls.last_task_record_id == TaskRecord.task_record_id)
         if task_type:
             ret = ret.filter(cls.task_type == task_type)
         return ret, qe

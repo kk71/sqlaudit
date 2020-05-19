@@ -9,7 +9,7 @@ from typing import Generator
 from mongoengine import StringField
 
 from ...auth.user_utils import *
-from oracle_cmdb.statistics import OracleBaseStatistics
+from ..base import OracleBaseStatistics
 
 
 class OracleBaseTargetLoginUserStatistics(OracleBaseStatistics):

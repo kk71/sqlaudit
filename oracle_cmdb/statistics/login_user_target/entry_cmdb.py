@@ -9,7 +9,6 @@ from typing import Union, Generator
 from mongoengine import LongField, FloatField, ListField, StringField
 
 from models.sqlalchemy import *
-from .entry_schema import *
 from .base import *
 from ..base import *
 
@@ -33,9 +32,11 @@ class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
         ]
     }
 
-    REQUIRES = (OracleStatsEntrySchema,)
-
-    ISSUES = OracleStatsEntrySchema.ISSUES
+    @classmethod
+    def REQUIRES(cls):
+        from .entry_schema import OracleStatsEntrySchema
+        cls.ISSUES = OracleStatsEntrySchema.ISSUES
+        return OracleStatsEntrySchema,
 
     @classmethod
     def generate(
@@ -43,6 +44,8 @@ class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
             task_record_id: int,
             cmdb_id: Union[int, None],
             **kwargs) -> Generator["OracleStatsEntryCMDB", None, None]:
+        from .entry_schema import OracleStatsEntrySchema
+
         with make_session() as session:
             for the_user in cls.users(session):
                 for the_cmdb in cls.cmdbs(session, login_user=the_user.login_user):

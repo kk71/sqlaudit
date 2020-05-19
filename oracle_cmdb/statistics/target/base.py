@@ -8,8 +8,7 @@ __all__ = [
 from mongoengine import IntField, StringField
 
 from ...cmdb import *
-from oracle_cmdb.statistics import OracleBaseStatistics
-from ...tasks.capture.cmdb_task_capture import *
+from ..base import OracleBaseStatistics
 
 
 class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
@@ -51,6 +50,8 @@ class OracleBaseTargetCMDBStatistics(OracleBaseStatistics):
         :param kwargs:
         :return:
         """
+        from ...tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
+
         if cmdb_id == target_cmdb.cmdb_id:
             # 默认如果正在统计的纳管库就是当前库，
             # 那么就取当前任务的task_record_id最为当前库的最后可用task_record_id

@@ -1,6 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from .base import *
 from .rank import *
 from .current_cmdb import *
 from .current_task import *

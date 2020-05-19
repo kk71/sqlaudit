@@ -13,7 +13,7 @@ from oracle_cmdb.cmdb import *
 from oracle_cmdb.plain_db import *
 from models.sqlalchemy import *
 from oracle_cmdb.issue import OracleOnlineIssue
-from oracle_cmdb.statistics import OracleBaseStatistics
+from oracle_cmdb.statistics.base import OracleBaseStatistics
 
 
 @register_task(task.const.TASK_TYPE_CAPTURE)

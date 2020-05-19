@@ -54,7 +54,7 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
         }
         return {
             # 能够确保如果某个库没有数据，那么该库的字段不会不存在
-            cmdb_id: cmdb_score_dict.get(cmdb_id, None)
+            cmdb_id: cmdb_score_dict.get(cmdb_id, {})
             for cmdb_id in cmdb_id_task_record_id.keys()
         }
 
@@ -80,7 +80,7 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
             session, **kwargs)
         entry_cmdb_q = OracleStatsEntryCMDB.filter(
             target_login_user=the_login_user,
-            task_record_id__in=cmdb_id_task_record_id.values()
+            task_record_id__in=list(cmdb_id_task_record_id.values())
         )
         if entry is not None:
             if isinstance(entry, str):

@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import abc
-from typing import Union, Generator
+from typing import Union, Generator, Tuple, Callable
 
 from .self_collecting_class import *
 
@@ -18,7 +18,7 @@ class BaseStatisticItem(SelfCollectingFramework):
     create_time = None  # 统计时间
 
     # 依赖关系
-    REQUIRES: tuple = ()
+    REQUIRES: Union[Tuple, Callable] = ()
 
     # 收集到的子类按照互相的依赖关系排序的结果
     SORTED_COLLECTED_BY_REQUIREMENT: tuple = ()
@@ -41,6 +41,14 @@ class BaseStatisticItem(SelfCollectingFramework):
         pass
 
     @classmethod
+    def requires(cls, requires):
+        if callable(requires):
+            reqs = requires()
+        else:
+            reqs = requires
+        return tuple(reqs)
+
+    @classmethod
     def collect(cls):
         """
         重载collect，以实现收集之后即检查依赖关系的功能
@@ -54,9 +62,9 @@ class BaseStatisticItem(SelfCollectingFramework):
         while collected:
             loop_times += 1
             assert loop_times <= cls.MAX_REQUIREMENT_LOOP
-            for a_require in collected[0].REQUIRES:
+            for a_require in cls.requires(collected[0].REQUIRES):
                 assert issubclass(a_require, cls)
-            if set(collected[0].REQUIRES).issubset(ordered_collected):
+            if set(cls.requires(collected[0].REQUIRES)).issubset(ordered_collected):
                 ordered_collected.append(collected[0])
                 del collected[0]
 

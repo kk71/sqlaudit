@@ -12,7 +12,6 @@ from models.sqlalchemy import *
 from .base import *
 from ...issue import *
 from ..base import *
-from ..login_user_target import OracleStatsEntrySchema
 
 
 @OracleBaseStatistics.need_collect()
@@ -33,7 +32,10 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
         ]
     }
 
-    REQUIRES = (OracleStatsEntrySchema,)
+    @classmethod
+    def REQUIRES(cls):
+        from ..login_user_target.entry_schema import OracleStatsEntrySchema
+        return OracleStatsEntrySchema,
 
     ISSUES = (
         OracleOnlineSQLIssue,
@@ -47,7 +49,9 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsEntrySchema", None, None]:
+            **kwargs) -> Generator["OracleStatsDashboardDrillDownSum", None, None]:
+        from ..login_user_target.entry_schema import OracleStatsEntrySchema
+
         schemas: List[str] = kwargs["schemas"]
         with make_session() as session:
             for the_user in cls.users(session):
