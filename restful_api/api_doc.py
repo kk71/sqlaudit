@@ -312,7 +312,8 @@ class APIDocTestHandler(BaseReq):
                             argument["querystring"],
                         ),
                         body=json.dumps(argument["json"]) if argument["json"] else None,
-                        headers=header
+                        headers=header,
+                        allow_nonstandard_methods=True
                     )
                     cli = AsyncHTTPClient()
                     resp = await cli.fetch(async_req, raise_error=False)
