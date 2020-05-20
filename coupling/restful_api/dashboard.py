@@ -69,8 +69,6 @@ class DashboardHandler(OraclePrivilegeReq):
             managed_cmdb_by_group_name = defaultdict(lambda: 0)
             for a_cmdb in self.cmdbs(session):
                 managed_cmdb_by_group_name[a_cmdb.group_name] += 1
-            managed_cmdb_by_group_name_verbose = self.dict_to_verbose_dict_in_list(
-                managed_cmdb_by_group_name)
 
             # 纳管库采集任务的饼图
             qs, qe = OracleCMDBTaskCapture.query_cmdb_task_with_last_record(session)
@@ -85,8 +83,6 @@ class DashboardHandler(OraclePrivilegeReq):
                     task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
                         execution_status]
                 managed_cmdb_task_capture_by_status[execution_status_chinese] += 1
-            managed_cmdb_task_capture_by_status_verbose = \
-                self.dict_to_verbose_dict_in_list(managed_cmdb_task_capture_by_status)
 
             # 工单相关统计
             ticket_stats = OracleTicket.aggregate(
@@ -115,8 +111,12 @@ class DashboardHandler(OraclePrivilegeReq):
                 "drill_down_sum": drill_down_sum_dict,
                 "schema_rank": schema_rank_list,
                 "tab_space_rank_list": tab_space_rank_list,
-                "managed_cmdb_by_group_name": managed_cmdb_by_group_name_verbose,
-                "managed_cmdb_task_capture_by_status_verbose": managed_cmdb_task_capture_by_status_verbose,
+                "managed_cmdb_by_group_name":
+                    self.dict_to_verbose_dict_in_list(
+                        managed_cmdb_by_group_name),
+                "managed_cmdb_task_capture_by_status":
+                    self.dict_to_verbose_dict_in_list(
+                        managed_cmdb_task_capture_by_status),
                 "cmdb_num": self.cmdbs(session).count(),
                 "ticket_stats_list": ticket_stats_list
             }
