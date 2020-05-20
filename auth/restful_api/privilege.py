@@ -56,4 +56,14 @@ class PrivilegeHandler(PrivilegeReq):
         items, p = self.paginate(privilege_dicts, **p)
         self.resp([i for i in items], **p)
 
+    get.argument = {
+        "querystring": {
+            "//type": "2,3",
+            "//current_user": "True",
+            "page": "1",
+            "per_page": "10"
+        },
+        "json": {}
+    }
+
 

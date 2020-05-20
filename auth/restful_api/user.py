@@ -109,3 +109,43 @@ class UserHandler(AuthReq):
             the_user = session.query(User).filter_by(**params).first()
             session.delete(the_user)
         self.resp_created(msg="已删除。")
+
+    get.argument = {
+        "querystring": {
+            "//has_privilege": "2,3,4,5,6,7,8",
+            "page":"1",
+            "per_page":"10"
+        },
+        "json": {}
+    }
+    post.argument = {
+        "querystring": {},
+        "json": {
+            "login_user": "xyxy",
+            "username": "dada",
+            "password": "123scdlh",
+            "email": "58864",
+            "mobile_phone": "18883467900",
+            "department": "xx",
+            "status": "1",
+        }
+    }
+    patch.argument = {
+        "querystring": {},
+        "json": {
+            "login_user": "xyxy",
+            "//username": "ee",
+            "//old_password":"",
+            "//password": "",
+            "//email": "",
+            "//mobile_phone": "",
+            "//department": "",
+            "//status": "",
+        }
+    }
+    delete.argument = {
+        "querystring": {},
+        "json": {
+            "login_user": "xyxy",
+        }
+    }

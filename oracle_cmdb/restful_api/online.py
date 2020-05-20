@@ -91,6 +91,13 @@ class OverviewHandler(OraclePrivilegeReq):
             "task_record_id": latest_task_record_id,
         })
 
+    get.argument = {
+        "querystring": {
+            "cmdb_id": "2526",
+            "//period": "7",
+        },
+        "json": {}
+    }
 
 @as_view("tabspace_list", group="online")
 class TablespaceListHandler(OraclePrivilegeReq):

@@ -119,6 +119,7 @@ class RoleHandler(PrivilegeReq):
         self.resp_created(msg="finished.")
 
     def delete(self):
+        """删除角色"""
         params = self.get_json_args(Schema({
             "role_id": scm_int
         }))
@@ -130,6 +131,37 @@ class RoleHandler(PrivilegeReq):
             session.query(Role).filter_by(**params). \
                 delete(synchronize_session=False)
         self.resp_created(msg="删除成功")
+
+    get.argument = {
+        "querystring": {
+            "//keyword": "",
+            "page": "1",
+            "per_page": "10"
+        },
+        "json": {}
+    }
+    post.argument = {
+        "querystring": {},
+        "json": {
+            "role_name": "dsb",
+            "comments": "xxx",
+            "privileges": [3,4,5,6,7,8,9]
+        }
+    }
+    patch.argument = {
+        "querystring": {},
+        "json": {
+            "role_id": "1746",
+
+            "//role_name": "xx",
+            "//comments": "xx",
+            "//privileges": [3,4,5,6,7]
+        }
+    }
+    delete.argument = {
+        "querystring": {},
+        "json": {"role_id": "1722"}
+    }
 
 
 @as_view("user", group="auth")
@@ -191,3 +223,27 @@ class RoleUserHandler(PrivilegeReq):
             session.query(UserRole).filter_by(**params). \
                 delete(synchronize_session=False)
         self.resp_created(msg="deleted")
+
+    get.argument = {
+        "querystring": {
+            "//role_id":"",
+            "//login_user":"",
+            "//keyword":"",
+            "page":"1",
+            "per_page":"10"
+        },
+        "json": {}
+    }
+    post.argument = {
+        "querystring": {},
+        "json": {
+            "role_id": "2",
+            "login_user": "admin",
+        }
+    }
+    delete.argument = {
+        "querystring": {},
+        "json": {
+            "role_id": "2",
+            "login_user": "admin"}
+    }

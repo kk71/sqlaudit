@@ -55,6 +55,9 @@ class AuthHandler(BaseReq):
             self.resp_bad_username_password(
                 msg="请检查用户名密码，并确认该用户是启用状态。")
 
+    #加入一种请求方式的argument此方式接口便可点击请求，
+    #参数中"//"代表可选参数加入此此参数不传递，
+    #参数值要全部用str
     post.argument = {
         "querystring": {},
         "json": {
@@ -75,3 +78,8 @@ class CurrentUserHandler(AuthReq):
             if not current_user_object:
                 return self.resp_unauthorized(msg="当前登录用户不存在。")
             self.resp(current_user_object.to_dict())
+
+    get.argument = {
+        "querystring": {},
+        "json": {}
+    }
