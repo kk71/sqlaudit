@@ -101,5 +101,5 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
     @classmethod
     def filter(cls, *args, **kwargs):
         return super().filter(*args, **kwargs).order_by(
-            f"-{issue.OnlineIssue.ENTRIES[0]}")
+            f"entry_score__{issue.OnlineIssue.ENTRIES[0]}")
 
