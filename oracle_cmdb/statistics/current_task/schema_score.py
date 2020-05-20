@@ -69,7 +69,7 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
         for schema_name in schemas:
             doc = cls()
             for entry in cls.issue_entries():
-                issues = oracle_cmdb.issue.OracleOnlineIssue.filter(
+                issues = OracleOnlineIssue.filter(
                     task_record_id=task_record_id,
                     schema_name=schema_name,
                     entries=entry
@@ -81,7 +81,7 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
                 rule_dicts = []
                 for stats in stats_qs:
                     rule_dicts.extend(stats.rule_info)
-                doc.entry_score[entry] = oracle_cmdb.issue.OracleOnlineIssue.calc_score(
+                doc.entry_score[entry] = OracleOnlineIssue.calc_score(
                     issues, rule_dicts)
             if schema_name in rating_schemas.keys():
                 doc.add_to_rate = True
@@ -97,4 +97,9 @@ class OracleStatsSchemaScore(OracleBaseCurrentTaskSchemaStatistics):
     def schema_score(self):
         return self.entry_score.get(
             issue.OnlineIssue.ENTRIES[0], None)
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return super().filter(*args, **kwargs).order_by(
+            f"-{issue.OnlineIssue.ENTRIES[0]}")
 

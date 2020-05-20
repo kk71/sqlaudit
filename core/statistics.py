@@ -62,11 +62,15 @@ class BaseStatisticItem(SelfCollectingFramework):
         while collected:
             loop_times += 1
             assert loop_times <= cls.MAX_REQUIREMENT_LOOP
-            for a_require in cls.requires(collected[0].REQUIRES):
-                assert issubclass(a_require, cls)
-            if set(cls.requires(collected[0].REQUIRES)).issubset(ordered_collected):
-                ordered_collected.append(collected[0])
-                del collected[0]
+            for i in range(len(collected)):
+                a_collected = collected[i]
+                requires = cls.requires(a_collected.REQUIRES)
+                for a_require in requires:
+                    assert issubclass(a_require, cls)
+                if set(requires).issubset(ordered_collected):
+                    ordered_collected.append(a_collected)
+                    del collected[i]
+                    break
 
         cls.SORTED_COLLECTED_BY_REQUIREMENT = tuple(ordered_collected)
 

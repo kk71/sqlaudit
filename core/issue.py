@@ -81,7 +81,7 @@ class BaseOnlineIssue(
     INHERITED_ENTRIES: tuple = None
 
     # 当前类相关的采集（实际类型是tuple）
-    RELATED_CAPTURE: tuple = None
+    RELATED_CAPTURE: tuple = ()
 
     @classmethod
     def simple_analyse(cls, **kwargs):

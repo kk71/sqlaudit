@@ -317,7 +317,11 @@ class APIDocTestHandler(BaseReq):
                     )
                     cli = AsyncHTTPClient()
                     resp = await cli.fetch(async_req, raise_error=False)
+                    try:
+                        try_to_indent = json.dumps(json.loads(resp.body), indent=4, ensure_ascii=False)
+                    except json.decoder.JSONDecodeError:
+                        try_to_indent = resp.body.decode("utf-8")
                     await self.resp({
-                        "resp": json.dumps(json.loads(resp.body), indent=4, ensure_ascii=False)
+                        "resp": try_to_indent
                     })
 
