@@ -221,9 +221,13 @@ $(document).ready(function(){
         <td>{{method}}</td>
         <td>{{docstring}}</td>
         <td>
+            {% if argument is not None %}
             <a href="javascript: show_req_modal('{{the_id}}')"><button type="button" class="btn btn-primary">
             send
             </button></a>
+            {% else %}
+            -
+            {% end %}
         </td>
     </tr>
     {% end %}
@@ -308,7 +312,8 @@ class APIDocTestHandler(BaseReq):
                             argument["querystring"],
                         ),
                         body=json.dumps(argument["json"]) if argument["json"] else None,
-                        headers=header
+                        headers=header,
+                        allow_nonstandard_methods=True
                     )
                     cli = AsyncHTTPClient()
                     resp = await cli.fetch(async_req, raise_error=False)
