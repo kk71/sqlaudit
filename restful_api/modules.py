@@ -49,15 +49,16 @@ def pick_enabled_request_method(
         the_method = getattr(request_handler, request_method.lower(), None)
         if not the_method.__doc__:
             continue
-        ret[request_method] = the_method.__doc__, getattr(the_method, "argument", {})
+        ret[request_method] = the_method.__doc__, getattr(the_method, "argument", None)
     return ret
 
 
-def as_view(route_rule: str = "", group: str = ""):
+def as_view(route_rule: str = "", group: str = "", doc: bool = True):
     """
     请求装饰器
     :param route_rule: 相对的url路径，如果不传则以模块名作为路径
     :param group: 接口分组。方便归类
+    :param doc: 是否在apidoc里展示
     :return:
     """
 
@@ -75,10 +76,11 @@ def as_view(route_rule: str = "", group: str = ""):
         restful_api.urls.urls.append(
             (str(route), req_handler)
         )
-        for m, (docstring, argument) in pick_enabled_request_method(req_handler).items():
-            restful_api.urls.verbose_structured_urls[group].append(
-                (str(route), m, docstring, argument, uuid.uuid4().hex, req_handler)
-            )
+        if doc:
+            for m, (docstring, argument) in pick_enabled_request_method(req_handler).items():
+                restful_api.urls.verbose_structured_urls[group].append(
+                    (str(route), m, docstring, argument, uuid.uuid4().hex, req_handler)
+                )
         return req_handler
 
     return as_view_inner

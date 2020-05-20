@@ -221,9 +221,13 @@ $(document).ready(function(){
         <td>{{method}}</td>
         <td>{{docstring}}</td>
         <td>
+            {% if argument is not None %}
             <a href="javascript: show_req_modal('{{the_id}}')"><button type="button" class="btn btn-primary">
             send
             </button></a>
+            {% else %}
+            -
+            {% end %}
         </td>
     </tr>
     {% end %}
