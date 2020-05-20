@@ -1,10 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from typing import Dict
 from collections import defaultdict
 
-import task.const
-import ticket.const
 from models.sqlalchemy import *
 from oracle_cmdb.restful_api.base import OraclePrivilegeReq
 from oracle_cmdb.statistics import OracleStatsDashboardDrillDownSum
@@ -71,41 +68,14 @@ class DashboardHandler(OraclePrivilegeReq):
                 managed_cmdb_by_group_name[a_cmdb.group_name] += 1
 
             # 纳管库采集任务的饼图
-            qs, qe = OracleCMDBTaskCapture.query_cmdb_task_with_last_record(session)
-            qs = qs.filter(OracleCMDBTaskCapture.cmdb_id.in_(self.cmdb_ids(session)))
-            managed_cmdb_task_capture_by_status = defaultdict(lambda: 0)
-            for a_cmdb_task in qs:
-                a_cmdb_task_dict = qe.to_dict(a_cmdb_task)
-                execution_status = a_cmdb_task_dict["execution_status"]
-                if execution_status is None:
-                    execution_status = task.const.TASK_NEVER_RAN
-                execution_status_chinese = \
-                    task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
-                        execution_status]
-                managed_cmdb_task_capture_by_status[execution_status_chinese] += 1
+            managed_cmdb_task_capture_by_status = OracleCMDBTaskCapture.\
+                num_stats_by_execution_status(
+                    session,
+                    self.cmdb_ids(session)
+                )
 
             # 工单相关统计
-            ticket_stats = OracleTicket.aggregate(
-                {
-                    "$match": {
-                        "cmdb_id": {"$in": self.cmdb_ids(session)}
-                    }
-                },
-                {
-                    "$group": {
-                        "_id": {
-                            "status": "$status"
-                        },
-                        "count": {"$sum": 1}
-                    }
-                }
-            )
-            ticket_stats_dict: Dict[int, int] = {
-                ticket.const.ALL_TICKET_STATUS_CHINESE[
-                    [i["_id"]["status"]]]: i["count"]
-                for i in ticket_stats
-            }
-            ticket_stats_list = self.dict_to_verbose_dict_in_list(ticket_stats_dict)
+            ticket_stats_dict = OracleTicket.num_stats(self.cmdb_ids(session))
 
             ret = {
                 "drill_down_sum": drill_down_sum_dict,
@@ -118,7 +88,8 @@ class DashboardHandler(OraclePrivilegeReq):
                     self.dict_to_verbose_dict_in_list(
                         managed_cmdb_task_capture_by_status),
                 "cmdb_num": self.cmdbs(session).count(),
-                "ticket_stats_list": ticket_stats_list
+                "ticket_stats_list": self.dict_to_verbose_dict_in_list(
+                    ticket_stats_dict)
             }
             self.resp(ret)
 

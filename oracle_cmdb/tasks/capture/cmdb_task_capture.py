@@ -100,6 +100,26 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
             }
         return ret
 
+    @classmethod
+    def num_stats_by_execution_status(cls, session, cmdb_ids: List[int]) -> Dict[str, int]:
+        """统计各个状态的任务数量"""
+        qs, qe = cls.query_cmdb_task_with_last_record(session)
+        qs = qs.filter(cls.cmdb_id.in_(cmdb_ids))
+        cmdb_task_capture_by_status = {
+            i: 0
+            for i in task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING.values()
+        }
+        for a_cmdb_task in qs:
+            a_cmdb_task_dict = qe.to_dict(a_cmdb_task)
+            execution_status = a_cmdb_task_dict["execution_status"]
+            if execution_status is None:
+                execution_status = task.const.TASK_NEVER_RAN
+            execution_status_chinese = \
+                task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
+                    execution_status]
+            cmdb_task_capture_by_status[execution_status_chinese] += 1
+        return cmdb_task_capture_by_status
+
 
 class OracleCMDBTaskCaptureRecord(cmdb.cmdb_task.CMDBTaskRecord):
     """oracle纳管库采集分析任务记录"""
