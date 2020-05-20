@@ -22,8 +22,8 @@ from utils.datetime_utils import dt_to_str
 
 
 class OracleSQLCapturingDoc(
-        BaseDoc,
         BaseOracleCapture,
+        BaseDoc,
         metaclass=SelfCollectingTopLevelDocumentMetaclass):
     """采集sql数据"""
 

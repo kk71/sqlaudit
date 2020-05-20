@@ -47,7 +47,7 @@ class OracleStatsSchemaRank(OracleStatsMixOfLoginUserAndTargetSchemaRank):
                         latris.append(latri)
 
                 schema_rate_q = OracleStatsSchemaScore.filter(
-                    task_record_id__in=latris)
+                    task_record_id__in=latris).limit(10)
                 for i, a_schema_rate in enumerate(schema_rate_q):
                     doc = cls(
                         score=a_schema_rate.schema_score()

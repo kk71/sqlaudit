@@ -16,8 +16,8 @@ from oracle_cmdb.plain_db import OraclePlainConnector
 
 
 class OracleObjectCapturingDoc(
-        BaseDoc,
         BaseOracleCapture,
+        BaseDoc,
         metaclass=SelfCollectingTopLevelDocumentMetaclass):
     """对象采集"""
 
