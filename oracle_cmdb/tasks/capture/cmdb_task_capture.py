@@ -1,7 +1,8 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleCMDBTaskCapture"
+    "OracleCMDBTaskCapture",
+    "OracleCMDBTaskCaptureRecord"
 ]
 
 from typing import Tuple, Dict, Any, Optional, Union, List
@@ -98,3 +99,25 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
                 for i in entry_cmdb_q.filter(target_cmdb_id=cmdb_id)
             }
         return ret
+
+
+class OracleCMDBTaskCaptureRecord(cmdb.cmdb_task.CMDBTaskRecord):
+    """oracle纳管库采集分析任务记录"""
+
+    __mapper_args__ = {
+        'polymorphic_identity': task.const.TASK_TYPE_CAPTURE
+    }
+
+    @classmethod
+    def query_cmdb_task_record_with_task_record(
+            cls,
+            session,
+            **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
+        kwargs["task_type"] = task.const.TASK_TYPE_CAPTURE
+        return super().query_cmdb_task_record_with_task_record(session, **kwargs)
+
+    @classmethod
+    def last_success_task_record_id(cls, session, **kwargs) -> Optional[int]:
+        kwargs["task_type"] = task.const.TASK_TYPE_CAPTURE
+        return super().last_success_task_record_id(session, **kwargs)
+

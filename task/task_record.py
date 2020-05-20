@@ -1,5 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+from typing import Optional
+
 from sqlalchemy import Column, Integer, String, DateTime
 
 from core.task import BaseTaskRecord
@@ -25,3 +27,11 @@ class TaskRecord(
     input = Column("input", String, nullable=True)  # 输入信息的pickle
     output = Column("output", String, nullable=True)  # 输出信息的pickle
     error_info = Column("error_info", String, default="")  # 报错信息
+
+    @classmethod
+    def last_success_task_record(cls, session, **kwargs) -> Optional["TaskRecord"]:
+        task_type = kwargs["task_type"]
+        return session.query(TaskRecord.task_record_id). \
+            filter(cls.task_type == task_type, cls.status == const.TASK_DONE) \
+            .order_by(TaskRecord.create_time.desc()).first()
+

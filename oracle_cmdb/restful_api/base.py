@@ -16,14 +16,12 @@ from ..auth.user_utils import *
 
 class OracleBaseReq(BaseReq):
 
-    @classmethod
-    def cmdbs(cls, session) -> sqlalchemy_q:
+    def cmdbs(self, session) -> sqlalchemy_q:
         return session.query(OracleCMDB)
 
-    @classmethod
-    def cmdb_ids(cls, session) -> List[int]:
+    def cmdb_ids(self, session) -> List[int]:
         return QueryEntity.to_plain_list(
-            cls.cmdbs(session).with_entities(OracleCMDB.cmdb_id))
+            self.cmdbs(session).with_entities(OracleCMDB.cmdb_id))
 
 
 class OraclePrivilegeReq(OracleBaseReq, PrivilegeReq):

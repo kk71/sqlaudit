@@ -187,13 +187,17 @@ class CMDBTaskRecord(BaseModel):
     # 操作来源：定时任务，频率任务，页面发起(记录是的login_user)，命令行发起
     operator = Column("operator", String)
 
+    __mapper_args__ = {
+        'polymorphic_on': task_type
+    }
+
     @classmethod
     def query_cmdb_task_record_with_task_record(
             cls,
             session,
             **kwargs) -> Tuple[sqlalchemy_q, QueryEntity]:
         """联合查询纳管库任务和任务纪录表"""
-        task_type: str = kwargs.get("task_type")
+        task_type: str = kwargs["task_type"]
         ret = session.query(*(qe := QueryEntity(
             CMDBTaskRecord.task_record_id,
             CMDBTaskRecord.cmdb_task_id,
@@ -215,6 +219,12 @@ class CMDBTaskRecord(BaseModel):
         if task_type:
             ret = ret.filter(cls.task_type == task_type)
         return ret, qe
+
+    @classmethod
+    def last_success_task_record_id(cls, session, **kwargs) -> Optional[int]:
+        r = TaskRecord.last_success_task_record(session, **kwargs)
+        if r:
+            return r.task_record_id
 
 
 class BaseCMDBTask(BaseTask):
