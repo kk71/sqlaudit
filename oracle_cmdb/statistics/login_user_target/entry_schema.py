@@ -8,7 +8,6 @@ from typing import Union, Generator
 
 from mongoengine import LongField, FloatField, ListField, StringField
 
-import issue.issue
 from models.sqlalchemy import *
 from ..current_task.schema_score import *
 from ...issue import *
@@ -39,7 +38,7 @@ class OracleStatsEntrySchema(OracleStatsMixOfLoginUserAndTargetSchema):
     REQUIRES = (OracleStatsSchemaScore,)
 
     ISSUES = (
-        issue.issue.OnlineIssue,
+        # issue.issue.OnlineIssue,
         OracleOnlineSQLTextIssue,
         OracleOnlineSQLPlanIssue,
         OracleOnlineSQLStatIssue,

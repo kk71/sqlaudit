@@ -64,7 +64,8 @@ class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
                             doc.num += entry_schema_stats.num
                             doc.num_with_risk += entry_schema_stats.num_with_risk
                             doc.issue_num += entry_schema_stats.issue_num
-                        doc.risk_rate = round(doc.num_with_risk / doc.num, 4)
+                        if doc.num:
+                            doc.risk_rate = round(doc.num_with_risk / doc.num, 4)
                         target_task_record_id = entry_schema_stats.target_task_record_id
                         cls.post_generated(
                             doc=doc,
