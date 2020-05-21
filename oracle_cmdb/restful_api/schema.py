@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import cx_Oracle
+
 from ..cmdb import *
 from ..rate import OracleRatingSchema
 from ..auth.user_utils import *
@@ -15,7 +16,7 @@ from auth.restful_api.base import *
 class RatingSchemaHandler(AuthReq):
 
     def get(self):
-        """获取需要评分的数据库列表"""
+        """获取需要评分的schema列表"""
         params = self.get_query_args(Schema({
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
@@ -25,13 +26,12 @@ class RatingSchemaHandler(AuthReq):
         del params
 
         with make_session() as session:
-            qe = QueryEntity(
-                OracleCMDB.connect_name,
-                OracleRatingSchema.cmdb_id,
-                OracleRatingSchema.schema_name,
-                OracleRatingSchema.weight
-            )
-            rating=session.query(*qe).join(
+            rating = session.query(*(qe := QueryEntity(
+                    OracleCMDB.connect_name,
+                    OracleRatingSchema.cmdb_id,
+                    OracleRatingSchema.schema_name,
+                    OracleRatingSchema.weight
+                ))).join(
                 OracleCMDB, OracleCMDB.cmdb_id == OracleRatingSchema.cmdb_id)
             if keyword:
                 rating = self.query_keyword(rating, keyword,
@@ -39,7 +39,16 @@ class RatingSchemaHandler(AuthReq):
                                             OracleRatingSchema.schema_name,
                                             OracleRatingSchema.weight)
             items, p = self.paginate(rating, **p)
-            self.resp(sorted([qe.to_dict(i) for i in items], key=lambda k: k["cmdb_id"]),**p)
+            items = sorted([qe.to_dict(i) for i in items], key=lambda k: k["cmdb_id"])
+            self.resp(items, **p)
+
+    get.argument = {
+        "querystring": {
+            "//keyword": "emm",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
 
     def post(self):
         """以库为单位修改(增删)数据评分的schema,默认权重为1"""
@@ -55,7 +64,7 @@ class RatingSchemaHandler(AuthReq):
             cmdb = session.query(OracleCMDB).filter(OracleCMDB.cmdb_id == cmdb_id).first()
             import cx_Oracle
             try:
-                schemas=cmdb.get_available_schemas()
+                schemas = cmdb.get_available_schemas()
             except cx_Oracle.DatabaseError as err:
                 print(err)
                 return self.resp_bad_req(msg="无法连接到目标主机")
@@ -84,6 +93,13 @@ class RatingSchemaHandler(AuthReq):
             ) for i in schema_names_to_add])
         self.resp_created(msg="评分配置成功")
 
+    post.argument = {
+        "json": {
+            "cmdb_id": 2526,
+            "schema_names": ["APES"]
+        }
+    }
+
     def patch(self):
         """以cmdb-schema为单位修改评分权重"""
         params = self.get_json_args(Schema({
@@ -102,6 +118,14 @@ class RatingSchemaHandler(AuthReq):
             ).update(params)
         self.resp_created(msg="评分配置更新成功")
 
+    patch.argument = {
+        "json": {
+            "cmdb_id": 2526,
+            "schema_name": "APEX",
+            "weight": 1
+        }
+    }
+
     def delete(self):
         """删除不需要评分的库的schema"""
         params = self.get_json_args(Schema({
@@ -112,6 +136,13 @@ class RatingSchemaHandler(AuthReq):
             session.query(OracleRatingSchema). \
                 filter_by(**params).delete(synchronize_session=False)
         self.resp_created("删除评分schema成功")
+
+    delete.argument = {
+        "json": {
+            "cmdb_id": 2526,
+            "schema_name": "APEX"
+        }
+    }
 
 
 @as_view("schema", group="schema")
@@ -129,7 +160,7 @@ class SchemaHandler(AuthReq):
             scm_optional("current", default=not self.is_admin()): scm_bool,
             scm_optional("divide_by", default=None): scm_one_of_choices((
                 DATA_SCHEMA_PRIVILEGE,  # 以login_user区分当前库的数据权限（绑定、未绑定）
-                RATING_SCHEMA_PRIVILEGE # 以login_user区分当前库的评分权限（绑定、未绑定）
+                RATING_SCHEMA_PRIVILEGE  # 以login_user区分当前库的评分权限（绑定、未绑定）
             )),  # 指定分开返回的类型
             scm_optional("login_user", default=None): scm_str,
             scm_optional("role_id", default=None): scm_gt0_int,
@@ -181,7 +212,7 @@ class SchemaHandler(AuthReq):
 
             elif divide_by == RATING_SCHEMA_PRIVILEGE:
                 # 返回给出的库需要加入数据评分的schema，以及不需要的
-                if connect_name:#TODO
+                if connect_name:  # TODO
                     bound = session.query(OracleRatingSchema.schema). \
                         filter(OracleRatingSchema.cmdb_id == cmdb_id)
                 elif cmdb_id:
@@ -217,5 +248,3 @@ class SchemaHandler(AuthReq):
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 self.resp(all_schemas)
-
-
