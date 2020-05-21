@@ -1,6 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import task.const
+from task.task_record import *
 from restful_api import *
 from models.sqlalchemy import *
 from utils.schema_utils import *
@@ -17,11 +18,10 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
 
         params = self.get_query_args(Schema({
-            scm_optional("execution_status", default=None): And(
+            scm_optional("execution_status", default=None): scm_empty_as_optional(And(
                 scm_int,
-                self.scm_one_of_choices(
-                    task.const.ALL_TASK_EXECUTION_STATUS, allow_empty=True)
-            ),
+                self.scm_one_of_choices(task.const.ALL_TASK_EXECUTION_STATUS)
+            )),
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
@@ -39,7 +39,8 @@ class CMDBTaskHandler(OraclePrivilegeReq):
                                                  OracleCMDBTaskCapture.cmdb_id,
                                                  OracleCMDBTaskCapture.connect_name)
             if execution_status is not None:
-                cmdb_task_q = cmdb_task_q.filter(OracleCMDBTaskCapture.status == execution_status)
+                cmdb_task_q = cmdb_task_q.filter(
+                    TaskRecord.status == execution_status)
             rst, p = self.paginate(cmdb_task_q, **p)
             self.resp([qe.to_dict(i) for i in rst], **p)
 
