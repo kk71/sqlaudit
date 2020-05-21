@@ -10,6 +10,7 @@ from typing import Dict, Union, Optional, Tuple, List
 
 from redis import StrictRedis
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_, and_
+from sqlalchemy.sql import func
 
 import settings
 import task.const
@@ -136,7 +137,9 @@ class CMDBTask(BaseModel):
             cls.exec_count,
             cls.success_count,
             cls.last_success_time,
-            TaskRecord.status.label("execution_status"),
+            func.ifnull(
+                TaskRecord.status, task.const.TASK_NEVER_RAN).label(
+                "execution_status"),
             TaskRecord.error_info,
             CMDBTaskRecord.operator
         ))).outerjoin(CMDBTaskRecord, cls.last_task_record_id == CMDBTaskRecord.task_record_id).\
