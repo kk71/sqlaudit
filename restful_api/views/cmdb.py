@@ -149,19 +149,7 @@ class CMDBHandler(AuthReq):
                     ]
                 )
 
-            cmdb_id=[2526,2,3,4,5,6,7,8,9,0,11,12,13,14,15]
-            connect_name=['a','b','c','d','e','f','g','h','1','q','o','p','r','s','t']
-            ret=ret*15
-            rets=[]
-            for x in ret:
-                x['cmdb_id']=cmdb_id.pop()
-                x['connect_name']=connect_name.pop()
-                rets.append(tuple(x.items()))
-            retss=[]
-            for x in rets:
-                x=dict(x)
-                retss.append(x)
-            self.resp(retss, **p)
+            self.resp(ret, **p)
 
     def post(self):
         """增加CMDB"""
