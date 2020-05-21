@@ -110,14 +110,14 @@ class UserHandler(AuthReq):
             session.delete(the_user)
         self.resp_created(msg="已删除。")
 
-    get.argument = {
-        "querystring": {
-            "//has_privilege": "2,3,4,5,6,7,8",
-            "page":"1",
-            "per_page":"10"
-        },
-        "json": {}
-    }
+    # get.argument = {
+    #     "querystring": {
+    #         "//has_privilege": "2,3,4,5,6,7,8",
+    #         "page":"1",
+    #         "per_page":"10"
+    #     },
+    #     "json": {}
+    # }
     post.argument = {
         "querystring": {},
         "json": {
