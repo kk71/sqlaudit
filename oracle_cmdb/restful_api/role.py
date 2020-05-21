@@ -58,6 +58,16 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
             items, p = self.paginate(perm_datas, **p)
             self.resp([qe.to_dict(i) for i in items], **p)
 
+    get.argument = {
+        "querystring": {
+            "//role_id": 1,
+            "//cmdb_id": 2526,
+            "//keyword": "emm",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def patch(self):
         """数据权限：角色-oracle库-schema的绑定关系修改"""
         params = self.get_json_args(Schema({
@@ -109,6 +119,18 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
                 used_cmdb_id.add(cmdb_id)
         return self.resp_created(msg="分配权限成功")
 
+    patch.argument = {
+        "json": {
+            "role_id": 1,
+            "cmdbs": [
+                {
+                    "cmdb_id": 2526,
+                    "schemas": ["APEX"]
+                }
+            ]
+        }
+    }
+
     def delete(self):
         """数据权限：角色-oracle库-schema的绑定关系删除"""
         params = self.get_json_args(Schema({
@@ -124,3 +146,10 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
 
         self.resp_created(msg="删除成功")
 
+    delete.argument = {
+        "json": {
+            "cmdb_id": 2526,
+            "role_id": 1,
+            "//schema_name": "APEX"
+        }
+    }
