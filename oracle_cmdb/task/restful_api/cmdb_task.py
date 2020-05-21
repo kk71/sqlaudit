@@ -5,10 +5,8 @@ from restful_api import *
 from models.sqlalchemy import *
 from utils.schema_utils import *
 from auth.const import PRIVILEGE
-from cmdb.cmdb_task import *
 from ...restful_api.base import *
-from oracle_cmdb.tasks.capture.capture import *
-from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
+from oracle_cmdb.tasks.capture import *
 
 
 @as_view(group="task")
@@ -98,11 +96,11 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            cmdb_task_record_q, qe = CMDBTaskRecord.\
+            cmdb_task_record_q, qe = OracleCMDBTaskCaptureRecord.\
                 query_cmdb_task_record_with_task_record(session)
             cmdb_task_record_q = cmdb_task_record_q.filter(
-                CMDBTaskRecord.cmdb_task_id == cmdb_task_id,
-                CMDBTaskRecord.cmdb_id.in_(self.cmdb_ids(session))
+                OracleCMDBTaskCaptureRecord.cmdb_task_id == cmdb_task_id,
+                OracleCMDBTaskCaptureRecord.cmdb_id.in_(self.cmdb_ids(session))
             )
             rst, p = self.paginate(cmdb_task_record_q, **p)
             self.resp([i.to_dict() for i in rst], **p)
@@ -124,7 +122,8 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
         }))
         task_record_id = params.pop("task_record_id")
         with make_session() as session:
-            session.query(CMDBTaskRecord).filter_by(task_record_id=task_record_id).delete()
+            session.query(OracleCMDBTaskCaptureRecord).filter_by(
+                task_record_id=task_record_id).delete()
         self.resp_created()
 
     delete.argument = {
