@@ -17,6 +17,7 @@ from ..base import *
 class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
     """登录用户各库各维度对象数问题数和风险率"""
 
+    connect_name = StringField(default="")
     entry = StringField()
     entries = ListField()
     num = LongField(default=0)  # 采集到的[sql/object]总数（去重）
@@ -57,6 +58,7 @@ class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
                             entry=issue_model.ENTRIES[0]
                         )
                         doc = cls(
+                            connect_name=the_cmdb.connect_name,
                             entry=issue_model.ENTRIES[0],
                             entries=issue_model.INHERITED_ENTRIES
                         )

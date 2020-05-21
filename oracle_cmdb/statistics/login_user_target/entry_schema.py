@@ -19,6 +19,7 @@ from ..base import *
 class OracleStatsEntrySchema(OracleStatsMixOfLoginUserAndTargetSchema):
     """登录用户各库各schema各维度对象数问题数和风险率"""
 
+    connect_name = StringField(default="")
     entry = StringField()
     entries = ListField()
     num = LongField(default=0)  # 采集到的[sql/object]总数（去重）
@@ -73,6 +74,7 @@ class OracleStatsEntrySchema(OracleStatsMixOfLoginUserAndTargetSchema):
                         for issue_model in cls.ISSUES:
                             # 假设这里的entries元组长度为1
                             doc = cls(
+                                connect_name=the_cmdb.connect_name,
                                 entry=issue_model.ENTRIES[0],  # 假设只有一个entry
                                 entries=issue_model.INHERITED_ENTRIES
                             )
