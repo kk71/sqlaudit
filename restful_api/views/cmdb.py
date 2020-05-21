@@ -187,15 +187,15 @@ class CMDBHandler(AuthReq):
             if session.query(CMDB).filter_by(connect_name=params["connect_name"]).first():
                 return self.resp_bad_req(msg="连接名称已存在")
 
-            if session.query(CMDB).filter(
-                    CMDB.ip_address == params["ip_address"],
-                    CMDB.port == params["port"],
-                    or_(  # TODO 记得改，目前sid和service_name的字段名和实际意义是反过来的
-                        CMDB.service_name == params["service_name"],
-                        # CMDB.sid == params["sid"]
-                    )
-            ).first():
-                return self.resp_bad_req(msg="IP地址-端口-sid与已有的纳管库重复。")
+            # if session.query(CMDB).filter(
+            #         CMDB.ip_address == params["ip_address"],
+            #         CMDB.port == params["port"],
+            #         or_(  # TODO 记得改，目前sid和service_name的字段名和实际意义是反过来的
+            #             CMDB.service_name == params["service_name"],
+            #             # CMDB.sid == params["sid"]
+            #         )
+            # ).first():
+            #     return self.resp_bad_req(msg="IP地址-端口-sid与已有的纳管库重复。")
 
             session.add(new_cmdb)
             session.commit()
