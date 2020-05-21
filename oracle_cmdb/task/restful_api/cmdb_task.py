@@ -34,7 +34,7 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         with make_session() as session:
             cmdb_task_q, qe = OracleCMDBTaskCapture.query_cmdb_task_with_last_record(session)
             cmdb_task_q = cmdb_task_q.filter(
-                OracleCMDBTaskCapture.cmdb_id.in_(OracleBaseReq.cmdb_ids(session)))
+                OracleCMDBTaskCapture.cmdb_id.in_(self.cmdb_ids(session)))
             if keyword:
                 cmdb_task_q = self.query_keyword(cmdb_task_q, keyword,
                                                  OracleCMDBTaskCapture.cmdb_id,
