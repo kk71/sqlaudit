@@ -44,6 +44,15 @@ class CMDBTaskHandler(OraclePrivilegeReq):
             rst, p = self.paginate(cmdb_task_q, **p)
             self.resp([qe.to_dict(i) for i in rst], **p)
 
+    get.argument = {
+        "querystring": {
+            "execution_status": 1,
+            "//keyword": "emm",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def patch(self):
         """修改纳管库任务"""
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
@@ -63,6 +72,15 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         with make_session() as session:
             session.query(OracleCMDBTaskCapture).filter_by(id=the_id).update(params)
         self.resp_created()
+
+    patch.argument = {
+        "json": {
+            "id": 1,
+            "//status": True,
+            "//schedule_time": "22:00",
+            "//frequency": 10
+        }
+    }
 
 
 @as_view("record", group="task")
@@ -89,6 +107,14 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
             rst, p = self.paginate(cmdb_task_record_q, **p)
             self.resp([i.to_dict() for i in rst], **p)
 
+    get.argument = {
+        "querystring": {
+            "cmdb_task_id":1991,
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def delete(self):
         """手动删除挂起的任务"""
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
@@ -101,6 +127,12 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
             session.query(CMDBTaskRecord).filter_by(task_record_id=task_record_id).delete()
         self.resp_created()
 
+    delete.argument = {
+        "querystring": {
+            "task_record_id": 123
+        }
+    }
+
 
 @as_view("execute", group="task")
 class TaskManualExecuteHandler(OraclePrivilegeReq):
@@ -109,7 +141,7 @@ class TaskManualExecuteHandler(OraclePrivilegeReq):
         """手动运行任务"""
         self.acquire(PRIVILEGE.PRIVILEGE_TASK)
 
-        params = self.get_query_args(Schema({
+        params = self.get_json_args(Schema({
             "cmdb_task_id": scm_int
         }))
         task_record_id = OracleCMDBCaptureTask.shoot(
@@ -117,6 +149,12 @@ class TaskManualExecuteHandler(OraclePrivilegeReq):
             **params
         )
         self.resp_created({"task_record_id": task_record_id})
+
+    post.argument = {
+        "json": {
+            "cmdb_task_id": 1991
+        }
+    }
 
 
 @as_view("flush_queue", group="task")
@@ -130,4 +168,6 @@ class FlushCeleryQHandler(OraclePrivilegeReq):
                 task_type=task.const.TASK_TYPE_CAPTURE).first()
             any_cmdb_task_object.flush_celery_q()
         self.resp_created(msg="已清理待采集队列")
+
+    post.argument = {}
 
