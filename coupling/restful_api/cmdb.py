@@ -29,7 +29,7 @@ from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
 
 
 @as_view(group="cmdb")
-class BaseCMDBHandler(OraclePrivilegeReq):
+class CMDBHandler(OraclePrivilegeReq):
 
     def get(self):
         """cmdb列表"""
@@ -73,6 +73,7 @@ class BaseCMDBHandler(OraclePrivilegeReq):
                 all_current_cmdb[a_cmdb.cmdb_id] = {
                     "data_health": last_cmdb_score[a_cmdb.cmdb_id],
                     "rating_schemas": a_cmdb.rating_schemas(),
+                    "rating_schemas_num": len(a_cmdb.rating_schemas()),
                     **a_cmdb.to_dict()
                 }
             all_current_cmdb_list: List = list(all_current_cmdb.values())
@@ -87,8 +88,9 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             # 对分页之后的纳管库列表补充额外数据
             last_cmdb_task_record_id_dict = OracleCMDBTaskCapture. \
                 last_login_user_entry_cmdb(
-                session,
-                self.current_user)
+                    session,
+                    self.current_user
+                )
             for i in ret:
                 i["stats"] = last_cmdb_task_record_id_dict[i["cmdb_id"]]
 

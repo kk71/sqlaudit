@@ -19,7 +19,8 @@ class CMDBTaskHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             scm_optional("execution_status", default=None): And(
                 scm_int,
-                self.scm_one_of_choices(task.const.ALL_TASK_EXECUTION_STATUS)
+                self.scm_one_of_choices(
+                    task.const.ALL_TASK_EXECUTION_STATUS, allow_empty=True)
             ),
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()

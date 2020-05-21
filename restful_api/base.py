@@ -38,18 +38,30 @@ class BaseReq(RequestHandler):
         return Or(*args)
 
     @classmethod
-    def scm_one_of_choices(cls, choices):
-        return cls.scm_or_with_error_msg(
-            scm_one_of_choices(choices),
-            e=f"should be one of {choices}"
-        )
+    def scm_one_of_choices(cls, choices, allow_empty=False):
+        if not allow_empty:
+            return cls.scm_or_with_error_msg(
+                scm_one_of_choices(choices),
+                e=f"should be one of {choices}"
+            )
+        else:
+            return cls.scm_or_with_error_msg(
+                scm_empty_as_optional(scm_one_of_choices(choices)),
+                e=f"should be one of {choices}"
+            )
 
     @classmethod
-    def scm_subset_of_choices(cls, choices):
-        return cls.scm_or_with_error_msg(
-            scm_subset_of_choices(choices),
-            e=f"should be subset of {choices}"
-        )
+    def scm_subset_of_choices(cls, choices, allow_empty=False):
+        if not allow_empty:
+            return cls.scm_or_with_error_msg(
+                scm_subset_of_choices(choices),
+                e=f"should be subset of {choices}"
+            )
+        else:
+            return cls.scm_or_with_error_msg(
+                scm_empty_as_optional(scm_subset_of_choices(choices)),
+                e=f"should be subset of {choices}"
+            )
 
     def get_json_args(self,
                       schema_object: Schema = None,

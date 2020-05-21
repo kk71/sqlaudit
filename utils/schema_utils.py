@@ -3,7 +3,8 @@
 import json
 
 import arrow
-from schema import And, Use, Optional as scm_optional, Schema, SchemaError
+from schema import And, Use, Optional as scm_optional, Schema, SchemaError,\
+    Or as scm_or
 
 from utils import const
 from utils.ordered_set import OrderedSet
@@ -28,7 +29,9 @@ __all__ = [
     "scm_datetime",
     "scm_bool",
     "scm_optional",
+    "scm_or",
     "scm_raise_error",
+    "scm_empty_as_optional",
     "scm_deduplicated_list",
     "scm_json"
 ]
@@ -49,6 +52,20 @@ def auto_num(x):
 def scm_raise_error(*args, **kwargs):
     """便于在lambda里唤起SchemaError"""
     raise SchemaError(*args, **kwargs)
+
+
+def scm_empty_as_optional(scm_validator, empty_contents=("",), ret_when_empty=None):
+    """
+    允许传入空字符串来表达'不传'的概念
+    :param scm_validator: 原有的验证
+    :param empty_contents: 定义什么是空？
+    :param ret_when_empty: 如果传入"空"，那么将返回什么
+    :return:
+    """
+    return scm_or(
+        scm_validator,
+        Use(lambda x: ret_when_empty if x in empty_contents else scm_raise_error())
+    )
 
 
 # for string

@@ -38,11 +38,10 @@ class OracleStatsEntrySchema(OracleStatsMixOfLoginUserAndTargetSchema):
     REQUIRES = (OracleStatsSchemaScore,)
 
     ISSUES = (
-        OracleOnlineSQLIssue,
+        # issue.issue.OnlineIssue,
         OracleOnlineSQLTextIssue,
         OracleOnlineSQLPlanIssue,
         OracleOnlineSQLStatIssue,
-        OracleOnlineObjectIssue,
         OracleOnlineObjectIssueTable,
         OracleOnlineObjectIssueSequence,
         OracleOnlineObjectIssueIndex
