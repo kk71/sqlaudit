@@ -23,7 +23,7 @@ class CMDBRuleHandler(BaseRuleHandler):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
 
-        cr_q = CMDBRule.objects(**params)
+        cr_q = CMDBRule.filter(**params)
         if keyword:
             cr_q = self.query_keyword(cr_q, keyword,
                                       "name", "desc", "db_type", "summary")
@@ -95,7 +95,7 @@ class CMDBRuleHandler(BaseRuleHandler):
         }))
         cmdb_id = params.pop("cmdb_id")
         name = params.pop("name")
-        the_cr = CMDBRule.objects(cmdb_id=cmdb_id, name=name).first()
+        the_cr = CMDBRule.filter(cmdb_id=cmdb_id, name=name).first()
         the_cr.from_dict(params)
         self.test_code(the_cr)
         the_cr.save()
@@ -119,7 +119,7 @@ class CMDBRuleHandler(BaseRuleHandler):
         }))
         cmdb_id = params.pop("cmdb_id")
         name = params.pop("name")
-        the_cr = CMDBRule.objects(cmdb_id=cmdb_id, name=name).first()
+        the_cr = CMDBRule.filter(cmdb_id=cmdb_id, name=name).first()
         self.special_update(the_cr, **params)
         self.save()
         self.resp_created(the_cr.to_dict())
@@ -130,7 +130,7 @@ class CMDBRuleHandler(BaseRuleHandler):
             "cmdb_id": scm_gt0_int,
             "name": scm_unempty_str
         }))
-        the_cr = CMDBRule.objects(**params).first()
+        the_cr = CMDBRule.filter(**params).first()
         if not the_cr:
             return self.resp_bad_req(msg=f"{params}规则未找到")
         the_cr.delete()

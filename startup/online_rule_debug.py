@@ -28,7 +28,7 @@ def main():
     initiate_cmdb_rule(cmdb_id=cmdb_id)
 
     # 检查导入的规则墨盒的代码是否有问题(语法，import是否有问题)
-    for a_rule in RuleCartridge.objects():
+    for a_rule in RuleCartridge.filter():
         a_rule.test()
 
     # 检查输出参数和规则是否符合

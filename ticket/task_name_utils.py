@@ -27,7 +27,7 @@ def get_available_task_name(submit_owner: str) -> str:
     redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时
     ret = f"{submit_owner}-{current_date}-{current_num}"
     if current_num_int == 1:
-        while Ticket.objects(task_name=ret).count():
+        while Ticket.filter(task_name=ret).count():
             current_num_int = redis_cli.incr(k, 1)
             current_num = "%03d" % current_num_int
             redis_cli.expire(k, 60 * 60 * 24 * 3)  # 设置三天内超时

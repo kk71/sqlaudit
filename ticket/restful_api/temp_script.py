@@ -27,7 +27,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         p = self.pop_p(params)
         del params
 
-        q = TempScriptStatement.objects(script__script_id=script_id)
+        q = TempScriptStatement.filter(script__script_id=script_id)
         if keyword:
             q = self.query_keyword(q, keyword, "normalized", "comment")
         sqls, p = self.paginate(q, **p)
@@ -46,7 +46,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         statement_id = params.pop("statement_id")
         delete = params.pop("delete")
 
-        temp_scipt_statement_object = TempScriptStatement.objects(
+        temp_scipt_statement_object = TempScriptStatement.filter(
             statement_id=statement_id).first()
         if not temp_scipt_statement_object:
             self.resp_bad_req(msg=f"找不到编号为{statement_id}的临时sql语句")

@@ -85,10 +85,10 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             ret, p = self.paginate(all_current_cmdb_list, **p)
 
             # 对分页之后的纳管库列表补充额外数据
-            last_cmdb_task_record_id_dict = OracleCMDBTaskCapture.\
+            last_cmdb_task_record_id_dict = OracleCMDBTaskCapture. \
                 last_login_user_entry_cmdb(
-                    session,
-                    self.current_user)
+                session,
+                self.current_user)
             for i in ret:
                 i["stats"] = last_cmdb_task_record_id_dict[i["cmdb_id"]]
 
@@ -195,11 +195,12 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             session.refresh(new_cmdb)
 
             # 增加库的规则
-            rules = RuleCartridge.objects(db_type=new_cmdb.db_type, db_model=new_cmdb.db_model)
-            cmdb_rules=[]
+            rules = RuleCartridge.filter(
+                db_type=new_cmdb.db_type, db_model=new_cmdb.db_model)
+            cmdb_rules = []
             for rule in rules:
-                cmdb_rule=CMDBRule(cmdb_id=new_cmdb.cmdb_id)
-                cmdb_rule.from_rule_cartridge(rule,force=True)
+                cmdb_rule = CMDBRule(cmdb_id=new_cmdb.cmdb_id)
+                cmdb_rule.from_rule_cartridge(rule, force=True)
                 cmdb_rules.append(cmdb_rule)
             CMDBRule.objects.insert(cmdb_rules)
             self.resp_created(new_cmdb.to_dict())
@@ -322,8 +323,8 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             session.delete(the_cmdb)
             session.query(CMDBTask).filter_by(**params).delete(synchronize_session=False)
             session.query(RoleOracleCMDBSchema).filter_by(**params).delete(synchronize_session=False)
-            Ticket.objects(**params).delete()
-            SubTicket.objects(**params).delete()
+            Ticket.filter(**params).delete()
+            SubTicket.filter(**params).delete()
         self.resp_created(msg="已删除。")
 
     def options(self):

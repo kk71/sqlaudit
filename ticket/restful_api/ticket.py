@@ -41,7 +41,7 @@ class ArchiveHandler(TicketReq):
         filtered_tickets = self.privilege_filter_ticket(filtered_tickets)
         tickets: list = []
         for ticket in filtered_tickets:
-            sub_tickets = SubTicket.objects(ticket_id=str(ticket.ticket_id))
+            sub_tickets = SubTicket.filter(ticket_id=str(ticket.ticket_id))
             ret_item = {
                 **ticket.to_dict(
                     iter_by=lambda k, v: d_to_str(v) if k == "create_time" else v),
@@ -128,7 +128,7 @@ class TicketHandler(TicketReq):
             cmdb_id_connect_name_pairs = dict(session.query(
                 CMDB.cmdb_id, CMDB.connect_name))
         for the_ticket in filtered_tickets:
-            sub_tickets_q_to_current_ticket = SubTicket.objects(
+            sub_tickets_q_to_current_ticket = SubTicket.filter(
                 ticket_id=str(the_ticket.ticket_id))
             ret_item = {
                 **the_ticket.to_dict(),
@@ -163,7 +163,7 @@ class TicketHandler(TicketReq):
         params["audit_owner"] = self.current_user
         ticket_id = params.pop("ticket_id")
 
-        Ticket.objects(ticket_id=ticket_id).update(**{
+        Ticket.filter(ticket_id=ticket_id).update(**{
             "set__" + k: v for k, v in params.items()})
         # TODO timing_send_work_list_status.delay(ticket.to_dict())
         return self.resp_created(msg="更新成功")
@@ -177,9 +177,9 @@ class TicketHandler(TicketReq):
         ticket_id = params.pop("ticket_id")
         del params
 
-        ticket = Ticket.objects(ticket_id=ticket_id).first()
+        ticket = Ticket.filter(ticket_id=ticket_id).first()
         ticket.delete()
-        SubTicket.objects(ticket_id=ticket_id).delete()
+        SubTicket.filter(ticket_id=ticket_id).delete()
         self.resp(msg="已删除")
 
 
@@ -195,7 +195,7 @@ class TicketExportHandler(TicketReq):
         ticket_id = params.pop("ticket_id")
 
         # 首先获取主工单的基本信息
-        the_ticket = Ticket.objects(ticket_id=ticket_id).first()
+        the_ticket = Ticket.filter(ticket_id=ticket_id).first()
         work_list = the_ticket.to_dict(
             iter_if=lambda k, v: k not in ("scripts",),
             iter_by=lambda k, v:
@@ -222,7 +222,7 @@ class TicketExportHandler(TicketReq):
             d_to_str(arrow.now())]) + '.xlsx'
 
         # 根据工单获得一些统计信息
-        work_sub_list = SubTicket.objects(ticket_id=ticket_id).all()
+        work_sub_list = SubTicket.filter(ticket_id=ticket_id).all()
         work_sub_list = [x.to_dict(
             iter_by=lambda k, v: dt_to_str(v)
             if k == 'check_time' else v)

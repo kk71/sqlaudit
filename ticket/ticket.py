@@ -42,7 +42,7 @@ class TicketScript(
     def update_sub_ticket_count_from_sub_ticket(self):
         """从子工单处更新当前脚本的sub_ticket_count, TODO 需要手动保存工单"""
         from .sub_ticket import SubTicket
-        self.sub_ticket_count = SubTicket.objects(
+        self.sub_ticket_count = SubTicket.filter(
             script__script_id=self.script_id).count()
 
 
@@ -96,7 +96,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         print(f"calculating total score for {self.ticket_id}...")
         # unique_key: (当前已扣, 最大扣分)
         rules_max_score = defaultdict(lambda: [0, 0])
-        for sub_result in SubTicket.objects(ticket_id=str(self.ticket_id)):
+        for sub_result in SubTicket.filter(ticket_id=str(self.ticket_id)):
             static_and_dynamic_results = sub_result.static + sub_result.dynamic
             for issue_of_sub_result in static_and_dynamic_results:
                 rule_unique_key = issue_of_sub_result.get_rule_unique_key()

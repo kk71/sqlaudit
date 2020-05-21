@@ -38,7 +38,7 @@ class OracleTicketOnlineOverviewHandler(
             cmdb_ids: list = cmdb_utils.get_current_cmdb(session, self.current_user)
 
             # 成功次数、失败次数, 上线次数(3+4)
-            ticket_onlined_q = OracleTicket.objects(
+            ticket_onlined_q = OracleTicket.filter(
                 cmdb_id__in=cmdb_ids,
                 online_date__gt=date_start
             )
@@ -52,14 +52,14 @@ class OracleTicketOnlineOverviewHandler(
             online_times = sum(worklist_online.values())
 
             # 上线成功的语句数
-            sub_ticket_q = OracleSubTicket.objects(cmdb_id__in=cmdb_ids)
+            sub_ticket_q = OracleSubTicket.filter(cmdb_id__in=cmdb_ids)
             sub_worklist_online = {
                 "sql_succeed": sub_ticket_q.filter(online_status=True).count(),
                 "sql_fail": sub_ticket_q.filter(online_status=False).count()
             }
 
             # 展示待上线的脚本
-            tickets_ready = OracleTicket.objects(
+            tickets_ready = OracleTicket.filter(
                 status=ticket.const.TICKET_PASSED,
                 cmdb_id__in=cmdb_ids
             ).order_by("-create_time")
@@ -92,8 +92,8 @@ class OracleTicketOnlineExecuteHandler(
 
         try:
             with make_session() as session:
-                the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
-                sub_ticket_q = OracleSubTicket.objects(ticket_id=the_ticket.ticket_id)
+                the_ticket = OracleTicket.filter(ticket_id=ticket_id).first()
+                sub_ticket_q = OracleSubTicket.filter(ticket_id=the_ticket.ticket_id)
                 cmdb = session.query(OracleCMDB).filter(
                     OracleCMDB.cmdb_id == the_ticket.cmdb_id).first()
                 if not cmdb.allow_online:

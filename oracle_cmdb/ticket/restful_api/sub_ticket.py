@@ -86,7 +86,7 @@ class SubTicketIssueHandler(TicketReq):
         analyse_type = params.pop("analyse_type")
         action = params.pop("action")
 
-        sub_ticket = OracleSubTicket.objects(statement_id=statement_id).first()
+        sub_ticket = OracleSubTicket.filter(statement_id=statement_id).first()
         embedded_list = getattr(sub_ticket, analyse_type.lower())
         operated = False
         for n, sub_ticket_item in enumerate(embedded_list):
@@ -100,7 +100,7 @@ class SubTicketIssueHandler(TicketReq):
         if not operated:
             return self.resp_bad_req(msg="未找到对应需要操作的规则。")
         sub_ticket.save()
-        the_ticket = OracleTicket.objects(
+        the_ticket = OracleTicket.filter(
             ticket_id=sub_ticket.ticket_id).first()
         the_ticket.calculate_score()  # 修改了之后重新计算整个工单的分数
         the_ticket.save()

@@ -42,7 +42,7 @@ class SubTicketHandler(TicketReq):
         del params
 
         # TODO 需要根据权限加过滤判断
-        q = SubTicket.objects(**to_filter)
+        q = SubTicket.filter(**to_filter)
         if script_id:
             q = q.filter(script__script_id=script_id)
         if start_time:
@@ -57,7 +57,7 @@ class SubTicketHandler(TicketReq):
                                    "task_name"
                                    "sql_text")
         if schema_name:
-            ticket_id_list: list = list(Ticket.objects(
+            ticket_id_list: list = list(Ticket.filter(
                 schema_name=schema_name).values_list("ticket_id"))
             q = q.filter(ticket_id__in=ticket_id_list)
         if error_type == const.SUB_TICKET_WITH_STATIC_PROBLEM:
@@ -99,7 +99,7 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        sub_ticket = SubTicket.objects(statement_id=statement_id).first()
+        sub_ticket = SubTicket.filter(statement_id=statement_id).first()
         if not sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
         sub_ticket.from_dict(params)
@@ -113,16 +113,16 @@ class SubTicketHandler(TicketReq):
         }))
         statement_id = params.pop("statement_id")
 
-        the_sub_ticket = SubTicket.objects(statement_id=statement_id).first()
+        the_sub_ticket = SubTicket.filter(statement_id=statement_id).first()
         if not the_sub_ticket:
             return self.resp_bad_req(msg="子工单未找到")
         the_script_id_to_this_sub_ticket = the_sub_ticket.script.script_id
-        the_ticket = Ticket.objects(ticket_id=the_sub_ticket.ticket_id).first()
+        the_ticket = Ticket.filter(ticket_id=the_sub_ticket.ticket_id).first()
         if not the_ticket:
             return self.resp_bad_req(msg="工单未找到")
         if not the_sub_ticket:
             return self.resp_bad_req(msg=f"找不到子工单编号为{statement_id}")
-        if SubTicket.objects(ticket_id=the_sub_ticket.ticket_id).count() == 1:
+        if SubTicket.filter(ticket_id=the_sub_ticket.ticket_id).count() == 1:
             return self.resp_bad_req(msg="删除失败，工单应该有至少一条语句。")
         the_sub_ticket.delete()
         for the_script in the_ticket.scripts:
@@ -154,7 +154,7 @@ class SubTicketExportHandler(SubTicketHandler):
                 scm_optional(object): object
             }))
             statement_id_list = params.pop("statement_id_list")
-            q = SubTicket.objects(statement_id__in=statement_id_list)
+            q = SubTicket.filter(statement_id__in=statement_id_list)
         else:
             assert 0
 

@@ -24,13 +24,13 @@ def initiate_cmdb_rule(
     :return: 插入的纳管库规则数
     """
     if clear_first:
-        num = CMDBRule.objects(cmdb_id=cmdb_id).delete()
+        num = CMDBRule.filter(cmdb_id=cmdb_id).delete()
         print(f"{num} cmdb-rules are deleted in cmdb({cmdb_id}).")
     with make_session() as session:
         the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
         db_type = the_cmdb.db_type
         db_model = the_cmdb.db_model
-    rules = RuleCartridge.objects(db_type=db_type, db_model=db_model)
+    rules = RuleCartridge.filter(db_type=db_type, db_model=db_model)
     rules_to_insert_into_cmdb_rule = []
     for a_rule_cartridge in rules:
         a_cmdb_rule = CMDBRule(cmdb_id=cmdb_id)
@@ -56,7 +56,7 @@ def cmdb_rule_update(
     :param kwargs: 传递给CMDBRule.from_cartridge_rule
     :return:
     """
-    rules: mongoengine_qs = RuleCartridge.objects(
+    rules: mongoengine_qs = RuleCartridge.filter(
         cmdb_id=cmdb_id, db_type=db_type, db_model=db_model)
     if rule_name:
         if isinstance(rule_name, str):

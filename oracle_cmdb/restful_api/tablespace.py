@@ -29,8 +29,9 @@ class TablespaceListHandler(OraclePrivilegeReq):
             if not latest_task_record:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
-        tabspace_q = OracleObjTabSpace.objects(cmdb_id=cmdb_id,
-                                               task_record_id=latest_task_record_id).order_by("-usage_ratio")
+        tabspace_q = OracleObjTabSpace.filter(
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id).order_by("-usage_ratio")
         items, p = self.paginate(tabspace_q, **p)
         self.resp([i.to_dict() for i in items], **p)
 
@@ -53,7 +54,8 @@ class TablespaceHistoryHandler(OraclePrivilegeReq):
             "cmdb_id": scm_int,
             "tablespace_name": scm_unempty_str,
         }))
-        tabspace_q = OracleObjTabSpace.objects(**params).order_by("-create_time").limit(30)
+        tabspace_q = OracleObjTabSpace.filter(
+            **params).order_by("-create_time").limit(30)
         ret = self.list_of_dict_to_date_axis(
             [x.to_dict(datetime_to_str=False) for x in tabspace_q],
             "create_time",
@@ -79,7 +81,8 @@ class TablespaceTotalHistoryHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
         }))
-        phy_size_q = OracleStatsCMDBPhySize.objects(**params).order_by("-create_time").limit(30)
+        phy_size_q = OracleStatsCMDBPhySize.filter(
+            **params).order_by("-create_time").limit(30)
 
         ret = self.list_of_dict_to_date_axis(
             [i.to_dict(datetime_to_str=False) for i in phy_size_q],

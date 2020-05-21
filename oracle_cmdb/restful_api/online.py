@@ -28,33 +28,41 @@ class OverviewHandler(OraclePrivilegeReq):
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            latest_task_record = OracleCMDBTaskCapture.last_success_task_record_id_dict(session, cmdb_id)
+            latest_task_record = OracleCMDBTaskCapture.\
+                last_success_task_record_id_dict(
+                    session, cmdb_id)
             latest_task_record_id = latest_task_record.get(cmdb_id, None)
             if not latest_task_record:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
         tablespace_sum = {}
-        stats_phy_size_object = OracleStatsCMDBPhySize.objects(
-            task_record_id=latest_task_record_id, cmdb_id=cmdb_id).first()
+        stats_phy_size_object = OracleStatsCMDBPhySize.filter(
+            task_record_id=latest_task_record_id,
+            cmdb_id=cmdb_id
+        ).first()
         if stats_phy_size_object:
             tablespace_sum = stats_phy_size_object.to_dict(
                 iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
                 iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
         sql_num = {}
-        cmdb_sql_num = OracleStatsCMDBSQLNum.objects(target_login_user=self.current_user,
-                                                     cmdb_id=cmdb_id,
-                                                     task_record_id=latest_task_record_id,
-                                                     date_period=period).first()
+        cmdb_sql_num = OracleStatsCMDBSQLNum.filter(
+            target_login_user=self.current_user,
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id,
+            date_period=period
+        ).first()
         if cmdb_sql_num:
             sql_num = cmdb_sql_num.to_dict(
                 iter_if=lambda k, v: k in ("active", "at_risk"),
             )
 
         sql_execution_cost_rank = {'elapsed_time_total': [], 'elapsed_time_delta': []}
-        sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.objects(target_login_user=self.current_user,
-                                                                           cmdb_id=cmdb_id,
-                                                                           task_record_id=latest_task_record_id)
+        sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.filter(
+            target_login_user=self.current_user,
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id
+        )
         if sql_exec_cost_rank_q:
             sql_execution_cost_rank['elapsed_time_total'].extend(
                 [x.to_dict(iter_if=lambda k, v: k in ("sql_id", "time")) for x in
@@ -65,7 +73,10 @@ class OverviewHandler(OraclePrivilegeReq):
 
         risk_rule_rank = []
         risk_rule_rank_d = defaultdict(lambda: {'issue_num': 0})
-        risk_rule_rank_q = OracleStatsSchemaRiskRule.objects(cmdb_id=cmdb_id, task_record_id=latest_task_record_id)
+        risk_rule_rank_q = OracleStatsSchemaRiskRule.objects(
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id
+        )
         for x in risk_rule_rank_q:
             doc = risk_rule_rank_d[x.rule['desc']]
             doc['rule'] = x.rule,
@@ -129,9 +140,10 @@ class MetadataListHandler(OraclePrivilegeReq):
             if not latest_task_record:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
-        tabinfo_q = OracleObjTabInfo.objects(cmdb_id=cmdb_id,
-                                             task_record_id=latest_task_record_id). \
-            filter(**params).order_by('-create_time')
+        tabinfo_q = OracleObjTabInfo.filter(
+            cmdb_id=cmdb_id,
+            task_record_id=latest_task_record_id
+        ).filter(**params).order_by('-create_time')
 
         items, p = self.paginate(tabinfo_q, **p)
         self.resp([i.to_dict() for i in items], **p)
@@ -176,28 +188,28 @@ class TableInfoHandler(OraclePrivilegeReq):
                 "schema_name", "table_name", "table_type", "iot_name", "num_rows",
                 "blocks", "avg_row_len", "last_analyzed", "last_ddl_time",
                 "chain_cnt", "hwm_stat", "compression", "phy_size_mb"
-            )) for i in OracleObjTabInfo.objects(**params)],
+            )) for i in OracleObjTabInfo.filter(**params)],
 
             'field': [i.to_dict(iter_if=lambda k, v: k in (
                 "schema_name", "table_name", "column_name", "data_type", "nullable",
                 "num_nulls", "num_distinct", "data_default", "avg_col_len"
-            )) for i in OracleObjTabCol.objects(**params)],
+            )) for i in OracleObjTabCol.filter(**params)],
 
             'partition': [i.to_dict(iter_if=lambda k, v: k in (
                 "schema_name", "table_name", "partitioning_type", "column_name",
                 "partitioning_key_count", "partition_count",
                 "sub_partitioning_key_count", "sub_partitioning_type",
                 "last_ddl_time", "phy_size_mb"
-            )) for i in OracleObjPartTabParent.objects(**params)],  # "num_rows"TODO
+            )) for i in OracleObjPartTabParent.filter(**params)],  # "num_rows"TODO
 
             'index': [i.to_dict(iter_if=lambda k, v: k in (
                 "schema_name", "index_name", "table_owner", "table_name", "column_name",
                 "column_position", "descend"
-            )) for i in OracleObjIndColInfo.objects(**params)],
+            )) for i in OracleObjIndColInfo.filter(**params)],
             'view': [i.to_dict(iter_if=lambda k, v: k in (
                 "obj_pk", "schema_name", "view_name", "referenced_owner", "referenced_name",
                 "referenced_type"
-            )) for i in OracleObjViewInfo.objects(**params)]
+            )) for i in OracleObjViewInfo.filter(**params)]
         })
 
     get.argument = {

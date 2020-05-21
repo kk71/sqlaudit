@@ -49,7 +49,7 @@ class TicketReq(PrivilegeReq):
 
         elif self.has(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL):
             # 能看:自己提交的子工单+指派给自己所在角色的子工单+自己处理过了的工单
-            sq = Ticket.objects(
+            sq = Ticket.filter(
                 Q(submit_owner=self.current_user) |
                 Q(audit_role_id__in=self.current_roles()) |
                 Q(audit_owner=self.current_user)
@@ -59,7 +59,7 @@ class TicketReq(PrivilegeReq):
 
         else:
             # 只能看:自己提交的子工单
-            sq = Ticket.objects(
+            sq = Ticket.filter(
                 submit_owner=self.current_user).values_list("ticket_id")
             ticket_ids: list = list(sq)
             q = q.filter(ticket_id__in=ticket_ids)

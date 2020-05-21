@@ -27,7 +27,7 @@ class OracleOnlineSQLStatIssue(OracleOnlineSQLExecutionIssue):
             OracleCMDBTaskStatsSnapIDPairs
 
         # 有stat规则需要snap shot id
-        cmdb_task_stats = OracleCMDBTaskStatsSnapIDPairs.objects(
+        cmdb_task_stats = OracleCMDBTaskStatsSnapIDPairs.filter(
             task_record_id=task_record_id
         ).first()
         return {

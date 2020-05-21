@@ -38,7 +38,7 @@ class OracleStatsCMDBPhySize(OracleBaseCurrentTaskStatistics):
             used=0,
             usage_ratio=0
         )
-        for ts in OracleObjTabSpace.objects(
+        for ts in OracleObjTabSpace.filter(
                 task_record_id=task_record_id, cmdb_id=cmdb_id).all():
             doc.total += ts.total
             doc.free += ts.free

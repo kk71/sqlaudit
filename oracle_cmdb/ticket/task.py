@@ -24,7 +24,7 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
     """
     诊断线下工单
     """
-    the_ticket = OracleTicket.objects(ticket_id=ticket_id).first()
+    the_ticket = OracleTicket.filter(ticket_id=ticket_id).first()
     if not the_ticket:
         raise ticket.exceptions.TicketNotFound(
             "fatal: the ticket with ticket_id={ticket_id} is not found.")
@@ -41,7 +41,7 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
     with make_session() as session:
         cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
         for the_script_id in script_ids:
-            statement_q = TempScriptStatement.objects(
+            statement_q = TempScriptStatement.filter(
                 script__script_id=the_script_id).order_by("position")
             sqls = [
                 # {single-sql}: 格式化成通用的sql结构

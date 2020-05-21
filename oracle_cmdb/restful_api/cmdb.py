@@ -34,7 +34,7 @@ class CMDBHealthTrendHandler(AuthReq):
             fields = set()
             ret = defaultdict(dict)  # {date: [{health data}, ...]}
             for cmdb_id in cmdb_id_list:  # TODO stats
-                dh_q = StatsCMDBRate.objects(
+                dh_q = StatsCMDBRate.filter(
                     cmdb_id=cmdb_id,
                     etl_date__gt=now.shift(weeks=-2).datetime
                 ).order_by("etl_date")

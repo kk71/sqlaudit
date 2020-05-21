@@ -52,7 +52,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
             schema_name=self.schema_name,
             list_of_plan_dicts=list_of_plan_dicts
         )
-        return OracleTicketSQLPlan.objects(statement_id=self.statement_id)
+        return OracleTicketSQLPlan.filter(statement_id=self.statement_id)
 
     def run_dynamic(self,
                     sub_result: OracleSubTicket,

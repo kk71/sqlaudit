@@ -18,7 +18,7 @@ def code(rule, entries, **kwargs):
                          "object_type",
                          "task_record_id",
                          "schema_name"):
-        the_table = OracleObjTabInfo.objects(
+        the_table = OracleObjTabInfo.filter(
             task_record_id=d["task_record_id"],
             schema_name=d["schema_name"],
             table_name=d["object_name"]

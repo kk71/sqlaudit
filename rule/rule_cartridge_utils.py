@@ -27,7 +27,7 @@ def rule_import(filename) -> tuple:
         the_rule = RuleCartridge()
         the_rule.from_dict(rule, iter_if=lambda k, v: k not in (
             "_id", "id", "create_time"))
-        if RuleCartridge.objects(**the_rule.unique_key(as_dict=True)).count():
+        if RuleCartridge.filter(**the_rule.unique_key(as_dict=True)).count():
             print(f"this ticket rule existed: {the_rule.unique_key()}")
             continue
         rules_to_import.append(the_rule)
@@ -39,7 +39,7 @@ def rule_import(filename) -> tuple:
 def rule_export(filename) -> int:
     """导出规则，覆盖给定的文件"""
     rules = [i.to_dict(iter_if=lambda k, v: k not in ("_id", "id", "create_time"))
-             for i in RuleCartridge.objects()]
+             for i in RuleCartridge.filter()]
     with open(filename, "w") as z:
         z.write(json.dumps(rules, indent=4, ensure_ascii=False))
     return len(rules)
@@ -47,7 +47,7 @@ def rule_export(filename) -> int:
 
 def rule_drop() -> int:
     """删除库中全部的规则"""
-    deleted_num = RuleCartridge.objects().delete()
+    deleted_num = RuleCartridge.filter().delete()
     return deleted_num
 
 
@@ -61,7 +61,7 @@ def update_code(compare: bool):
         print("=== compare only ===")
     different_codes = []
     not_imported_rules = []
-    for tr in RuleCartridge.objects().all():
+    for tr in RuleCartridge.filter().all():
         try:
             code_file = RuleCartridge.CODE_FILES_DIR / f"{tr.db_type}/{tr.name}.py"
             if not code_file.exists():

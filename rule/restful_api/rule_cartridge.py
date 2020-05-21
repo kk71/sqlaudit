@@ -26,7 +26,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
 
-        rc_q = RuleCartridge.objects(**params)
+        rc_q = RuleCartridge.filter(**params)
         if keyword:
             rc_q = self.query_keyword(rc_q, keyword,
                                       "name", "desc", "db_type", "summary")
@@ -100,7 +100,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         name = params.pop("name")
         db_model = params.pop("db_model")
 
-        the_rc = RuleCartridge.objects(
+        the_rc = RuleCartridge.filter(
             db_type=db_type,
             name=name,
             db_model=db_model).first()
@@ -131,7 +131,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
         name = params.pop("name")
         db_model = params.pop("db_model")
 
-        the_cr = RuleCartridge.objects(
+        the_cr = RuleCartridge.filter(
             db_type=db_type,
             name=name,
             db_model=db_model
@@ -147,7 +147,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
             "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             "name": scm_unempty_str
         }))
-        the_rc = RuleCartridge.objects(**params).first()
+        the_rc = RuleCartridge.filter(**params).first()
         if not the_rc:
             return self.resp_bad_req(msg=f"{params}规则未找到")
         the_rc.delete()
