@@ -174,6 +174,7 @@ class SchemaHandler(AuthReq):
         role_id = params.pop("role_id")
         divide_by = params.pop("divide_by")
         del params
+
         with make_session() as session:
             if connect_name and not cmdb_id:
                 cmdb = session.query(OracleCMDB).filter_by(connect_name=connect_name).first()
@@ -189,7 +190,7 @@ class SchemaHandler(AuthReq):
                         cmdb.get_available_schemas)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
-                self.resp({
+                await self.resp({
                     "bound": bound,
                     "else": [i for i in all_schemas if i not in bound]
                 })
@@ -205,7 +206,7 @@ class SchemaHandler(AuthReq):
                         cmdb.get_available_schemas)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
-                self.resp({
+                await self.resp({
                     "bound": bound,
                     "else": [i for i in all_schemas if i not in bound]
                 })
@@ -228,7 +229,7 @@ class SchemaHandler(AuthReq):
                         cmdb.get_available_schema)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
-                self.resp({
+                await self.resp({
                     "bound": bound,
                     "else": [i for i in all_schemas if i not in bound]
                 })
@@ -237,7 +238,7 @@ class SchemaHandler(AuthReq):
                 # 当前登录用户可用(数据权限配置)的schema
                 current_schemas = await async_thr(
                     current_schema, self.current_user, cmdb_id)
-                self.resp(current_schemas)
+                await self.resp(current_schemas)
 
             else:
                 # 当前cmdb的全部的schema，不考虑数据权限
@@ -247,4 +248,15 @@ class SchemaHandler(AuthReq):
                         cmdb.get_available_schemas)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
-                self.resp(all_schemas)
+                await self.resp(all_schemas)
+
+    get.argument = {
+        "querystring": {
+            "//cmdb_id": 2526,
+            "//connect_name": "emmm",
+            "//divide_by": "data_schema_privilege",
+            "//login_user": "",
+            "//role_id": 1,
+            "//current": 0
+        }
+    }
