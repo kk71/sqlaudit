@@ -102,7 +102,7 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
 
         with make_session() as session:
             cmdb_task_record_q, qe = OracleCMDBTaskCaptureRecord. \
-                query_cmdb_task_record_with_tsk_record(session)
+                query_cmdb_task_record_with_task_record(session)
             cmdb_task_record_q = cmdb_task_record_q.filter(
                 OracleCMDBTaskCaptureRecord.cmdb_task_id == cmdb_task_id,
                 OracleCMDBTaskCaptureRecord.cmdb_id.in_(self.cmdb_ids(session))

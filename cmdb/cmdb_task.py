@@ -137,7 +137,7 @@ class CMDBTask(BaseModel):
             cls.exec_count,
             cls.success_count,
             cls.last_success_time,
-            func.ifnull(
+            func.ifnull(  # TODO this function need mysql
                 TaskRecord.status, task.const.TASK_NEVER_RAN).label(
                 "execution_status"),
             TaskRecord.error_info,
