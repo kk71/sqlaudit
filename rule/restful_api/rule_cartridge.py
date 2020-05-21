@@ -118,7 +118,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
     }
 
     def patch(self):
-        """修改墨盒规则(输入参数，输出参数，入口)"""
+        """修改墨盒规则(输入参数，输出参数，entries)"""
         pass
         params = self.get_json_args(Schema({
             "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),

@@ -110,7 +110,7 @@ class CMDBRuleHandler(BaseRuleHandler):
     }
 
     def patch(self):
-        """修改库规则(输入参数，输出参数，入口)"""
+        """修改库规则(输入参数，输出参数，entries)"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_gt0_int,
             "name": scm_unempty_str,
