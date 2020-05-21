@@ -111,7 +111,10 @@ class CMDBTask(BaseModel):
         qs = session.query(*(qe := QueryEntity(
             TaskRecord.start_time,
             CMDBTaskRecord.task_record_id
-        ))).filter(q).order_by(
+        ))).join(
+            CMDBTaskRecord,
+            CMDBTaskRecord.task_record_id == TaskRecord.task_record_id
+        ).filter(q).order_by(
             TaskRecord.start_time)  # 排序很关键
         for dt, task_record_id in qs:
             ret[dt.date()] = task_record_id
