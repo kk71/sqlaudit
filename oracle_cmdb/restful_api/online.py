@@ -1,22 +1,13 @@
 from collections import defaultdict
 
-from restful_api.modules import as_view
+from restful_api import *
 from .base import OraclePrivilegeReq
 from auth.const import PRIVILEGE
 from utils.schema_utils import *
-from models.sqlalchemy import make_session
-from ..statistics.login_user_current import OracleStatsCMDBSQLNum
+from models.sqlalchemy import *
 from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
-from ..statistics.current_task.phy_size import OracleStatsCMDBPhySize
-from ..statistics.login_user_current_rank.sql_execution_cost_rank import OracleStatsCMDBSQLExecutionCostRank
-from ..statistics.current_task.risk_rule import OracleStatsSchemaRiskRule
-from ..capture.obj_tab_info import OracleObjTabInfo
-from ..capture.obj_tab_space import OracleObjTabSpace
-from ..capture.obj_tab_col import OracleObjTabCol
-from ..capture.obj_part_tab_parent import OracleObjPartTabParent
-from ..capture.obj_ind_col_info import OracleObjIndColInfo
-from ..capture.obj_view_info import OracleObjViewInfo
-
+from ..statistics import *
+from ..capture import *
 
 
 @as_view("overview", group="online")
@@ -105,93 +96,8 @@ class OverviewHandler(OraclePrivilegeReq):
         "json": {}
     }
 
-@as_view("tabspace_list", group="online")
-class TablespaceListHandler(OraclePrivilegeReq):
 
-    def get(self):
-        """表空间列表,库的最后一次采集"""
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_gt0_int,
-            **self.gen_p()
-        }))
-        p = self.pop_p(params)
-        cmdb_id = params.pop("cmdb_id")
-
-        with make_session() as session:
-            latest_task_record = OracleCMDBTaskCapture.last_success_task_record_id_dict(session, cmdb_id)
-            latest_task_record_id = latest_task_record.get(cmdb_id, None)
-            if not latest_task_record:
-                return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
-
-        tabspace_q = OracleObjTabSpace.objects(cmdb_id=cmdb_id,
-                                               task_record_id=latest_task_record_id).order_by("-usage_ratio")
-        items, p = self.paginate(tabspace_q, **p)
-        self.resp([i.to_dict() for i in items], **p)
-
-    get.argument = {
-        "querystring": {
-            "cmdb_id": "2526",
-            "page": '1',
-            "per_page": '10'
-        },
-        "json": {}
-    }
-
-
-@as_view("tabspace_history", group="online")
-class TablespaceHistoryHandler(OraclePrivilegeReq):
-
-    def get(self):
-        """某个表空间的使用率历史折线图"""
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-            "tablespace_name": scm_unempty_str,
-        }))
-        tabspace_q = OracleObjTabSpace.objects(**params).order_by("-create_time").limit(30)
-        ret = self.list_of_dict_to_date_axis(
-            [x.to_dict(datetime_to_str=False) for x in tabspace_q],
-            "create_time",
-            "usage_ratio"
-        )
-        ret = self.dict_to_verbose_dict_in_list(dict(ret[-7:]))
-        self.resp(ret)
-
-    get.argument = {
-        "querystring": {
-            "cmdb_id": "2526",
-            "tablespace_name": "SYSAUX",
-        },
-        "json": {}
-    }
-
-
-@as_view("tabspace_total_history", group="online")
-class TablespaceTotalHistoryHandler(OraclePrivilegeReq):
-
-    def get(self):
-        """总表空间使用率历史折线图"""
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-        }))
-        phy_size_q = OracleStatsCMDBPhySize.objects(**params).order_by("-create_time").limit(30)
-
-        ret = self.list_of_dict_to_date_axis(
-            [i.to_dict(datetime_to_str=False) for i in phy_size_q],
-            "create_time",
-            "usage_ratio"
-        )
-        ret = self.dict_to_verbose_dict_in_list(dict(ret[-7:]))
-        self.resp(ret)
-
-    get.argument = {
-        "querystring": {
-            "cmdb_id": "2526",
-        },
-        "json": {}
-    }
-
-
-@as_view("metadata",group="online")
+@as_view("metadata", group="online")
 class MetadataListHandler(OraclePrivilegeReq):
 
     def get(self):
@@ -207,7 +113,7 @@ class MetadataListHandler(OraclePrivilegeReq):
                 scm_str, scm_one_of_choices(("icontains", "exact"))),
             **self.gen_p()
         }))
-        cmdb_id=params.pop('cmdb_id')
+        cmdb_id = params.pop('cmdb_id')
         search_type = params.pop('search_type')
         if params.get("table_name", None):
             if "." in params["table_name"]:
@@ -223,8 +129,8 @@ class MetadataListHandler(OraclePrivilegeReq):
             if not latest_task_record:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
-        tabinfo_q=OracleObjTabInfo.objects(cmdb_id=cmdb_id,
-                                  task_record_id=latest_task_record_id).\
+        tabinfo_q = OracleObjTabInfo.objects(cmdb_id=cmdb_id,
+                                             task_record_id=latest_task_record_id). \
             filter(**params).order_by('-create_time')
 
         items, p = self.paginate(tabinfo_q, **p)
@@ -242,7 +148,8 @@ class MetadataListHandler(OraclePrivilegeReq):
         "json": {}
     }
 
-@as_view("tableinfo",group="online")
+
+@as_view("table_info", group="online")
 class TableInfoHandler(OraclePrivilegeReq):
 
     def get(self):
@@ -257,7 +164,7 @@ class TableInfoHandler(OraclePrivilegeReq):
                   f"the word before the dot is recognized as schema and has been ignored.")
             params["table_name"] = params["table_name"].split(".")[1]
 
-        latest_tabinfo=OracleObjTabInfo.objects(table_name=params["table_name"]).\
+        latest_tabinfo = OracleObjTabInfo.objects(table_name=params["table_name"]). \
             order_by("-create_time").first()
         if not latest_tabinfo:
             self.resp({}, msg="无数据。")
@@ -281,7 +188,7 @@ class TableInfoHandler(OraclePrivilegeReq):
                 "partitioning_key_count", "partition_count",
                 "sub_partitioning_key_count", "sub_partitioning_type",
                 "last_ddl_time", "phy_size_mb"
-            )) for i in OracleObjPartTabParent.objects(**params)],# "num_rows"TODO
+            )) for i in OracleObjPartTabParent.objects(**params)],  # "num_rows"TODO
 
             'index': [i.to_dict(iter_if=lambda k, v: k in (
                 "schema_name", "index_name", "table_owner", "table_name", "column_name",
@@ -301,4 +208,3 @@ class TableInfoHandler(OraclePrivilegeReq):
         },
         "json": {}
     }
-
