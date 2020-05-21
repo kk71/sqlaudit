@@ -55,8 +55,7 @@ class CMDBHandler(AuthReq):
                                        CMDB.connect_name,
                                        CMDB.group_name,
                                        CMDB.business_name,
-                                       CMDB.server_name,
-                                       CMDB.ip_address
+                                       CMDB.server_name
                                        )
 
             # 获取纳管库的评分
