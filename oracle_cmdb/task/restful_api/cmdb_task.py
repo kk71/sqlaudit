@@ -96,18 +96,18 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            cmdb_task_record_q, qe = OracleCMDBTaskCaptureRecord.\
-                query_cmdb_task_record_with_task_record(session)
+            cmdb_task_record_q, qe = OracleCMDBTaskCaptureRecord. \
+                query_cmdb_task_record_with_tsk_record(session)
             cmdb_task_record_q = cmdb_task_record_q.filter(
                 OracleCMDBTaskCaptureRecord.cmdb_task_id == cmdb_task_id,
                 OracleCMDBTaskCaptureRecord.cmdb_id.in_(self.cmdb_ids(session))
             )
             rst, p = self.paginate(cmdb_task_record_q, **p)
-            self.resp([i.to_dict() for i in rst], **p)
+            self.resp([qe.to_dict(i) for i in rst], **p)
 
     get.argument = {
         "querystring": {
-            "cmdb_task_id":1991,
+            "cmdb_task_id": 1991,
             "//page": 1,
             "//per_page": 10
         }
@@ -159,7 +159,7 @@ class TaskManualExecuteHandler(OraclePrivilegeReq):
 @as_view("flush_queue", group="task")
 class FlushCeleryQHandler(OraclePrivilegeReq):
 
-    def post(self):#TODO
+    def post(self):
         """清理队列中等待执行的任务"""
         self.acquire_admin()
         with make_session() as session:
@@ -169,4 +169,3 @@ class FlushCeleryQHandler(OraclePrivilegeReq):
         self.resp_created(msg="已清理待采集队列")
 
     post.argument = {}
-
