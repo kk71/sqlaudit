@@ -51,7 +51,6 @@ class CMDBHandler(AuthReq):
             q = session.query(CMDB).filter_by(**params)
             if keyword:
                 q = self.query_keyword(q, keyword,
-                                       CMDB.cmdb_id,
                                        CMDB.connect_name,
                                        CMDB.group_name,
                                        CMDB.business_name,
