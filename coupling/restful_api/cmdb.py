@@ -337,8 +337,8 @@ class BaseCMDBHandler(OraclePrivilegeReq):
             self.resp(resp)
 
     options.argument = delete.argument = {
-        "json": {
-            "cmdb_id": 1
+        "querystring": {
+            "cmdb_id": 2526
         }
     }
 
