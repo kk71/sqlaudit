@@ -80,7 +80,7 @@ def set_all_rules_as_risk_rule(session,filename):
 
 
 def merge_risk_rule_and_rule(
-        risk_rule_object, rule_object=None, rule_keys=("rule_desc", "rule_name")) -> dict:
+        risk_rule_object, rule_object=None, rule_keys=("rule_desc", "rule_name","weight","max_score")) -> dict:
     """
     merge rule_object to risk_rule object
     :param risk_rule_object:
@@ -88,6 +88,23 @@ def merge_risk_rule_and_rule(
     :param rule_keys:
     """
     risk_rule_dict = risk_rule_object.to_dict()
+
+    #修改风险规则等级对象的规则的权重和最大扣分
+    rule_name = risk_rule_dict['rule_name']
+    severity = risk_rule_dict['severity']
+    rules_q=Rule.objects(rule_name=rule_name)
+    for rule_q in rules_q:
+        if severity == RULE_LEVEL_SEVERE:
+            rule_q.weight = RULE_LEVEL_SEVERE_WEIGHT
+            rule_q.max_score = RULE_LEVEL_SEVERE_MAX_SCORE
+        if severity == RULE_LEVEL_WARNING:
+            rule_q.weight = RULE_LEVEL_WARNING_WEIGHT
+            rule_q.max_score = RULE_LEVEL_WARNING_MAX_SCORE
+        if severity == RULE_LEVEL_INFO:
+            rule_q.weight = RULE_LEVEL_INFO_WEIGHT
+            rule_q.max_score = RULE_LEVEL_INFO_MAX_SCORE
+        rule_q.save()
+
     if not rule_object:
         rule_object = Rule.objects(**risk_rule_object.
                                    to_dict(iter_if=lambda k, v: k in RULE_ALLOCATING_KEYS)).first()
