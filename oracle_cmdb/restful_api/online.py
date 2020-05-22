@@ -73,7 +73,7 @@ class OverviewHandler(OraclePrivilegeReq):
 
         risk_rule_rank = []
         risk_rule_rank_d = defaultdict(lambda: {'issue_num': 0})
-        risk_rule_rank_q = OracleStatsSchemaRiskRule.objects(
+        risk_rule_rank_q = OracleStatsSchemaRiskRule.filter(
             cmdb_id=cmdb_id,
             task_record_id=latest_task_record_id
         )
@@ -176,7 +176,7 @@ class TableInfoHandler(OraclePrivilegeReq):
                   f"the word before the dot is recognized as schema and has been ignored.")
             params["table_name"] = params["table_name"].split(".")[1]
 
-        latest_tabinfo = OracleObjTabInfo.objects(table_name=params["table_name"]). \
+        latest_tabinfo = OracleObjTabInfo.filter(table_name=params["table_name"]). \
             order_by("-create_time").first()
         if not latest_tabinfo:
             self.resp({}, msg="无数据。")
