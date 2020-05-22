@@ -79,8 +79,8 @@ class OverviewHandler(OraclePrivilegeReq):
         )
         for x in risk_rule_rank_q:
             doc = risk_rule_rank_d[x.rule['desc']]
-            doc['rule'] = x.rule,
-            doc['level'] = x.level,
+            doc['rule'] = x.rule
+            doc['level'] = x.level
             doc['issue_num'] += x.issue_num
         for x, y in risk_rule_rank_d.items():
             if y['issue_num'] == 0:
