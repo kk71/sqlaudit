@@ -41,15 +41,17 @@ class RiskRuleHandler(OraclePrivilegeReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            cmdb_task = session.query(OracleCMDBTaskCapture).filter(OracleCMDBTaskCapture.cmdb_id == cmdb_id).first()
+            cmdb_task = session.query(OracleCMDBTaskCapture).filter(
+                OracleCMDBTaskCapture.cmdb_id == cmdb_id).first()
             date_latest_task_record = cmdb_task.day_last_succeed_task_record_id(
                 date_start=date_start,
                 date_end=date_end
             )
-            date_latest_task_record = list(date_latest_task_record.values())
-
-            risk_rule_q = OracleStatsSchemaRiskRule.filter(cmdb_id=cmdb_id, entry=entry,
-                                                           task_record_id__in=date_latest_task_record)
+            risk_rule_q = OracleStatsSchemaRiskRule.filter(
+                task_record_id__in=list(date_latest_task_record.values()),
+                cmdb_id=cmdb_id,
+                entry=entry
+            )
 
             if schema_name:
                 risk_rule_q = risk_rule_q.filter(schema_name=schema_name)

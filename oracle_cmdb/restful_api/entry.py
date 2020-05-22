@@ -16,24 +16,36 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         """登录用户各库各维度对象数问题数和风险率"""
         params = self.get_query_args(Schema({
             "entry": self.scm_one_of_choices(rule.const.ALL_RULE_ENTRIES),
+            "hierarchy": self.scm_one_of_choices(rule.const.ALL_HIERARCHY),
             **self.gen_p()
         }))
         p = self.pop_p(params)
         entry = params.pop("entry")
+        hierarchy = params.pop("hierarchy")
 
         with make_session() as session:
             last_success_task_record_id = OracleCMDBTaskCaptureRecord.\
                 last_success_task_record_id(session)
             entry_cmdb_q = OracleStatsEntryCMDB.filter(
                 task_record_id=last_success_task_record_id,
-                entry=entry
+                target_login_user=self.current_user
             )
+            if hierarchy == rule.const.HIERARCHY_CURRENT:
+                entry_cmdb_q = entry_cmdb_q.filter(entry=entry)
+            elif hierarchy == rule.const.HIERARCHY_NEXT:
+                entry_cmdb_q = entry_cmdb_q.filter(
+                    entry__ne=entry,
+                    entries=entry
+                )
+            else:
+                assert 0
             ret, p = self.paginate(entry_cmdb_q, **p)
             self.resp([i.to_dict() for i in ret], **p)
 
     get.argument = {
         "querystring": {
             "entry": "SQL_TEXT",
+            "hierarchy": "CURRENT",
             "//page": 1,
             "//per_page": 10
         }
@@ -47,24 +59,37 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         """登录用户各库各schema各维度对象数问题数和风险率(仪表盘圆圈下钻)"""
         params = self.get_query_args(Schema({
             "entry": self.scm_one_of_choices(rule.const.ALL_RULE_ENTRIES),
+            "hierarchy": self.scm_one_of_choices(rule.const.ALL_HIERARCHY),
             **self.gen_p()
         }))
         p = self.pop_p(params)
         entry = params.pop("entry")
+        hierarchy = params.pop("hierarchy")
 
         with make_session() as session:
             last_success_task_record_id = OracleCMDBTaskCaptureRecord. \
                 last_success_task_record_id(session)
             entry_cmdb_q = OracleStatsEntrySchema.filter(
                 task_record_id=last_success_task_record_id,
-                entry=entry
+                target_login_user=self.current_user
             )
+            if hierarchy == rule.const.HIERARCHY_CURRENT:
+                entry_cmdb_q = entry_cmdb_q.filter(entry=entry)
+            elif hierarchy == rule.const.HIERARCHY_NEXT:
+                entry_cmdb_q = entry_cmdb_q.filter(
+                    entry__ne=entry,
+                    entries=entry
+                )
+            else:
+                assert 0
+
             ret, p = self.paginate(entry_cmdb_q, **p)
             self.resp([i.to_dict() for i in ret], **p)
 
     get.argument = {
         "querystring": {
             "entry": "SQL_TEXT",
+            "hierarchy": "CURRENT",
             "//page": 1,
             "//per_page": 10
         }
