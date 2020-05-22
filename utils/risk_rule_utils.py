@@ -45,8 +45,8 @@ def import_from_risk_rule_json_file(filename: str):
                         x.weight=30
                         x.max_score=30
                     if y.severity=="告警":
-                        x.weight=10
-                        x.max_score=20
+                        x.weight=25
+                        x.max_score=50
                     if y.severity=="提示":
                         x.weight=0.1
                         x.max_score=5
