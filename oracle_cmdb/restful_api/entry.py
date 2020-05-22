@@ -17,6 +17,7 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "entry": self.scm_one_of_choices(rule.const.ALL_RULE_ENTRIES),
             "hierarchy": self.scm_one_of_choices(rule.const.ALL_HIERARCHY),
+            scm_optional("target_cmdb_id"): scm_gt0_int,
             **self.gen_p()
         }))
         p = self.pop_p(params)
@@ -28,7 +29,8 @@ class EntryCMDBHandler(OraclePrivilegeReq):
                 last_success_task_record_id(session)
             entry_cmdb_q = OracleStatsEntryCMDB.filter(
                 task_record_id=last_success_task_record_id,
-                target_login_user=self.current_user
+                target_login_user=self.current_user,
+                **params
             )
             if hierarchy == rule.const.HIERARCHY_CURRENT:
                 entry_cmdb_q = entry_cmdb_q.filter(entry=entry)
@@ -46,6 +48,7 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         "querystring": {
             "entry": "SQL_TEXT",
             "hierarchy": "CURRENT",
+            "//target_cmdb_id": 2526,
             "//page": 1,
             "//per_page": 10
         }
@@ -60,6 +63,8 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "entry": self.scm_one_of_choices(rule.const.ALL_RULE_ENTRIES),
             "hierarchy": self.scm_one_of_choices(rule.const.ALL_HIERARCHY),
+            scm_optional("target_cmdb_id"): scm_gt0_int,
+            scm_optional("target_schema_name"): scm_unempty_str,
             **self.gen_p()
         }))
         p = self.pop_p(params)
@@ -71,7 +76,8 @@ class EntryCMDBHandler(OraclePrivilegeReq):
                 last_success_task_record_id(session)
             entry_cmdb_q = OracleStatsEntrySchema.filter(
                 task_record_id=last_success_task_record_id,
-                target_login_user=self.current_user
+                target_login_user=self.current_user,
+                **params
             )
             if hierarchy == rule.const.HIERARCHY_CURRENT:
                 entry_cmdb_q = entry_cmdb_q.filter(entry=entry)
@@ -90,6 +96,8 @@ class EntryCMDBHandler(OraclePrivilegeReq):
         "querystring": {
             "entry": "SQL_TEXT",
             "hierarchy": "CURRENT",
+            "//target_cmdb_id": 2526,
+            "//target_schema_name": "APEX",
             "//page": 1,
             "//per_page": 10
         }

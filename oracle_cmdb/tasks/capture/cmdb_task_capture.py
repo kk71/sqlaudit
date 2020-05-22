@@ -112,8 +112,6 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
         for a_cmdb_task in qs:
             a_cmdb_task_dict = qe.to_dict(a_cmdb_task)
             execution_status = a_cmdb_task_dict["execution_status"]
-            if execution_status is None:
-                execution_status = task.const.TASK_NEVER_RAN
             execution_status_chinese = \
                 task.const.ALL_TASK_EXECUTION_STATUS_CHINESE_MAPPING[
                     execution_status]
