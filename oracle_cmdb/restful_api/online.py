@@ -86,7 +86,7 @@ class OverviewHandler(OraclePrivilegeReq):
             if y['issue_num'] == 0:
                 continue
             risk_rule_rank.append(y)
-        risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (x["level"], -x['issue_num']))
+        risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (-x["level"], -x['issue_num']))
 
         self.resp({
             # 以下是取最近一次采集分析的结果
