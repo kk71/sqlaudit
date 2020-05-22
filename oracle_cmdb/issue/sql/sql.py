@@ -14,7 +14,7 @@ from models.mongoengine import *
 from issue.issue import OnlineIssueOutputParams
 import rule.const
 from oracle_cmdb.issue.base import *
-from ...capture import OracleSQLStat, OracleSQLText, OracleSQLPlan
+from ...capture import OracleSQLStatToday, OracleSQLText, OracleSQLPlanToday
 from ...capture.base.sql import *
 
 
@@ -41,7 +41,7 @@ class OracleOnlineSQLIssue(OracleOnlineIssue):
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SQL,)
 
-    RELATED_CAPTURE = (OracleSQLText, OracleSQLPlan, OracleSQLStat)
+    RELATED_CAPTURE = (OracleSQLText, OracleSQLPlanToday, OracleSQLStatToday)
 
     @classmethod
     def referred_capture(
