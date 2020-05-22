@@ -6,15 +6,18 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.httputil import url_concat
 from schema import Or
 from tornado.template import Template
-import utils.version_utils
 
 import settings
-from utils.schema_utils import *
+import utils.version_utils
 import restful_api.urls
+from utils.schema_utils import *
 from .base import *
 
 
 class APIDocHandler(BaseReq):
+
+    if not settings.API_DOC:
+        SUPPORTED_METHODS = ()
 
     def get(self):
         s = '''
@@ -267,6 +270,9 @@ $(document).ready(function(){
 
 
 class APIDocTestHandler(BaseReq):
+
+    if not settings.API_DOC:
+        SUPPORTED_METHODS = ()
 
     @staticmethod
     def recursive_delete_comment(dict_or_list):
