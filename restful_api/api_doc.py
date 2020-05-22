@@ -6,7 +6,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.httputil import url_concat
 from schema import Or
 from tornado.template import Template
-from schema import Or as scm_or
+import utils.version_utils
 
 import settings
 from utils.schema_utils import *
@@ -122,6 +122,7 @@ $(document).ready(function(){
 </head>
 <body class="container-fluid">
 
+<h1>SQLAudit {{version}} API Documentation</h1>
 
 <div class="modal fade" id="tokenModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -239,6 +240,7 @@ $(document).ready(function(){
 </body>
 </html>'''
         page_str = Template(s).generate(
+            version=utils.version_utils.get_versions()["versions"][-1]["version"],
             verbose_structured_urls=restful_api.urls.verbose_structured_urls,
             login_user="admin",
             password="q72FT/iL5t/uJgjtMECdOA"
