@@ -220,7 +220,7 @@ $(document).ready(function(){
         <td>{{group_name}}</td>
         <td>{{url}}</td>
         <td>{{method}}</td>
-        <td>{{docstring}}</td>
+        <td><pre>{{docstring}}</pre></td>
         <td>
             {% if argument is not None %}
             <a href="javascript: show_req_modal('{{the_id}}')"><button type="button" class="btn btn-primary">
