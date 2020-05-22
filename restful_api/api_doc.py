@@ -6,15 +6,18 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.httputil import url_concat
 from schema import Or
 from tornado.template import Template
-from schema import Or as scm_or
 
 import settings
-from utils.schema_utils import *
+import utils.version_utils
 import restful_api.urls
+from utils.schema_utils import *
 from .base import *
 
 
 class APIDocHandler(BaseReq):
+
+    if not settings.API_DOC:
+        SUPPORTED_METHODS = ()
 
     def get(self):
         s = '''
@@ -115,12 +118,14 @@ function send_test() {
 $(document).ready(function(){
     
     $("#login_info").hide();
+    $("#tokenModal").modal("show");
             
 });
 </script>
 </head>
 <body class="container-fluid">
 
+<h1>SQLAudit {{version}} API Documentation</h1>
 
 <div class="modal fade" id="tokenModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -219,7 +224,7 @@ $(document).ready(function(){
         <td>{{group_name}}</td>
         <td>{{url}}</td>
         <td>{{method}}</td>
-        <td>{{docstring}}</td>
+        <td><pre>{{docstring}}</pre></td>
         <td>
             {% if argument is not None %}
             <a href="javascript: show_req_modal('{{the_id}}')"><button type="button" class="btn btn-primary">
@@ -238,6 +243,7 @@ $(document).ready(function(){
 </body>
 </html>'''
         page_str = Template(s).generate(
+            version=utils.version_utils.get_versions()["versions"][-1]["version"],
             verbose_structured_urls=restful_api.urls.verbose_structured_urls,
             login_user="admin",
             password="q72FT/iL5t/uJgjtMECdOA"
@@ -264,6 +270,9 @@ $(document).ready(function(){
 
 
 class APIDocTestHandler(BaseReq):
+
+    if not settings.API_DOC:
+        SUPPORTED_METHODS = ()
 
     @staticmethod
     def recursive_delete_comment(dict_or_list):

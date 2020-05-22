@@ -34,6 +34,14 @@ ALL_RULE_ENTRIES = (
 )
 
 
+# entry的层级
+
+ALL_HIERARCHY = (
+    HIERARCHY_CURRENT := "CURRENT",  # 当前层级
+    HIERARCHY_NEXT := "NEXT",  # 下一层
+)
+
+
 # 规则优先级
 
 ALL_RULE_LEVELS = (

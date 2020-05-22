@@ -81,6 +81,7 @@ class OracleOnlineIssue(OnlineIssue):
         :param kwargs:
         :return:
         """
+        print(f"{capture_model=}")
         assert capture_model in cls.RELATED_CAPTURE
         return None
 
