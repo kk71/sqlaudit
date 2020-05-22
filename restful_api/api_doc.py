@@ -115,6 +115,7 @@ function send_test() {
 $(document).ready(function(){
     
     $("#login_info").hide();
+    $("#tokenModal").modal("show");
             
 });
 </script>
