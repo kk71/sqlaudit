@@ -90,7 +90,8 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
         (触犯一个规则的一个sql会出现多个相同sql因为一个sql_id有多个plan_hash_value),
         entry=SQL,
         平均时间和执行次数为today当前today采集,
-        (注意:sql_id下有的plan_hash_value并没有执行特征所有会有为None的)
+        (注意:sql_id下有的plan_hash_value并没有执行特征所有会有为None的,
+        平均时间为0证明:短时间内执行很多很多次结果保留3为小数目前)
         执行次数直接来自采集execution_total 字段。
         平均时间直接来自采集elapsed_time_total/execution_total。"""
         params = self.get_query_args(Schema({
@@ -111,18 +112,20 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
         sql_issue = []
         for sql_issue_q_o in sql_issue_q:
             sql_issue_o = sql_issue_q_o.to_dict()
+
+            # 考虑到触犯规则记录了每一个plan_hash_value维度，一个sql多个plan_hash_value，真正产生执行特征的是其中一个plan_hash_value或几个
+            sql_issue_o['executions_total'] = None
+            sql_issue_o['execution_time_cost_on_average'] = None
+
             for today_sqlstat_q_o in today_sqlstat_q:
                 if sql_issue_o['output_params']['sql_id'] == today_sqlstat_q_o.sql_id \
                         and sql_issue_o['output_params']['plan_hash_value'] == today_sqlstat_q_o.plan_hash_value:
                     sql_issue_o['executions_total'] = today_sqlstat_q_o.executions_total
                     if sql_issue_o['executions_total']:
                         sql_issue_o['execution_time_cost_on_average'] = round(
-                            round(today_sqlstat_q_o.elapsed_time_total, 2) / sql_issue_o['executions_total'], 2)
-                else:  # 考虑到触犯规则记录了每一个plan_hash_value维度，一个sql多个plan_hash_value，真正产生执行特征的是其中一个plan_hash_value或几个
-                    sql_issue_o['executions_total'] = None
-                    sql_issue_o['execution_time_cost_on_average'] = None
-
+                            round(today_sqlstat_q_o.elapsed_time_total, 2) / sql_issue_o['executions_total'], 3)
             sql_issue.append(sql_issue_o)
+
         sql_issue, p = self.paginate(sql_issue, **p)
         self.resp(sql_issue, **p)
 
