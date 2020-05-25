@@ -21,7 +21,7 @@ class OracleObjTabInfo(OracleSchemaObjectCapturingDoc):
     num_rows = IntField(null=True)
     blocks = IntField(null=True)
     avg_row_len = IntField(null=True)
-    last_analysed = DateTimeField(null=True)
+    last_analyzed = DateTimeField(null=True)
     last_ddl_time = DateTimeField(null=True)
     chain_cnt = IntField(null=True)
     partitioned = StringField(null=True)
