@@ -96,10 +96,10 @@ def calc_result(result, db_model, obj_info_type: Union[str, list, tuple] = None)
 
         rules_violated=list(rule_name_to_detail.values())
         severity_num_counter=Counter([rule_violated['severity'] for rule_violated in rules_violated])
-        severity_num={"严重":None,"告警":None,"提示":None}
-        severity_num["严重"] = severity_num_counter.get('严重')
-        severity_num["告警"] = severity_num_counter.get('告警')
-        severity_num["提示"] = severity_num_counter.get('提示')
+        severity_num={"严重":0,"告警":0,"提示":0}
+        severity_num["严重"] = severity_num_counter.get('严重', 0)
+        severity_num["告警"] = severity_num_counter.get('告警', 0)
+        severity_num["提示"] = severity_num_counter.get('提示', 0)
 
         return rules_violated, scores_total,severity_num
 
