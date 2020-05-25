@@ -64,8 +64,7 @@ class CMDBHandler(OraclePrivilegeReq):
                                             CMDB.connect_name,
                                             CMDB.group_name,
                                             CMDB.business_name,
-                                            CMDB.server_name,
-                                            CMDB.ip_address)
+                                            CMDB.server_name)
             # 构建输出的纳管库信息，带上评分
             all_current_cmdb: Dict[int, dict] = {}
             last_cmdb_score = OracleCMDBTaskCapture.last_cmdb_score(session)
