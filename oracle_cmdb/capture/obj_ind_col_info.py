@@ -18,6 +18,7 @@ class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
     table_name = StringField(null=True)
     column_name = StringField(null=True)
     column_position = IntField(null=True)
+    descend = StringField(null=True)
 
     meta = {
         "collection": "oracle_obj_ind_col_info",
