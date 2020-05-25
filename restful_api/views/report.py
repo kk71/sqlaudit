@@ -76,7 +76,7 @@ class OnlineReportTaskHandler(AuthReq):
             if not cmdb:
                 self.resp_not_found(msg="纳管数据库不存在")
                 return
-            rules_violated, score_sum = await async_thr(
+            rules_violated, score_sum, severity_num = await async_thr(
                 score_utils.calc_result, result, cmdb.db_model, obj_type_info)
             self.resp({
                 "job_id": job_id,
@@ -84,7 +84,8 @@ class OnlineReportTaskHandler(AuthReq):
                 "rules_violated": rules_violated,
                 "score_sum": score_sum,
                 "schema": result.to_dict()["score"]["schema_name"],
-                **result.to_dict(iter_if=lambda k, v: k in ("create_date",))
+                **result.to_dict(iter_if=lambda k, v: k in ("create_date",)),
+                **severity_num
             })
 
 

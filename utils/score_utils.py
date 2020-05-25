@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 from typing import Union
-from collections import defaultdict
+from collections import defaultdict,Counter
 
 from sqlalchemy import func
 from mongoengine import Q
@@ -12,6 +12,8 @@ from models.mongo import *
 from models.oracle import *
 from utils import rule_utils
 from utils.datetime_utils import *
+from models.oracle.data import RiskSQLRule
+from models.oracle.utils import make_session
 
 
 def calc_deduction(scores):
@@ -32,63 +34,69 @@ def calc_result(result, db_model, obj_info_type: Union[str, list, tuple] = None)
     :param obj_info_type: 只展示某些obj_info_type的类型
     :return:
     """
-    if isinstance(obj_info_type, str):
-        obj_info_type = [obj_info_type]
+    with make_session() as session:
+        if isinstance(obj_info_type, str):
+            obj_info_type = [obj_info_type]
 
-    score_sum_of_all_rule_scores_in_result = 0
-    max_score_sum = rule_utils.calc_sum_of_rule_max_score(
-        db_type=DB_ORACLE,
-        db_model=db_model,
-        rule_type=result.rule_type
-    )
-    rule_name_to_detail = defaultdict(lambda: {
-        "violated_num": 0,
-        "rule": {},
-        "deduction": 0.0,
-        "weighted_deduction": 0.0
-    })
-    rule_q = Rule.objects(
-        rule_type=result.rule_type,
-        db_model=db_model,
-        db_type=DB_ORACLE
-    )
-    if obj_info_type:
-        rule_q = rule_q.filter(obj_info_type__in=obj_info_type)
+        score_sum_of_all_rule_scores_in_result = 0
+        max_score_sum = rule_utils.calc_sum_of_rule_max_score(
+            db_type=DB_ORACLE,
+            db_model=db_model,
+            rule_type=result.rule_type
+        )
+        rule_name_to_detail = defaultdict(lambda: {
+            "violated_num": 0,
+            "rule": {},
+            "deduction": 0.0,
+            "weighted_deduction": 0.0,
+            "severity": ""
+        })
+        rule_q = Rule.objects(
+            rule_type=result.rule_type,
+            db_model=db_model,
+            db_type=DB_ORACLE
+        )
+        if obj_info_type:
+            rule_q = rule_q.filter(obj_info_type__in=obj_info_type)
 
-    for rule_object in rule_q:
-        rule_result = getattr(result, rule_object.rule_name, None)
-        if rule_result and (rule_result.get("sqls", []) or rule_result.get("records", [])):
-            if result.rule_type == RULE_TYPE_OBJ:
-                rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
-                    len(rule_result.get("records", []))
+        for rule_object in rule_q:
+            rule_result = getattr(result, rule_object.rule_name, None)
+            if rule_result and (rule_result.get("sqls", []) or rule_result.get("records", [])):
+                if result.rule_type == RULE_TYPE_OBJ:
+                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
+                        len(rule_result.get("records", []))
 
-            elif result.rule_type in ALL_RULE_TYPES_FOR_SQL_RULE:
-                rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
-                    len(rule_result.get("sqls", []))
+                elif result.rule_type in ALL_RULE_TYPES_FOR_SQL_RULE:
+                    rule_name_to_detail[rule_object.rule_name]["violated_num"] += \
+                        len(rule_result.get("sqls", []))
 
-            else:
-                assert 0
+                else:
+                    assert 0
 
-            score_sum_of_all_rule_scores_in_result += \
-                round(float(rule_result["scores"]) / 1.0, 2)
-            rule_name_to_detail[rule_object.rule_name]["rule"] = rule_object.to_dict(
-                iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
-            rule_name_to_detail[rule_object.rule_name]["deduction"] += \
-                calc_deduction(rule_result["scores"])
-            rule_name_to_detail[rule_object.rule_name]["weighted_deduction"] += \
-                calc_weighted_deduction(
-                    rule_result["scores"],
-                    max_score_sum=max_score_sum
-                )
-    if max_score_sum == 0:
-        print(f"total score is 0!!! {result}")
-        scores_total = 0
-    else:
-        scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) /
-                             max_score_sum * 100 or 1, 2)
-    scores_total = scores_total if scores_total > 40 else 40
+                score_sum_of_all_rule_scores_in_result += \
+                    round(float(rule_result["scores"]) / 1.0, 2)
+                rule_name_to_detail[rule_object.rule_name]["rule"] = rule_object.to_dict(
+                    iter_if=lambda key, v: key in ("rule_name", "rule_desc"))
+                rule_name_to_detail[rule_object.rule_name]["deduction"] += \
+                    calc_deduction(rule_result["scores"])
+                rule_name_to_detail[rule_object.rule_name]["weighted_deduction"] += \
+                    calc_weighted_deduction(
+                        rule_result["scores"],
+                        max_score_sum=max_score_sum
+                    )
+                risk_rule_q=session.query(RiskSQLRule).filter_by(rule_name=rule_object.rule_name,db_model=db_model)
+                rule_name_to_detail[rule_object.rule_name]["severity"]=[x.severity for x in risk_rule_q][0]
+        if max_score_sum == 0:
+            print(f"total score is 0!!! {result}")
+            scores_total = 0
+        else:
+            scores_total = round((max_score_sum - score_sum_of_all_rule_scores_in_result) /
+                                 max_score_sum * 100 or 1, 2)
+        scores_total = scores_total if scores_total > 40 else 40
 
-    return list(rule_name_to_detail.values()), scores_total
+        rules_violated=list(rule_name_to_detail.values())
+        severity_num=Counter([rule_violated['severity'] for rule_violated in rules_violated])
+        return rules_violated, scores_total,severity_num
 
 
 @timing()
