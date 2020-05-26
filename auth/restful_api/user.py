@@ -54,7 +54,9 @@ class UserHandler(AuthReq):
             self.resp(to_ret, **p)
 
     def post(self):
-        """新增用户"""
+        """新增用户
+        请注意password需要先md5编码再传入
+        """
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
             "username": scm_unempty_str,
@@ -75,7 +77,9 @@ class UserHandler(AuthReq):
             self.resp_created(new_user.to_dict())
 
     def patch(self):
-        """修改用户"""
+        """修改用户
+        请注意password需要先md5编码再传入
+        """
         params = self.get_json_args(Schema({
             "login_user": scm_unempty_str,
 
@@ -97,7 +101,7 @@ class UserHandler(AuthReq):
                     return self.resp_bad_req(msg="老密码不正确")
 
             the_user.from_dict(params)
-            the_user=the_user.to_dict()
+            the_user = the_user.to_dict()
         self.resp_created(the_user)
 
     def delete(self):
@@ -110,14 +114,6 @@ class UserHandler(AuthReq):
             session.delete(the_user)
         self.resp_created(msg="已删除。")
 
-    # get.argument = {
-    #     "querystring": {
-    #         "//has_privilege": "2,3,4,5,6,7,8",
-    #         "page":"1",
-    #         "per_page":"10"
-    #     },
-    #     "json": {}
-    # }
     post.argument = {
         "querystring": {},
         "json": {
@@ -135,7 +131,7 @@ class UserHandler(AuthReq):
         "json": {
             "login_user": "xyxy",
             "//username": "ee",
-            "//old_password":"",
+            "//old_password": "",
             "//password": "",
             "//email": "",
             "//mobile_phone": "",

@@ -4,16 +4,16 @@ import utils.const
 import rule.const
 from restful_api.modules import *
 from utils.schema_utils import *
-from auth.restful_api.base import AuthReq
 from ..sub_ticket import OracleSubTicket
 from ticket.analyse import SubTicketAnalyseStaticCMDBIndependent
+from ...restful_api.base import OraclePrivilegeReq
 from parsed_sql.single_sql import SingleSQL
 from parsed_sql.parsed_sql import ParsedSQL
 from rule.rule_jar import *
 
 
 @as_view(group="ticket")
-class QuickSQLAnalyse(AuthReq):
+class QuickSQLAnalyse(OraclePrivilegeReq):
 
     def post(self):
         """oracle快速SQL分析（仅静态规则）"""

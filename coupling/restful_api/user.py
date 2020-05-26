@@ -12,7 +12,7 @@ from oracle_cmdb.cmdb import *
 class OracleRelatedUserHandler(auth.restful_api.user.UserHandler):
 
     def get(self):
-        """与oracle相关的平台用户列表"""
+        """与oracle相关的平台登录用户列表"""
         params = self.get_query_args(Schema({
             scm_optional("has_privilege", default=None): And(
                 scm_dot_split_str,

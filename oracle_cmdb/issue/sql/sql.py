@@ -10,9 +10,9 @@ from collections import defaultdict
 
 from mongoengine import StringField, EmbeddedDocumentField
 
+import rule.const
 from models.mongoengine import *
 from issue.issue import OnlineIssueOutputParams
-import rule.const
 from oracle_cmdb.issue.base import *
 from ...capture import OracleSQLStatToday, OracleSQLText, OracleSQLPlanToday
 from ...capture.base.sql import *

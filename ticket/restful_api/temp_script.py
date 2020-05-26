@@ -33,6 +33,15 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
         sqls, p = self.paginate(q, **p)
         self.resp([sql.to_dict() for sql in sqls], **p)
 
+    get.argument = {
+        "querystring": {
+            "script_id": "",
+            "//keyword": "",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def patch(self):
         """编辑上传的临时sql脚本数据"""
 
@@ -62,8 +71,19 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             temp_scipt_statement_object.save()
             self.resp_created(temp_scipt_statement_object.to_dict())
 
+    patch.argument = {
+        "json": {
+            "statement_id": "",
+            "//sql_text": "emmm",
+            "//comment": "备注",
+            "//delete": False
+        }
+    }
+
     def post(self):
-        """上传多个sql脚本"""
+        """上传多个sql脚本
+        目前在apidoc不能测试该接口（上传文件）
+        """
 
         if not len(self.request.files) or not self.request.files.get("file"):
             return self.resp_bad_req(msg="未选择文件。")
@@ -109,3 +129,9 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
                 } for a_script in scripts
             ]
         })
+
+    post.argument = {
+        "json": {
+            "//filter_sql_type": ""
+        }
+    }

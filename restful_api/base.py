@@ -38,17 +38,29 @@ class BaseReq(RequestHandler):
         return Or(*args)
 
     @classmethod
-    def scm_one_of_choices(cls, choices, allow_empty=False):
-        if not allow_empty:
-            return cls.scm_or_with_error_msg(
-                scm_one_of_choices(choices),
-                e=f"should be one of {choices}"
-            )
-        else:
-            return cls.scm_or_with_error_msg(
-                scm_empty_as_optional(scm_one_of_choices(choices)),
-                e=f"should be one of {choices}"
-            )
+    def scm_one_of_choices(
+            cls,
+            choices: Union[List, Tuple],
+            use: Optional[Callable] = None,
+            allow_empty: bool = False):
+        """
+        快速使用选项，
+        提供类型转换，允许传入空字符串以返回None，
+        并且在传入错误的值的时候提示可选项
+        :param choices:
+        :param use:
+        :param allow_empty:
+        :return:
+        """
+        f = scm_one_of_choices(choices)
+        if use is not None:
+            f = scm_or(use, f)
+        if allow_empty:
+            f = scm_empty_as_optional(f),
+        return cls.scm_or_with_error_msg(
+            f,
+            e=f" should be one of {choices}"
+        )
 
     @classmethod
     def scm_subset_of_choices(cls, choices, allow_empty=False):

@@ -7,6 +7,7 @@ from cx_Oracle import DatabaseError
 
 import ticket.const
 import ticket.restful_api.online
+from ...restful_api.base import OraclePrivilegeReq
 from auth.const import PRIVILEGE
 from models.sqlalchemy import make_session
 from utils.schema_utils import *
@@ -20,7 +21,7 @@ from ...cmdb import *
 
 @as_view("overview", group="ticket")
 class OracleTicketOnlineOverviewHandler(
-        ticket.restful_api.online.OnlineOverviewHandler):
+        ticket.restful_api.online.OnlineOverviewHandler, OraclePrivilegeReq):
 
     def get(self):
         """oracle工单自助上线的页面数据"""
@@ -35,7 +36,7 @@ class OracleTicketOnlineOverviewHandler(
         date_start = arrow.now().shift(**{f"{duration}s": -1}).datetime
 
         with make_session() as session:
-            cmdb_ids: list = cmdb_utils.get_current_cmdb(session, self.current_user)
+            cmdb_ids = self.cmdbs(session)
 
             # 成功次数、失败次数, 上线次数(3+4)
             ticket_onlined_q = OracleTicket.filter(
@@ -74,6 +75,13 @@ class OracleTicketOnlineOverviewHandler(
                 "online_times": online_times,
                 "scripts_ready": scripts_ready
             })
+
+    get.argument = {
+        "querystring": {
+            "duration": "week",
+            "//duration": "month",
+        }
+    }
 
 
 @as_view("execute", group="ticket")
@@ -154,3 +162,9 @@ class OracleTicketOnlineExecuteHandler(
         except Exception as e:
             error_info = traceback.format_exc()
             self.resp_bad_req(msg=error_info)
+
+    post.argument = {
+        "json": {
+            "ticket_id": ""
+        }
+    }

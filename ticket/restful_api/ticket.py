@@ -292,4 +292,10 @@ class TicketExportHandler(TicketReq):
 
         await AsyncTimeout(10).async_thr(
             past.utils.utils.create_worklist_xlsx, filename, params_dict)
-        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+    get.argument = {
+        "querystring": {
+            "ticket_id": ""
+        }
+    }

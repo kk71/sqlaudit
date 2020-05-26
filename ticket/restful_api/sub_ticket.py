@@ -89,6 +89,20 @@ class SubTicketHandler(TicketReq):
         items, p = self.paginate(q, **p)
         self.resp([i.to_dict() for i in items], **p)
 
+    get.argument = {
+        "querystring": {
+            "//ticket_id": 1,
+            "//cmdb_id": 2526,
+            "//script_id": "",
+            "//schema_name": "",
+            "//error_type": "static",
+            "//keyword": "",
+            "//order_by": "position",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def patch(self):
         """编辑子工单"""
         params = self.get_json_args(Schema({
@@ -105,6 +119,14 @@ class SubTicketHandler(TicketReq):
         sub_ticket.from_dict(params)
         sub_ticket.save()
         self.resp_created(sub_ticket.to_dict())
+
+    patch.argument = {
+        "json": {
+            "statement_id": "",
+            "sql_text": "",
+            "comments": ""
+        }
+    }
 
     def delete(self):
         """删除子工单"""
@@ -131,6 +153,12 @@ class SubTicketHandler(TicketReq):
         the_ticket.update_sub_ticket_count_from_scripts()
         the_ticket.save()
         self.resp_created(msg="删除成功。")
+
+    delete.argument = {
+        "json": {
+            "statement_id": ""
+        }
+    }
 
 
 @as_view("export", group="ticket")
@@ -196,3 +224,19 @@ class SubTicketExportHandler(SubTicketHandler):
             ws.write(row_num, 5, sub_ticket.error_msg, format_text)
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+
+    get.argument = {
+        "querystring": {
+            "export_type": "all_filtered",
+
+            "//ticket_id": 1,
+            "//cmdb_id": 2526,
+            "//script_id": "",
+            "//schema_name": "",
+            "//error_type": "static",
+            "//keyword": "",
+            "//order_by": "position",
+
+            "//statement_id_list": "",
+        }
+    }
