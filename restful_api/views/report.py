@@ -219,7 +219,7 @@ class ExportReportXLSXHandler(AuthReq):
                 # if port == 1521:
                 #     search_temp["instance_name"] = job_info.desc.instance_name or "空"
 
-                rules_violated, score_sum = await async_thr(
+                rules_violated, score_sum,_ = await async_thr(
                     score_utils.calc_result, result, cmdb.db_model)
                 rules_violateds = []
                 for x in rules_violated:

@@ -55,7 +55,7 @@ class StatsSchemaRate(BaseStatisticsDoc):
             for result in Results.filter_by_exec_hist_id(task_record_id):
                 current_stats_doc = schema_stats_pairs[result.schema_name]
                 current_stats_doc.schema_name = result.schema_name
-                _, current_result_score = calc_result(
+                _, current_result_score,_ = calc_result(
                     result,
                     db_model=cmdb.db_model
                 )
