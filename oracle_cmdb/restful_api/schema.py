@@ -226,7 +226,7 @@ class SchemaHandler(AuthReq):
                 bound = [i[0] for i in bound]
                 try:
                     all_schemas = await async_thr(
-                        cmdb.get_available_schema)
+                        cmdb.get_available_schemas)
                 except cx_Oracle.DatabaseError as err:
                     return self.resp_bad_req(msg="无法连接到数据库")
                 await self.resp({
