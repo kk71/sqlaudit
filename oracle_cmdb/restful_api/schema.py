@@ -214,10 +214,10 @@ class SchemaHandler(AuthReq):
             elif divide_by == RATING_SCHEMA_PRIVILEGE:
                 # 返回给出的库需要加入数据评分的schema，以及不需要的
                 if connect_name:  # TODO
-                    bound = session.query(OracleRatingSchema.schema). \
+                    bound = session.query(OracleRatingSchema.schema_name). \
                         filter(OracleRatingSchema.cmdb_id == cmdb_id)
                 elif cmdb_id:
-                    bound = session.query(OracleRatingSchema.schema). \
+                    bound = session.query(OracleRatingSchema.schema_name). \
                         join(OracleCMDB, OracleRatingSchema.cmdb_id == OracleCMDB.cmdb_id). \
                         filter(OracleCMDB.cmdb_id == cmdb_id)
                 else:
