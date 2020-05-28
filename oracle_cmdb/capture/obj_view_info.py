@@ -4,8 +4,11 @@ __all__ = [
     "OracleObjViewInfo"
 ]
 
+from typing import Tuple
+
 from mongoengine import StringField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
 
 
@@ -46,3 +49,6 @@ class OracleObjViewInfo(OracleSchemaObjectCapturingDoc):
     and s.owner = '{obj_owner}'
     order by s.name
 """
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.owner, const.ORACLE_OBJECT_TYPE_VIEW, self.view_name

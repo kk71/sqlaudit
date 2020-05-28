@@ -4,10 +4,11 @@ __all__ = [
     "OracleObjSeqInfo"
 ]
 
-from typing import NoReturn
+from typing import NoReturn, Tuple
 
 from mongoengine import StringField, IntField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
 
 
@@ -53,3 +54,8 @@ class OracleObjSeqInfo(OracleSchemaObjectCapturingDoc):
             d.min_value = str(d.min_value)
             d.max_value = str(d.max_value)
             d.last_number = str(d.last_number)
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.sequence_owner,\
+               const.ORACLE_OBJECT_TYPE_SEQUENCE,\
+               self.sequence_name

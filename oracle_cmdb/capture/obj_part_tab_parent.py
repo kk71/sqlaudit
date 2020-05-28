@@ -4,12 +4,12 @@ __all__ = [
     "OracleObjPartTabParent"
 ]
 
-from typing import NoReturn
+from typing import Tuple
 
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
-from ..plain_db import OraclePlainConnector
 
 
 @OracleSchemaObjectCapturingDoc.need_collect()
@@ -78,3 +78,6 @@ select /*+opt_param('_optimizer_push_pred_cost_based','FALSE') gather_plan_stati
    and r.segment_type in ('TABLE SUBPARTITION', 'TABLE PARTITION')
  order by owner, object_name
 """
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.owner, const.ORACLE_OBJECT_TYPE_TABLE, self.table_name

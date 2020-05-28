@@ -4,10 +4,11 @@ __all__ = [
     "OracleObjTabSpace"
 ]
 
-from typing import NoReturn
+from typing import NoReturn, Tuple, Optional
 
 from mongoengine import StringField, FloatField
 
+from .. import const
 from .base import OracleObjectCapturingDoc
 
 
@@ -51,3 +52,6 @@ class OracleObjTabSpace(OracleObjectCapturingDoc):
             d.total = float(d.total)
             d.free = float(d.free)
             d.used = float(d.used)
+
+    def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
+        return None, const.ORACLE_OBJECT_TYPE_TABLESPACE, self.tablespace_name

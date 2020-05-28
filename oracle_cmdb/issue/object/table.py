@@ -10,11 +10,14 @@ from collections import defaultdict
 import rule.const
 from models.mongoengine import *
 from .object import *
+from ..base import OracleOnlineIssue
 from ...capture import OracleObjTabCol, OracleObjTabInfo, \
     OracleObjPartTabParent, OracleObjectCapturingDoc
 
 
+@OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
+    """对象问题: 表"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_TABLE,)
 
@@ -23,10 +26,6 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
         OracleObjTabInfo,
         OracleObjPartTabParent
     )
-
-    @classmethod
-    def filter(cls, *args, **kwargs):
-        return cls.filter_with_entries(*args, **kwargs)
 
     @classmethod
     def referred_capture(

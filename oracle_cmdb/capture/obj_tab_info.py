@@ -4,8 +4,11 @@ __all__ = [
     "OracleObjTabInfo"
 ]
 
+from typing import Tuple
+
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
 
 
@@ -71,3 +74,6 @@ select t.owner,
    and t.table_name not like '%BIN$%'
    and t.owner = '{obj_owner}'
 """
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.owner, const.ORACLE_OBJECT_TYPE_TABLE, self.table_name

@@ -29,7 +29,7 @@ class OracleStatsSchemaRiskRule(OracleBaseCurrentTaskSchemaStatistics):
         "solution": []
                                     })
     level = IntField()
-    issue_num = IntField(default=0)
+    issue_num = IntField(default=0)  # 规则触犯次数
 
     meta = {
         "collection": "oracle_stats_schema_risk_rule",

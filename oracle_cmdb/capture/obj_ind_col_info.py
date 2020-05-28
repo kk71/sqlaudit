@@ -4,8 +4,11 @@ __all__ = [
     "OracleObjIndColInfo"
 ]
 
+from typing import Tuple
+
 from mongoengine import StringField, IntField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
 
 
@@ -45,3 +48,8 @@ class OracleObjIndColInfo(OracleSchemaObjectCapturingDoc):
     where index_owner='{obj_owner}' and index_name not like '%BIN$%'
     order by t.INDEX_NAME,t.COLUMN_POSITION
 """
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.schema_name,\
+               const.ORACLE_OBJECT_TYPE_INDEX,\
+               self.index_name

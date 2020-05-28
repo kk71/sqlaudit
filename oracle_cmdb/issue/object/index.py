@@ -10,18 +10,17 @@ from collections import defaultdict
 import rule.const
 from models.mongoengine import *
 from .object import *
+from ..base import OracleOnlineIssue
 from ...capture import OracleObjIndColInfo, OracleObjectCapturingDoc
 
 
+@OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
+    """对象问题: 索引"""
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_INDEX,)
 
     RELATED_CAPTURE = (OracleObjIndColInfo,)
-
-    @classmethod
-    def filter(cls, *args, **kwargs):
-        return cls.filter_with_entries(*args, **kwargs)
 
     @classmethod
     def referred_capture(

@@ -4,8 +4,11 @@ __all__ = [
     "OracleObjTabCol"
 ]
 
+from typing import Tuple
+
 from mongoengine import StringField, IntField, FloatField, DynamicField
 
+from .. import const
 from .base import OracleSchemaObjectCapturingDoc
 
 
@@ -57,3 +60,6 @@ class OracleObjTabCol(OracleSchemaObjectCapturingDoc):
    and s.OBJECT_TYPE='TABLE'
    order by t.TABLE_NAME,t.COLUMN_NAME
 """
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        return self.owner, const.ORACLE_OBJECT_TYPE_TABLE, self.column_id

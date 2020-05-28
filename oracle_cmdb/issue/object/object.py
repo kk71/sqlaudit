@@ -4,7 +4,7 @@ __all__ = [
     "OracleOnlineObjectIssue"
 ]
 
-from typing import Generator
+from typing import Generator, Tuple, Optional
 
 import rule.const
 from models.sqlalchemy import *
@@ -15,7 +15,6 @@ from ...capture import OracleObjTabCol, OracleObjTabInfo, OracleObjSeqInfo, \
     OracleObjTabSpace, OracleObjIndColInfo, OracleObjViewInfo, OracleObjPartTabParent
 
 
-@OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssue(OracleOnlineIssue):
     """对象问题"""
 
@@ -64,3 +63,10 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
                     schema_name=schema_name
                 )
                 yield from docs
+
+    def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
+        """
+        获取对象的名称
+        :return:
+        """
+        raise NotImplementedError

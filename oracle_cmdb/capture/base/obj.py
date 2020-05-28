@@ -5,7 +5,7 @@ __all__ = [
     "OracleSchemaObjectCapturingDoc"
 ]
 
-from typing import NoReturn
+from typing import NoReturn, Tuple
 
 from mongoengine import ObjectIdField, IntField, StringField
 
@@ -73,6 +73,13 @@ class OracleObjectCapturingDoc(
             )
             docs_inserted = m.objects.insert(docs)
             print(f"{len(docs_inserted)} captured.")
+
+    def get_object_unique_name(self) -> Tuple[str, str, str]:
+        """
+        获取对象信息的唯一标识
+        :return: [owner, object_type, object_name]
+        """
+        raise NotImplementedError
 
 
 class OracleSchemaObjectCapturingDoc(OracleObjectCapturingDoc):
