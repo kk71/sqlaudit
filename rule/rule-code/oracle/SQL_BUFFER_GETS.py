@@ -12,7 +12,7 @@ def code(rule, entries, **kwargs):
                          "sql_id",
                          "plan_hash_value",
                          "cpu_time_delta",
-                         "execution_delta",
+                         "executions_delta",
                          "buffer_gets_delta",
                          "disk_reads_delta",
                          "elapsed_time_delta"):
