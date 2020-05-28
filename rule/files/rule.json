@@ -2876,7 +2876,7 @@
                 "optional": false
             },
             {
-                "name": "execution_delta",
+                "name": "executions_delta",
                 "desc": "执行次数",
                 "unit": "",
                 "data_type": "INT",
