@@ -336,9 +336,9 @@ def create_risk_sql_files(risk_sql_outer, risk_sql_inner, wb):
         rows_nums = 1
         for r_s_inner in risk_sql_inner:
             [ws.write(3, x, field, title_format) for x, field in enumerate(inner_heads)]
-            if r_s_inner['task_record_id'] and r_s_inner['schema'] \
-                    and r_s_inner['rule_desc'] \
-                    in r_s_outer.values():
+            if r_s_inner['task_record_id'] in list(r_s_outer.values()) and \
+                    r_s_inner['schema'] in list(r_s_outer.values()) and \
+                    r_s_inner['rule']['rule_name'] in list(r_s_outer.values()):
                 ws.write(3 + rows_nums, 0, r_s_inner['sql_id'], content_format)
                 ws.write(3 + rows_nums, 1, r_s_inner['sql_text'], content_format)
                 rows_nums += 1

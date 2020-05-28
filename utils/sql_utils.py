@@ -233,7 +233,7 @@ def get_risk_sql_list(session,
                     "execution_total": execution_total,
                     "execution_time_cost_on_average": execution_time_cost_on_average,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
-                    "task_record_id": result.task_record_id
+                    "task_record_id": task_record_id
                 }
                 if sqltext_stats:
                     sql_text_stats_sql_id = get_sql_id_stats(
