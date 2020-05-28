@@ -299,7 +299,7 @@ def create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb):
 # 创建风险SQL EXCEL
 def create_risk_sql_files(risk_sql_outer, risk_sql_inner, wb):
     """new create risk sql files"""
-    outer_title_heads = ["采集时间", "schema名称", "风险分类名称", "风险等级" "扫描得到合计", "一次采集id"]
+    outer_title_heads = ["采集时间", "schema名称", "风险分类名称", "风险等级", "扫描得到合计", "一次采集id"]
     inner_heads = ["SQL ID", 'SQL_TEXT']
 
     title_format = wb.add_format({

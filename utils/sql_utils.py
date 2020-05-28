@@ -280,6 +280,7 @@ def risk_sql_export_data(cmdb_id=None, schema=None,
         risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
     if ids:
         risk_sql = risk_sql.filter(_id__in=ids)
+    risk_sql = risk_sql.order_by("-etl_date")
     #风险sql内层
     schema_task_record_id_rule =risk_sql.values_list("schema","task_record_id","rule")
     risk_sql_outer = []
