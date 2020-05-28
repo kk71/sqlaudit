@@ -19,8 +19,8 @@ from past.models import get_cmdb
 from past.utils.utils import get_time
 from past.utils.utils import ROOT_PATH
 import utils.cmdb_utils
-from models.oracle import make_session,CMDB
-from models.mongo import Results,StatsCMDBRate
+from models.oracle import make_session, CMDB
+from models.mongo import Results, StatsCMDBRate
 from past.rule_analysis.db.mongo_operat import MongoHelper
 from past.utils.send_mail import send_work_list_status
 from utils import cmdb_utils
@@ -107,7 +107,7 @@ def timing_send_mail(send_user_list):
             result = 1 if result else 0
             error = str(error) if error is not None else ''
             update_send_mail(result, error, send_detail['send_mail_id'])
-            insert_send_mail_history(login_user, send_detail['send_mail_id'], result, os.path.join("/",path))
+            insert_send_mail_history(login_user, send_detail['send_mail_id'], result, os.path.join("/", path))
 
 
 def filter_data(data, filter_datetime=True):
@@ -140,15 +140,15 @@ def create_excels(username, send_list_id):
             wb.close()
         for cmdb_id in cmdb_ids:
             connect_name = session.query(CMDB.connect_name).filter_by(cmdb_id=cmdb_id)[0][0]
-            cmdb_rate_q=StatsCMDBRate.objects().filter(connect_name=connect_name,
-                                           etl_date__gt=now.shift(weeks=-1).datetime).\
+            cmdb_rate_q = StatsCMDBRate.objects().filter(connect_name=connect_name,
+                                                         etl_date__gt=now.shift(weeks=-1).datetime). \
                 order_by("etl_date")
-            cmdb_rate=[x.to_dict() for x in cmdb_rate_q]
+            cmdb_rate = [x.to_dict() for x in cmdb_rate_q]
 
-            rst_q=Results.objects(cmdb_id=cmdb_id,score__score__nin=[None,0],
-                            create_date__gte=date_start,
-                            create_date__lte=date_end).order_by("-create_date")
-            rst_d=[x.to_dict() for x in rst_q]
+            rst_q = Results.objects(cmdb_id=cmdb_id, score__score__nin=[None, 0],
+                                    create_date__gte=date_start,
+                                    create_date__lte=date_end).order_by("-create_date")
+            rst_d = [x.to_dict() for x in rst_q]
 
             rr_obj, rst_obj = risk_object_export_data(
                 cmdb_id=cmdb_id, date_start=date_start_today,
@@ -297,10 +297,11 @@ def create_sql_healthy_files(rst_d, cmdb_rate, connect_name, wb):
 
 
 # 创建风险SQL EXCEL
-def create_risk_sql_files(rr, rst, wb):
+def create_risk_sql_files(risk_sql_outer, risk_sql_inner, wb):
     """new create risk sql files"""
-    title_heads = ['采集时间', "风险分类", '本项风险总数']
-    heads = ['sql_id', 'sql_text', 'similar_sql_num']
+    outer_title_heads = ["采集时间", "schema名称", "风险分类名称", "风险等级" "扫描得到合计", "一次采集id"]
+    inner_heads = ["SQL ID", 'SQL_TEXT']
+
     title_format = wb.add_format({
         'size': 14,
         'bold': 30,
@@ -314,28 +315,32 @@ def create_risk_sql_files(rr, rst, wb):
         'text_wrap': True,
     })
     a = 0
-    for row_num, row in enumerate(rr):
+    for row_num, r_s_outer in enumerate(risk_sql_outer):
         a += 1
         row_num = 0
-        ws = wb.add_worksheet(re.sub('[*%]', '', row['rule_desc'][:20]) + f'-{a}')
+        ws = wb.add_worksheet(re.sub('[*%]', '', r_s_outer['rule_desc'][:20]) + f'-{a}')
         ws.set_row(0, 20, title_format)
         ws.set_column(0, 0, 60)
         ws.set_column(1, 1, 60)
         ws.set_column(2, 2, 60)
 
-        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        [ws.write(0, x, field, title_format) for x, field in enumerate(outer_title_heads)]
         row_num += 1
-        ws.write(row_num, 0, row["last_appearance"], content_format)
-        ws.write(row_num, 1, row["rule_desc"], content_format)
-        ws.write(row_num, 2, row["rule_num"], content_format)
+        ws.write(row_num, 0, r_s_outer["etl_date"], content_format)
+        ws.write(row_num, 1, r_s_outer["schema"], content_format)
+        ws.write(row_num, 2, r_s_outer["rule_desc"], content_format)
+        ws.write(row_num, 3, r_s_outer["severity"], content_format)
+        ws.write(row_num, 4, r_s_outer["rule_num"], content_format)
+        ws.write(row_num, 5, r_s_outer["task_record_id"], content_format)
 
         rows_nums = 1
-        for rows in rst:
-            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
-            if rows['schema'] and rows['rule_desc'] in row.values():
-                ws.write(3 + rows_nums, 0, rows['sql_id'], content_format)
-                ws.write(3 + rows_nums, 1, rows['sql_text'], content_format)
-                ws.write(3 + rows_nums, 2, rows['similar_sql_num'], content_format)
+        for r_s_inner in risk_sql_inner:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(inner_heads)]
+            if r_s_inner['task_record_id'] and r_s_inner['schema'] \
+                    and r_s_inner['rule_desc'] \
+                    in r_s_outer.values():
+                ws.write(3 + rows_nums, 0, r_s_inner['sql_id'], content_format)
+                ws.write(3 + rows_nums, 1, r_s_inner['sql_text'], content_format)
                 rows_nums += 1
 
 
@@ -567,7 +572,7 @@ def zip_file_path(input_path, output_path, output_name):
             f.write(os.path.join(dirpath, filename), filename)
 
     f.close()  # 调用了close方法才会保证完成压缩
-    ret_url=os.path.join(settings.EXPORT_PREFIX_HEALTH,output_name)
+    ret_url = os.path.join(settings.EXPORT_PREFIX_HEALTH, output_name)
     return ret_url
 
 

@@ -233,6 +233,7 @@ def get_risk_sql_list(session,
                     "execution_total": execution_total,
                     "execution_time_cost_on_average": execution_time_cost_on_average,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
+                    "task_record_id": result.task_record_id
                 }
                 if sqltext_stats:
                     sql_text_stats_sql_id = get_sql_id_stats(
@@ -266,7 +267,7 @@ def risk_sql_export_data(cmdb_id=None, schema=None,
                          severity = None, rule_name: list = None,
                          ids: list = None):
     """风险SQL导出数据获取"""
-    risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)
+    risk_sql = StatsRiskSqlRule.objects(cmdb_id=cmdb_id)#风险sql外层
     if schema:
         risk_sql = risk_sql.filter(schema=schema)
     if date_start:
@@ -279,23 +280,25 @@ def risk_sql_export_data(cmdb_id=None, schema=None,
         risk_sql = risk_sql.filter(rule__rule_name__in=rule_name)
     if ids:
         risk_sql = risk_sql.filter(_id__in=ids)
-        # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-        rule_name: list = [a_rule["rule_name"]
-                           for a_rule in risk_sql.values_list("rule")]
-    rr = []
+    #风险sql内层
+    schema_task_record_id_rule =risk_sql.values_list("schema","task_record_id","rule")
+    risk_sql_outer = []
     for x in risk_sql:
         d = x.to_dict()
         d.update({**d.pop("rule")})
-        rr.append(d)
+        risk_sql_outer.append(d)
 
     with make_session() as session:
-        rst = get_risk_sql_list(
-            cmdb_id=cmdb_id,
-            date_range=(date_start, date_end),
-            schema_name=schema,
-            session=session,
-            severity=severity,
-            rule_name=rule_name
-        )
+        risk_sql_inners=[]
+        for x in schema_task_record_id_rule:
+            risk_sql_inner = get_risk_sql_list(
+                cmdb_id=cmdb_id,
+                date_range=(None, None),
+                schema_name=x[0],
+                session=session,
+                rule_name=x[2]['rule_name'],
+                task_record_id=x[1]
+            )
+            risk_sql_inners.extend(risk_sql_inner)
 
-    return rr, rst
+    return risk_sql_outer, risk_sql_inners

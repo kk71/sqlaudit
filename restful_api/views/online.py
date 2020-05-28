@@ -216,7 +216,12 @@ class SQLRiskRuleHandler(AuthReq):
 class SQLRiskExportReportHandler(AuthReq):
 
     async def post(self):
-        """风险SQL列表导出v2"""
+        """风险SQL列表导出v2
+        导出分为四种:
+        1.导出所有cmdb,时间。
+        2.导出所有cmdb,时间,(schema,rule_name,等级)
+        3.导出已选cmdb,时间,_id
+        4.导出已选cmdb,时间,_id,(schema,rule_name,等级)"""
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             "date_start": scm_date,
@@ -234,17 +239,18 @@ class SQLRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        rr, rst = await async_thr(risk_sql_export_data, cmdb_id=cmdb_id, schema=schema,
+        #风险sql外层，风险sql内层
+        risk_sql_outer, risk_sql_inner = await async_thr(risk_sql_export_data, cmdb_id=cmdb_id, schema=schema,
                                   date_start=date_start, date_end=date_end,
                                   severity=severity, rule_name=rule_name,
                                   ids=ids)
 
-        filename = f"risk_sql_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        filename = f"risk_sql_rule_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
         full_filename = path.join(settings.EXPORT_DIR, filename)
         wb = xlsxwriter.Workbook(full_filename)
         # The bag should be inside
         from task.mail_report import create_risk_sql_files
-        create_risk_sql_files(rr, rst, wb)
+        create_risk_sql_files(risk_sql_outer, risk_sql_inner, wb)
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
