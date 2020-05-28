@@ -222,7 +222,7 @@ class SQLRiskExportReportHandler(AuthReq):
             "date_start": scm_date,
             "date_end": scm_date_end,
             Optional("schema", default=None): scm_str,
-            Optional("severity", default=None): list,
+            Optional("severity", default=None): scm_str,
             Optional("rule_name", default=None): list,
             Optional("_id", default=None): list
         }))
