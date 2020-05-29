@@ -9,7 +9,7 @@ from ..capture.sqlplan import OracleSQLPlanToday
 from ..statistics.current_task.risk_rule import OracleStatsSchemaRiskRule
 from ..tasks.capture import OracleCMDBTaskCapture
 from utils.schema_utils import *
-from rule.const import ALL_RULE_LEVELS
+from rule.const import ALL_RULE_LEVELS,RULE_ENTRY_ONLINE_SQL
 from models.sqlalchemy import make_session
 from restful_api.modules import as_view
 
@@ -100,7 +100,7 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
             "schema_name": scm_str,
             "rule_name": scm_str,
             "task_record_id": scm_int,
-            "entry": scm_one_of_choices(OracleOnlineSQLIssue.issue_entries()),
+            "entry": scm_one_of_choices(RULE_ENTRY_ONLINE_SQL),
             **self.gen_p()
         }))
         entry = params.pop("entry")
