@@ -20,7 +20,8 @@ from ...capture import OracleObjIndColInfo, OracleObjectCapturingDoc
 
 class OnlineIssueOutputParamsObjectIndex(OnlineIssueOutputParams):
 
-    index_name = StringField(null=True)
+    # index_name = StringField(null=True)
+    pass
 
 
 @OracleOnlineIssue.need_collect()
@@ -82,4 +83,4 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
     def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
         return self.schema_name,\
                const.ORACLE_OBJECT_TYPE_INDEX,\
-               self.output_params.index_name
+               getattr(self.output_params, "index_name", None)
