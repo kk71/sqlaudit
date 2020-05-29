@@ -10,6 +10,7 @@ import xlsxwriter
 from schema import Schema, Optional, And
 
 import settings
+from utils.perf_utils import timing
 from utils.conc_utils import *
 from utils.const import *
 from utils.perf_utils import *
@@ -94,6 +95,7 @@ class ObjectRiskRuleHandler(AuthReq):
 
 class ObjectRiskExportReportHandler(AuthReq):
 
+    @timing()
     async def post(self):
         """风险对象列表导出v2
          导出分为四种:
@@ -130,7 +132,9 @@ class ObjectRiskExportReportHandler(AuthReq):
         wb = xlsxwriter.Workbook(full_filename)
         # The bag should be inside
         from task.mail_report import create_risk_obj_files
+        self.post.tik("start")
         create_risk_obj_files(risk_obj_outer, risk_obj_inner, wb)
+        self.post.tik("end")
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
