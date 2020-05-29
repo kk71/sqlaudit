@@ -119,7 +119,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        risk_obj_outer, risk_obj_inner = await AsyncTimeout(60).async_thr(risk_object_export_data,
+        risk_obj_outer, risk_obj_inner = await AsyncTimeout(60).async_prc(risk_object_export_data,
                                   cmdb_id=cmdb_id, schema=schema,
                                   date_start=date_start, date_end=date_end,
                                   severity=severity, rule_name=rule_name,
@@ -247,7 +247,7 @@ class SQLRiskExportReportHandler(AuthReq):
         del params
 
         #风险sql外层，风险sql内层
-        risk_sql_outer, risk_sql_inner = await AsyncTimeout(60).async_thr(
+        risk_sql_outer, risk_sql_inner = await AsyncTimeout(60).async_prc(
                                   risk_sql_export_data,
                                   cmdb_id=cmdb_id, schema=schema,
                                   date_start=date_start, date_end=date_end,
