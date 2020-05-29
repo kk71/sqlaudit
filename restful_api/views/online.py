@@ -121,7 +121,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        risk_obj_outer, risk_obj_inner = await AsyncTimeout(600).async_prc(risk_object_export_data,
+        risk_obj_outer, risk_obj_inner = await AsyncTimeout(600).async_thr(risk_object_export_data,
                                   cmdb_id=cmdb_id, schema=schema,
                                   date_start=date_start, date_end=date_end,
                                   severity=severity, rule_name=rule_name,
@@ -132,9 +132,7 @@ class ObjectRiskExportReportHandler(AuthReq):
         wb = xlsxwriter.Workbook(full_filename)
         # The bag should be inside
         from task.mail_report import create_risk_obj_files
-        self.post.tik("start")
-        create_risk_obj_files(risk_obj_outer, risk_obj_inner, wb)
-        self.post.tik("end")
+        await AsyncTimeout(600).async_thr(create_risk_obj_files,risk_obj_outer, risk_obj_inner, wb)
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
