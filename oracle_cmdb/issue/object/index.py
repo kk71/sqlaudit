@@ -4,19 +4,32 @@ __all__ = [
     "OracleOnlineObjectIssueIndex"
 ]
 
-from typing import Optional
+from typing import Optional, Tuple
 from collections import defaultdict
+
+from mongoengine import EmbeddedDocumentField, StringField
 
 import rule.const
 from models.mongoengine import *
 from .object import *
+from ... import const
 from ..base import OracleOnlineIssue
+from issue.issue import OnlineIssueOutputParams
 from ...capture import OracleObjIndColInfo, OracleObjectCapturingDoc
+
+
+class OnlineIssueOutputParamsObjectIndex(OnlineIssueOutputParams):
+
+    index_name = StringField(null=True)
 
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
     """对象问题: 索引"""
+
+    output_params = EmbeddedDocumentField(
+        OnlineIssueOutputParamsObjectIndex,
+        default=OnlineIssueOutputParamsObjectIndex)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_INDEX,)
 
@@ -66,3 +79,7 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
             return []
         return ret.distinct("index_name")
 
+    def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
+        return self.schema_name,\
+               const.ORACLE_OBJECT_TYPE_INDEX,\
+               self.output_params.index_name
