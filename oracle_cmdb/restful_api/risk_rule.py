@@ -14,7 +14,7 @@ from models.sqlalchemy import make_session
 from restful_api.modules import as_view
 
 
-@as_view("riskrule", group="online")
+@as_view(group="online")
 class RiskRuleHandler(OraclePrivilegeReq):
 
     def get(self):
@@ -25,7 +25,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
 
-            "entry": scm_empty_as_optional(scm_one_of_choices(ONLINE_RISK_RULE_ENTRIES)),
+            "entry": scm_empty_as_optional(scm_one_of_choices(OracleStatsSchemaRiskRule.issue_entries())),
             "date_start": scm_date,
             "date_end": scm_date_end,
 
@@ -82,7 +82,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
     }
 
 
-@as_view("riskrule_sql", group="online")
+@as_view("sql", group="online")
 class RiskRuleSQLHandler(OraclePrivilegeReq):
 
     def get(self):
@@ -100,13 +100,13 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
             "schema_name": scm_str,
             "rule_name": scm_str,
             "task_record_id": scm_int,
-            "entry": scm_one_of_choices(ONLINE_RISK_RULE_ENTRIES),
+            "entry": scm_one_of_choices(OracleOnlineSQLIssue.issue_entries()),
             **self.gen_p()
         }))
         entry = params.pop("entry")
         p = self.pop_p(params)
 
-        sql_issue_q = OracleOnlineSQLIssue.objects(**params).filter(OracleOnlineSQLIssue.entries == entry)
+        sql_issue_q = OracleOnlineSQLIssue.objects(**params).filter(entries__in=list(entry))
 
         _ = params.pop("rule_name")
         today_sqlstat_q = OracleSQLStatToday.filter(**params)
