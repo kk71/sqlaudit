@@ -342,7 +342,7 @@ def create_risk_sql_files(risk_sql_outer, risk_sql_inner, wb):
                 ws.write(3 + rows_nums, 0, r_s_inner['sql_id'], content_format)
                 ws.write(3 + rows_nums, 1, r_s_inner['sql_text'], content_format)
                 rows_nums += 1
-
+    wb.close()
 
 def create_risk_sql_file(cmdb_id, schemas, login_user, wb):
     # TODO DEPRECATED
@@ -659,6 +659,7 @@ def create_risk_obj_files(risk_obj_outer, risk_obj_inner, wb):
                 ws.write(3 + rows_nums, 1, r_o_inner['rule']['obj_info_type'], content_format)
                 ws.write(3 + rows_nums, 2, r_o_inner['risk_detail'], content_format)
                 rows_nums += 1
+    wb.close()
 
 
 def create_risk_obj_file(cmdb_id, owner_list, login_user, wb):

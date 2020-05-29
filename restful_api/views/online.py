@@ -132,7 +132,6 @@ class ObjectRiskExportReportHandler(AuthReq):
         # The bag should be inside
         from task.mail_report import create_risk_obj_files
         await AsyncTimeout(600).async_prc(create_risk_obj_files,risk_obj_outer, risk_obj_inner, wb)
-        wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
@@ -261,7 +260,6 @@ class SQLRiskExportReportHandler(AuthReq):
         # The bag should be inside
         from task.mail_report import create_risk_sql_files
         await AsyncTimeout(600).async_prc(create_risk_sql_files,risk_sql_outer, risk_sql_inner, wb)
-        wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
 
