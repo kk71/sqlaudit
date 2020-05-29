@@ -95,13 +95,19 @@ class ObjectRiskRuleHandler(AuthReq):
 class ObjectRiskExportReportHandler(AuthReq):
 
     async def post(self):
-        """风险对象列表导出v2"""
+        """风险对象列表导出v2
+         导出分为四种:
+        1.导出所有cmdb,时间。
+        2.导出所有cmdb,时间,(schema,rule_name,等级)
+        3.导出已选cmdb,时间,_id
+        4.导出已选cmdb,时间,_id,(schema,rule_name,等级)
+        """
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             "date_start": scm_date,
             "date_end": scm_date_end,
             Optional("schema", default=None): scm_str,
-            Optional("severity", default=None): list,
+            Optional("severity", default=None): scm_str,
             Optional("rule_name", default=None): list,
             Optional("_id", default=None): list
         }))
@@ -109,21 +115,22 @@ class ObjectRiskExportReportHandler(AuthReq):
         schema: Union[str, None] = params.pop("schema")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         rule_name: Union[list, None] = params.pop("rule_name")
-        severity: Union[list, None] = params.pop("severity")
+        severity = params.pop("severity")
         ids: Union[list, None] = params.pop("_id")
         del params
 
-        rr, rst = await async_thr(risk_object_export_data, cmdb_id=cmdb_id, schema=schema,
+        risk_obj_outer, risk_obj_inner = await AsyncTimeout(60).async_thr(risk_object_export_data,
+                                  cmdb_id=cmdb_id, schema=schema,
                                   date_start=date_start, date_end=date_end,
                                   severity=severity, rule_name=rule_name,
                                   ids=ids)
 
-        filename = f"risk_obj_risk_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
+        filename = f"risk_obj_rule_{arrow.now().format(COMMON_DATETIME_FORMAT)}.xlsx"
         full_filename = path.join(settings.EXPORT_DIR, filename)
         wb = xlsxwriter.Workbook(full_filename)
         # The bag should be inside
         from task.mail_report import create_risk_obj_files
-        create_risk_obj_files(rr, rst, wb)
+        create_risk_obj_files(risk_obj_outer, risk_obj_inner, wb)
         wb.close()
         self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
@@ -235,7 +242,7 @@ class SQLRiskExportReportHandler(AuthReq):
         schema: Union[str, None] = params.pop("schema")
         date_start, date_end = params.pop("date_start"), params.pop("date_end")
         rule_name: Union[list, None] = params.pop("rule_name")
-        severity: Union[list, None] = params.pop("severity")
+        severity = params.pop("severity")
         ids: Union[list, None] = params.pop("_id")
         del params
 

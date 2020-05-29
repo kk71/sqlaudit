@@ -173,7 +173,8 @@ def get_risk_object_list(session,
                     "optimized_advice": risk_rule_object.optimized_advice,#solution
                     "severity": risk_rule_object.severity,
                     "risk_sql_rule_id": risk_rule_object.risk_sql_rule_id,
-                    **risky_rule_appearance[risky_rule_name]
+                    **risky_rule_appearance[risky_rule_name],
+                    "task_record_id": task_record_id
                 }
                 # 用于去重
                 r_tuple = tuple(r.values())
@@ -191,7 +192,7 @@ def get_risk_object_list(session,
 
 def risk_object_export_data(cmdb_id=None, schema=None,
                                   date_start=None, date_end=None,
-                                  severity: list = None, rule_name: list = None,
+                                  severity = None, rule_name: list = None,
                                   ids: list = None):
     """风险对象导出数据获取"""
     risk_objects = StatsRiskObjectsRule.objects(cmdb_id=cmdb_id)
@@ -202,29 +203,30 @@ def risk_object_export_data(cmdb_id=None, schema=None,
     if date_end:
         risk_objects = risk_objects.filter(etl_date__lte=date_end)
     if severity:
-        risk_objects = risk_objects.filter(severity__in=severity)
+        risk_objects = risk_objects.filter(severity=severity)
     if rule_name:
         risk_objects = risk_objects.filter(rule__rule_name__in=rule_name)
     if ids:
         risk_objects = risk_objects.filter(_id__in=ids)
-        # 如果指定了统计表的id，则只需要这些id的rule_name作为需要导出的数据
-        rule_name: list = [a_rule["rule_name"]
-                           for a_rule in risk_objects.values_list("rule")]
-    rr = []
+    risk_objects = risk_objects.order_by("-etl_date")
+    # 风险obj内层
+    schema_task_record_id_rule=risk_objects.values_list("schema","task_record_id","rule")
+    risk_obj_outer = []
     for x in risk_objects:
         d = x.to_dict()
         d.update({**d.pop("rule")})
-        rr.append(d)
+        risk_obj_outer.append(d)
 
     with make_session() as session:
-        rst = get_risk_object_list(
-            session=session,
-            cmdb_id=cmdb_id,
-            schema_name=schema,
-            date_end=date_end,
-            date_start=date_start,
-            severity=severity,
-            rule_name=rule_name
-        )
+        risk_obj_inners=[]
+        for x in schema_task_record_id_rule:
+            risk_obj_inner = get_risk_object_list(
+                cmdb_id=cmdb_id,
+                schema_name=x[0],
+                session=session,
+                rule_name=x[2]['rule_name'],
+                task_record_id=x[1]
+            )
+            risk_obj_inners.extend(risk_obj_inner)
 
-    return rr, rst
+    return risk_obj_outer, risk_obj_inners

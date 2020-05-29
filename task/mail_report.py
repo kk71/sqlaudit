@@ -610,9 +610,9 @@ def create_appendx(wb):
 
 
 # 风险对象
-def create_risk_obj_files(rr, rst, wb):
-    title_heads = ['采集时间', "风险分类", '本项风险总数']
-    heads = ['对象名称', '风险问题', '优化建议']
+def create_risk_obj_files(risk_obj_outer, risk_obj_inner, wb):
+    outer_title_heads = ["采集时间","schema名称","风险分类名称", "风险等级","扫描得到合计","影响","优化建议","一次采集id"]
+    inner_heads = ['对象名称', '对象类型', '风险问题']
 
     title_format = wb.add_format({
         'size': 14,
@@ -627,28 +627,37 @@ def create_risk_obj_files(rr, rst, wb):
         'text_wrap': True,
     })
     a = 0
-    for row_num, row in enumerate(rr):
+    for row_num, r_o_outer in enumerate(risk_obj_outer):
         a += 1
         row_num = 0
-        ws = wb.add_worksheet(re.sub('[*%]', '', row["rule_desc"][:20]) + f'-{a}')
+        ws = wb.add_worksheet(re.sub('[*%]', '', r_o_outer["rule_desc"][:20]) + f'-{a}')
         ws.set_row(0, 20, title_format)
         ws.set_column(0, 0, 60)
         ws.set_column(1, 1, 60)
         ws.set_column(2, 2, 60)
 
-        [ws.write(0, x, field, title_format) for x, field in enumerate(title_heads)]
+        [ws.write(0, x, field, title_format) for x, field in enumerate(outer_title_heads)]
         row_num += 1
-        ws.write(row_num, 0, row["last_appearance"], content_format)
-        ws.write(row_num, 1, row["rule_desc"], content_format)
-        ws.write(row_num, 2, row["rule_num"], content_format)
+        ws.write(row_num, 0, r_o_outer["etl_date"], content_format)
+        ws.write(row_num, 1, r_o_outer["schema"], content_format)
+        ws.write(row_num, 2, r_o_outer["rule_desc"], content_format)
+        ws.write(row_num, 3, r_o_outer["severity"], content_format)
+        ws.write(row_num, 4, r_o_outer["rule_num"], content_format)
+        ws.write(row_num, 5, r_o_outer["influence"], content_format)
+        ws.write(row_num, 6, r_o_outer["optimized_advice"], content_format)
+        ws.write(row_num, 7, r_o_outer["task_record_id"], content_format)
+
 
         rows_nums = 1
-        for rows in rst:
-            [ws.write(3, x, field, title_format) for x, field in enumerate(heads)]
-            if rows['schema'] and rows['rule_desc'] in row.values():
-                ws.write(3 + rows_nums, 0, rows['object_name'], content_format)
-                ws.write(3 + rows_nums, 1, rows['risk_detail'], content_format)
-                ws.write(3 + rows_nums, 2, rows['optimized_advice'], content_format)
+        for r_o_inner in risk_obj_inner:
+            [ws.write(3, x, field, title_format) for x, field in enumerate(inner_heads)]
+            if r_o_inner['task_record_id'] in list(r_o_outer.values()) and \
+                    r_o_inner['schema'] in list(r_o_outer.values()) and \
+                    r_o_inner['rule']['rule_name'] in list(r_o_outer.values()):
+
+                ws.write(3 + rows_nums, 0, r_o_inner['object_name'], content_format)
+                ws.write(3 + rows_nums, 1, r_o_inner['rule']['obj_info_type'], content_format)
+                ws.write(3 + rows_nums, 2, r_o_inner['risk_detail'], content_format)
                 rows_nums += 1
 
 
