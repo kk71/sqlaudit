@@ -67,6 +67,6 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
     def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
         """
         获取对象的名称
-        :return:
+        :return: [owner, object_type, object_name]
         """
         raise NotImplementedError

@@ -4,19 +4,32 @@ __all__ = [
     "OracleOnlineObjectIssueSequence"
 ]
 
-from typing import Optional
+from typing import Optional, Tuple
 from collections import defaultdict
 
+from mongoengine import StringField, EmbeddedDocumentField
+
 import rule.const
+from ... import const
 from models.mongoengine import *
 from .object import *
 from ..base import OracleOnlineIssue
 from ...capture import OracleObjSeqInfo, OracleObjectCapturingDoc
+from issue.issue import OnlineIssueOutputParams
+
+
+class OnlineIssueOutputParamsObjectSequence(OnlineIssueOutputParams):
+
+    sequence_name = StringField(null=True)
 
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
     """对象问题: 序列"""
+
+    output_params = EmbeddedDocumentField(
+        OnlineIssueOutputParamsObjectSequence,
+        default=OnlineIssueOutputParamsObjectSequence)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_SEQUENCE,)
 
@@ -64,3 +77,7 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
             return []
         return ret.distinct("sequence_name")
 
+    def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
+        return self.schema_name, \
+               const.ORACLE_OBJECT_TYPE_SEQUENCE, \
+               self.output_params.sequence_name

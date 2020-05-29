@@ -4,20 +4,33 @@ __all__ = [
     "OracleOnlineObjectIssueTable"
 ]
 
-from typing import Optional
+from typing import Optional, Tuple
 from collections import defaultdict
 
+from mongoengine import StringField, EmbeddedDocumentField
+
 import rule.const
+from ... import const
 from models.mongoengine import *
 from .object import *
 from ..base import OracleOnlineIssue
 from ...capture import OracleObjTabCol, OracleObjTabInfo, \
     OracleObjPartTabParent, OracleObjectCapturingDoc
+from issue.issue import OnlineIssueOutputParams
+
+
+class OnlineIssueOutputParamsObjectTable(OnlineIssueOutputParams):
+
+    table_name = StringField(null=True)
 
 
 @OracleOnlineIssue.need_collect()
 class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
     """对象问题: 表"""
+
+    output_params = EmbeddedDocumentField(
+        OnlineIssueOutputParamsObjectTable,
+        default=OnlineIssueOutputParamsObjectTable)
 
     ENTRIES = (rule.const.RULE_ENTRY_ONLINE_TABLE,)
 
@@ -68,4 +81,9 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
         if ret is None:
             return []
         return ret.distinct("table_name")
+
+    def get_object_unique_name(self) -> Tuple[Optional[str], str, str]:
+        return self.schema_name, \
+               const.ORACLE_OBJECT_TYPE_TABLE, \
+               self.output_params.table_name
 
