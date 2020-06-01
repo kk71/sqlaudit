@@ -34,3 +34,6 @@ class OracleOnlineObjectIssueFunction(OracleOnlineObjectIssue):
         return self.schema_name, \
                const.ORACLE_OBJECT_TYPE_FUNCTION, \
                self.output_params.func_name
+
+    def get_referred_table_name(self) -> Optional[str]:
+        return None

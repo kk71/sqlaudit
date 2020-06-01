@@ -20,7 +20,9 @@ class HealthCenterSchema(OraclePrivilegeReq):
 
     def get(self):
         """健康中心schema分数列表,拿取每天最后一次采集情况
-        前端建议展示:connect_name,schema_name,entry_score的sqlplan、sqlstat、sqltext、object、sql，create_time"""
+        前端建议展示:connect_name,schema_name,
+            entry_score的sqlplan、sqlstat、sqltext、object、sql，
+            create_time"""
         self.acquire(PRIVILEGE.PRIVILEGE_HEALTH_CENTER)
 
         params = self.get_query_args(Schema({

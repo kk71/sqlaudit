@@ -84,3 +84,6 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
         return self.schema_name,\
                const.ORACLE_OBJECT_TYPE_INDEX,\
                getattr(self.output_params, "index_name", None)
+
+    def get_referred_table_name(self) -> Optional[str]:
+        return self.output_params.get("table_name", None)

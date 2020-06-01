@@ -35,3 +35,5 @@ class OracleOnlineObjectIssueTrigger(OracleOnlineObjectIssue):
                const.ORACLE_OBJECT_TYPE_TRIGGER, \
                self.output_params.trigger_name
 
+    def get_referred_table_name(self) -> Optional[str]:
+        return None

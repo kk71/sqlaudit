@@ -34,3 +34,6 @@ class OracleOnlineObjectIssueProcedure(OracleOnlineObjectIssue):
         return self.schema_name, \
                const.ORACLE_OBJECT_TYPE_PROCEDURE, \
                self.output_params.proc_name
+
+    def get_referred_table_name(self) -> Optional[str]:
+        return None

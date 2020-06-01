@@ -70,3 +70,7 @@ class OracleOnlineObjectIssue(OracleOnlineIssue):
         :return: [owner, object_type, object_name]
         """
         raise NotImplementedError
+
+    def get_referred_table_name(self) -> Optional[str]:
+        """查询对象相关的表名。因为对象查看页面都是根据表名去索引的，因此对象展示的时候需要一个表名"""
+        raise NotImplementedError

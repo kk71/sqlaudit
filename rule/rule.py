@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 import traceback
-from typing import Union, Callable
+from typing import Union, Callable, Dict, Any, List
 
 from mongoengine import EmbeddedDocument, StringField, DynamicField, \
     IntField, EmbeddedDocumentListField, BooleanField, ListField, FloatField
@@ -335,3 +335,15 @@ code_hole.append(code)  # 务必加上这一句
             for k in self.UNIQUE_KEYS:
                 origin_ret[k] = getattr(self, k)
         return origin_ret
+
+    def format_output_params(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        格式化输出展示用的输出参数
+        :param data: issue的output_params
+        :return:
+        """
+        ret = self.to_dict(
+            iter_if=lambda k, v: k in ("output_params",)).get("output_params", [])
+        for i in ret:
+            i["value"] = data.get(i["name"], None)
+        return ret

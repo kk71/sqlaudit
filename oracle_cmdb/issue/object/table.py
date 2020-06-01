@@ -87,3 +87,5 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                const.ORACLE_OBJECT_TYPE_TABLE, \
                self.output_params.table_name
 
+    def get_referred_table_name(self) -> Optional[str]:
+        return self.output_params.get("table_name", None)

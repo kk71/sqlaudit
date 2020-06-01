@@ -35,3 +35,5 @@ class OracleOnlineObjectIssueDBLink(OracleOnlineObjectIssue):
                const.ORACLE_OBJECT_TYPE_DB_LINK, \
                self.output_params.dblink_name
 
+    def get_referred_table_name(self) -> Optional[str]:
+        return None

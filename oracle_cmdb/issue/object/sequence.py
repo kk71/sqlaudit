@@ -81,3 +81,6 @@ class OracleOnlineObjectIssueSequence(OracleOnlineObjectIssue):
         return self.schema_name, \
                const.ORACLE_OBJECT_TYPE_SEQUENCE, \
                self.output_params.sequence_name
+
+    def get_referred_table_name(self) -> Optional[str]:
+        return None
