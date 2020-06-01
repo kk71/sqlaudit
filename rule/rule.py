@@ -336,7 +336,7 @@ code_hole.append(code)  # 务必加上这一句
                 origin_ret[k] = getattr(self, k)
         return origin_ret
 
-    def format_output_params(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def format_output_params(self, data: EmbeddedDocument) -> List[Dict[str, Any]]:
         """
         格式化输出展示用的输出参数
         :param data: issue的output_params
@@ -345,5 +345,5 @@ code_hole.append(code)  # 务必加上这一句
         ret = self.to_dict(
             iter_if=lambda k, v: k in ("output_params",)).get("output_params", [])
         for i in ret:
-            i["value"] = data.get(i["name"], None)
+            i["value"] = getattr(data, i["name"], None)
         return ret
