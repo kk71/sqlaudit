@@ -1,11 +1,13 @@
 
 from collections import Counter,defaultdict
 
-from .base import OraclePrivilegeReq
+from .base import OraclePrivilegeReq,OraclePrettytableReq
 from ..cmdb import OracleCMDB
 from ..issue.base import OracleOnlineIssue
 from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
 from ..statistics.current_task.schema_score import OracleStatsSchemaScore
+from ..capture.sqltext import OracleSQLText
+from ..capture.sqlstat import OracleSQLStatToday
 from rule.const import *
 from rule.rule_cartridge import RuleCartridge
 from auth.const import *
@@ -168,7 +170,8 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
 
         issues_q=OracleOnlineIssue.filter(cmdb_id=cmdb_id,
                                           schema_name=schema_name,
-                                          task_record_id=task_record_id)
+                                          task_record_id=task_record_id,
+                                          rule_name=rule_name)
         field=[]
         output_data=[]
 
@@ -206,4 +209,46 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
             "rule_name": "SQL_LOOP_NUM",
             "page": "1",
             "per_page": "10"
+        }}
+
+
+@as_view("issue_sqldetails",group="health_center")
+class HealthCenterIssueSqlDetails(OraclePrettytableReq):
+
+    def get(self):
+        """健康中心问题sql详情sqltext,sqlplan,sqlstat.
+        sqltext只传递sql_id且返回数据中不会有执行计划和执行特征，因为属于文本检查,
+        OBJ的表信息的不在有这层下转(也就是没有sql_id的,数据为表的,前端就不在下转了)"""
+        params=self.get_query_args(Schema({
+            "cmdb_id":scm_int,
+            "schema_name":scm_unempty_str,
+            "task_record_id":scm_int,
+            "sql_id":scm_unempty_str,
+            scm_optional("plan_hash_value",default=None):scm_int
+
+        }))
+        plan_hash_value=params.pop("plan_hash_value")
+        sql_text=OracleSQLText.filter(**params).first()
+
+        output_table_sqlplan=""
+        sql_stat={}
+        if plan_hash_value:#sqlplan,sqlstat
+            params['plan_hash_value'] = plan_hash_value
+            sql_stat_c = OracleSQLStatToday.filter(**params).first()
+            sql_stat = sql_stat_c.to_dict()
+            plans = self.query_sqlplan(**params)
+            output_table_sqlplan = self.output_table_sqlplan(plans)
+
+        self.resp({"sql_text":sql_text.longer_sql_text,
+                   "sql_plan": output_table_sqlplan,
+                   "sql_stat": sql_stat})
+
+    get.argument = {
+        "querystring": {
+            "cmdb_id":"2526",
+            "schema_name":"ISQLAUDIT_DEV",
+            "task_record_id":"47",
+            "sql_id":"2h37v66c9spu6",
+            "plan_hash_value": "2959612647"
+
         }}
