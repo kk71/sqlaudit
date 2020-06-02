@@ -73,8 +73,8 @@ class RiskRuleHandler(OraclePrivilegeReq):
             "//schema_name": "APEX_040200",
             "//rule_name": "序列CACHESIZE过小",
             "//level": "2",
-            "page": "1",
-            "per_page": "10"
+            "//page": "1",
+            "//per_page": "10"
         }
     }
 

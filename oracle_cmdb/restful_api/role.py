@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Or
-
 from restful_api.modules import *
 from models.sqlalchemy import *
 from auth.restful_api.base import *
@@ -75,7 +73,7 @@ class RoleCMDBSchemaRelationHandler(PrivilegeReq):
             "cmdbs": [
                 {
                     "cmdb_id": scm_gt0_int,
-                    scm_optional("schemas", default=[]): Or([scm_unempty_str], []),
+                    scm_optional("schemas", default=[]): scm_or([scm_unempty_str], []),
                     scm_optional(object): object  # 兼容前端
                 }
             ]
