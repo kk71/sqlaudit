@@ -57,6 +57,7 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             the_rule = rule_jar.get_rule(
                 cmdb_id=an_issue.cmdb_id, name=an_issue.rule_name)
             doc = sqls[an_issue.output_params.sql_id]
+            doc.schema_name = an_issue.schema_name
             doc.sql_id = an_issue.output_params.sql_id
             doc.level = an_issue.level
             doc.rule_name = the_rule.name

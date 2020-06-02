@@ -1,5 +1,6 @@
 import re
 
+import oracle_cmdb.const
 from rule import const
 from oracle_cmdb.ticket.sql_plan import OracleTicketSQLPlan
 from oracle_cmdb.capture import OracleSQLPlan
@@ -51,6 +52,7 @@ def code(rule, entries, **kwargs):
                 "$match": {
                     "task_record_id": task_record_id,
                     "schema_name": schema_name,
+                    "two_days_capture": oracle_cmdb.const.SQL_TWO_DAYS_CAPTURE_TODAY,
                     **nested_loop
                 }
             },
