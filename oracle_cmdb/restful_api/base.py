@@ -5,7 +5,6 @@ __all__ = [
     "OraclePrivilegeReq",
 ]
 
-from prettytable import PrettyTable
 from typing import Union, List
 
 from restful_api.base import *
@@ -13,7 +12,6 @@ from auth.restful_api.base import *
 from models.sqlalchemy import *
 from ..cmdb import *
 from ..auth.user_utils import *
-from ..capture.sqlplan import OracleSQLPlanToday
 
 
 class OracleBaseReq(BaseReq):

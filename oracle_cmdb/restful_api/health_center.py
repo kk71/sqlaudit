@@ -15,7 +15,7 @@ from restful_api.modules import *
 from models.sqlalchemy import *
 
 
-@as_view("schema", group="health_center")
+@as_view("schema", group="health-center")
 class HealthCenterSchema(OraclePrivilegeReq):
 
     def get(self):
@@ -79,12 +79,12 @@ class HealthCenterSchema(OraclePrivilegeReq):
             "//add_to_rate": "True",
             "date_start": "2020-05-15",
             "date_end": "2020-05-20",
-            "page": "1",
-            "per_page": "10"
+            "//page": "1",
+            "//per_page": "10"
         }}
 
 
-@as_view("rule_issue", group="health_center")
+@as_view("rule_issue", group="health-center")
 class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
 
     def get(self):
@@ -145,7 +145,7 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         }}
 
 
-@as_view("rule_issue_output", group="health_center")
+@as_view("rule_issue_output", group="health-center")
 class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
 
     def get(self):
@@ -203,12 +203,12 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
             # "rule_name": "TABLE_MIS_PK",
             # "rule_name": "SEQ_CACHESIZE",
             "rule_name": "SQL_LOOP_NUM",
-            "page": "1",
-            "per_page": "10"
+            "//page": "1",
+            "//per_page": "10"
         }}
 
 
-@as_view("sql_issue_detail", group="health_center")
+@as_view("sql_issue_detail", group="health-center")
 class SQLIssueDetailHandler(OraclePrivilegeReq):
 
     def get(self):
