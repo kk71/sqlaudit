@@ -11,11 +11,13 @@ from typing import NoReturn
 from mongoengine import StringField, IntField
 
 from .base import OracleTwoDaysSQLCapturingDoc
-from .. import const
+from .. import const, sqlplan
 
 
 @OracleTwoDaysSQLCapturingDoc.need_collect()
-class OracleSQLPlan(OracleTwoDaysSQLCapturingDoc):
+class OracleSQLPlan(
+        OracleTwoDaysSQLCapturingDoc,
+        sqlplan.BaseOracleSQLPlanCommon):
     """sql执行计划"""
 
     # 带缩进用于展示的执行计划
@@ -180,6 +182,19 @@ FROM
                 if doc.options:
                     doc.operation_display_with_options = \
                         doc.operation_display + " " + doc.options
+
+    @classmethod
+    def sql_plan_table(cls,
+                       task_record_id: int,
+                       sql_id: str,
+                       plan_hash_value: int,
+                       **kwargs) -> str:
+        qs = cls.filter(
+            task_record_id=task_record_id,
+            sql_id=sql_id,
+            plan_hash_value=plan_hash_value
+        ).order_by("plan_hash_value", "the_id")
+        return cls._format_sql_plan_table(qs)
 
 
 class OracleSQLPlanToday(OracleSQLPlan):
