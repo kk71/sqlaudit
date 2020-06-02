@@ -98,10 +98,13 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
+        p = self.pop_p(params)
 
-        issues_rule_q = OracleOnlineIssue.filter(cmdb_id=cmdb_id,
-                                                 schema_name=schema_name,
-                                                 task_record_id=task_record_id)  # ?entries
+        issues_rule_q = OracleOnlineIssue.filter(
+            cmdb_id=cmdb_id,
+            schema_name=schema_name,
+            task_record_id=task_record_id
+        )  # ?entries
         rule_issues = []
         levels = []
         create_time = ""
