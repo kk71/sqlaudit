@@ -95,7 +95,6 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
             "schema_name": scm_unempty_str,
             **self.gen_p()
         }))
-        p = self.pop_p(params)
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
@@ -141,10 +140,8 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
     get.argument = {
         "querystring": {
             "cmdb_id": "2526",
-            "schema_name": "ISQLAUDIT_DEV",
-            "task_record_id": "32",
-            "page": "1",
-            "per_page": "10"
+            "schema_name": "ISQLAUDIT",
+            "task_record_id": "47",
         }}
 
 
