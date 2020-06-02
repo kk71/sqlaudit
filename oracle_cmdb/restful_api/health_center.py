@@ -1,12 +1,11 @@
 from collections import Counter, defaultdict
 
-from .base import OraclePrivilegeReq
-from ..cmdb import OracleCMDB
-from ..issue.base import OracleOnlineIssue
-from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
-from ..statistics.current_task.schema_score import OracleStatsSchemaScore
-from ..capture import OracleSQLText, OracleSQLStatToday, OracleSQLPlanToday
 from rule.const import *
+from .base import OraclePrivilegeReq
+from ..issue import OracleOnlineIssue
+from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
+from ..statistics import OracleStatsSchemaScore
+from ..capture import OracleSQLText, OracleSQLStatToday, OracleSQLPlanToday
 from rule.rule_cartridge import RuleCartridge
 from auth.const import *
 from utils.schema_utils import *
@@ -121,7 +120,11 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         for d in dt.values():
             rule_issues.append(d)
 
-        level_num = {RULE_LEVEL_INFO: 0, RULE_LEVEL_WARNING: 0, RULE_LEVEL_SEVERE: 0}
+        level_num = {
+            RULE_LEVEL_INFO: 0,
+            RULE_LEVEL_WARNING: 0,
+            RULE_LEVEL_SEVERE: 0
+        }
         level_num_c = Counter(levels)
         level_num[RULE_LEVEL_INFO] = level_num_c.get(RULE_LEVEL_INFO, 0)
         level_num[RULE_LEVEL_WARNING] = level_num_c.get(RULE_LEVEL_WARNING, 0)
@@ -131,9 +134,9 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                                      schema_name=schema_name,
                                                      task_record_id=task_record_id).first()
         with make_session() as session:
-            cmdb_q = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+            the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
             rule_issues, p = self.paginate(rule_issues, **p)
-            self.resp({"connect_name": cmdb_q.connect_name,
+            self.resp({"connect_name": the_cmdb.connect_name,
                        "schema_name": schema_name,
                        "create_time": dt_to_str(create_time),
                        "schema_score": schema_score.to_dict(),
@@ -145,7 +148,8 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
             "cmdb_id": "2526",
             "schema_name": "ISQLAUDIT",
             "task_record_id": "47",
-        }}
+        }
+    }
 
 
 @as_view("rule_issue_output", group="health-center")
