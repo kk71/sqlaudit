@@ -120,11 +120,12 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         for d in dt.values():
             rule_issues.append(d)
 
-        level_num = {RULE_LEVEL_INFO: 0, RULE_LEVEL_WARNING: 0, RULE_LEVEL_SEVERE : 0}
-        level_num_c=Counter(levels)
-        level_num[RULE_LEVEL_INFO] = level_num_c.get(RULE_LEVEL_INFO, 0)
-        level_num[RULE_LEVEL_WARNING] = level_num_c.get(RULE_LEVEL_WARNING, 0)
-        level_num[RULE_LEVEL_SEVERE] = level_num_c.get(RULE_LEVEL_SEVERE , 0)
+        level_num = {RULE_LEVELS_CHINESE[RULE_LEVEL_INFO]: 0, RULE_LEVELS_CHINESE[RULE_LEVEL_WARNING]: 0,
+                     RULE_LEVELS_CHINESE[RULE_LEVEL_SEVERE]: 0}
+        level_num_c = Counter(levels)
+        level_num[RULE_LEVELS_CHINESE[RULE_LEVEL_INFO]] = level_num_c.get(RULE_LEVEL_INFO, 0)
+        level_num[RULE_LEVELS_CHINESE[RULE_LEVEL_WARNING]] = level_num_c.get(RULE_LEVEL_WARNING, 0)
+        level_num[RULE_LEVELS_CHINESE[RULE_LEVEL_SEVERE]] = level_num_c.get(RULE_LEVEL_SEVERE, 0)
 
         schema_score=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,
                                       schema_name=schema_name,
