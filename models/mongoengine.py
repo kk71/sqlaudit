@@ -61,8 +61,9 @@ class BaseDoc(DynamicDocument):
                   iter_if: Callable = None,
                   iter_by: Callable = None,
                   **kwargs) -> NoReturn:
-        """update a record by given dict,
-        with an iter function(mostly a lambda) to judge whether applies the change"""
+        """
+        从一个字典更新当前对象值
+        with an iter callable(mostly a lambda) to judge whether applies the change"""
         for k, v in d.items():
             if callable(iter_if) and not iter_if(k, v):
                 continue
@@ -80,6 +81,7 @@ class BaseDoc(DynamicDocument):
                 datetime_to_str: bool = True,
                 recurse: dict = None,
                 **kwargs) -> dict:
+        """转换为字典"""
         d = {}
         if isinstance(recurse, dict):
             items = recurse.items()

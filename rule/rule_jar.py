@@ -4,7 +4,7 @@ __all__ = [
     "RuleJar"
 ]
 
-from typing import List
+from typing import List, Optional
 
 from rule.cmdb_rule import CMDBRule
 
@@ -38,13 +38,13 @@ class RuleJar(list):
     def bulk_to_dict(self, *args, **kwargs):
         return [i.to_dict(*args, **kwargs) for i in self]
 
-    def get_rule(self, cmdb_id: int, name: str) -> CMDBRule:
+    def get_rule(self, cmdb_id: int, name: str) -> Optional[CMDBRule]:
         """在jar中搜寻特定规则，如未找到则从数据库中加载"""
         for i in self:
             if i.unique_key() == (cmdb_id, name):
                 return i
         the_rule = CMDBRule.filter_enabled(
             cmdb_id=cmdb_id, name=name).first()
-        self.append(the_rule)
-        return the_rule
-
+        if the_rule:
+            self.append(the_rule)
+            return the_rule
