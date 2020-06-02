@@ -52,6 +52,6 @@ class OracleStatsSchemaRiskObject(OracleBaseCurrentTaskSchemaStatistics):
                 doc=doc,
                 task_record_id=task_record_id,
                 cmdb_id=cmdb_id,
-                schema_name=issue_q.schema_name
+                schema_name=an_issue.schema_name
             )
             yield doc
