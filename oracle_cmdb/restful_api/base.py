@@ -3,10 +3,8 @@
 __all__ = [
     "OracleBaseReq",
     "OraclePrivilegeReq",
-    "OraclePrettytableReq"
 ]
 
-from prettytable import PrettyTable
 from typing import Union, List
 
 from restful_api.base import *
@@ -14,7 +12,6 @@ from auth.restful_api.base import *
 from models.sqlalchemy import *
 from ..cmdb import *
 from ..auth.user_utils import *
-from ..capture.sqlplan import OracleSQLPlanToday
 
 
 class OracleBaseReq(BaseReq):
@@ -54,53 +51,3 @@ class OraclePrivilegeReq(OracleBaseReq, PrivilegeReq):
             login_user=self.current_user,
             cmdb_id=the_cmdb
         )
-
-
-class OraclePrettytableReq(OraclePrivilegeReq):
-
-    def query_sqlplan(self, **params):
-
-        plans_q = OracleSQLPlanToday.filter(**params).order_by("-create_time")
-        latest_plan = plans_q.first()  # 取出最后一次采集出来的record_id
-        task_record_id = latest_plan.task_record_id
-        database_field = ["the_id", "operation_display", "options",
-                          "object_name", "cardinality", "the_bytes", "cost", "time"]
-        plans = plans_q.filter(task_record_id=task_record_id). \
-            values_list(*database_field)
-        return plans
-
-    def output_table_sqlplan(self, plans):
-
-        page_field = ["ID", "Operation", "Name",
-                      "Rows", "Bytes", "Cost (%CPU)", "Time"]
-
-        pt = PrettyTable(page_field)
-        pt.align = "l"
-        for plan in plans:
-            plan = list(plan)
-            m, s = divmod(plan[-1] if plan[-1] else 0, 60)
-            h, m = divmod(m, 60)
-            plan[-1] = "%02d:%02d:%02d" % (h, m, s)
-
-            plan[1] = plan[1] + " " + plan[2] if plan[2] else plan[1]
-            plan.pop(2)
-
-            plan = [i if i is not None else " " for i in plan]
-
-            if 8 > len(str(plan[-4])) > 5:
-                plan[-4] = str(round(plan[-4] // 1024)) + "K"
-                if len(str(plan[-4])) >= 8:
-                    plan[-4] = str(round(plan[-4] // 1024 // 1024)) + "M"
-            if 8 > len(str(plan[-3])) > 5:
-                plan[-3] = str(round(plan[-3] // 1024)) + "K"
-                if len(str(plan[-3])) >= 8:
-                    plan[-3] = str(round(plan[-3] // 1024 // 1024)) + "M"
-            if 8 > len(str(plan[-2])) > 5:
-                plan[-2] = str(round(plan[-2] // 1024)) + "K"
-                if len(str(plan[-2])) >= 8:
-                    plan[-2] = str(round(plan[-2] // 1024 // 1024)) + "M"
-            pt.add_row(plan)
-
-        output_table_sqlplan = str(pt)
-        return output_table_sqlplan
-

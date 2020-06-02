@@ -21,45 +21,8 @@ class SQLPlanHandler(TicketReq):
             "statement_id": scm_unempty_str,
             scm_optional("plan_id"): scm_gt0_int
         }))
-        # 指明的表中列明以及对应列数据在mongo-engine里的字段名
-        sql_plan_head = {
-            'Id': "the_id",
-            'Operation': "operation_display_with_options",
-            'Name': "object_name",
-            'Rows': "cardinality",
-            'Bytes': "bytes",
-            'Cost (%CPU)': "cost",
-            'Time': "time"
-        }
-
-        pt = PrettyTable(sql_plan_head.keys())
-        pt.align = "l"  # 左对齐
-        sql_plans = OracleTicketSQLPlan. \
-            objects(**params). \
-            order_by("plan_id", "the_id"). \
-            values_list(*sql_plan_head.values())
-        for sql_plan in sql_plans:
-            to_add = [i if i is not None else " " for i in sql_plan]
-            m, s = divmod(to_add[-1] if to_add[-1] and to_add[-1] != " " else 0, 60)
-            h, m = divmod(m, 60)
-            to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
-            if 8 > len(str(to_add[3])) > 5:
-                to_add[3] = str(round(to_add[3] // 1024)) + "K"
-                if len(str(to_add[3])) >= 8:
-                    to_add[3] = str(round(to_add[3] // 1024 // 1024)) + "M"
-            if 8 > len(str(to_add[4])) > 5:
-                to_add[4] = str(round(to_add[4] // 1024)) + "K"
-                if len(str(to_add[4])) >= 8:
-                    to_add[4] = str(round(to_add[4] // 1024 // 1024)) + "M"
-            if 8 > len(str(to_add[5])) > 5:
-                to_add[5] = str(round(to_add[5] // 1024)) + "K"
-                if len(str(to_add[5])) >= 8:
-                    to_add[5] = str(round(to_add[5] // 1024 // 1024)) + "M"
-            pt.add_row(to_add)
-
-        output_table = str(pt)
         self.resp({
-            'sql_plan_text': output_table,
+            'sql_plan_text': OracleTicketSQLPlan.sql_plan_table(**params),
         })
 
 

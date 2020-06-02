@@ -3,9 +3,12 @@
 from mongoengine import StringField, IntField, DateTimeField, FloatField
 
 import ticket.sql_plan
+from .. import sqlplan
 
 
-class OracleTicketSQLPlan(ticket.sql_plan.TicketSQLPlan):
+class OracleTicketSQLPlan(
+        ticket.sql_plan.TicketSQLPlan,
+        sqlplan.BaseOracleSQLPlanCommon):
     """oracle的工单动态审核产生的执行计划"""
     schema_name = StringField()
     operation_display = StringField()  # 带缩进用于展示的执行计划
@@ -33,7 +36,7 @@ class OracleTicketSQLPlan(ticket.sql_plan.TicketSQLPlan):
     position = IntField()
     cost = IntField()
     cardinality = IntField()
-    bytes = IntField()
+    the_bytes = IntField()
     other_tag = StringField()
     partition_start = StringField()
     partition_stop = StringField()
@@ -90,3 +93,12 @@ class OracleTicketSQLPlan(ticket.sql_plan.TicketSQLPlan):
             docs.append(doc)
         cls.objects.insert(docs)
         return docs
+
+    @classmethod
+    def sql_plan_table(cls,
+                       statement_id: str,
+                       plan_id: int = None) -> str:
+        plan = cls.filter(statement_id=statement_id)
+        if plan_id:
+            plan = plan.filter(plan_id=plan_id)
+        return cls._format_sql_plan_table(plan)

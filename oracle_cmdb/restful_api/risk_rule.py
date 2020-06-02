@@ -1,10 +1,8 @@
 from typing import Union
 
-from .base import OraclePrivilegeReq,OraclePrettytableReq
-from ..const import *
+from .base import OraclePrivilegeReq
 from ..issue.sql import OracleOnlineSQLIssue
-from ..capture.sqlstat import OracleSQLStatToday, OracleSQLStat
-from ..capture.sqlplan import OracleSQLPlanToday
+from ..capture.sqlstat import OracleSQLStatToday
 from ..statistics.current_task.risk_rule import OracleStatsSchemaRiskRule
 from ..tasks.capture import OracleCMDBTaskCapture
 from utils.schema_utils import *
@@ -136,34 +134,5 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
             "rule_name": "SQL_LOOP_NUM",
             "task_record_id": "39",
             "entry": "SQL"
-        }
-    }
-
-
-@as_view("sqlplan", group="online")
-class SQLPlanHandler(OraclePrettytableReq):
-
-    def get(self):
-        """风险详情的sqlplan详情,
-        拿取today,库最后一次采集,
-        sqlplan列表为一个执行计划每一个动作the_id区别每一个动作"""
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-            "sql_id": scm_unempty_str,
-            "plan_hash_value": scm_int,
-
-        }))
-
-        plans = self.query_sqlplan(**params)
-        output_table_sqlplan = self.output_table_sqlplan(plans)
-
-        self.resp(output_table_sqlplan)
-
-    get.argument = {
-        "querystring": {
-            "cmdb_id": "2526",
-            "sql_id": "2h37v66c9spu6",
-            "plan_hash_value": "2959612647",
-
         }
     }

@@ -1,23 +1,20 @@
+from collections import Counter, defaultdict
 
-from collections import Counter,defaultdict
-
-from .base import OraclePrivilegeReq,OraclePrettytableReq
-from ..cmdb import OracleCMDB
-from ..issue.base import OracleOnlineIssue
-from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
-from ..statistics.current_task.schema_score import OracleStatsSchemaScore
-from ..capture.sqltext import OracleSQLText
-from ..capture.sqlstat import OracleSQLStatToday
 from rule.const import *
+from .base import OraclePrivilegeReq
+from ..issue import OracleOnlineIssue
+from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
+from ..statistics import OracleStatsSchemaScore
+from ..capture import OracleSQLText, OracleSQLStatToday, OracleSQLPlanToday
 from rule.rule_cartridge import RuleCartridge
 from auth.const import *
 from utils.schema_utils import *
-from utils.datetime_utils import dt_to_str
-from restful_api.modules import as_view
-from models.sqlalchemy import make_session
+from utils.datetime_utils import *
+from restful_api.modules import *
+from models.sqlalchemy import *
 
 
-@as_view("schema", group="health_center")
+@as_view("schema", group="health-center")
 class HealthCenterSchema(OraclePrivilegeReq):
 
     def get(self):
@@ -57,7 +54,6 @@ class HealthCenterSchema(OraclePrivilegeReq):
                 cmdb_id_connect[cmdb_task.cmdb_id] = cmdb_task.connect_name
                 date_lastest_task_record_collection.extend(list(date_latest_task_record.values()))
 
-
             schema_score_q = OracleStatsSchemaScore.filter(**params)
             if connect_name:
                 schema_score_q = schema_score_q.filter(cmdb_id=connect_cmdb_id[connect_name],
@@ -82,41 +78,43 @@ class HealthCenterSchema(OraclePrivilegeReq):
             "//add_to_rate": "True",
             "date_start": "2020-05-15",
             "date_end": "2020-05-20",
-            "page": "1",
-            "per_page": "10"
+            "//page": "1",
+            "//per_page": "10"
         }}
 
 
-@as_view("rule_issue", group="health_center")
+@as_view("rule_issue", group="health-center")
 class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
 
     def get(self):
         """健康中心schema触犯的规则,分数"""
         params = self.get_query_args(Schema({
-            "cmdb_id" : scm_int,
-            "task_record_id" : scm_int,
-            "schema_name" : scm_unempty_str,
+            "cmdb_id": scm_int,
+            "task_record_id": scm_int,
+            "schema_name": scm_unempty_str
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
 
-        issues_rule_q=OracleOnlineIssue.filter(cmdb_id=cmdb_id,
-                                               schema_name=schema_name,
-                                               task_record_id=task_record_id)#?entries
+        issues_rule_q = OracleOnlineIssue.filter(
+            cmdb_id=cmdb_id,
+            schema_name=schema_name,
+            task_record_id=task_record_id
+        )  # ?entries
         rule_issues = []
         levels = []
         create_time = ""
-        dt=defaultdict(lambda :{"issue_num":0})
+        dt = defaultdict(lambda: {"issue_num": 0})
 
         for issue_rule in issues_rule_q:
-            create_time=issue_rule.create_time
+            create_time = issue_rule.create_time
             levels.append(issue_rule.level)
-            doc=dt[issue_rule.rule_name]
+            doc = dt[issue_rule.rule_name]
             doc['rule_name'] = issue_rule.rule_name
             doc['rule_desc'] = issue_rule.rule_desc
             doc['level'] = issue_rule.level
-            doc['issue_num'] +=1
+            doc['issue_num'] += 1
         for d in dt.values():
             rule_issues.append(d)
 
@@ -127,27 +125,28 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         level_num[RULE_LEVELS_CHINESE[RULE_LEVEL_WARNING]] = level_num_c.get(RULE_LEVEL_WARNING, 0)
         level_num[RULE_LEVELS_CHINESE[RULE_LEVEL_SEVERE]] = level_num_c.get(RULE_LEVEL_SEVERE, 0)
 
-        schema_score=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,
-                                      schema_name=schema_name,
-                                      task_record_id=task_record_id).first()
+        schema_score = OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,
+                                                     schema_name=schema_name,
+                                                     task_record_id=task_record_id).first()
         with make_session() as session:
-            cmdb_q=session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-            self.resp({"connect_name":cmdb_q.connect_name,
+            the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+            self.resp({"connect_name": the_cmdb.connect_name,
                        "schema_name": schema_name,
                        "create_time": dt_to_str(create_time),
                        "schema_score": schema_score.to_dict(),
                        **level_num,
-                       "rule_issue":rule_issues})
+                       "rule_issue": rule_issues})
 
     get.argument = {
         "querystring": {
             "cmdb_id": "2526",
             "schema_name": "ISQLAUDIT",
             "task_record_id": "47",
-        }}
+        }
+    }
 
 
-@as_view("rule_issue_output", group="health_center")
+@as_view("rule_issue_output", group="health-center")
 class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
 
     def get(self):
@@ -164,38 +163,38 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
         rule_name = params.pop("rule_name")
-        p=self.pop_p(params)
+        p = self.pop_p(params)
 
-        issues_q=OracleOnlineIssue.filter(cmdb_id=cmdb_id,
-                                          schema_name=schema_name,
-                                          task_record_id=task_record_id,
-                                          rule_name=rule_name)
-        field=[]
-        output_data=[]
+        issues_q = OracleOnlineIssue.filter(cmdb_id=cmdb_id,
+                                            schema_name=schema_name,
+                                            task_record_id=task_record_id,
+                                            rule_name=rule_name)
+        field = []
+        output_data = []
 
-        rule_cartridge=RuleCartridge.filter(name=rule_name).first()
-        rule_summary=rule_cartridge.summary
-        rule_solution=rule_cartridge.solution
+        rule_cartridge = RuleCartridge.filter(name=rule_name).first()
+        rule_summary = rule_cartridge.summary
+        rule_solution = rule_cartridge.solution
 
         for issue in issues_q:
             issue.output_params._data.pop("_cls")
             output_data.append(issue.output_params._data)
 
-            english_field= tuple(issue.output_params._data.keys())
+            english_field = tuple(issue.output_params._data.keys())
             for rule_op in rule_cartridge.output_params:
                 if rule_op['desc'] in field:
                     continue
                 if rule_op['name'] in english_field:
                     field.append(rule_op['desc'])
 
-        output_data,p=self.paginate(output_data,**p)
-        self.resp({"field":field,
-                   "output_data":output_data,
-                   "rule_summary":rule_summary,
-                   "rule_solution":rule_solution,
-                   "cmdb_id":cmdb_id,
-                   "task_record_id":task_record_id,
-                   "schema_name":schema_name},**p)
+        output_data, p = self.paginate(output_data, **p)
+        self.resp({"field": field,
+                   "output_data": output_data,
+                   "rule_summary": rule_summary,
+                   "rule_solution": rule_solution,
+                   "cmdb_id": cmdb_id,
+                   "task_record_id": task_record_id,
+                   "schema_name": schema_name}, **p)
 
     get.argument = {
         "querystring": {
@@ -205,48 +204,60 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
             # "rule_name": "TABLE_MIS_PK",
             # "rule_name": "SEQ_CACHESIZE",
             "rule_name": "SQL_LOOP_NUM",
-            "page": "1",
-            "per_page": "10"
+            "//page": "1",
+            "//per_page": "10"
         }}
 
 
-@as_view("issue_sqldetails",group="health_center")
-class HealthCenterIssueSqlDetails(OraclePrettytableReq):
+@as_view("sql_issue_detail", group="health-center")
+class SQLIssueDetailHandler(OraclePrivilegeReq):
 
     def get(self):
-        """健康中心问题sql详情sqltext,sqlplan,sqlstat.
+        """健康中心问题SQL问题下钻到"规则概览"的后续接口
         sqltext只传递sql_id且返回数据中不会有执行计划和执行特征，因为属于文本检查,
         OBJ的表信息的不在有这层下转(也就是没有sql_id的,数据为表的,前端就不在下转了)"""
-        params=self.get_query_args(Schema({
-            "cmdb_id":scm_int,
-            "schema_name":scm_unempty_str,
-            "task_record_id":scm_int,
-            "sql_id":scm_unempty_str,
-            scm_optional("plan_hash_value",default=None):scm_int
 
+        params = self.get_query_args(Schema({
+            "task_record_id": scm_int,
+            "sql_id": scm_unempty_str,
+            scm_optional("schema_name"): scm_unempty_str,
+            scm_optional("cmdb_id"): scm_int,
+            scm_optional("plan_hash_value", default=None): scm_int
         }))
-        plan_hash_value=params.pop("plan_hash_value")
-        sql_text=OracleSQLText.filter(**params).first()
-
-        output_table_sqlplan=""
-        sql_stat={}
-        if plan_hash_value:#sqlplan,sqlstat
-            params['plan_hash_value'] = plan_hash_value
-            sql_stat_c = OracleSQLStatToday.filter(**params).first()
-            sql_stat = sql_stat_c.to_dict()
-            plans = self.query_sqlplan(**params)
-            output_table_sqlplan = self.output_table_sqlplan(plans)
-
-        self.resp({"sql_text":sql_text.longer_sql_text,
-                   "sql_plan": output_table_sqlplan,
-                   "sql_stat": sql_stat})
+        task_record_id = params.pop("task_record_id")
+        sql_id = params.pop("sql_id")
+        plan_hash_value = params.pop("plan_hash_value")
+        del params
+        sql_text_object = OracleSQLText.filter(
+            task_record_id=task_record_id,
+            sql_id=sql_id
+        ).first()
+        plan_text = ""
+        stat_dict = {}
+        if plan_hash_value:
+            plan_text = OracleSQLPlanToday.sql_plan_table(
+                task_record_id=task_record_id,
+                sql_id=sql_id,
+                plan_hash_value=plan_hash_value
+            )
+            stat_object = OracleSQLStatToday.filter(
+                task_record_id=task_record_id,
+                sql_id=sql_id,
+                plan_hash_value=plan_hash_value
+            ).first()
+            if stat_object:
+                stat_dict = stat_object.to_dict()
+        self.resp({
+            "sql_text": sql_text_object.longer_sql_text,
+            "sql_plan": plan_text,
+            "sql_stat": stat_dict
+        })
 
     get.argument = {
         "querystring": {
-            "cmdb_id":"2526",
-            "schema_name":"ISQLAUDIT_DEV",
-            "task_record_id":"47",
-            "sql_id":"2h37v66c9spu6",
-            "plan_hash_value": "2959612647"
-
+            "//cmdb_id": "2526",
+            "//schema_name": "ISQLAUDIT_DEV",
+            "task_record_id": "47",
+            "sql_id": "2h37v66c9spu6",
+            "//plan_hash_value": "2959612647"
         }}
