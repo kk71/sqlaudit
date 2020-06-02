@@ -102,4 +102,3 @@ class EntryCMDBHandler(OraclePrivilegeReq):
             "//per_page": 10
         }
     }
-

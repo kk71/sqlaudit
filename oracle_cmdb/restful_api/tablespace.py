@@ -1,14 +1,12 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from schema import Schema
-
-from models.sqlalchemy import make_session
+from models.sqlalchemy import *
 from oracle_cmdb.capture import OracleObjTabSpace
 from oracle_cmdb.restful_api.base import OraclePrivilegeReq
 from oracle_cmdb.statistics import OracleStatsCMDBPhySize
 from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
-from restful_api import as_view
-from utils.schema_utils import scm_gt0_int, scm_int, scm_unempty_str
+from restful_api import *
+from utils.schema_utils import *
 
 
 @as_view("list", group="online")
@@ -40,8 +38,7 @@ class TablespaceListHandler(OraclePrivilegeReq):
             "cmdb_id": "2526",
             "page": '1',
             "per_page": '10'
-        },
-        "json": {}
+        }
     }
 
 
@@ -68,8 +65,7 @@ class TablespaceHistoryHandler(OraclePrivilegeReq):
         "querystring": {
             "cmdb_id": "2526",
             "tablespace_name": "SYSAUX",
-        },
-        "json": {}
+        }
     }
 
 
@@ -94,7 +90,6 @@ class TablespaceTotalHistoryHandler(OraclePrivilegeReq):
 
     get.argument = {
         "querystring": {
-            "cmdb_id": "2526",
-        },
-        "json": {}
+            "cmdb_id": "2526"
+        }
     }

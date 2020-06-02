@@ -5,7 +5,6 @@ from collections import defaultdict
 
 from .base import OraclePrivilegeReq
 from ..cmdb import *
-from ..auth.user_utils import *
 from ..auth.role import RoleOracleCMDBSchema
 from ..tasks.capture import OracleCMDBTaskCapture
 from ..statistics.current_task.cmdb_score import OracleStatsCMDBScore
@@ -13,9 +12,8 @@ from utils import const
 from utils.schema_utils import *
 from utils.datetime_utils import *
 from models.sqlalchemy import *
-from restful_api.modules import as_view
-from auth.user import Role
-from auth.user import User,UserRole
+from restful_api.modules import *
+from auth.user import User,Role,  UserRole
 
 
 @as_view("score_trend", group="cmdb")
@@ -29,39 +27,38 @@ class CMDBHealthTrendHandler(OraclePrivilegeReq):
         params = self.get_json_args(Schema({
             scm_optional("cmdb_id_list", default=()): list
         }), default_body="{}")
-        cmdb_id_list :list = params.pop("cmdb_id_list")
+        cmdb_id_list: list = params.pop("cmdb_id_list")
         date_end = arrow.now().date()
         date_start = arrow.now().shift(weeks=-2).date()
 
         with make_session() as session:
-            #如果没有cmdb_id_list，拿取用户纳管的cmdb_id
+            # 如果没有cmdb_id_list，拿取用户纳管的cmdb_id
             if not cmdb_id_list:
-                cmdb_q=self.cmdbs(session)
-                cmdb_id_list =[cmdb.cmdb_id for cmdb in cmdb_q]
+                cmdb_q = self.cmdbs(session)
+                cmdb_id_list = [cmdb.cmdb_id for cmdb in cmdb_q]
 
-            cmdb_date_lastest_task_record = [] # 每一个库每天最后的任务id#[{"cmdb_id":[t1,t2]}]
+            cmdb_date_lastest_task_record = []  # 每一个库每天最后的任务id#[{"cmdb_id":[t1,t2]}]
             cmdb_id_connect = {}
             for cmdb_id in cmdb_id_list:
                 cmdb_task = session.query(OracleCMDBTaskCapture).filter_by(cmdb_id=cmdb_id).first()
-                date_latest_task_record :dict = cmdb_task.day_last_succeed_task_record_id(
-                    date_start=date_start,date_end=date_end)
-                cmdb_date_lastest_task_record.append({cmdb_task.cmdb_id:list(date_latest_task_record.values())})
+                date_latest_task_record: dict = cmdb_task.day_last_succeed_task_record_id(
+                    date_start=date_start, date_end=date_end)
+                cmdb_date_lastest_task_record.append({cmdb_task.cmdb_id: list(date_latest_task_record.values())})
                 cmdb_id_connect[cmdb_task.cmdb_id] = cmdb_task.connect_name
 
             ret = defaultdict(dict)  # {"date":{"connect_name":"score"}}
             for cmdb_and_task_record_list in cmdb_date_lastest_task_record:
-                cmdb_score_q=OracleStatsCMDBScore.filter(
+                cmdb_score_q = OracleStatsCMDBScore.filter(
                     cmdb_id=list(cmdb_and_task_record_list.keys()).pop(),
                     task_record_id__in=list(cmdb_and_task_record_list.values()).pop())
                 for cmdb_score in cmdb_score_q:
-                    cmdb_score.connect_name =  cmdb_id_connect[cmdb_score.cmdb_id]
+                    cmdb_score.connect_name = cmdb_id_connect[cmdb_score.cmdb_id]
                     ret[cmdb_score.create_time.date()][cmdb_score.connect_name] = \
                         cmdb_score.entry_score['ONLINE']
             ret = [{
                 "date": d_to_str(k),
                 **v
             } for k, v in ret.items()]
-
 
             base_lines = [
                 i[0]
@@ -82,9 +79,10 @@ class CMDBHealthTrendHandler(OraclePrivilegeReq):
             })
 
     post.argument = {
-        "json":{
-            "cmdb_id_list":[2526,2529]
-        }}
+        "json": {
+            "cmdb_id_list": [2526, 2529]
+        }
+    }
 
 
 @as_view("oracle_cmdb", group="cmdb")
@@ -116,7 +114,7 @@ class CMDBHandler(OraclePrivilegeReq):
         p = self.pop_p(params)
 
         with make_session() as session:
-            cmdb_q=session.query(OracleCMDB).filter_by(**params)
+            cmdb_q = session.query(OracleCMDB).filter_by(**params)
 
             if keyword:
                 cmdb_q = self.query_keyword(cmdb_q, keyword,
@@ -148,9 +146,9 @@ class CMDBHandler(OraclePrivilegeReq):
             # 对分页之后的纳管库列表补充额外数据
             last_cmdb_task_record_id_dict = OracleCMDBTaskCapture. \
                 last_login_user_entry_cmdb(
-                    session,
-                    self.current_user
-                )
+                session,
+                self.current_user
+            )
             for i in ret:
                 i["stats"] = last_cmdb_task_record_id_dict[i["cmdb_id"]]
 
@@ -187,7 +185,7 @@ class CMDBHandler(OraclePrivilegeReq):
             "//business_name": "",
             "keyword": "",
             "sort": "desc",
-            "page": 1,
-            "per_page": 10
+            "//page": 1,
+            "//per_page": 10
         }
     }
