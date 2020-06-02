@@ -28,6 +28,13 @@ class OracleStatsSchemaRiskObject(OracleBaseCurrentTaskSchemaStatistics):
     referred_table_name = StringField(null=True)  # 相关的表名
     # 因为表索引序列三大实体对象都是根据表名去展示的，这里需要记录一下对象相关的表名，以便展示
 
+    meta = {
+        "collection": "oracle_stats_schema_risk_object",
+        "indexes": [
+            "rule_name"
+        ]
+    }
+
     @classmethod
     def generate(
             cls,

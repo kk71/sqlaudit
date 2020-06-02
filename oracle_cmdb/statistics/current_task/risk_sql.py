@@ -33,6 +33,14 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
         "executions_delta": None
     })
 
+    meta = {
+        "collection": "oracle_stats_schema_risk_sql",
+        "indexes": [
+            "sql_id",
+            "level",
+            "rule_name"
+        ]
+    }
 
     @classmethod
     def generate(
@@ -54,7 +62,7 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             doc.rule_name = the_rule.name
             doc.rule_desc = the_rule.desc
             doc.issue_num += 1
-            if not any(doc.sql_stat.values()):
+            if not all(doc.sql_stat.values()):
                 the_stat = OracleSQLStatToday.filter(
                     task_record_id=task_record_id,
                     sql_id=doc.sql_id
