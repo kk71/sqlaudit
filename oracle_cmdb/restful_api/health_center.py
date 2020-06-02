@@ -96,9 +96,7 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
             "cmdb_id" : scm_int,
             "task_record_id" : scm_int,
             "schema_name" : scm_unempty_str,
-            **self.gen_p()
         }))
-        p = self.pop_p(params)
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
@@ -133,21 +131,18 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                       task_record_id=task_record_id).first()
         with make_session() as session:
             cmdb_q=session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-            rule_issues,p=self.paginate(rule_issues,**p)
             self.resp({"connect_name":cmdb_q.connect_name,
                        "schema_name": schema_name,
                        "create_time": dt_to_str(create_time),
                        "schema_score": schema_score.to_dict(),
                        **level_num,
-                       "rule_issue":rule_issues},**p)
+                       "rule_issue":rule_issues})
 
     get.argument = {
         "querystring": {
             "cmdb_id": "2526",
-            "schema_name": "ISQLAUDIT_DEV",
-            "task_record_id": "32",
-            "page": "1",
-            "per_page": "10"
+            "schema_name": "ISQLAUDIT",
+            "task_record_id": "47",
         }}
 
 
