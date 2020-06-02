@@ -88,4 +88,4 @@ class OracleOnlineObjectIssueTable(OracleOnlineObjectIssue):
                self.output_params.table_name
 
     def get_referred_table_name(self) -> Optional[str]:
-        return self.output_params.get("table_name", None)
+        return getattr(self.output_params, "table_name", None)

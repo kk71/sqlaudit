@@ -86,4 +86,4 @@ class OracleOnlineObjectIssueIndex(OracleOnlineObjectIssue):
                getattr(self.output_params, "index_name", None)
 
     def get_referred_table_name(self) -> Optional[str]:
-        return self.output_params.get("table_name", None)
+        return getattr(self.output_params, "table_name", None)
