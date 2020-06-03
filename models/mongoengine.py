@@ -90,7 +90,7 @@ class BaseDoc(DynamicDocument):
         else:
             items = {f: getattr(self, f, None) for f in self._fields}.items()
         for k, v in items:
-            if k in ("auto_id_0",):
+            if k in ("auto_id_0", "_cls"):
                 continue
             if callable(iter_if) and not iter_if(k, v):
                 continue
