@@ -3,6 +3,7 @@ from typing import Union
 from .base import OraclePrivilegeReq
 from ..statistics.current_task.risk_sql import OracleStatsSchemaRiskSQL
 from ..statistics.current_task.risk_rule import OracleStatsSchemaRiskRule
+from ..statistics.current_task.risk_object import OracleStatsSchemaRiskObject
 from ..tasks.capture import OracleCMDBTaskCapture
 from utils.schema_utils import *
 from rule.const import ALL_RULE_LEVELS
@@ -95,9 +96,9 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
         }))
         p = self.pop_p(params)
 
-        risk_sql_q=OracleStatsSchemaRiskSQL.filter(**params)
-        risk_sql_q, p= self.paginate(risk_sql_q,**p)
-        self.resp([risk_sql.to_dict() for risk_sql in risk_sql_q],**p)
+        risk_sql_q = OracleStatsSchemaRiskSQL.filter(**params)
+        risk_sql_q, p = self.paginate(risk_sql_q, **p)
+        self.resp([risk_sql.to_dict() for risk_sql in risk_sql_q], **p)
 
     get.argument = {
         "querystring": {
@@ -122,17 +123,22 @@ class RiskRuleOBJHandler(OraclePrivilegeReq):
             **self.gen_p()
         }))
         p = self.pop_p(params)
-        from ..statistics.current_task.risk_object import OracleStatsSchemaRiskObject
-
-        risk_obj_q=OracleStatsSchemaRiskObject.filter(**params)
-        risk_obj_q,p=self.paginate(risk_obj_q,**p)
-        self.resp([risk_obj.to_dict() for risk_obj in risk_obj_q],**p)
+        risk_obj_q = OracleStatsSchemaRiskObject.filter(**params)
+        risk_obj_data = []
+        for risk_obj in risk_obj_q:
+            risk_obj = risk_obj.to_dict()
+            risk_obj['issue_description_str'] = ""
+            for x in risk_obj['issue_description']:
+                risk_obj['issue_description_str'] += f"{str(x['desc'])}:{str(x['value'])},"
+            risk_obj_data.append(risk_obj)
+        risk_obj_data, p = self.paginate(risk_obj_data, **p)
+        self.resp(risk_obj_data, **p)
 
     get.argument = {
         "querystring": {
             "cmdb_id": "2526",
             "schema_name": "DVSYS",
-            "rule_name": "USE_FUNCTION",
+            "rule_name": "SEQ_CACHESIZE",
             "task_record_id": "56"
         }
     }
