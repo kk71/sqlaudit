@@ -14,7 +14,9 @@ from ..capture import *
 class OverviewHandler(OraclePrivilegeReq):
 
     def get(self):
-        """数据库健康度概览"""
+        """线上数据库健康度概览
+        cmdb最近一次采集分析统计成功后的结果
+        """
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
 
         params = self.get_query_args(Schema({
@@ -88,15 +90,22 @@ class OverviewHandler(OraclePrivilegeReq):
             risk_rule_rank.append(y)
         risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (-x["level"], -x['issue_num']))
 
+        rank_schema_score = []
+        schema_score_q=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,task_record_id=latest_task_record_id)
+        for schema_score in schema_score_q:
+            rank_schema_score.append({"schema_name":schema_score.schema_name,"score":schema_score.entry_score['ONLINE']})
+        rank_schema_score=sorted(rank_schema_score,key=lambda x:x['score'])[:10]
+
         self.resp({
-            # 以下是取最近一次采集分析的结果
             "tablespace_sum": tablespace_sum,
             "sql_num": sql_num,
             "sql_execution_cost_rank": sql_execution_cost_rank,
             "risk_rule_rank": risk_rule_rank,
+            "rank_schema_score": rank_schema_score,
 
             "cmdb_id": cmdb_id,
-            "task_record_id": latest_task_record_id,
+            "task_record_id": latest_task_record_id
+
         })
 
     get.argument = {
