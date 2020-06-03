@@ -90,23 +90,25 @@ class OverviewHandler(OraclePrivilegeReq):
             risk_rule_rank.append(y)
         risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (-x["level"], -x['issue_num']))
 
-        rank_schema_score = []
-        schema_score_q=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,task_record_id=latest_task_record_id)
-        for schema_score in schema_score_q:
-            rank_schema_score.append({"schema_name":schema_score.schema_name,"score":schema_score.entry_score['ONLINE']})
-        rank_schema_score=sorted(rank_schema_score,key=lambda x:x['score'])[:10]
+        with make_session() as session:
+            rank_schema_score = []
+            schemas=self.schemas(session,cmdb_id)
+            schema_score_q=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,task_record_id=latest_task_record_id,schema_name__in=(schemas))
+            for schema_score in schema_score_q:
+                rank_schema_score.append({"schema_name":schema_score.schema_name,"score":schema_score.entry_score['ONLINE']})
+            rank_schema_score=sorted(rank_schema_score,key=lambda x:x['score'])[:10]
 
-        self.resp({
-            "tablespace_sum": tablespace_sum,
-            "sql_num": sql_num,
-            "sql_execution_cost_rank": sql_execution_cost_rank,
-            "risk_rule_rank": risk_rule_rank,
-            "rank_schema_score": rank_schema_score,
+            self.resp({
+                "tablespace_sum": tablespace_sum,
+                "sql_num": sql_num,
+                "sql_execution_cost_rank": sql_execution_cost_rank,
+                "risk_rule_rank": risk_rule_rank,
+                "rank_schema_score": rank_schema_score,
 
-            "cmdb_id": cmdb_id,
-            "task_record_id": latest_task_record_id
+                "cmdb_id": cmdb_id,
+                "task_record_id": latest_task_record_id
 
-        })
+            })
 
     get.argument = {
         "querystring": {
