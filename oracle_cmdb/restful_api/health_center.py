@@ -179,13 +179,7 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
         for issue in issues_q:
             issue.output_params._data.pop("_cls")
             output_data.append(issue.output_params._data)
-
-            english_field = tuple(issue.output_params._data.keys())
-            for rule_op in rule_cartridge.output_params:
-                if rule_op['desc'] in field:
-                    continue
-                if rule_op['name'] in english_field:
-                    field.append(rule_op['desc'])
+            field = list(issue.output_params._data.keys())
 
         output_data, p = self.paginate(output_data, **p)
         self.resp({"field": field,
@@ -200,7 +194,7 @@ class HealthCenterIssueRuleOutput(OraclePrivilegeReq):
         "querystring": {
             "cmdb_id": "2526",
             "schema_name": "ISQLAUDIT_DEV",
-            "task_record_id": "27",
+            "task_record_id": "47",
             # "rule_name": "TABLE_MIS_PK",
             # "rule_name": "SEQ_CACHESIZE",
             "rule_name": "SQL_LOOP_NUM",
