@@ -6,6 +6,7 @@ __all__ = [
 
 from typing import Union, Generator
 
+import sqlparse
 from mongoengine import StringField, IntField, DateTimeField
 
 from utils.datetime_utils import *
@@ -23,6 +24,7 @@ class OracleStatsSQLText(OracleBaseCurrentTaskSchemaStatistics):
     last_appearance = DateTimeField()
     count = IntField(default=0)
     longer_sql_text = StringField(default="")
+    longer_sql_text_prettified = StringField(default="")
 
     meta = {
         "collection": "oracle_stats_sql_text",
@@ -63,12 +65,22 @@ class OracleStatsSQLText(OracleBaseCurrentTaskSchemaStatistics):
             }
         )
         for one in ret:
+            sql_text_prettified = one["_id"]["longer_sql_text"]
+            try:
+                # 尝试美化sql文本
+                sql_text_prettified = sqlparse.format(
+                    sql_text_prettified,
+                    reindent_aligned=True
+                )
+            except:
+                pass
             doc = cls(
                 sql_id=one["_id"]["sql_id"],
                 first_appearance=one["first_appearance"],
                 last_appearance=one["last_appearance"],
                 count=one["count"],
-                longer_sql_text=one["_id"]["longer_sql_text"]
+                longer_sql_text=one["_id"]["longer_sql_text"],
+                longer_sql_text_prettified=sql_text_prettified
             )
             cls.post_generated(
                 doc=doc,
