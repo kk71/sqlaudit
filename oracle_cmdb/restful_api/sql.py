@@ -1,7 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from copy import deepcopy
-from typing import List, Dict, Union, NoReturn
+from typing import List, Dict, Union
 from collections import defaultdict
 
 from utils.datetime_utils import *
@@ -43,6 +42,7 @@ class SQLHandler(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_gt0_int,
             "sql_id": scm_unempty_str,
+            scm_optional("rule_name", default=None): scm_empty_as_optional(scm_str),
             **self.gen_date(
                 date_start=now.shift(weeks=-1).date(),
                 date_end=now.date()
@@ -50,6 +50,7 @@ class SQLHandler(OraclePrivilegeReq):
         }))
         cmdb_id: int = params.pop("cmdb_id")
         sql_id: str = params.pop("sql_id")
+        rule_name: str = params.pop("rule_name")
         date_start, date_end = self.pop_date(params)
 
         with make_session() as session:
@@ -71,12 +72,15 @@ class SQLHandler(OraclePrivilegeReq):
             ).order_by("-create_time").first()
 
             # 时间段内触犯的风险规则信息
+            dollar_match = {
+                "task_record_id": {"$in": lstri_in_date_period},
+                "sql_id": sql_id
+            }
+            if rule_name:
+                dollar_match["rule_name"] = rule_name
             risk_rules = OracleStatsSchemaRiskSQL.aggregate(
                 {
-                    "$match": {
-                        "task_record_id": {"$in": lstri_in_date_period},
-                        "sql_id": sql_id
-                    }
+                    "$match": dollar_match
                 },
                 {
                     "$group": {
@@ -158,6 +162,7 @@ class SQLHandler(OraclePrivilegeReq):
         "querystring": {
             "cmdb_id": 2526,
             "sql_id": "8x6q9fm2xfpmu",
+            "//rule_name": "WHERE_FUNC",
             "//date_start": "时间范围可选，默认就是近来的7天",
             "//date_end": "",
         }
