@@ -64,7 +64,8 @@ class CMDBTask(BaseModel):
             self,
             date_start: Union[date, arrow.Arrow],
             date_end: Union[date, arrow.Arrow],
-            task_record_id_supposed_to_be_succeed: Optional[int] = None
+            task_record_id_supposed_to_be_succeed: Optional[int] = None,
+            no_none: bool = False
             ) -> Dict[date, int]:
         """
         获取某个日期区间内每一天的最后一次成功的task_record_id字典
@@ -73,6 +74,7 @@ class CMDBTask(BaseModel):
         :param task_record_id_supposed_to_be_succeed:
                 对于某个正在进行的任务，需要将它也包括到成功的任务中。
                 但是这个task_record_id必须是当前任务的
+        :param no_none: 如果某一天没有成功的采集任务，是否该日期就不需要返回了？默认是要返回None的
         :return:
         """
         session = self._sa_instance_state.session
@@ -118,6 +120,8 @@ class CMDBTask(BaseModel):
             TaskRecord.start_time)  # 排序很关键
         for dt, task_record_id in qs:
             ret[dt.date()] = task_record_id
+        if no_none:
+            ret = {k: v for k, v in ret.items() if v}
         return ret
 
     @classmethod

@@ -263,7 +263,7 @@ $(document).ready(function(){
                         "url": req[0],
                         "method": req[1],
                         "docstring": req[2],
-                        "argument": json.dumps(req[3], indent=4),
+                        "argument": json.dumps(req[3], indent=4, ensure_ascii=False),
                         "the_id": req[4]
                     })
         self.resp_not_found()
