@@ -24,7 +24,8 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
     sql_id = StringField(null=True)
     level = IntField()
     rule_name = StringField()
-    rule_desc = ListField(default=list)
+    rule_desc = StringField(default="")
+    rule_solution = ListField(default=list)
     issue_num = IntField(default=0)
     sql_stat = DictField(default=lambda: {
         "elapsed_time_total": None,
@@ -62,6 +63,7 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             doc.level = an_issue.level
             doc.rule_name = the_rule.name
             doc.rule_desc = the_rule.desc
+            doc.rule_solution = the_rule.solution
             doc.issue_num += 1
             if not all(doc.sql_stat.values()):
                 the_stat = OracleSQLStatToday.filter(

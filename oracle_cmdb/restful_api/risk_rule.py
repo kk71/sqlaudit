@@ -28,8 +28,8 @@ class RiskRuleHandler(OraclePrivilegeReq):
 
             scm_optional("schema_name", default=None): scm_str,
             scm_optional("rule_name", default=None): scm_dot_split_str,
-            scm_optional("level", default=None): scm_empty_as_optional(
-                scm_one_of_choices(ALL_RULE_LEVELS)),
+            scm_optional("level", default=None): self.scm_one_of_choices(
+                ALL_RULE_LEVELS, use=scm_int),
             **self.gen_p()
         }))
         cmdb_id = params.pop("cmdb_id")

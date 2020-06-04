@@ -1,7 +1,7 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 __all__ = [
-    "OracleStatsSQLPLan"
+    "OracleStatsSQLText"
 ]
 
 from typing import Union, Generator
@@ -9,27 +9,25 @@ from typing import Union, Generator
 from mongoengine import StringField, IntField, DateTimeField
 
 from utils.datetime_utils import *
-from ... import const
 from .base import *
 from ..base import OracleBaseStatistics
-from ...capture import OracleSQLPlan
+from ...capture import OracleSQLText
 
 
-# TODO 写完了才发现这个统计数据似乎没啥用？暂时先不启用吧
-# @OracleBaseStatistics.need_collect()
-class OracleStatsSQLPLan(OracleBaseCurrentTaskSchemaStatistics):
-    """执行计划出现时间统计"""
+@OracleBaseStatistics.need_collect()
+class OracleStatsSQLText(OracleBaseCurrentTaskSchemaStatistics):
+    """SQL文本出现时间统计"""
 
     sql_id = StringField(null=False)
-    plan_hash_value = IntField(null=False)
     first_appearance = DateTimeField()
     last_appearance = DateTimeField()
+    count = IntField(default=0)
+    longer_sql_text = StringField(default="")
 
     meta = {
-        "collection": "oracle_stats_sql_plan",
+        "collection": "oracle_stats_sql_text",
         "indexes": [
-            "sql_id",
-            ("sql_id", "plan_hash_value")
+            "sql_id"
         ]
     }
 
@@ -41,12 +39,11 @@ class OracleStatsSQLPLan(OracleBaseCurrentTaskSchemaStatistics):
             cls,
             task_record_id: int,
             cmdb_id: Union[int, None],
-            **kwargs) -> Generator["OracleStatsSQLPLan", None, None]:
+            **kwargs) -> Generator["OracleStatsSQLText", None, None]:
 
-        ret = OracleSQLPlan.aggregate(
+        ret = OracleSQLText.aggregate(
             {
                 "$match": {
-                    "two_days_capture": const.SQL_TWO_DAYS_CAPTURE_TODAY,
                     'cmdb_id': cmdb_id,
                     'create_time': {"$gte": arrow.now().shift(
                         months=-cls.LATEST_MONTHS).datetime}
@@ -56,20 +53,22 @@ class OracleStatsSQLPLan(OracleBaseCurrentTaskSchemaStatistics):
                 "$group": {
                     "_id": {
                         "sql_id": "$sql_id",
-                        "plan_hash_value": "$plan_hash_value",
-                        "schema_name": "$schema_name"
+                        "schema_name": "$schema_name",
+                        "longer_sql_text": "$longer_sql_text"
                     },
                     "first_appearance": {"$min": "$create_time"},
                     "last_appearance": {"$max": "$create_time"},
+                    "count": {"$sum": 1}
                 }
             }
         )
         for one in ret:
             doc = cls(
                 sql_id=one["_id"]["sql_id"],
-                plan_hash_value=one["_id"]["plan_hash_value"],
                 first_appearance=one["first_appearance"],
-                last_appearance=one["last_appearance"]
+                last_appearance=one["last_appearance"],
+                count=one["count"],
+                longer_sql_text=one["_id"]["longer_sql_text"]
             )
             cls.post_generated(
                 doc=doc,
