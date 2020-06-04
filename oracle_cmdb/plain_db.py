@@ -23,18 +23,9 @@ class OraclePlainConnector:
                  port,
                  username,
                  password,
-                 sid=None,
-                 service_name=None):
-        assert sid or service_name
-        self.ip_address = ip_address
-        self.port = port
-        self.username = username
-        self.password = password
-        self.sid = sid
-        self.service_name = service_name
-
-        self.dsn = cx_Oracle.makedsn(self.ip_address, str(self.port), self.sid)
-        self.conn = cx_Oracle.connect(self.username, self.password, self.dsn)
+                 **kwargs):
+        self.dsn = cx_Oracle.makedsn(ip_address, str(port), **kwargs)
+        self.conn = cx_Oracle.connect(username, password, self.dsn)
         self.cursor = self.conn.cursor()
 
     def modify(self, sql, params=None):
