@@ -66,7 +66,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
         params = self.get_query_args(Schema({
             scm_optional("filter_sql_type", default=None):
-                And(scm_int, scm_one_of_choices(const.ALL_SQL_TYPE)),
+                And(scm_str, scm_one_of_choices(const.ALL_SQL_TYPE)),
         }))
         file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")
