@@ -25,9 +25,11 @@ imports = []
 task_routes = {}
 task_queues = set()
 
+
 # 指定需要搜索任务的packages
 
 PACKAGES_TO_SEARCH_FOR_TASKS = (
     "task",
-    "oracle_cmdb"
+    "oracle_cmdb",
+    "ticket"
 )
