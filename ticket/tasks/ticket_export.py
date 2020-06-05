@@ -9,9 +9,11 @@ import os.path
 import xlsxwriter
 
 import settings
-from task.task import BaseTask
+import task.const
+from task.task import *
 
 
+@register_task(task.const.TASK_TYPE_TICKET_EXPORT)
 class TicketExport(BaseTask):
     """导出工单"""
 
