@@ -95,7 +95,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             script_object.sub_ticket_count = len(temp_script_statements_to_this_script)
             if script_object.sub_ticket_count:
                 temp_script_statements += temp_script_statements_to_this_script
-
+        if not temp_script_statements:
+            return self.resp_bad_req(msg="请正确选择过滤和脚本sql之间的关系")
         TempScriptStatement.objects.insert(temp_script_statements)
         self.resp_created({
             "scripts": [
