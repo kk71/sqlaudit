@@ -8,6 +8,8 @@ __all__ = [
 import sys
 import pickle
 import traceback
+import asyncio
+from typing import Any
 
 from kombu import Exchange, Queue
 
@@ -17,6 +19,7 @@ from models.sqlalchemy import *
 from . import celery_conf
 from .celery import celery_app
 from .task_record import *
+from . import const, exceptions
 
 
 def add_task(task_type: str, module_to_import: str):
@@ -120,3 +123,26 @@ class BaseTask(celery_app.Task):
         task_record_id = cls._shoot(**kwargs)
         cls.task_instance.delay(task_record_id, **kwargs)
         return task_record_id
+
+    @classmethod
+    async def async_shoot(
+            cls,
+            async_task_timeout: int = settings.TASK_WAITING_TIMEOUT,
+            **kwargs) -> Any:
+        """异步调用任务，等待返回"""
+        task_record_id = cls.shoot(**kwargs)
+        timeout_start = arrow.now()
+        while True:
+            with make_session() as session:
+                task_record = session.query(TaskRecord).filter_by(
+                    task_record_id=task_record_id).first()
+                if task_record.status == const.TASK_DONE:
+                    return pickle.loads(task_record.output)
+                elif task_record.status == const.TASK_FAILED:
+                    raise exceptions.TaskFailedException(
+                        f"task {task_record_id} failed.")
+                else:
+                    pass
+            if (arrow.now() - timeout_start).seconds >= async_task_timeout:
+                raise exceptions.TaskWaitingTimeoutException
+            await asyncio.sleep(settings.TASK_SLEEP_PERIOD)

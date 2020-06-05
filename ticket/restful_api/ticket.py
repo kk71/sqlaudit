@@ -9,12 +9,12 @@ from ticket import const
 from .base import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
-from utils.conc_utils import AsyncTimeout
 from ..sub_ticket import SubTicket
 from ..ticket import Ticket
 from cmdb.cmdb import *
 from models.sqlalchemy import *
 from restful_api.modules import *
+from ..tasks import TicketExport
 
 
 class ArchiveHandler(TicketReq):
@@ -289,9 +289,7 @@ class TicketExportHandler(TicketReq):
                 'all_work_data': all_work_data
             }
         )
-
-        await AsyncTimeout(10).async_thr(
-            past.utils.utils.create_worklist_xlsx, filename, params_dict)
+        await TicketExport.async_shoot(filename=filename, parame_dict=params_dict)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     get.argument = {

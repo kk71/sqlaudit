@@ -1,7 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-from prettytable import PrettyTable
-
 import ticket.const
 from restful_api.modules import *
 from utils.schema_utils import *

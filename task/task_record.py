@@ -1,5 +1,9 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+__all__ = [
+    "TaskRecord"
+]
+
 from typing import Optional
 
 from sqlalchemy import Column, Integer, String, DateTime

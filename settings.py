@@ -23,11 +23,15 @@ def env_get(k, default, parser=None, comment=""):
 
 # ==================  settings ===================
 
-# web server settings
 
-DEBUG = True
+# Rule
 RULE_DEBUG = env_get("RULE_DEBUG", 0, int)
+
+# API Doc
 API_DOC = env_get("API_DOC", 0, int)
+
+# Web server
+DEBUG = True
 WEB_IP = env_get("WEB_IP", "193.0.0.9")
 WEB_PORT = env_get("WEB_PORT", 8000)
 JWT_ALGORITHM = env_get("JWT_ALGORITHM", "HS256")
@@ -35,18 +39,24 @@ JWT_SECRET = env_get("JWT_SECRET", "bZJc2sWbQLKos6GkHn/VB9oXwQt8S0R0kRvJ5/xJ89E1
 JWT_EXPIRE_SEC = env_get("JWT_EXPIRE_SEC", 60 * 60 * 24, int)
 UPLOAD_DIR = env_get("UPLOAD_DIR", "/tmp")
 STATIC_DIR = path.join(SETTINGS_FILE_DIR, "downloads")
-STATIC_PREFIX = "/downloads"
 EXPORT_DIR = path.join(STATIC_DIR, "export")
 HEALTH_DIR = path.join(STATIC_DIR, "health")
+STATIC_PREFIX = "/downloads"
 EXPORT_PREFIX = "/downloads/export"
 EXPORT_PREFIX_HEALTH = "/downloads/health/"
-TIMING_ENABLED = bool(env_get("TIMING_ENABLED", 1, int))
-TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.5, float)
 ADMIN_LOGIN_USER = "admin"
 CLIENT_NAME = env_get("CLIENT_NAME", "Client Online Audit Report")  # change client name, this is for report mail
 VERSION_FILE = path.join(SETTINGS_FILE_DIR, "version.json")
 ECHO_SQL_WHEN_FAIL = env_get("ECHO_SQL_WHEN_FAIL", 1, int)
 ORACLE_SQL_ID_BULK_NUM = env_get("ORACLE_SQL_ID_BULK_NUM", 100, int)
+
+# Timing util
+TIMING_ENABLED = bool(env_get("TIMING_ENABLED", 1, int))
+TIMING_THRESHOLD = env_get("TIMING_THRESHOLD", 0.5, float)
+
+# Task
+TASK_SLEEP_PERIOD = env_get("TASK_SLEEP_PERIOD", 2, int)
+TASK_WAITING_TIMEOUT = env_get("TASK_WAITING_TIMEOUT", 10, int)
 
 
 REDIS_IP_DEFAULT = env_get("REDIS_IP_DEFAULT", "193.0.0.3")
