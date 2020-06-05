@@ -57,7 +57,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
             if schema_name:
                 risk_rule_q = risk_rule_q.filter(schema_name=schema_name)
             if rule_name:
-                risk_rule_q = risk_rule_q.filter(rule__desc__in=rule_name)
+                risk_rule_q = risk_rule_q.filter(rule__name__in=rule_name)
             if level:
                 risk_rule_q = risk_rule_q.filter(level=level)
             risk_rule = [x.to_dict() for x in risk_rule_q]
@@ -71,7 +71,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
             "date_start": "2020-05-20",
             "date_end": "2020-05-21",
             "//schema_name": "APEX_040200",
-            "//rule_name": "序列CACHESIZE过小",
+            "//rule_name": "SUBQUERY_SELECT",
             "//level": "2",
             "//page": "1",
             "//per_page": "10"
