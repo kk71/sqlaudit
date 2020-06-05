@@ -52,7 +52,7 @@ class OracleSQLPlan(
     io_cost = StringField(null=True)
     filter_predicates = StringField(null=True)
     access_predicates = StringField(null=True)
-    time = StringField(null=True)
+    time = IntField(null=True)
 
     meta = {
         "collection": "oracle_sqlplan",

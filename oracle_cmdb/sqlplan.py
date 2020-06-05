@@ -39,6 +39,9 @@ class BaseOracleSQLPlanCommon:
             m, s = divmod(to_add[-1] if to_add[-1] and to_add[-1] != " " else 0, 60)
             h, m = divmod(m, 60)
             to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
+            for i in range(3, 6):  # convert to int if range 3~5 is not None
+                if to_add[i] and to_add[i].strip():
+                    to_add[i] = int(to_add[i])
             if 8 > len(str(to_add[3])) > 5:
                 to_add[3] = str(round(to_add[3] // 1024)) + "K"
                 if len(str(to_add[3])) >= 8:
