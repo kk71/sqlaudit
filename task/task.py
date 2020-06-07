@@ -137,7 +137,7 @@ class BaseTask(celery_app.Task):
                 task_record = session.query(TaskRecord).filter_by(
                     task_record_id=task_record_id).first()
                 if task_record.status == const.TASK_DONE:
-                    return pickle.loads(task_record.output)
+                    return pickle.loads(task_record.output.encode())
                 elif task_record.status == const.TASK_FAILED:
                     raise exceptions.TaskFailedException(
                         f"task {task_record_id} failed.")
