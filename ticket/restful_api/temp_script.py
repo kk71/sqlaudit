@@ -35,7 +35,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     get.argument = {
         "querystring": {
-            "script_id": "",
+            "script_id": "7ac16b313ae8471e9ba3f34d35e1968e",
             "//keyword": "",
             "//page": 1,
             "//per_page": 10
@@ -43,12 +43,12 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
     }
 
     def patch(self):
-        """编辑上传的临时sql脚本数据"""
+        """编辑及删除上传的临时sql脚本一条sql数据"""
 
         params = self.get_json_args(Schema({
             "statement_id": scm_str,
 
-            scm_optional("sql_text"): scm_unempty_str,
+            "sql_text": scm_unempty_str,
             scm_optional("comment"): scm_str,
             scm_optional("delete", default=False): scm_bool
         }))
@@ -73,8 +73,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     patch.argument = {
         "json": {
-            "statement_id": "",
-            "//sql_text": "emmm",
+            "statement_id": "5eda0cc6e88af5ef7e637bd4",
+            "sql_text": "select * from t_cmdb;",
             "//comment": "备注",
             "//delete": False
         }
@@ -90,7 +90,7 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
         params = self.get_query_args(Schema({
             scm_optional("filter_sql_type", default=None):
-                And(scm_int, scm_one_of_choices(parsed_sql.const.ALL_SQL_TYPE)),
+                And(scm_str, scm_one_of_choices(parsed_sql.const.ALL_SQL_TYPE)),
         }))
         file_objects = self.request.files.get("file")
         filter_sql_type = params.pop("filter_sql_type")
@@ -119,7 +119,8 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
             script_object.sub_ticket_count = len(temp_script_statements_to_this_script)
             if script_object.sub_ticket_count:
                 temp_script_statements += temp_script_statements_to_this_script
-
+        if not temp_script_statements:
+            return self.resp_bad_req(msg="请正确选择过滤和脚本sql之间的关系")
         TempScriptStatement.objects.insert(temp_script_statements)
         self.resp_created({
             "scripts": [
@@ -132,6 +133,6 @@ class UploadTempScriptHandler(TicketReq, abc.ABC):
 
     post.argument = {
         "json": {
-            "//filter_sql_type": ""
+            "//filter_sql_type": "DDL"
         }
     }

@@ -181,7 +181,7 @@ class TempScriptStatement(BaseDoc):
                 ** parsed_sql_statement.serialize()
             )
             for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
-            if filter_sql_type is None or parsed_sql_statement.sql_type == filter_sql_type
+            if filter_sql_type is None or parsed_sql_statement.sql_type != filter_sql_type
         ]
 
     def gen_tokens(self):
