@@ -23,6 +23,13 @@ class SQLPlanHandler(TicketReq):
             'sql_plan_text': OracleTicketSQLPlan.sql_plan_table(**params),
         })
 
+    get.argument = {
+        "querystring": {
+            "statement_id": "juINDpGfSN2t3ukow7SoSw==",
+            "plan_id": ""
+        }
+    }
+
 
 @as_view("issue", group="ticket")
 class SubTicketIssueHandler(TicketReq):
@@ -66,3 +73,14 @@ class SubTicketIssueHandler(TicketReq):
         the_ticket.calculate_score()  # 修改了之后重新计算整个工单的分数
         the_ticket.save()
         self.resp_created(sub_ticket.to_dict())
+
+    patch.argument = {
+        "json": {
+        "statement_id": "juINDpGfSN2t3ukow7SoSw==",
+        "ticket_rule_name": "SELECT_ANY",
+        "analyse_type": "STATIC",
+        "//action":"delete",
+        "//update": {
+            "minus_score": ""}
+        }
+    }

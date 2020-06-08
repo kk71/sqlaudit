@@ -122,9 +122,9 @@ class SubTicketHandler(TicketReq):
 
     patch.argument = {
         "json": {
-            "statement_id": "",
-            "sql_text": "",
-            "comments": ""
+            "statement_id": "juINDpGfSN2t3ukow7SoSw==",
+            "//sql_text": "",
+            "//comments": "xx"
         }
     }
 
