@@ -14,9 +14,9 @@ class OracleRelatedUserHandler(auth.restful_api.user.UserHandler):
     def get(self):
         """与oracle相关的平台登录用户列表"""
         params = self.get_query_args(Schema({
-            scm_optional("has_privilege", default=None): And(
-                scm_dot_split_str,
-                scm_subset_of_choices(PRIVILEGE.get_all_privilege_id())
+            scm_optional("has_privilege", default=None): self.scm_subset_of_choices(
+                PRIVILEGE.get_all_privilege_id(),
+                use=scm_dot_split_int
             ),
             **self.gen_p()
         }))

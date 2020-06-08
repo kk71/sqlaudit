@@ -63,17 +63,20 @@ class BaseReq(RequestHandler):
         )
 
     @classmethod
-    def scm_subset_of_choices(cls, choices, allow_empty=False):
-        if not allow_empty:
-            return cls.scm_or_with_error_msg(
-                scm_subset_of_choices(choices),
-                e=f"should be subset of {choices}"
-            )
-        else:
-            return cls.scm_or_with_error_msg(
-                scm_empty_as_optional(scm_subset_of_choices(choices)),
-                e=f"should be subset of {choices}"
-            )
+    def scm_subset_of_choices(
+            cls,
+            choices: Union[List, Tuple],
+            use: Optional[Callable] = None,
+            allow_empty: bool = False):
+        f = scm_subset_of_choices(choices)
+        if use is not None:
+            f = scm_or(use, f)
+        if allow_empty:
+            f = scm_empty_as_optional(f),
+        return cls.scm_or_with_error_msg(
+            f,
+            e=f" should be subset of {choices}"
+        )
 
     def get_json_args(self,
                       schema_object: Schema = None,
