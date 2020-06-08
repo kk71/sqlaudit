@@ -55,9 +55,7 @@ class SubTicketIssue(
         self.minus_score = minus_score
         for output_param in the_rule.output_params:
             the_output_data_to_this_param = output_data.get(output_param.name, None)
-            if not output_param.validate_data_type(the_output_data_to_this_param):
-                raise rule.exceptions.RuleCodeInvalidParamTypeException(
-                    f"{str(the_rule)}-{output_param.name}: {the_output_data_to_this_param}")
+            output_param.validate_data_type(the_output_data_to_this_param)
             self.output_params[output_param.name] = the_output_data_to_this_param
 
 
