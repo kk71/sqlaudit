@@ -6,7 +6,7 @@ from models.sqlalchemy import make_session
 from utils.schema_utils import *
 from ..ticket import OracleTicket
 from ...cmdb import *
-from .. import task
+from .. import tasks
 from ticket.task_name_utils import *
 from cmdb.const import DB_ORACLE
 
@@ -53,7 +53,7 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 )
             new_ticket.from_dict(params)
             new_ticket.save()
-            task.OracleTicketAnalyse.shoot(
+            tasks.OracleTicketAnalyse.shoot(
                 ticket_id=str(new_ticket.ticket_id), script_ids=script_ids)
 
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
