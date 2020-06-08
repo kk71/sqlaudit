@@ -12,7 +12,7 @@ __all__ = [
 
 import abc
 import json
-from typing import NoReturn, List, Callable
+from typing import NoReturn, List, Callable, Optional
 
 import arrow
 from bson import ObjectId
@@ -80,8 +80,18 @@ class BaseDoc(DynamicDocument):
                 iter_by: Callable = None,
                 datetime_to_str: bool = True,
                 recurse: dict = None,
+                float_round: Optional[int] = 4,
                 **kwargs) -> dict:
-        """转换为字典"""
+        """
+        转换为字典
+        :param iter_if:
+        :param iter_by:
+        :param datetime_to_str: 日期时间是否转为文本
+        :param recurse: 递归调用的输入参数（通常不建议使用者传入该参数）
+        :param float_round: 是否给float类型的值保留精度，默认保留4位
+        :param kwargs:
+        :return:
+        """
         d = {}
         if isinstance(recurse, dict):
             items = recurse.items()
@@ -96,6 +106,8 @@ class BaseDoc(DynamicDocument):
                 continue
             if iter_by:
                 v = iter_by(k, v)
+            if float_round and isinstance(v, float):
+                v = round(v, float_round)
             if isinstance(v, ObjectId):
                 v = str(v)
             if isinstance(v, dict):
