@@ -1,5 +1,6 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
+import cmdb.const
 import rule.const
 from restful_api.modules import *
 from utils.schema_utils import *
@@ -9,7 +10,6 @@ from ...restful_api.base import OraclePrivilegeReq
 from ticket.single_sql import SingleSQLForTicket
 from parsed_sql.parsed_sql import ParsedSQL
 from rule.rule_jar import *
-from cmdb.const import DB_ORACLE
 
 
 @as_view(group="ticket")
@@ -23,9 +23,9 @@ class QuickSQLAnalyse(OraclePrivilegeReq):
         }))
         sql_text = params.pop("sql_text")
 
-        rule_jar = RuleJar.gen_jar_with_entries(
+        rule_jar = RuleCartridgeJar.gen_jar_with_entries(
             rule.const.RULE_ENTRY_TICKET_STATIC_CMDB_INDEPENDENT,
-            db_type=DB_ORACLE
+            db_type=cmdb.const.DB_ORACLE
         )
         stasci = SubTicketAnalyseStaticCMDBIndependent(rule_jar)
         statements = ParsedSQL(sql_text)
@@ -46,7 +46,6 @@ class QuickSQLAnalyse(OraclePrivilegeReq):
             )
             ret.append(the_sub_ticket.to_dict())
         self.resp(ret)
-
 
     post.argument = {
         "json":{

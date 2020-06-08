@@ -39,7 +39,7 @@ class SubTicketIssueHandler(TicketReq):
 
         params = self.get_json_args(Schema({
             "statement_id": scm_unempty_str,
-            "ticket_rule_name": scm_unempty_str,
+            "rule_name": scm_unempty_str,
             "analyse_type": scm_one_of_choices(
                 ticket.const.ALL_TICKET_ANALYSE_TYPE),
             scm_optional("action", default="delete"):
@@ -50,7 +50,7 @@ class SubTicketIssueHandler(TicketReq):
         }))
 
         statement_id = params.pop("statement_id")
-        ticket_rule_name = params.pop("ticket_rule_name")
+        rule_name = params.pop("rule_name")
         analyse_type = params.pop("analyse_type")
         action = params.pop("action")
 
@@ -58,7 +58,7 @@ class SubTicketIssueHandler(TicketReq):
         embedded_list = getattr(sub_ticket, analyse_type.lower())
         operated = False
         for n, sub_ticket_item in enumerate(embedded_list):
-            if sub_ticket_item.rule_name == ticket_rule_name:
+            if sub_ticket_item.rule_name == rule_name:
                 if action == "delete":
                     del embedded_list[n]  # 目前只支持删除子工单的规则结果
                 else:
@@ -77,10 +77,10 @@ class SubTicketIssueHandler(TicketReq):
     patch.argument = {
         "json": {
         "statement_id": "juINDpGfSN2t3ukow7SoSw==",
-        "ticket_rule_name": "SELECT_ANY",
+        "rule_name": "SELECT_ANY",
         "analyse_type": "STATIC",
         "//action":"delete",
         "//update": {
-            "minus_score": ""}
+            "minus_score": "1"}
         }
     }
