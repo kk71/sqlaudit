@@ -39,6 +39,6 @@ class OracleTicket(ticket.ticket.Ticket):
         }
         for i in ticket_stats:
             chinese_status_name = ticket.const.ALL_TICKET_STATUS_CHINESE[
-                [i["_id"]["status"]]]
+                i["_id"]["status"]]
             ticket_stats_dict[chinese_status_name] += i["count"]
         return ticket_stats_dict
