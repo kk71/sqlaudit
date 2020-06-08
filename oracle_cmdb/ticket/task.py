@@ -5,19 +5,21 @@ __all__ = [
 ]
 
 from models import init_models
+
 init_models()
 
 import ticket.const
 import ticket.exceptions
 import rule.const
-import utils.const
 from models.sqlalchemy import make_session
 from .analyse import OracleSubTicketAnalyse
 from .ticket import OracleTicket
 from .sub_ticket import OracleSubTicket
 from ticket.ticket import TempScriptStatement, TicketScript
-from parsed_sql.single_sql import SingleSQL
+from ticket.single_sql import SingleSQLForTicket
+from cmdb.cmdb import CMDB
 from rule.rule_jar import RuleJar
+from cmdb.const import DB_ORACLE
 
 
 def ticket_analyse(ticket_id: str, script_ids: [str]):
@@ -35,9 +37,9 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
     sub_tickets = []
     scripts: {str: TicketScript} = dict()
     static_rules = RuleJar.gen_jar_with_entries(
-        rule.const.RULE_ENTRY_TICKET_STATIC, db_type=utils.const.DB_ORACLE)
+        rule.const.RULE_ENTRY_TICKET_STATIC, db_type=DB_ORACLE)
     dynamic_rules = RuleJar.gen_jar_with_entries(
-        rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=utils.const.DB_ORACLE)
+        rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=DB_ORACLE)
     with make_session() as session:
         cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
         for the_script_id in script_ids:
@@ -45,10 +47,10 @@ def ticket_analyse(ticket_id: str, script_ids: [str]):
                 script__script_id=the_script_id).order_by("position")
             sqls = [
                 # {single-sql}: 格式化成通用的sql结构
-                SingleSQL.gen_from_temp_script(ts) for ts in statement_q
+                SingleSQLForTicket.gen_from_temp_script(ts) for ts in statement_q
             ]
             for the_statement in statement_q:
-                single_sql = SingleSQL.gen_from_temp_script(the_statement)
+                single_sql = SingleSQLForTicket.gen_from_temp_script(the_statement)
                 osta = OracleSubTicketAnalyse(
                     static_rules=static_rules,
                     dynamic_rules=dynamic_rules,

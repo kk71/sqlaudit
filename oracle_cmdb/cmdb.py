@@ -97,12 +97,12 @@ class OracleCMDB(CMDB):
 
     def check_privilege(self) -> bool:
         user_sys_privs = ("SELECT ANY TABLE",)
-        sql = f"select * from user_sys_privs where username='{self.user_name.upper()}'"
+        sql = f"select * from user_sys_privs where username='{self.username.upper()}'"
         ret = self.build_connector().select_dict(sql, one=False)
         all_privileges = {i["privilege"] for i in ret}
         for priv in user_sys_privs:
             if priv not in all_privileges:
-                print(f"* fatal: this privilege required: {priv} for {self.user_name.upper()}")
+                print(f"* fatal: this privilege required: {priv} for {self.username.upper()}")
                 return False
         return True
 

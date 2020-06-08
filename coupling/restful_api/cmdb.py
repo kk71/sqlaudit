@@ -1,5 +1,6 @@
 __all__ = [
-    "BaseCMDBHandler"
+    "CMDBHandler",
+    "CMDBAggregationHandler"
 ]
 
 from typing import List, Dict
@@ -87,9 +88,9 @@ class CMDBHandler(OraclePrivilegeReq):
             # 对分页之后的纳管库列表补充额外数据
             last_cmdb_task_record_id_dict = OracleCMDBTaskCapture. \
                 last_login_user_entry_cmdb(
-                    session,
-                    self.current_user
-                )
+                session,
+                self.current_user
+            )
             for i in ret:
                 i["stats"] = last_cmdb_task_record_id_dict[i["cmdb_id"]]
 

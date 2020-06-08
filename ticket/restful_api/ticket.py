@@ -17,11 +17,14 @@ from restful_api.modules import *
 from ..tasks import TicketExport
 
 
+@as_view("archive", group="ticket")
 class ArchiveHandler(TicketReq):
 
     def get(self):
-        """(DEPRECATED)线下工单的外层归档列表，按照日期，工单类型，审核结果来归档"""
-
+        """线下工单的外层归档列表，
+        按照日期，工单状态归档，
+        展现工单数量，动静态问题数量
+        """
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE)
 
         params = self.get_query_args(Schema({
@@ -86,6 +89,16 @@ class ArchiveHandler(TicketReq):
         items, p = self.paginate(rr, **p)
         self.resp(items, **p)
 
+    get.argument = {
+        "querystring": {
+            "//status": "2",
+            "date_start": "2020-05-25",
+            "date_end": "2020-06-07",
+            "page": "1",
+            "per_page": "10"
+        }
+    }
+
 
 class TicketHandler(TicketReq):
 
@@ -144,6 +157,18 @@ class TicketHandler(TicketReq):
 
         self.resp(ret, **p)
 
+    get.argument = {
+        "querystring": {
+            "//status": "2",
+            "//keyword": "",
+            "//ticket_id": "5edcc7d1568d8355c5dab195",
+            "date_start": "2020-06-07",
+            "date_end": "2020-06-07",
+            "page": "1",
+            "per_page": "10"
+        }
+    }
+
     def post(self):
         """提交工单"""
         raise NotImplementedError
@@ -168,6 +193,14 @@ class TicketHandler(TicketReq):
         # TODO timing_send_work_list_status.delay(ticket.to_dict())
         return self.resp_created(msg="更新成功")
 
+    patch.argument = {
+        "json": {
+            "ticket_id": "5edcc7d1568d8355c5dab195",
+            "//audit_comments": "",
+            "status": "3"
+        }
+    }
+
     def delete(self):
         """删除工单"""
 
@@ -181,6 +214,12 @@ class TicketHandler(TicketReq):
         ticket.delete()
         SubTicket.filter(ticket_id=ticket_id).delete()
         self.resp(msg="已删除")
+
+    delete.argument = {
+        "json": {
+            "ticket_id": "5edcc4ed3c0f3c30fcf3d91a"
+        }
+    }
 
 
 @as_view("export", group="ticket")
@@ -199,9 +238,9 @@ class TicketExportHandler(TicketReq):
         work_list = the_ticket.to_dict(
             iter_if=lambda k, v: k not in ("scripts",),
             iter_by=lambda k, v:
-                const.ALL_TICKET_STATUS_CHINESE[the_ticket.status]
-                if k == "status"
-                else v
+            const.ALL_TICKET_STATUS_CHINESE[the_ticket.status]
+            if k == "status"
+            else v
         )
 
         # 主要信息

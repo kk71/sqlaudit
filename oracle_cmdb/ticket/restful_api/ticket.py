@@ -1,6 +1,5 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
-import utils.const
 import ticket.restful_api.ticket
 from restful_api.modules import *
 from models.sqlalchemy import make_session
@@ -9,6 +8,7 @@ from ..ticket import OracleTicket
 from ...cmdb import *
 from .. import task
 from ticket.task_name_utils import *
+from cmdb.const import DB_ORACLE
 
 
 @as_view(group="ticket")
@@ -32,13 +32,13 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
         with make_session() as session:
             the_cmdb = session.query(OracleCMDB).filter(
                 OracleCMDB.cmdb_id == params["cmdb_id"]).first()
-            if the_cmdb.check_privilege():
+            if not the_cmdb.check_privilege():
                 return self.resp_forbidden(
                     msg=f"当前纳管库的登录用户({the_cmdb.username})权限不足，"
                         "无法做诊断分析。"
                 )
 
-            new_ticket = OracleTicket(db_type=utils.const.DB_ORACLE)
+            new_ticket = OracleTicket(db_type=DB_ORACLE)
             if not params["schema_name"]:
                 # 缺省就用纳管库登录的用户去执行动态审核（也就是explain plan for）
                 # 缺省的情况下，假设用户会在自己上传的sql语句里带上表的schema
@@ -55,5 +55,17 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
             new_ticket.save()
             task.ticket_analyse.delay(
                 ticket_id=str(new_ticket.ticket_id), script_ids=script_ids)
+
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
+    post.argument = {
+        "json": {
+            "cmdb_id": "2526",
+            "//schema_name": "APEX",
+            "audit_role_id": "61",
+            "//task_name": "",
+            "script_ids": ['701325c6081c4048b95d62d3e6fc29f1'],
+            "//online_username": "",
+            "//online_password": ""
+        }
+    }
