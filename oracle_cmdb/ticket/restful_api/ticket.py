@@ -57,3 +57,14 @@ class OracleTicketHandler(ticket.restful_api.ticket.TicketHandler):
                 ticket_id=str(new_ticket.ticket_id), script_ids=script_ids)
         self.resp_created(msg="已安排分析，请稍后查询分析结果。")
 
+    post.argument = {
+        "json": {
+            "cmdb_id": 2526,
+            "//schema_name": "",
+            "audit_role_id": 0,
+            "//task_name": "",
+            "script_ids": ["脚本id"],
+            "//online_username": "",
+            "//online_password": ""
+        }
+    }

@@ -43,7 +43,7 @@ class BaseSubTicketAnalyse(abc.ABC):
 class BaseSubTicketAnalyseStatic(BaseSubTicketAnalyse):
     """基础子工单分析"""
 
-    def __init__(self, static_rules: RuleJar):
+    def __init__(self, static_rules: BaseRuleJar):
         self.static_rules: RuleJar = static_rules
 
     @abc.abstractmethod

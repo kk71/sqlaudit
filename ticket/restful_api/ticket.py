@@ -144,6 +144,18 @@ class TicketHandler(TicketReq):
 
         self.resp(ret, **p)
 
+    get.argument = {
+        "querystring": {
+            "//status": 1,
+            "//keyword": "",
+            "//ticket_id": "",
+            "//date_start": "",
+            "//date_end": "",
+            "//page": 1,
+            "//per_page": 10
+        }
+    }
+
     def post(self):
         """提交工单"""
         raise NotImplementedError
@@ -168,6 +180,14 @@ class TicketHandler(TicketReq):
         # TODO timing_send_work_list_status.delay(ticket.to_dict())
         return self.resp_created(msg="更新成功")
 
+    patch.argument = {
+        "json": {
+            "ticket_id": "",
+            "//audit_comments": "",
+            "status": 2
+        }
+    }
+
     def delete(self):
         """删除工单"""
 
@@ -181,6 +201,12 @@ class TicketHandler(TicketReq):
         ticket.delete()
         SubTicket.filter(ticket_id=ticket_id).delete()
         self.resp(msg="已删除")
+
+    delete.argument = {
+        "json": {
+            "ticket_id": ""
+        }
+    }
 
 
 @as_view("export", group="ticket")

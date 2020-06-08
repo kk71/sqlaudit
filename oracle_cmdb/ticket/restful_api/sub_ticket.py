@@ -23,6 +23,13 @@ class SQLPlanHandler(TicketReq):
             'sql_plan_text': OracleTicketSQLPlan.sql_plan_table(**params),
         })
 
+    get.argument = {
+        "querystring": {
+            "statement_id": "",
+            "//plan_id": 1
+        }
+    }
+
 
 @as_view("issue", group="ticket")
 class SubTicketIssueHandler(TicketReq):
@@ -32,7 +39,7 @@ class SubTicketIssueHandler(TicketReq):
 
         params = self.get_json_args(Schema({
             "statement_id": scm_unempty_str,
-            "ticket_rule_name": scm_unempty_str,
+            "rule_name": scm_unempty_str,
             "analyse_type": scm_one_of_choices(
                 ticket.const.ALL_TICKET_ANALYSE_TYPE),
             scm_optional("action", default="delete"):
@@ -43,7 +50,7 @@ class SubTicketIssueHandler(TicketReq):
         }))
 
         statement_id = params.pop("statement_id")
-        ticket_rule_name = params.pop("ticket_rule_name")
+        rule_name = params.pop("rule_name")
         analyse_type = params.pop("analyse_type")
         action = params.pop("action")
 
@@ -51,7 +58,7 @@ class SubTicketIssueHandler(TicketReq):
         embedded_list = getattr(sub_ticket, analyse_type.lower())
         operated = False
         for n, sub_ticket_item in enumerate(embedded_list):
-            if sub_ticket_item.rule_name == ticket_rule_name:
+            if sub_ticket_item.rule_name == rule_name:
                 if action == "delete":
                     del embedded_list[n]  # 目前只支持删除子工单的规则结果
                 else:
@@ -66,3 +73,14 @@ class SubTicketIssueHandler(TicketReq):
         the_ticket.calculate_score()  # 修改了之后重新计算整个工单的分数
         the_ticket.save()
         self.resp_created(sub_ticket.to_dict())
+
+    patch.argument = {
+        "json": {
+            "statement_id": "",
+            "rule_name": "",
+            "analyse_type": "STATIC",
+            "//update": {
+                "minus_score": 1
+            }
+        }
+    }
