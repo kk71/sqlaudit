@@ -59,7 +59,7 @@ class PrivilegeHandler(PrivilegeReq):
     get.argument = {
         "querystring": {
             "//type": "2,3",
-            "//current_user": "True",
+            "//current_user": "1",
             "page": "1",
             "per_page": "10"
         },

@@ -75,7 +75,7 @@ class HealthCenterSchema(OraclePrivilegeReq):
         "querystring": {
             "//connect_name": "to_sqlaudit  ",
             "//schema_name": "ISQLAUDIT_DEV",
-            "//add_to_rate": "True",
+            "//add_to_rate": "1",
             "date_start": "2020-05-15",
             "date_end": "2020-05-20",
             "//page": "1",
