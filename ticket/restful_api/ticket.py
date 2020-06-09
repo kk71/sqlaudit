@@ -321,7 +321,6 @@ class TicketExportHandler(TicketReq):
         )
         await TicketExport.async_shoot(filename=filename, parame_dict=params_dict)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
-        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     get.argument = {
         "querystring": {
