@@ -2,7 +2,6 @@
 
 from os import path
 
-import xlsxwriter
 from mongoengine import Q
 
 import settings
@@ -13,6 +12,7 @@ from .base import *
 from .. import const
 from ..sub_ticket import SubTicket
 from ..ticket import Ticket
+from ..tasks.sub_ticket_export import SubTicketExport
 
 
 @as_view(group="ticket")
@@ -167,12 +167,12 @@ class SubTicketExportHandler(SubTicketHandler):
     def get(self):
         """导出子工单"""
         params = self.get_query_args(Schema({
-            "export_type": scm_one_of_choices(["all_filtered", "selected"]),
+            "export_type": scm_one_of_choices(["all", "selected"]),
 
             scm_optional(object): object
         }))
         export_type = params.pop("export_type")
-        if export_type == "all_filtered":
+        if export_type == "all":
             # 导出全部子工单按照条件过滤出来的结果
             q = self.filter_sub_ticket()
         elif export_type == "selected":
@@ -186,57 +186,20 @@ class SubTicketExportHandler(SubTicketHandler):
         else:
             assert 0
 
-        filename = f"export_sub_ticket_{arrow.now().timestamp}.xlsx"
-        full_filename = path.join(settings.EXPORT_DIR, filename)
-        wb = xlsxwriter.Workbook(full_filename)
-        ws = wb.add_worksheet('子工单报告')
-        ws.set_column(0, 2, 20)
-        ws.set_column(3, 4, 18)
-        ws.set_column(5, 5, 10)
-        ws.set_column(6, 6, 50)
-        ws.set_row(0, 30)
-        format_title = wb.add_format({
-            'bold': 1,
-            'size': 14,
-            'align': 'center',
-            'valign': 'vcenter',
+        filename = f"export_sub_ticket_{dt_to_str(arrow.now())}.xlsx"
 
-        })
-        format_text = wb.add_format({
-            'align': 'left',
-            'valign': 'vcenter',
-            'text_wrap': True,
-        })
-        fields = ["工单编号", "SQL文本", "静态检测结果", "动态检测结果", "上线状态", "错误信息"]
-        for x, field in enumerate(fields):
-            ws.write(0, x, field.upper(), format_title)
-        for row_num, sub_ticket in enumerate(q.all()):
-            row_num += 1
-            ws.write(row_num, 0, sub_ticket.task_name, format_text)
-            ws.write(row_num, 1, sub_ticket.sql_text, format_text)
-            ws.write(row_num, 2, "\n".join(
-                [x['rule_desc'] for x in sub_ticket.to_dict()['static']]),
-                     format_text)
-            ws.write(row_num, 3, "\n".join(
-                [x["rule_desc"] for x in sub_ticket.to_dict()['dynamic']]),
-                     format_text)
-            ws.write(row_num, 4, sub_ticket.online_status, format_text)
-            ws.write(row_num, 5, sub_ticket.error_msg, format_text)
-        wb.close()
-        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        await SubTicketExport.async_shoot(filename=filename, parame_dict=q)
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     get.argument = {
         "querystring": {
-            "export_type": "all_filtered",
-
-            "//ticket_id": 1,
-            "//cmdb_id": 2526,
-            "//script_id": "",
-            "//schema_name": "",
+            "export_type": "all",
+            "//ticket_id": "5edef7e22a0c111df052f3b7",
+            "//cmdb_id": "5",
+            "//script_id": "7e1203a192194981bd75c27a3fb5dcf1",
+            "//schema_name": "isqlaudit_dev",
             "//error_type": "static",
-            "//keyword": "",
-            "//order_by": "position",
 
-            "//statement_id_list": "",
+            "//statement_id_list": "LHEQDsDzTP2JakOelqw5cA==,6mTzrQzdTxCqnCVzNTy2hw==",
         }
     }
