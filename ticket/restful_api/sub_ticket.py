@@ -164,7 +164,7 @@ class SubTicketHandler(TicketReq):
 @as_view("export", group="ticket")
 class SubTicketExportHandler(SubTicketHandler):
 
-    def get(self):
+    async def get(self):
         """导出子工单"""
         params = self.get_query_args(Schema({
             "export_type": scm_one_of_choices(["all", "selected"]),
