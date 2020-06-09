@@ -84,8 +84,8 @@ class BaseDoc(DynamicDocument):
                 **kwargs) -> dict:
         """
         转换为字典
-        :param iter_if:
-        :param iter_by:
+        :param iter_if:过滤字段
+        :param iter_by:替换字段数据
         :param datetime_to_str: 日期时间是否转为文本
         :param recurse: 递归调用的输入参数（通常不建议使用者传入该参数）
         :param float_round: 是否给float类型的值保留精度，默认保留4位

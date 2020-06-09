@@ -226,113 +226,105 @@ class TicketHandler(TicketReq):
 class TicketExportHandler(TicketReq):
 
     async def get(self):
-        """导出工单"""
-
+        """工单导出"""
         params = self.get_query_args(Schema({
             "ticket_id": scm_unempty_str
         }))
         ticket_id = params.pop("ticket_id")
 
-        # 首先获取主工单的基本信息
+        # 获取工单数据
+        ticket_heads = [
+            "工单ID", "任务名称", "数据库类型", "CMDBID", "Schema",
+            "脚本数量", "SQL数量", "工单的分数", "提交时间", "提交人",
+            "工单状态", "审核时间", "审核人", "审核意见"]
+
         the_ticket = Ticket.filter(ticket_id=ticket_id).first()
-        work_list = the_ticket.to_dict(
-            iter_if=lambda k, v: k not in ("scripts",),
+        the_ticket = the_ticket.to_dict(
             iter_by=lambda k, v:
             const.ALL_TICKET_STATUS_CHINESE[the_ticket.status]
             if k == "status"
-            else v
+            else v,
         )
+        the_ticket['script_sum']=len(the_ticket.pop("scripts"))
 
-        # 主要信息
-        work_list_heads = [
-            "工单ID", "工单类型", "CMDBID", "用户名", "任务名称", "业务系统名称",
-            "数据库名称", "SQL数量", "提交时间", "提交人", "审核时间",
-            "工单状态", "审核人", "审核意见", "上线时间", "工单的分数"
-        ]
-        work_list_data = list(work_list.values())
         params_dict = {
-            'work_list_heads': work_list_heads,
-            'work_list_data': work_list_data
+            'ticket_heads': ticket_heads,
+            'the_ticket': the_ticket
         }
 
+        #导出工单文件名
         filename = '_'.join([
             '工单信息',
-            work_list['task_name'],
+            the_ticket['task_name'],
             d_to_str(arrow.now())]) + '.xlsx'
 
-        # 根据工单获得一些统计信息
-        work_sub_list = SubTicket.filter(ticket_id=ticket_id).all()
-        work_sub_list = [x.to_dict(
+        # 获取子工单数量统计
+        sub_ticket_stats_heads = ["总sql数量", "问题sql数量", "静态检测结果数", "动态检测结果数"]
+        sub_ticket_list = SubTicket.filter(ticket_id=ticket_id).all()
+        sub_ticket_list = [x.to_dict(
             iter_by=lambda k, v: dt_to_str(v)
             if k == 'check_time' else v)
-            for x in work_sub_list]
-        sql_count = len(work_sub_list)
-        fail_count = len([
-            x['static'] or x['dynamic']
-            for x in work_sub_list
-            if x['static'] or x['dynamic']
-        ])
+            for x in sub_ticket_list]
 
-        # 静态错误的工单
-        static_fail_works = [x for x in work_sub_list if x['static']]
-        static_fail_count = len(static_fail_works)
-
-        # 动态错误的工单
-        dynamic_fail_works = [x for x in work_sub_list if x['dynamic']]
-        dynamic_fail_count = len(dynamic_fail_works)
-
-        fail_heads = ['总脚本数', '失败脚本数', '静态失败数', '动态失败数']
-        fail_data = [sql_count, fail_count, static_fail_count, dynamic_fail_count]
-
+        sql_count = len(sub_ticket_list)
+        issue_sql_count = len([
+            True for x in sub_ticket_list
+            if x['static'] or x['dynamic']])
+        issue_static = [x for x in sub_ticket_list if x['static']]
+        issue_static_count = len(issue_static)
+        issue_dynamic = [x for x in sub_ticket_list if x['dynamic']]
+        issue_dynamic_count = len(issue_dynamic)
+        sub_ticket_stats = [sql_count, issue_sql_count,issue_static_count, issue_dynamic_count]
         params_dict.update(
             {
-                'fail_heads': fail_heads,
-                'fail_data': fail_data
+                'sub_ticket_stats_heads': sub_ticket_stats_heads,
+                'sub_ticket_stats': sub_ticket_stats
             }
         )
 
-        # 获得静态错误的子工单
-        static_fail_heads = ['SQL_ID', 'SQL文本', '静态检测结果']
-        static_fail_data = [[static_fail_work['statement_id'], static_fail_work['sql_text'],
-                             "\n".join([static['rule_name'] for static in static_fail_work['static']])]
-                            for static_fail_work in static_fail_works]
+        # 获得静态问题子工单
+        issue_static_sub_ticket_heads = ['序号','任务名称','脚本名称','SQL文本','静态检测结果','错误信息']
+        issue_static_sub_ticket = [[a,x['task_name'],x['script']['script_name'],
+                                    x['sql_text'],"\n".join([y['rule_desc'] for y in x['static']]),
+                                    x['error_msg']] for a,x in enumerate(issue_static)]
         params_dict.update(
             {
-                'static_fail_heads': static_fail_heads,
-                'static_fail_data': static_fail_data
-            }
-        )
-        # 获得动态错误的子工单
-        dynamic_fail_heads = ['SQL_ID', 'SQL文本', '动态检测结果']
-        dynamic_fail_data = [[dynamic_fail_work['statement_id'], dynamic_fail_work['sql_text'],
-                              "\n".join([dynamic['rule_name'] for dynamic in dynamic_fail_work['dynamic']])]
-                             for dynamic_fail_work in dynamic_fail_works]
-
-        params_dict.update(
-            {
-                'dynamic_fail_heads': dynamic_fail_heads,
-                'dynamic_fail_data': dynamic_fail_data
+                'issue_static_sub_ticket_heads': issue_static_sub_ticket_heads,
+                'issue_static_sub_ticket': issue_static_sub_ticket
             }
         )
 
-        # 获得所有子工单
-        all_work_heads = ['SQL_ID', 'SQL文本', '静态检测结果', '动态检测结果']
-        all_work_data = [[x['statement_id'], x['sql_text'],
-                          "\n".join([y['rule_name'] for y in x['static']]),
-                          "\n".join([y['rule_name'] for y in x['dynamic']])]
-                         for x in work_sub_list]
+        # 获得动态问题子工单
+        issue_dynamic_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '动态检测结果', '错误信息']
+        issue_dynamic_sub_ticket= [[a,x['task_name'],x['script']['script_name'],
+                                    x['sql_text'],"\n".join([y['rule_desc'] for y in x['dynamic']]),
+                                    x['error_msg']] for a,x in enumerate(issue_dynamic)]
 
         params_dict.update(
             {
-                'all_work_heads': all_work_heads,
-                'all_work_data': all_work_data
+                'issue_dynamic_sub_ticket_heads': issue_dynamic_sub_ticket_heads,
+                'issue_dynamic_sub_ticket': issue_dynamic_sub_ticket
+            }
+        )
+
+        # 获得所有动静态问题子工单
+        all_issue_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '静态检测结果','动态检测结果', '错误信息']
+        all_issue_sub_ticket =[[a,x['task_name'],x['script']['script_name'],x['sql_text'],
+                               "\n".join([y['rule_desc'] for y in x['static']]),
+                                "\n".join([y['rule_desc'] for y in x['dynamic']]),
+                                x['error_msg']] for a,x in enumerate(sub_ticket_list)]
+        params_dict.update(
+            {
+                'all_issue_sub_ticket_heads': all_issue_sub_ticket_heads,
+                'all_issue_sub_ticket': all_issue_sub_ticket
             }
         )
         await TicketExport.async_shoot(filename=filename, parame_dict=params_dict)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     get.argument = {
         "querystring": {
-            "ticket_id": ""
+            "ticket_id": "5edef7e22a0c111df052f3b7"
         }
     }
