@@ -16,7 +16,7 @@ class ProductLicenseHandler(BaseReq):
             with make_session() as session:
                 license = session.query(License).order_by(License.create_time.desc()).first()
                 if not license:
-                    self.resp(msg="not license")
+                    return self.resp_bad_req(msg="not license")
                 license_key = license.license_key
                 license_key_ins = SqlAuditLicenseKey.decode(license_key)
                 if not license_key_ins.is_valid():
