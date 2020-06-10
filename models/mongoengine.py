@@ -138,3 +138,18 @@ class BaseDoc(DynamicDocument):
     @classmethod
     def aggregate(cls, *args, **kwargs):
         return cls.objects.aggregate(*args, **kwargs)
+
+    @classmethod
+    def insert(cls, objects_to_insert: List["BaseDoc"]):
+        try:
+            cls.objects.insert(objects_to_insert)
+        except Exception as e:
+            print(f"failed when inserting data into mongo: {e}")
+            print("now trying to insert one by one"
+                  " to find out where the problem is...")
+            for i in objects_to_insert:
+                try:
+                    cls.objects.insert([i])
+                except Exception as e:
+                    print(i.to_dict())
+                    raise e

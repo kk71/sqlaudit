@@ -71,7 +71,7 @@ class OracleObjectCapturingDoc(
                 cmdb_id=cmdb_id,
                 task_record_id=task_record_id
             )
-            docs_inserted = m.objects.insert(docs)
+            docs_inserted = m.insert(docs)
             print(f"{len(docs_inserted)} captured.")
 
     def get_object_unique_name(self) -> Tuple[str, str, str]:
@@ -140,5 +140,5 @@ class OracleSchemaObjectCapturingDoc(OracleObjectCapturingDoc):
                         docs=docs,
                         cmdb_connector=cmdb_conn
                     )
-                    docs_inserted = m.objects.insert(docs)
+                    docs_inserted = m.insert(docs)
                     schema_counter(a_schema, len(docs_inserted))

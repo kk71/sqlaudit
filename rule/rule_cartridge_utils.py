@@ -32,7 +32,7 @@ def rule_import(filename) -> tuple:
             continue
         rules_to_import.append(the_rule)
     if rules_to_import:
-        RuleCartridge.objects.insert(rules_to_import)
+        RuleCartridge.insert(rules_to_import)
     return len(rules_to_import), len(rules)
 
 
