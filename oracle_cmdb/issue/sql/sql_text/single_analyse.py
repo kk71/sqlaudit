@@ -12,7 +12,7 @@ from .sql_text import *
 from ....single_sql import SingleSQLForOnline
 from ....cmdb import OracleCMDB
 from ....plain_db import *
-from rule.adapters import CMDBRuleAdapterSQL
+from rule.adapters import RuleAdapterSQL
 from ....capture import OracleSQLText
 
 
@@ -33,7 +33,7 @@ class OracleOnlineSQLTextIssueSingleAnalyse(OracleOnlineSQLTextIssue):
                      schema_name: str,
                      **kwargs) -> Generator["OracleOnlineSQLTextIssue", None, None]:
         for single_sql in sqls:
-            ret = CMDBRuleAdapterSQL(the_rule).run(
+            ret = RuleAdapterSQL(the_rule).run(
                 entries=entries,
 
                 cmdb=the_cmdb,

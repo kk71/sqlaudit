@@ -77,7 +77,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 # ===指明oracle动态审核的输入参数(kwargs)===
-                ret = CMDBRuleAdapterSQL(dr).run(
+                ret = RuleAdapterSQL(dr).run(
                     entries=self.dynamic_rules.entries,
 
                     single_sql=single_sql,

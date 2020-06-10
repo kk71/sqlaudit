@@ -8,7 +8,9 @@ from parsed_sql.parsed_sql import ParsedSQLStatement
 class SingleSQLForTicket(SingleSQL):
 
     @classmethod
-    def gen_from_temp_script(cls, ts: TempScriptStatement):
+    def gen_from_temp_script(
+            cls,
+            ts: TempScriptStatement) -> "SingleSQLForTicket":
         return cls(
             sql_text=ts.normalized,
             sql_text_no_comment=ts.normalized_without_comment,
@@ -18,7 +20,9 @@ class SingleSQLForTicket(SingleSQL):
         )
 
     @classmethod
-    def gen_from_parsed_sql_statement(cls, pss: ParsedSQLStatement):
+    def gen_from_parsed_sql_statement(
+            cls,
+            pss: ParsedSQLStatement) -> "SingleSQLForTicket":
         return cls(
             sql_text=pss.normalized,
             sql_text_no_comment=pss.normalized_without_comment,

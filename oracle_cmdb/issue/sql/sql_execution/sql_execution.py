@@ -13,7 +13,7 @@ from models.sqlalchemy import *
 from oracle_cmdb.cmdb import *
 from oracle_cmdb.issue.sql import OracleOnlineSQLIssue, OracleOnlineIssueOutputParamsSQL
 from rule.cmdb_rule import CMDBRule
-from rule.adapters import CMDBRuleAdapterSQL
+from rule.adapters import RuleAdapterSQL
 
 
 class OracleOnlineIssueOutputParamsSQLExecution(
@@ -58,7 +58,7 @@ class OracleOnlineSQLExecutionIssue(OracleOnlineSQLIssue):
                 OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
             cmdb_connector = the_cmdb.build_connector()
             for the_rule in rule_jar:
-                ret = CMDBRuleAdapterSQL(the_rule).run(
+                ret = RuleAdapterSQL(the_rule).run(
                     entries=rule_jar.entries,
 
                     cmdb=the_cmdb,

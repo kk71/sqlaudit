@@ -19,7 +19,6 @@
                 "desc": "inlist元素个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 20
             }
         ],
@@ -29,7 +28,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -89,7 +87,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -125,7 +122,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -160,7 +156,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -196,8 +191,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -232,8 +226,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    if 'parallel' not in sql_text.lower():\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I+re.M)\n    if parallel and int(parallel.group(1)) > 1:\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -268,8 +261,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+table', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -304,8 +296,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -340,8 +331,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -376,8 +366,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "from parsed_sql.parsed_sql import ParsedSQL\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    for token in this_one_sql.tokens:\n        if token.normalized == \"DELETE\":\n            yield single_sql\n            return\n\n\ncode_hole.append(code)\n\n",
@@ -412,7 +401,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -448,7 +436,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -484,7 +471,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -520,7 +506,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -556,7 +541,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -592,7 +576,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -628,7 +611,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -664,7 +646,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -700,7 +681,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -736,7 +716,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -772,7 +751,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -808,7 +786,6 @@
                 "desc": "SQL字符数量",
                 "unit": "个",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 5000
             }
         ],
@@ -818,7 +795,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -854,7 +830,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -890,7 +865,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -926,7 +900,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -962,7 +935,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -999,7 +971,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -1035,7 +1006,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -1071,7 +1041,6 @@
                 "desc": "绑定变量个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 50
             }
         ],
@@ -1081,8 +1050,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "def code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if sql_text.count(\":\") >= rule.gip(\"num_of_bound_var\"):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -1116,7 +1084,6 @@
                 "desc": "or个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 5
             }
         ],
@@ -1126,8 +1093,7 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
-                "optional": false
+                "optional": true
             }
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if len(re.compile(r\"\\s+or\\s+\", re.I+re.M).findall(sql_text))\\\n            >= rule.gip(\"or_num\"):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
@@ -1162,7 +1128,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -1198,7 +1163,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -1235,7 +1199,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -1269,7 +1232,6 @@
                 "desc": "索引物理大小",
                 "unit": "MB",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 100
             }
         ],
@@ -1279,7 +1241,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1287,7 +1248,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1320,7 +1280,6 @@
                 "desc": "索引物理大小",
                 "unit": "MB",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 1024.0
             }
         ],
@@ -1330,7 +1289,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1338,7 +1296,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -1346,7 +1303,6 @@
                 "desc": "对象名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1380,7 +1336,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1388,7 +1343,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1422,7 +1376,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1430,7 +1383,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1465,7 +1417,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1473,7 +1424,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1507,7 +1457,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1515,7 +1464,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1549,7 +1497,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1557,7 +1504,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1591,7 +1537,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1599,7 +1544,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1632,7 +1576,6 @@
                 "desc": "表物理大小",
                 "unit": "MB",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 2048
             },
             {
@@ -1640,7 +1583,6 @@
                 "desc": "表行数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 100000
             }
         ],
@@ -1650,7 +1592,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1658,7 +1599,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1703,7 +1643,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1711,7 +1650,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1746,7 +1684,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1754,7 +1691,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1787,7 +1723,6 @@
                 "desc": "表嵌套的层次",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 3
             }
         ],
@@ -1797,7 +1732,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1805,7 +1739,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1838,7 +1771,6 @@
                 "desc": "关联表的数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 5
             }
         ],
@@ -1848,7 +1780,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1856,7 +1787,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -1864,7 +1794,6 @@
                 "desc": "关联表的数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1898,7 +1827,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -1906,7 +1834,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1936,7 +1863,6 @@
                 "desc": "缓存大小",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 2000
             }
         ],
@@ -1946,7 +1872,6 @@
                 "desc": "序列名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -1954,7 +1879,6 @@
                 "desc": "缓存大小",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -1984,7 +1908,6 @@
                 "desc": "索引个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 7
             }
         ],
@@ -1994,7 +1917,6 @@
                 "desc": "表用户",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2002,7 +1924,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2010,7 +1931,6 @@
                 "desc": "索引数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2040,7 +1960,6 @@
                 "desc": "记录定义长度与实际存储长度占比",
                 "unit": "",
                 "data_type": "FLOAT",
-                "_cls": "RuleInputParams",
                 "value": 0.5
             }
         ],
@@ -2050,7 +1969,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2058,7 +1976,6 @@
                 "desc": "行记录定义字节数",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2066,7 +1983,6 @@
                 "desc": "记录实际平均存放字节数",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2074,7 +1990,6 @@
                 "desc": "超过长度的字段名",
                 "unit": "",
                 "data_type": "LIST",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2105,7 +2020,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2136,7 +2050,6 @@
                 "desc": "存储过程名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2144,7 +2057,6 @@
                 "desc": "类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2175,7 +2087,6 @@
                 "desc": "函数名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2206,7 +2117,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2214,7 +2124,6 @@
                 "desc": "字段名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2222,7 +2131,6 @@
                 "desc": "表用户",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2230,7 +2138,6 @@
                 "desc": "重复次数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2238,7 +2145,6 @@
                 "desc": "涉及索引名",
                 "unit": "",
                 "data_type": "LIST",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2268,7 +2174,6 @@
                 "desc": "复合分区个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 200
             }
         ],
@@ -2278,7 +2183,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2286,7 +2190,6 @@
                 "desc": "分区名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2294,7 +2197,6 @@
                 "desc": "子分区数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2325,7 +2227,6 @@
                 "desc": "分区个数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 200
             }
         ],
@@ -2335,7 +2236,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2343,7 +2243,6 @@
                 "desc": "分区数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2375,7 +2274,6 @@
                 "desc": "dblink名字",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2383,7 +2281,6 @@
                 "desc": "访问的用户",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2391,7 +2288,6 @@
                 "desc": "访问的主机",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2422,7 +2318,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2430,7 +2325,6 @@
                 "desc": "索引类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2438,7 +2332,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2446,7 +2339,6 @@
                 "desc": "索引描述",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2478,7 +2370,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2486,7 +2377,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2517,7 +2407,6 @@
                 "desc": "触发器名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2525,7 +2414,6 @@
                 "desc": "类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2555,7 +2443,6 @@
                 "desc": "表大小",
                 "unit": "MB",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 10240
             }
         ],
@@ -2565,7 +2452,6 @@
                 "desc": "表名（段名）",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2573,7 +2459,6 @@
                 "desc": "段类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2581,7 +2466,6 @@
                 "desc": "表大小",
                 "unit": "MB",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2613,7 +2497,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2621,7 +2504,6 @@
                 "desc": "索引类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2629,7 +2511,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2637,7 +2518,6 @@
                 "desc": "索引列",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2668,7 +2548,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2676,7 +2555,6 @@
                 "desc": "字段名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2706,7 +2584,6 @@
                 "desc": "聚簇因子与表记录数比率",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 70
             }
         ],
@@ -2716,7 +2593,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2724,7 +2600,6 @@
                 "desc": "索引类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2732,7 +2607,6 @@
                 "desc": "聚簇因子",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2740,7 +2614,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2748,7 +2621,6 @@
                 "desc": "表记录数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2756,7 +2628,6 @@
                 "desc": "比率",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2787,7 +2658,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2795,7 +2665,6 @@
                 "desc": "约束名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2803,7 +2672,6 @@
                 "desc": "列名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2811,7 +2679,6 @@
                 "desc": "关联表",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             },
             {
@@ -2819,7 +2686,6 @@
                 "desc": "关联约束名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": true
             }
         ],
@@ -2850,7 +2716,6 @@
                 "desc": "buffer gets",
                 "unit": "bytes",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 1000
             }
         ],
@@ -2860,7 +2725,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2868,7 +2732,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2876,7 +2739,6 @@
                 "desc": "使用的cpu资源",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2884,7 +2746,6 @@
                 "desc": "执行次数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2892,7 +2753,6 @@
                 "desc": "使用buffer的资源",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2900,7 +2760,6 @@
                 "desc": "物理读情况",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2908,7 +2767,6 @@
                 "desc": "解析的时间",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -2939,7 +2797,6 @@
                 "desc": "索引高度",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 3
             }
         ],
@@ -2949,7 +2806,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2957,7 +2813,6 @@
                 "desc": "索引类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2965,7 +2820,6 @@
                 "desc": "索引高度",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -2973,7 +2827,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3003,7 +2856,6 @@
                 "desc": "子游标的数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 30
             }
         ],
@@ -3013,7 +2865,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3021,7 +2872,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3029,7 +2879,6 @@
                 "desc": "子游标数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3060,7 +2909,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3068,7 +2916,6 @@
                 "desc": "表类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3076,7 +2923,6 @@
                 "desc": "并行度",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3106,7 +2952,6 @@
                 "desc": "表大小",
                 "unit": "GB",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 10
             }
         ],
@@ -3116,7 +2961,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3124,7 +2968,6 @@
                 "desc": "表大小",
                 "unit": "GB",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3156,7 +2999,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3186,7 +3028,6 @@
                 "desc": "字段数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 60
             }
         ],
@@ -3196,7 +3037,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3204,7 +3044,6 @@
                 "desc": "字段数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3234,7 +3073,6 @@
                 "desc": "记录数",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 10000000
             }
         ],
@@ -3244,7 +3082,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3252,7 +3089,6 @@
                 "desc": "数据量",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3283,7 +3119,6 @@
                 "desc": "cpu时间",
                 "unit": "秒",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 100
             }
         ],
@@ -3293,7 +3128,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3301,7 +3135,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3332,7 +3165,6 @@
                 "desc": "执行时间",
                 "unit": "秒",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 100
             }
         ],
@@ -3342,7 +3174,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3350,7 +3181,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3380,7 +3210,6 @@
                 "desc": "磁盘读",
                 "unit": "bytes",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 1000
             }
         ],
@@ -3390,7 +3219,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3398,7 +3226,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3429,7 +3256,6 @@
                 "desc": "索引名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3437,7 +3263,6 @@
                 "desc": "索引类型",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3445,7 +3270,6 @@
                 "desc": "并行度",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3453,7 +3277,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3483,7 +3306,6 @@
                 "desc": "直接路径写数据量",
                 "unit": "bytes",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 1000
             }
         ],
@@ -3493,7 +3315,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3501,7 +3322,6 @@
                 "desc": "执行计划ID",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3532,7 +3352,6 @@
                 "desc": "表名称",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3540,7 +3359,6 @@
                 "desc": "字段名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3570,7 +3388,6 @@
                 "desc": "表大小",
                 "unit": "MB",
                 "data_type": "NUM",
-                "_cls": "RuleInputParams",
                 "value": 10240
             }
         ],
@@ -3580,7 +3397,6 @@
                 "desc": "表名",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3588,7 +3404,6 @@
                 "desc": "表大小",
                 "unit": "",
                 "data_type": "NUM",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],
@@ -3619,7 +3434,6 @@
                 "desc": "相似sql的数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleInputParams",
                 "value": 100
             }
         ],
@@ -3629,7 +3443,6 @@
                 "desc": "SQL ID",
                 "unit": "",
                 "data_type": "STR",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3637,7 +3450,6 @@
                 "desc": "force_matching_signature",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             },
             {
@@ -3645,7 +3457,6 @@
                 "desc": "相似sql的数量",
                 "unit": "",
                 "data_type": "INT",
-                "_cls": "RuleOutputParams",
                 "optional": false
             }
         ],

@@ -14,7 +14,7 @@ from .sql_text import *
 from ....single_sql import SingleSQLForOnline
 from ....cmdb import OracleCMDB
 from ....plain_db import *
-from rule.adapters import CMDBRuleAdapterSQL
+from rule.adapters import RuleAdapterSQL
 
 
 @OracleOnlineIssue.need_collect()
@@ -47,7 +47,7 @@ class OracleOnlineSQLTextIssueBulkAnalyse(OracleOnlineSQLTextIssue):
                      **kwargs) -> Generator["OracleOnlineSQLTextIssue", None, None]:
 
         for single_sqls_bulk in cls.single_sql_in_bulk(sqls):
-            ret = CMDBRuleAdapterSQL(the_rule).run(
+            ret = RuleAdapterSQL(the_rule).run(
                 entries=entries,
 
                 cmdb=the_cmdb,

@@ -48,7 +48,7 @@ class QuickSQLAnalyse(OraclePrivilegeReq):
         self.resp(ret)
 
     post.argument = {
-        "json":{
+        "json": {
             "sql_text": "select * from t_xx;"
         }
     }

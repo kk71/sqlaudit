@@ -6,7 +6,9 @@ __all__ = [
 ]
 
 import abc
+import copy
 import traceback
+from typing import List
 
 from prettytable import PrettyTable
 
@@ -16,6 +18,7 @@ from .sub_ticket import SubTicketIssue
 from rule.rule_jar import *
 from rule.adapters import *
 from parsed_sql.single_sql import *
+from .single_sql import SingleSQLForTicket
 
 
 class BaseSubTicketAnalyse(abc.ABC):
@@ -77,8 +80,8 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
     def run_static(
             self,
             sub_result,
-            sqls: [dict],
-            single_sql: dict):
+            sqls: List[SingleSQLForTicket],
+            single_sql: SingleSQLForTicket):
         """
         静态分析
         :param self:
@@ -93,10 +96,10 @@ class SubTicketAnalyseStaticCMDBIndependent(BaseSubTicketAnalyseStatic):
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 # ===指明静态审核的输入参数(kwargs)===
-                ret = sr.run(
+                ret = RuleAdapterSQL(sr).run(
                     entries=self.static_rules.entries,
 
-                    single_sql=single_sql,
+                    single_sql=copy.copy(single_sql),
                     sqls=sqls
                 )
                 for minus_score, output_param in ret:
@@ -152,7 +155,7 @@ class SubTicketAnalyse(
                     # 实际都是文本，注意发生更改需要修改
                     continue
                 # ===指明静态审核的输入参数(kwargs)===
-                ret = CMDBRuleAdapterSQL(sr).run(
+                ret = RuleAdapterSQL(sr).run(
                     entries=self.static_rules.entries,
 
                     single_sql=single_sql,
