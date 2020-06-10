@@ -9,6 +9,7 @@ from collections import defaultdict
 from sqlalchemy import or_
 
 import utils.const
+import cmdb.const
 from ..const import *
 from cmdb.cmdb import *
 from cmdb.cmdb_task import CMDBTask
@@ -137,7 +138,7 @@ class CMDBHandler(OraclePrivilegeReq):
             "connect_name": scm_unempty_str,
             "group_name": scm_str,
             "business_name": scm_str,
-            "db_type": scm_str,
+            "db_type": self.scm_one_of_choices(cmdb.const.ALL_DB_TYPE),
             "server_name": scm_str,
             "ip_address": scm_unempty_str,
             "port": scm_int,
@@ -147,7 +148,7 @@ class CMDBHandler(OraclePrivilegeReq):
             scm_optional("status", default=True): scm_bool,
             scm_optional("domain_env"): scm_int,
             scm_optional("is_rac"): scm_bool,
-            "db_model": scm_unempty_str,
+            "db_model": self.scm_one_of_choices(cmdb.const.ALL_DB_MODEL),
             "baseline": scm_int,
             "is_pdb": scm_bool,
             "version": scm_unempty_str,
