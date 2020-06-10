@@ -142,7 +142,7 @@ class BaseDoc(DynamicDocument):
     @classmethod
     def insert(cls, objects_to_insert: List["BaseDoc"]):
         try:
-            cls.objects.insert(objects_to_insert)
+            return cls.objects.insert(objects_to_insert)
         except Exception as e:
             print(f"failed when inserting data into mongo: {e}")
             print("now trying to insert one by one"
