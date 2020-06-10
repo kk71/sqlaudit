@@ -10,7 +10,6 @@ from sqlalchemy import or_
 
 import utils.const
 import cmdb.const
-from ..const import *
 from cmdb.cmdb import *
 from cmdb.cmdb_task import CMDBTask
 from auth.user import *
@@ -184,18 +183,8 @@ class CMDBHandler(OraclePrivilegeReq):
             session.commit()
             session.refresh(new_cmdb)
 
-            # 创建任务的数据库字段信息
-            for task_type in ALL_DB_TASKS:
-                task_dict = new_cmdb.to_dict(iter_if=lambda k, v: k in (
-                    "connect_name",
-                    "cmdb_id",
-                    "group_name",
-                    "db_type",
-                ))
-                new_task = CMDBTask(task_type=task_type, **task_dict)
-                session.add(new_task)
+            OracleCMDBTaskCapture.initiate_cmdb_task(new_cmdb)
             session.commit()
-            session.refresh(new_cmdb)
 
             # 增加库的规则
             rules = RuleCartridge.filter(

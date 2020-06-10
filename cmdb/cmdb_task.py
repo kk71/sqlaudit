@@ -52,6 +52,30 @@ class CMDBTask(BaseModel):
         session = the_cmdb._sa_instance_state.session
         return session.query(cls).filter(cls.cmdb_id == the_cmdb.cmdb_id)
 
+    @classmethod
+    def initiate_cmdb_task(
+            cls,
+            the_cmdb: CMDB,
+            task_type: str,
+            **kwargs):
+        """
+        初始化一个纳管库任务
+        :param the_cmdb:
+        :param task_type:
+        :param kwargs:
+        :return: TODO 返回后不会自动commit
+        """
+        session = the_cmdb._sa_instance_state.session
+        a_new_task = cls(
+            task_type=task_type,
+            task_name=task.const.ALL_TASK_TYPE_CHINESE[task_type],
+            cmdb_id=the_cmdb.cmdb_id,
+            connect_name=the_cmdb.connect_name,
+            group_name=the_cmdb.group_name,
+            db_type=the_cmdb.db_type
+        )
+        session.add(a_new_task)
+
     def flush_celery_q(self):
         redis_celery_broker = StrictRedis(
             host=settings.REDIS_BROKER_IP,

@@ -40,7 +40,21 @@ class OracleCMDBTaskCapture(cmdb.cmdb_task.CMDBTask):
         return super().query_cmdb_task_with_last_record(session, **kwargs)
 
     @classmethod
-    def last_cmdb_score(cls, session, **kwargs) -> Dict[int, Dict[str, Optional[Any]]]:
+    def initiate_cmdb_task(
+            cls,
+            the_cmdb: OracleCMDB,
+            **kwargs):
+        return super().initiate_cmdb_task(
+            the_cmdb,
+            task_type=task.const.TASK_TYPE_CAPTURE,
+            **kwargs
+        )
+
+    @classmethod
+    def last_cmdb_score(
+            cls,
+            session,
+            **kwargs) -> Dict[int, Dict[str, Optional[Any]]]:
         """
         查询纳管库最近一次评分信息
         """
