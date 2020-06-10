@@ -52,7 +52,7 @@ class OracleSQLPlan(
     io_cost = StringField(null=True)
     filter_predicates = StringField(null=True)
     access_predicates = StringField(null=True)
-    time = IntField(null=True)
+    time = StringField(null=True)
 
     meta = {
         "collection": "oracle_sqlplan",
@@ -172,10 +172,14 @@ FROM
                 doc.position = str(int(doc.position))
             if doc.cpu_cost:
                 doc.cpu_cost = str(int(doc.cpu_cost))
+            if doc.io_cost:
+                doc.io_cost = str(int(doc.io_cost))
             if doc.the_bytes:
                 doc.the_bytes = str(int(doc.the_bytes))
             if doc.cardinality:
                 doc.cardinality = str(int(doc.cardinality))
+            if doc.time:
+                doc.time = str(int(doc.time))
             if doc.operation:
                 doc.operation_display = " " * doc.depth + doc.operation
                 doc.operation_display_with_options = doc.operation_display
