@@ -19,8 +19,7 @@ def main():
                 CMDBTask.task_name,
                 CMDBTask.cmdb_id,
                 CMDBTask.connect_name,
-                CMDBTask.group_name,
-                CMDBTask.ip_address
+                CMDBTask.group_name
             ))
         )
         pt = PrettyTable(qe.keys)
