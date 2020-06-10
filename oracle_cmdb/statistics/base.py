@@ -71,7 +71,7 @@ class OracleBaseStatistics(
                 print(f"* running {i} of {total}: {m.__doc__}")
                 docs = list(m.generate(**kwargs))
                 if docs:
-                    m.objects.insert(docs)
+                    m.insert(docs)
                 counter(m.__doc__, len(docs))
 
     @classmethod

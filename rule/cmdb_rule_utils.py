@@ -38,7 +38,7 @@ def initiate_cmdb_rule(
         rules_to_insert_into_cmdb_rule.append(a_cmdb_rule)
     if not rules_to_insert_into_cmdb_rule:
         return 0
-    return len(CMDBRule.objects.insert(rules_to_insert_into_cmdb_rule))
+    return len(CMDBRule.insert(rules_to_insert_into_cmdb_rule))
 
 
 def cmdb_rule_update(

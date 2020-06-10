@@ -168,5 +168,5 @@ class OracleOnlineIssue(OnlineIssue):
                         cmdb_id=cmdb_id
                     ))
                 if docs:
-                    cls.objects.insert(docs)
+                    cls.insert(docs)
                 counter(m.__doc__, len(docs))

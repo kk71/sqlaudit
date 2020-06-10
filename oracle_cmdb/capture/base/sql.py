@@ -206,7 +206,7 @@ FROM table(dbms_sqltune.select_workload_repository({beg_snap}, {end_snap},
             )
         if not docs:
             return 0
-        docs_inserted = m.objects.insert(docs)
+        docs_inserted = m.insert(docs)
         return len(docs_inserted)
 
     @classmethod

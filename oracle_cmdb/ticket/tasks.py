@@ -77,7 +77,7 @@ class OracleTicketAnalyse(BaseTask):
         the_ticket.scripts = list(scripts.values())
         if sub_tickets:
             print(f"finally we got {len(sub_tickets)} sub tickets.")
-            OracleSubTicket.objects.insert(sub_tickets)
+            OracleSubTicket.insert(sub_tickets)
             the_ticket.calculate_score()
             # 计算脚本下面的子工单数，以及整个工单的子工单数
             for the_script in the_ticket.scripts:

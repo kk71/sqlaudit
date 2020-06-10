@@ -194,7 +194,7 @@ class CMDBHandler(OraclePrivilegeReq):
                 cmdb_rule = CMDBRule(cmdb_id=new_cmdb.cmdb_id)
                 cmdb_rule.from_rule_cartridge(rule, force=True)
                 cmdb_rules.append(cmdb_rule)
-            CMDBRule.objects.insert(cmdb_rules)
+            CMDBRule.insert(cmdb_rules)
             self.resp_created(new_cmdb.to_dict())
 
     post.argument = {

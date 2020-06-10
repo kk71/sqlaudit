@@ -91,7 +91,7 @@ class OracleTicketSQLPlan(
                 iter_if=lambda k, v: k not in ("other_xml",)
             )
             docs.append(doc)
-        cls.objects.insert(docs)
+        cls.insert(docs)
         return docs
 
     @classmethod
