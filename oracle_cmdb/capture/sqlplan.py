@@ -38,7 +38,7 @@ class OracleSQLPlan(
     object_type = StringField(null=True)
     optimizer = StringField(null=True)
     search_columns = StringField(null=True)
-    position = IntField(null=True)
+    position = StringField(null=True)
     cost = StringField(null=True)
     cardinality = StringField(null=True)
     the_bytes = StringField(null=True)
