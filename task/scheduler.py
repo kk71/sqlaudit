@@ -7,6 +7,7 @@ __all__ = [
 import time
 import traceback
 
+import task.celery_collect
 from utils.datetime_utils import *
 from .task import all_task_instances
 
