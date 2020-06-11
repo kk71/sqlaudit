@@ -27,7 +27,7 @@ class BaseReq(RequestHandler):
 
         def s(*args, **kwargs):
             self.resp_bad_req(msg=e)
-            raise exceptions.SchemaErrorWithMessage(f"入参验证失败： {e}")
+            raise exceptions.SchemaErrorWithMessage(e)
 
         return s
 

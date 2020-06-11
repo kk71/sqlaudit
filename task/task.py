@@ -9,7 +9,7 @@ import sys
 import pickle
 import traceback
 import asyncio
-from typing import Any
+from typing import Any, NoReturn
 
 from kombu import Exchange, Queue
 
@@ -20,6 +20,10 @@ from . import celery_conf
 from .celery import celery_app
 from .task_record import *
 from . import const, exceptions
+
+
+# 存放所有收集到的任务
+all_task_instances = []
 
 
 def add_task(task_type: str, module_to_import: str):
@@ -42,6 +46,8 @@ def register_task(task_type: str):
         celery_app.register_task(task_class())
         task_instance = celery_app.tasks[task_class.name]
         task_class.task_instance = task_instance
+        global all_task_instances
+        all_task_instances.append(task_instance)
         return task_instance
 
     return inner
@@ -119,7 +125,11 @@ class BaseTask(celery_app.Task):
 
     @classmethod
     def shoot(cls, **kwargs) -> int:
-        """使用该方法启动任务而不是用delay"""
+        """
+        调用当前任务，不等待返回
+        :param kwargs: 具体因具体任务决定
+        :return: task_record_id
+        """
         task_record_id = cls._shoot(**kwargs)
         cls.task_instance.delay(task_record_id, **kwargs)
         return task_record_id
@@ -129,7 +139,12 @@ class BaseTask(celery_app.Task):
             cls,
             async_task_timeout: int = settings.TASK_WAITING_TIMEOUT,
             **kwargs) -> Any:
-        """异步调用任务，等待返回"""
+        """
+        调用当前任务，使用协程等待返回
+        :param async_task_timeout: 协程等待的超时秒
+        :param kwargs:
+        :return: 任务的实际返回数据
+        """
         task_record_id = cls.shoot(**kwargs)
         timeout_start = arrow.now()
         while True:
@@ -146,3 +161,19 @@ class BaseTask(celery_app.Task):
             if (arrow.now() - timeout_start).seconds >= async_task_timeout:
                 raise exceptions.TaskWaitingTimeoutException
             await asyncio.sleep(settings.TASK_SLEEP_PERIOD)
+
+    @classmethod
+    def schedule(
+            cls,
+            now: arrow.Arrow,
+            scheduler_starting_time: arrow.Arrow,
+            **kwargs) -> NoReturn:
+        """
+        检查任务是否需要进行计划执行
+        定时任务会在一个时间间隔内调用当前任务，可以做一些检查和查询，判断是否应当执行
+        :param now: 调用的当前时间
+        :param scheduler_starting_time: 定时任务调度进程的运行启动时间
+        :param kwargs:
+        :return:
+        """
+        raise NotImplementedError
