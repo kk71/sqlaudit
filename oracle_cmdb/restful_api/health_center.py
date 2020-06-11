@@ -1,8 +1,11 @@
+from os import path
 from collections import Counter, defaultdict
 
+import settings
 from rule.const import *
 from .base import OraclePrivilegeReq
 from ..issue import OracleOnlineIssue
+from ..tasks.schema_report_export import SchemaReportExport
 from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
 from ..statistics import OracleStatsSchemaScore
 from ..capture import OracleSQLText, OracleSQLStatToday, OracleSQLPlanToday
@@ -86,8 +89,8 @@ class HealthCenterSchema(OraclePrivilegeReq):
 @as_view("rule_issue", group="health-center")
 class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
 
-    def get(self):
-        """健康中心schema触犯的规则,分数"""
+    def schema_issue_rule(self):
+
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "task_record_id": scm_int,
@@ -130,12 +133,18 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                                      task_record_id=task_record_id).first()
         with make_session() as session:
             the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
-            self.resp({"connect_name": the_cmdb.connect_name,
-                       "schema_name": schema_name,
-                       "create_time": dt_to_str(create_time),
-                       "schema_score": schema_score.to_dict(),
-                       **level_num,
-                       "rule_issue": rule_issues})
+            schema_issue_rule_dict = {"connect_name": the_cmdb.connect_name,
+                                      "schema_name": schema_name,
+                                      "create_time": dt_to_str(create_time),
+                                      "schema_score": schema_score.to_dict(),
+                                      **level_num,
+                                      "rule_issue": rule_issues}
+            return schema_issue_rule_dict, cmdb_id, task_record_id, schema_name
+
+    def get(self):
+        """健康中心schema触犯的规则,分数"""
+        scheam_issue_rule, _, _, _ = self.schema_issue_rule()
+        self.resp(scheam_issue_rule)
 
     get.argument = {
         "querystring": {
@@ -255,3 +264,38 @@ class SQLIssueDetailHandler(OraclePrivilegeReq):
             "sql_id": "2h37v66c9spu6",
             "//plan_hash_value": "2959612647"
         }}
+
+
+@as_view("scheam_report_export", group="health-center")
+class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule):
+
+    async def get(self):
+        """健康中心schema报告导出"""
+
+        schema_issue_rule_dict, cmdb_id, task_record_id, schema_name = self.schema_issue_rule()  # 一个库一个schema一次采集触犯的所有规则
+
+        issues_q = OracleOnlineIssue.filter(cmdb_id=cmdb_id,
+                                            schema_name=schema_name,
+                                            task_record_id=task_record_id)
+        output_data = []
+        for issue in issues_q:
+            issue.output_params._data.pop("_cls")
+            output_data.append({issue.rule_name: issue.output_params._data})
+
+        parame_dict = {
+            "schema_issue_rule_dict": schema_issue_rule_dict,
+            "output_data": output_data
+        }
+
+        filename = f"export_schema_report_{dt_to_str(arrow.now())}.xlsx"
+
+        await SchemaReportExport.async_shoot(filename=filename, parame_dict=parame_dict)
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
+
+    get.argument = {
+        "querystring": {
+            "cmdb_id": "13",
+            "schema_name": "ISQLAUDIT_DEV",
+            "task_record_id": "10",
+        }
+    }
