@@ -22,24 +22,22 @@ from . import exceptions
 class BaseReq(RequestHandler):
     """base request handler"""
 
-    @staticmethod
-    def _resp_em(e):
+    def _resp_em(self, e):
         """return error message if a schema validation failed."""
 
         def s(*args, **kwargs):
-            raise exceptions.SchemaErrorWithMessage(e)
+            self.resp_bad_req(msg=e)
+            raise exceptions.SchemaErrorWithMessage(f"入参验证失败： {e}")
 
         return s
 
-    @classmethod
-    def scm_or_with_error_msg(cls, *args, e):
+    def scm_or_with_error_msg(self, *args, e):
         """按照Or的顺序执行schema，如果都失败了，则返回400，msg为e"""
-        args = list(args) + [cls._resp_em(e)]
+        args = list(args) + [self._resp_em(e)]
         return Or(*args)
 
-    @classmethod
     def scm_one_of_choices(
-            cls,
+            self,
             choices: Union[List, Tuple],
             use: Optional[Callable] = None,
             allow_empty: bool = False):
@@ -57,14 +55,13 @@ class BaseReq(RequestHandler):
             f = scm_or(use, f)
         if allow_empty:
             f = scm_empty_as_optional(f),
-        return cls.scm_or_with_error_msg(
+        return self.scm_or_with_error_msg(
             f,
             e=f" should be one of {choices}"
         )
 
-    @classmethod
     def scm_subset_of_choices(
-            cls,
+            self,
             choices: Union[List, Tuple],
             use: Optional[Callable] = None,
             allow_empty: bool = False):
@@ -73,7 +70,7 @@ class BaseReq(RequestHandler):
             f = scm_or(use, f)
         if allow_empty:
             f = scm_empty_as_optional(f),
-        return cls.scm_or_with_error_msg(
+        return self.scm_or_with_error_msg(
             f,
             e=f" should be subset of {choices}"
         )
@@ -97,11 +94,11 @@ class BaseReq(RequestHandler):
                 ja = schema_object.validate(ja)
         except SchemaError as e:
             if not self._finished:
-                self.resp_bad_req(msg=f"参数错误：{str(e)}")
+                self.resp_bad_req(msg=f"参数错误： {str(e)}")
                 raise e
             return
         except json.JSONDecodeError:
-            self.resp_bad_req(msg=f"参数错误：json解析失败。")
+            self.resp_bad_req(msg=f"参数错误： json解析失败。")
             return
         return ja
 
@@ -113,7 +110,7 @@ class BaseReq(RequestHandler):
                 qa = schema_object.validate(qa)
             except SchemaError as e:
                 if not self._finished:
-                    self.resp_bad_req(msg=f"参数错误：{str(e)}")
+                    self.resp_bad_req(msg=f"参数错误： {str(e)}")
                     raise e
                 return
         return qa
