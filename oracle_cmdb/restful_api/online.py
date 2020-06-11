@@ -21,12 +21,10 @@ class OverviewHandler(OraclePrivilegeReq):
 
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
-
-            scm_optional("period", default=OracleStatsCMDBSQLNum.DATE_PERIOD[0]):
-                And(scm_int, scm_one_of_choices(OracleStatsCMDBSQLNum.DATE_PERIOD))
         }))
         cmdb_id = params.pop("cmdb_id")
-        period = params.pop("period")
+        period_week=OracleStatsCMDBSQLNum.DATE_PERIOD[0]
+        period_month=OracleStatsCMDBSQLNum.DATE_PERIOD[1]
         del params  # shouldn't use params anymore
 
         with make_session() as session:
@@ -47,17 +45,19 @@ class OverviewHandler(OraclePrivilegeReq):
                 iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
                 iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
-        sql_num = {}
+        sql_num = {"week":{},"month":{}}
         cmdb_sql_num = OracleStatsCMDBSQLNum.filter(
             target_login_user=self.current_user,
             cmdb_id=cmdb_id,
-            task_record_id=latest_task_record_id,
-            date_period=period
-        ).first()
-        if cmdb_sql_num:
-            sql_num = cmdb_sql_num.to_dict(
-                iter_if=lambda k, v: k in ("active", "at_risk"),
-            )
+            task_record_id=latest_task_record_id)
+        cmdb_sql_num_week = cmdb_sql_num.filter(date_period=period_week).first()
+        cmdb_sql_num_month = cmdb_sql_num.filter(date_period=period_month).first()
+        if cmdb_sql_num_week:
+            sql_num["week"] = cmdb_sql_num_week.to_dict(
+                iter_if=lambda k, v: k in ("active", "at_risk"))
+        if cmdb_sql_num_month:
+            sql_num["month"] = cmdb_sql_num_month.to_dict(
+                iter_if=lambda k, v: k in ("active", "at_risk"))
 
         sql_execution_cost_rank = {'elapsed_time_total': [], 'elapsed_time_delta': []}
         sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.filter(
@@ -113,11 +113,19 @@ class OverviewHandler(OraclePrivilegeReq):
     get.argument = {
         "querystring": {
             "cmdb_id": "2526",
-            "//period": "7",
         },
         "json": {}
     }
 
+
+@as_view("cmdb_report_export",group="health-center")
+class CmdbReportExport(OraclePrivilegeReq):
+
+    def get(self):
+        """CMDB库的报告导出"""
+        self.get_query_args(Schema({
+            "cmdb_id":scm_int
+        }))
 
 @as_view("metadata", group="online")
 class MetadataListHandler(OraclePrivilegeReq):
