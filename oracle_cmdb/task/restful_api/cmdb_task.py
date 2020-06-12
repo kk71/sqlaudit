@@ -106,7 +106,7 @@ class CMDBTaskRecordHandler(OraclePrivilegeReq):
             cmdb_task_record_q = cmdb_task_record_q.filter(
                 OracleCMDBTaskCaptureRecord.cmdb_task_id == cmdb_task_id,
                 OracleCMDBTaskCaptureRecord.cmdb_id.in_(self.cmdb_ids(session))
-            )
+            ).order_by(OracleCMDBTaskCaptureRecord.create_time.desc())
             rst, p = self.paginate(cmdb_task_record_q, **p)
             self.resp([qe.to_dict(i) for i in rst], **p)
 
