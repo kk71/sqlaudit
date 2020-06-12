@@ -9,6 +9,7 @@ from typing import Union, Generator, Dict
 
 from mongoengine import StringField, ListField, IntField, DictField
 
+from utils.perf_utils import timing
 from ..base import *
 from .base import *
 from rule.rule_jar import *
@@ -44,6 +45,7 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
     }
 
     @classmethod
+    @timing()
     def generate(
             cls,
             task_record_id: int,
@@ -52,11 +54,13 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
         issue_q = OracleOnlineSQLIssue.filter(
             task_record_id=task_record_id
         )
+        cls.generate.tik(issue_q.count())
         rule_jar = RuleJar()
         sqls: Dict[str, cls] = defaultdict(cls)
         for an_issue in issue_q:
-            doc = sqls[an_issue.output_params.sql_id]
-            doc.sql_id = an_issue.output_params.sql_id
+            sql_id = an_issue.output_params.sql_id
+            doc = sqls[sql_id]
+            doc.sql_id = sql_id
             if not doc.schema_name:
                 # 优化，减少获取规则，填充规则的次数
                 the_rule = rule_jar.get_rule(
@@ -70,12 +74,13 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             if not all(doc.sql_stat.values()):
                 the_stat = OracleSQLStatToday.filter(
                     task_record_id=task_record_id,
-                    sql_id=doc.sql_id
+                    sql_id=sql_id
                 ).first()
                 if the_stat:
                     doc.sql_stat = the_stat.to_dict(
                         iter_if=lambda k, v: k in doc.sql_stat.keys())
-        for sql_id, doc in sqls.items():
+        cls.generate.tik(len(sqls))
+        for doc in sqls.values():
             cls.post_generated(
                 doc=doc,
                 task_record_id=task_record_id,
