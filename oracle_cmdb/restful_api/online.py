@@ -1,5 +1,4 @@
-from collections import defaultdict
-
+import rule.const
 from restful_api import *
 from .base import OraclePrivilegeReq
 from auth.const import PRIVILEGE
@@ -20,106 +19,88 @@ class OverviewHandler(OraclePrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
 
         params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
+            "cmdb_id": scm_int
         }))
         cmdb_id = params.pop("cmdb_id")
-        period_week = OracleStatsCMDBSQLNum.DATE_PERIOD[0]
-        period_month = OracleStatsCMDBSQLNum.DATE_PERIOD[1]
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            latest_task_record = OracleCMDBTaskCapture. \
-                last_success_task_record_id_dict(
-                session, cmdb_id)
-            latest_task_record_id = latest_task_record.get(cmdb_id, None)
-            if not latest_task_record:
+            the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+            the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(the_cmdb)
+            ltri = the_cmdb_task.last_success_task_record_id
+            if not ltri:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
-        tablespace_sum = {}
-        stats_phy_size_object = OracleStatsCMDBPhySize.filter(
-            task_record_id=latest_task_record_id,
-            cmdb_id=cmdb_id
-        ).first()
-        if stats_phy_size_object:
-            tablespace_sum = stats_phy_size_object.to_dict(
-                iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
-                iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
+            # 表空间饼图
+            tablespace_sum = {}
+            stats_phy_size_object = OracleStatsCMDBPhySize.filter(
+                task_record_id=ltri
+            ).first()
+            if stats_phy_size_object:
+                tablespace_sum = stats_phy_size_object.to_dict(
+                    iter_if=lambda k, v: k in (
+                        "total", "used", "usage_ratio", "free"),
+                    float_round=2
+                )
 
-        sql_num = {"week": {}, "month": {}}
-        cmdb_sql_num = OracleStatsCMDBSQLNum.filter(
-            target_login_user=self.current_user,
-            cmdb_id=cmdb_id,
-            task_record_id=latest_task_record_id)
-        cmdb_sql_num_week = cmdb_sql_num.filter(date_period=period_week).first()
-        cmdb_sql_num_month = cmdb_sql_num.filter(date_period=period_month).first()
-        if cmdb_sql_num_week:
-            sql_num["week"] = cmdb_sql_num_week.to_dict(
-                iter_if=lambda k, v: k in ("active", "at_risk"))
-        if cmdb_sql_num_month:
-            sql_num["month"] = cmdb_sql_num_month.to_dict(
-                iter_if=lambda k, v: k in ("active", "at_risk"))
+            # sql质量柱状图
+            sql_num = {k: [] for k in OracleStatsCMDBSQLNum.DATE_PERIOD.values()}
+            cmdb_sql_num_q = OracleStatsCMDBSQLNum.filter(
+                target_login_user=self.current_user,
+                task_record_id=ltri
+            )
+            for the_cmdb_sql_num_stats in cmdb_sql_num_q:
+                date_period_int = the_cmdb_sql_num_stats.date_period
+                date_period_str = OracleStatsCMDBSQLNum.DATE_PERIOD[date_period_int]
+                sql_num[date_period_str] = the_cmdb_sql_num_stats.to_dict()
 
-        sql_execution_cost_rank = {'elapsed_time_total': [], 'elapsed_time_delta': []}
-        sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.filter(
-            target_login_user=self.current_user,
-            cmdb_id=cmdb_id,
-            task_record_id=latest_task_record_id
-        )
-        if sql_exec_cost_rank_q:
-            sql_execution_cost_rank['elapsed_time_total'].extend(
-                [x.to_dict(iter_if=lambda k, v: k in ("sql_id", "time")) for x in
-                 sql_exec_cost_rank_q.filter(by_what='elapsed_time_total')])
-            sql_execution_cost_rank['elapsed_time_delta'].extend(
-                [y.to_dict(iter_if=lambda k, v: k in ("sql_id", "time")) for y in
-                 sql_exec_cost_rank_q.filter(by_what='elapsed_time_delta')])
+            # 慢sql排名
+            sql_exec_cost_rank = {
+                k: [] for k in OracleStatsCMDBSQLExecutionCostRank.BY_WHAT}
+            sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.filter(
+                target_login_user=self.current_user,
+                task_record_id=ltri
+            )
+            for by_what in OracleStatsCMDBSQLExecutionCostRank.BY_WHAT:
+                sql_exec_cost_rank[by_what] = [
+                    i.to_dict()
+                    for i in sql_exec_cost_rank_q.filter(by_what=by_what)
+                ]
 
-        risk_rule_rank = []
-        risk_rule_rank_d = defaultdict(lambda: {'issue_num': 0})
-        risk_rule_rank_q = OracleStatsSchemaRiskRule.filter(
-            cmdb_id=cmdb_id,
-            task_record_id=latest_task_record_id
-        )
-        for x in risk_rule_rank_q:
-            doc = risk_rule_rank_d[x.rule['desc']]
-            doc['rule'] = x.rule
-            doc['level'] = x.level
-            doc['issue_num'] += x.issue_num
-        for x, y in risk_rule_rank_d.items():
-            if y['issue_num'] == 0:
-                continue
-            risk_rule_rank.append(y)
-        risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (-x["level"], -x['issue_num']))
+            # 风险规则排名
+            risk_rule_rank_q = OracleStatsSchemaRiskRule.filter(
+                task_record_id=ltri,
+                issue_num__ne=0
+            )
+            risk_rule_rank = [i.to_dict() for i in risk_rule_rank_q]
 
-        with make_session() as session:
-            rank_schema_score = []
+            # schema评分排名
             schemas = self.schemas(session, cmdb_id)
             schema_score_q = OracleStatsSchemaScore.filter(
-                cmdb_id=cmdb_id,
-                task_record_id=latest_task_record_id,
+                task_record_id=ltri,
                 schema_name__in=schemas
             )
-            for schema_score in schema_score_q:
-                rank_schema_score.append(
-                    {"schema_name": schema_score.schema_name, "score": schema_score.entry_score['ONLINE']})
-            rank_schema_score = sorted(rank_schema_score, key=lambda x: x['score'])[:10]
+            rank_schema_score = [
+                i.to_dict(
+                    iter_by=lambda k, v: v[rule.const.RULE_ENTRY_ONLINE]
+                    if k == "entry_score" else v)
+                for i in schema_score_q
+            ]
 
             self.resp({
                 "tablespace_sum": tablespace_sum,
                 "sql_num": sql_num,
-                "sql_execution_cost_rank": sql_execution_cost_rank,
+                "sql_execution_cost_rank": sql_exec_cost_rank,
                 "risk_rule_rank": risk_rule_rank,
                 "rank_schema_score": rank_schema_score,
-
                 "cmdb_id": cmdb_id,
-                "task_record_id": latest_task_record_id
-
+                "task_record_id": ltri
             })
 
     get.argument = {
         "querystring": {
-            "cmdb_id": "2526",
-        },
-        "json": {}
+            "cmdb_id": "13",
+        }
     }
 
 
@@ -181,8 +162,7 @@ class MetadataListHandler(OraclePrivilegeReq):
             "//search_type": "icontains",
             "page": "1",
             "per_page": "10"
-        },
-        "json": {}
+        }
     }
 
 
@@ -242,6 +222,5 @@ class TableInfoHandler(OraclePrivilegeReq):
             "cmdb_id": 2526,
             "schema_name": "IDBAAS",
             "table_name": "T_CMDB_ORACLE"
-        },
-        "json": {}
+        }
     }
