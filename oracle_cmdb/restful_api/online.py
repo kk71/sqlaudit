@@ -84,6 +84,7 @@ class OverviewHandler(OraclePrivilegeReq):
             for i in schema_score_q:
                 s = i.to_dict()
                 s["score"] = i.entry_score[rule.const.RULE_ENTRY_ONLINE]
+                rank_schema_score.append(s)
 
             self.resp({
                 "tablespace_sum": tablespace_sum,
