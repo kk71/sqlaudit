@@ -25,8 +25,14 @@ def task_scheduler():
             time.sleep((next_to_run - now).seconds)
 
             for a_task in all_task_instances:
-                # TODO
-                print(a_task)
-
+                the_scheduler = getattr(a_task, "schedule", None)
+                if the_scheduler and\
+                        callable(the_scheduler) and\
+                        not getattr(the_scheduler, "not_implemented", False):
+                    try:
+                        print(f"{a_task}... ")
+                        the_scheduler(now, process_start_time)
+                    except NotImplementedError:
+                        pass
         except:
             print(traceback.format_exc())

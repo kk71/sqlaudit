@@ -4,6 +4,8 @@ __all__ = [
     "OracleCMDBCaptureTask"
 ]
 
+from typing import NoReturn
+
 import task.const
 from utils.datetime_utils import *
 from cmdb.cmdb_task import *
@@ -88,3 +90,11 @@ class OracleCMDBCaptureTask(BaseCMDBTask):
             task_record_id=task_record_id,
             schemas=schemas
         )
+
+    @classmethod
+    def schedule(
+            cls,
+            now: arrow.Arrow,
+            scheduler_starting_time: arrow.Arrow,
+            **kwargs) -> NoReturn:
+        print("yay")

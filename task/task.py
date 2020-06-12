@@ -177,3 +177,4 @@ class BaseTask(celery_app.Task):
         :return:
         """
         raise NotImplementedError
+    schedule.not_implemented = True
