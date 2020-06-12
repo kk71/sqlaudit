@@ -23,14 +23,14 @@ class OverviewHandler(OraclePrivilegeReq):
             "cmdb_id": scm_int,
         }))
         cmdb_id = params.pop("cmdb_id")
-        period_week=OracleStatsCMDBSQLNum.DATE_PERIOD[0]
-        period_month=OracleStatsCMDBSQLNum.DATE_PERIOD[1]
+        period_week = OracleStatsCMDBSQLNum.DATE_PERIOD[0]
+        period_month = OracleStatsCMDBSQLNum.DATE_PERIOD[1]
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            latest_task_record = OracleCMDBTaskCapture.\
+            latest_task_record = OracleCMDBTaskCapture. \
                 last_success_task_record_id_dict(
-                    session, cmdb_id)
+                session, cmdb_id)
             latest_task_record_id = latest_task_record.get(cmdb_id, None)
             if not latest_task_record:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
@@ -45,7 +45,7 @@ class OverviewHandler(OraclePrivilegeReq):
                 iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
                 iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
-        sql_num = {"week":{},"month":{}}
+        sql_num = {"week": {}, "month": {}}
         cmdb_sql_num = OracleStatsCMDBSQLNum.filter(
             target_login_user=self.current_user,
             cmdb_id=cmdb_id,
@@ -92,11 +92,16 @@ class OverviewHandler(OraclePrivilegeReq):
 
         with make_session() as session:
             rank_schema_score = []
-            schemas=self.schemas(session,cmdb_id)
-            schema_score_q=OracleStatsSchemaScore.filter(cmdb_id=cmdb_id,task_record_id=latest_task_record_id,schema_name__in=(schemas))
+            schemas = self.schemas(session, cmdb_id)
+            schema_score_q = OracleStatsSchemaScore.filter(
+                cmdb_id=cmdb_id,
+                task_record_id=latest_task_record_id,
+                schema_name__in=schemas
+            )
             for schema_score in schema_score_q:
-                rank_schema_score.append({"schema_name":schema_score.schema_name,"score":schema_score.entry_score['ONLINE']})
-            rank_schema_score=sorted(rank_schema_score,key=lambda x:x['score'])[:10]
+                rank_schema_score.append(
+                    {"schema_name": schema_score.schema_name, "score": schema_score.entry_score['ONLINE']})
+            rank_schema_score = sorted(rank_schema_score, key=lambda x: x['score'])[:10]
 
             self.resp({
                 "tablespace_sum": tablespace_sum,
@@ -118,14 +123,15 @@ class OverviewHandler(OraclePrivilegeReq):
     }
 
 
-@as_view("cmdb_report_export",group="health-center")
+@as_view("cmdb_report_export", group="health-center")
 class CmdbReportExport(OraclePrivilegeReq):
 
     def get(self):
         """CMDB库的报告导出"""
         self.get_query_args(Schema({
-            "cmdb_id":scm_int
+            "cmdb_id": scm_int
         }))
+
 
 @as_view("metadata", group="online")
 class MetadataListHandler(OraclePrivilegeReq):
