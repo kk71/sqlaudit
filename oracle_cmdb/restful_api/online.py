@@ -75,17 +75,15 @@ class OverviewHandler(OraclePrivilegeReq):
             risk_rule_rank = [i.to_dict() for i in risk_rule_rank_q]
 
             # schema评分排名
+            rank_schema_score = []
             schemas = self.schemas(session, cmdb_id)
             schema_score_q = OracleStatsSchemaScore.filter(
                 task_record_id=ltri,
                 schema_name__in=schemas
             )
-            rank_schema_score = [
-                i.to_dict(
-                    iter_by=lambda k, v: v[rule.const.RULE_ENTRY_ONLINE]
-                    if k == "entry_score" else v)
-                for i in schema_score_q
-            ]
+            for i in schema_score_q:
+                s = i.to_dict()
+                s["score"] = i.entry_score[rule.const.RULE_ENTRY_ONLINE]
 
             self.resp({
                 "tablespace_sum": tablespace_sum,
