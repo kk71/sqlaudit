@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 from collections import defaultdict
-from typing import Union, Generator
+from typing import Union, Generator, Dict
 
 from mongoengine import StringField, ListField, IntField, DictField
 
@@ -53,17 +53,19 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             task_record_id=task_record_id
         )
         rule_jar = RuleJar()
-        sqls = defaultdict(cls)
+        sqls: Dict[str, cls] = defaultdict(cls)
         for an_issue in issue_q:
-            the_rule = rule_jar.get_rule(
-                cmdb_id=an_issue.cmdb_id, name=an_issue.rule_name)
             doc = sqls[an_issue.output_params.sql_id]
-            doc.schema_name = an_issue.schema_name
             doc.sql_id = an_issue.output_params.sql_id
-            doc.level = an_issue.level
-            doc.rule_name = the_rule.name
-            doc.rule_desc = the_rule.desc
-            doc.rule_solution = the_rule.solution
+            if not doc.schema_name:
+                # 优化，减少获取规则，填充规则的次数
+                the_rule = rule_jar.get_rule(
+                    cmdb_id=an_issue.cmdb_id, name=an_issue.rule_name)
+                doc.schema_name = an_issue.schema_name
+                doc.level = an_issue.level
+                doc.rule_name = the_rule.name
+                doc.rule_desc = the_rule.desc
+                doc.rule_solution = the_rule.solution
             doc.issue_num += 1
             if not all(doc.sql_stat.values()):
                 the_stat = OracleSQLStatToday.filter(

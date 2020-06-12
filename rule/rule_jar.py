@@ -8,6 +8,7 @@ __all__ = [
 
 from typing import List, Optional
 
+from rule.rule import BaseRule
 from rule.cmdb_rule import CMDBRule
 from rule.rule_cartridge import RuleCartridge
 
@@ -20,6 +21,7 @@ class BaseRuleJar(list):
     TODO 任何时候加入新的规则，都只取启用的规则。
     """
 
+    # TODO 必须继承本类以明确使用哪个规则仓库
     RULE_MODEL = None
 
     def __init__(self, *args, **kwargs):
@@ -27,22 +29,41 @@ class BaseRuleJar(list):
         self.entries: [str] = []
 
     @classmethod
-    def gen_jar_with_entries(cls, *args: [str], **kwargs) -> "BaseRuleJar":
+    def gen_jar_with_entries(
+            cls,
+            *args: [str],
+            **kwargs) -> "BaseRuleJar":
         """
         以entries产生jar
         :param args: entries...
         :return:
         """
-        new_jar = cls(cls.RULE_MODEL.filter_enabled(entries__all=args).filter(**kwargs))
+        new_jar = cls(
+            cls.RULE_MODEL.filter_enabled(entries__all=args).filter(**kwargs))
         new_jar.entries = args
         return new_jar
 
-    def get_unique_keys(self) -> List[tuple]:
+    def get_unique_keys(self, *args, **kwargs) -> List[tuple]:
         """获取规则的唯一键值去重列表"""
-        return list({i.unique_key() for i in self})
+        return list({i.unique_key(*args, **kwargs) for i in self})
 
     def bulk_to_dict(self, *args, **kwargs):
         return [i.to_dict(*args, **kwargs) for i in self]
+
+    def get_rule(self, **kwargs) -> Optional[BaseRule]:
+        """
+        在jar中搜寻特定规则，如未找到则从数据库中加载
+        :param kwargs: rule unique key dict
+        :return:
+        """
+        assert set(kwargs.keys()) == set(self.RULE_MODEL.UNIQUE_KEYS)
+        for i in self:
+            if i.unique_key(as_dict=True) == kwargs:
+                return i
+        the_rule = self.RULE_MODEL.filter_enabled(**kwargs).first()
+        if the_rule:
+            self.append(the_rule)
+            return the_rule
 
 
 class RuleJar(BaseRuleJar):
@@ -50,20 +71,8 @@ class RuleJar(BaseRuleJar):
 
     RULE_MODEL = CMDBRule
 
-    def get_rule(self, cmdb_id: int, name: str) -> Optional[CMDBRule]:
-        """在jar中搜寻特定规则，如未找到则从数据库中加载"""
-        for i in self:
-            if i.unique_key() == (cmdb_id, name):
-                return i
-        the_rule = CMDBRule.filter_enabled(
-            cmdb_id=cmdb_id, name=name).first()
-        if the_rule:
-            self.append(the_rule)
-            return the_rule
-
 
 class RuleCartridgeJar(BaseRuleJar):
     """适用于规则墨盒的规则弹仓"""
 
     RULE_MODEL = RuleCartridge
-

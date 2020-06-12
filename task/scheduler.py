@@ -7,7 +7,7 @@ __all__ = [
 import time
 import traceback
 
-import task.celery_collect
+import task.celery_collect  # 不要删掉，导入即是扫描并收集所有任务!
 from utils.datetime_utils import *
 from .task import all_task_instances
 
