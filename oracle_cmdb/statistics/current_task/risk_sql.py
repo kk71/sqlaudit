@@ -52,12 +52,11 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
         issue_q = OracleOnlineSQLIssue.filter(
             task_record_id=task_record_id
         )
-        print(issue_q.count())
         rule_jar = RuleJar()
-        sqls: Dict[str, cls] = defaultdict(cls)
+        sqls_rule: Dict[(str, str), cls] = defaultdict(cls)
         for an_issue in issue_q:
             sql_id = an_issue.output_params.sql_id
-            doc = sqls[sql_id]
+            doc = sqls_rule[(sql_id, an_issue.rule_name)]
             doc.sql_id = sql_id
             if not doc.schema_name:
                 # 优化，减少获取规则，填充规则的次数
@@ -77,8 +76,7 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
                 if the_stat:
                     doc.sql_stat = the_stat.to_dict(
                         iter_if=lambda k, v: k in doc.sql_stat.keys())
-        print(len(sqls))
-        for doc in sqls.values():
+        for doc in sqls_rule.values():
             cls.post_generated(
                 doc=doc,
                 task_record_id=task_record_id,
