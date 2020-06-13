@@ -3,7 +3,7 @@ import json
 
 import sqlparse
 
-# from past.utils.pyh import PyH, br
+from .pyh import PyH, br
 from utils import const
 from utils.datetime_utils import *
 
@@ -94,6 +94,8 @@ def print_html_script(title):
             <!-- ================== END PAGE LEVEL JS ================== -->
             """
     return page
+
+
 def cmdb_print_html_body(page, cmdb):
     page << """<body>
         <!-- begin #page-loader -->
@@ -109,7 +111,7 @@ def cmdb_print_html_body(page, cmdb):
                     <!-- begin mobile sidebar expand / collapse button -->
                     <div class="navbar-header">
                         <a href="#"><h3 class="top-title">
-                        """+cmdb['connect_name']+"""
+                        """+cmdb.connect_name+"""
                         </h3></a>
                     </div>
                     <!-- end mobile sidebar expand / collapse button -->
@@ -169,7 +171,7 @@ def cmdb_print_html_body(page, cmdb):
 				</div>
 				
 				<div class="row">
-						<div class="radio" style="float:right;font-size:16px">
+						<!--<div class="radio" style="float:right;font-size:16px">
 						   <label class="radio-inline">
 							<input type="radio" class="radio" name="userHealthy" id="UAvg" value="UAvg" checked>
 							平均值
@@ -177,12 +179,13 @@ def cmdb_print_html_body(page, cmdb):
 						  <label class="radio-inline">
 							<input type="radio" class="radio" name="userHealthy" id="UMin" value="UMin">
 							最小值
-						  </label>
+						  </label>-->
 						</div>
 						
 						<br/><br/>
-						<div class="col-md-12" id='userHealthyAvg'></div>
-						<div class="col-md-12" id='userHealthyMin'></div>
+						<div class="col-md-12" id='userHealthy'></div>
+						<!--<div class="col-md-12" id='userHealthyAvg'></div>
+						<div class="col-md-12" id='userHealthyMin'></div>-->
 				</div>
 				
 				<div class="row">
@@ -540,9 +543,9 @@ def print_html_obj_detail_info(page, results, rules, rule_summary):
     page << br()
 
 
-def print_html_cmdb_basic_information(page, cmdb_q,tablespace_sum,cmdb_score):
+def print_html_cmdb_basic_info(page, cmdb, tablespace_sum):
 
-    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb_q) + ","+str(tablespace_sum)+","+str(cmdb_score)+")</script>"
+    page << f"<script>genBaseInfo('#baseInfo','基本信息'," + str(cmdb) + "," + str(tablespace_sum) + ")</script>"
     page << br()
 
 
@@ -617,13 +620,13 @@ def print_html_cmdb_risk_rule_rank(page, risk_name, num,sort_num):
     page << br()
 
 
-def print_html_cmdb_user_ranking(page, x_avg,y_avg,x_min,y_min):
+def print_html_cmdb_user_ranking(page, x_schema, y_score):
 
-    page << "<script>genUserHealthyChart('#userHealthyMin','userHealthyMinDiv','用户健康度排名',''," + str(x_min) + "," + str(y_min) + ")</script>"
+    page << "<script>genUserHealthyChart('#userHealthy','userHealthyDiv','用户健康度排名',''," + str(x_schema) + "," + str(y_score) + ")</script>"
     page << br()
 
-    page << "<script>genUserHealthyChart('#userHealthyAvg','userHealthyAvgDiv','用户健康度排名',''," + str(x_avg) + "," + str(y_avg) + ")</script>"
-    page << br()
+    # page << "<script>genUserHealthyChart('#userHealthyAvg','userHealthyAvgDiv','用户健康度排名',''," + str(x_avg) + "," + str(y_avg) + ")</script>"
+    # page << br()
 
 def print_html_cmdb_sql_details(page,sqls):
 

@@ -36,7 +36,7 @@ class BaseOracleSQLPlanCommon:
         pt.align = "l"
         for plan in plans.values_list(*cls.ORACLE_PLAN_HEAD.values()):
             to_add = [i if i is not None else " " for i in plan]
-            m, s = divmod(to_add[-1] if to_add[-1] and to_add[-1] != " " else 0, 60)
+            m, s = divmod(int(to_add[-1]) if to_add[-1] and to_add[-1] != " " else 0, 60)
             h, m = divmod(m, 60)
             to_add[-1] = "%02d:%02d:%02d" % (h, m, s)
             for i in range(3, 6):  # convert to int if range 3~5 is not None

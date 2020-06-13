@@ -29,7 +29,7 @@ def cmdb_report_export_html(cmdb,cmdb_q,tablespace_sum,
     cmdb_print_html_body(v_page,cmdb)
     print_html_js(v_page)
 
-    print_html_cmdb_basic_information(v_page,cmdb_q,tablespace_sum,cmdb_score)
+    print_html_cmdb_basic_info(v_page,cmdb_q,tablespace_sum,cmdb_score)
 
     time_week = [arrow.get(x['date']).strftime('%Y-%m-%d') for x in active_week]
     active_week_data = [x['value'] for x in active_week]
