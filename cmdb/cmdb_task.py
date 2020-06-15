@@ -329,7 +329,7 @@ class BaseCMDBTask(BaseTask):
                     print(f"bad configured: task {a_task} has neither schedule date "
                           f"nor frequency.")
                     continue
-                scheduled_hour, scheduled_minute = a_task.schedule.split(";")
+                scheduled_hour, scheduled_minute = a_task.schedule_time.split(";")
                 task_begin_time = scheduler_starting_time.replace(
                     hour=scheduled_hour, minute=scheduled_minute).timestamp
                 task_freq_sec = int(a_task.frequency) * 60
