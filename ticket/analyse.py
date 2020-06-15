@@ -148,6 +148,7 @@ class SubTicketAnalyse(
         :param single_sql:
         :param sqls: [{single_sql},...]
         """
+        print(single_sql)
         try:
             for sr in self.static_rules:
                 if single_sql["sql_type"] not in sr.entries:
@@ -158,8 +159,8 @@ class SubTicketAnalyse(
                 ret = RuleAdapterSQL(sr).run(
                     entries=self.static_rules.entries,
 
-                    single_sql=single_sql,
-                    sqls=sqls,
+                    single_sql=copy.copy(single_sql),
+                    sqls=copy.copy(sqls),
                     cmdb=self.cmdb
                 )
                 for minus_score, output_param in ret:

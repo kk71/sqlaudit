@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 import uuid
+import copy
 import base64
 import traceback
 
@@ -14,6 +15,7 @@ import ticket.const
 import ticket.exceptions
 import cmdb.const
 import ticket.sub_ticket
+from ticket.single_sql import SingleSQLForTicket
 from models.mongoengine import *
 from parsed_sql.parsed_sql import ParsedSQL
 from ticket.analyse import SubTicketAnalyse
@@ -56,7 +58,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
 
     def run_dynamic(self,
                     sub_result: OracleSubTicket,
-                    single_sql: dict):
+                    single_sql: SingleSQLForTicket):
         """动态分析"""
         try:
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
@@ -80,7 +82,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                 ret = RuleAdapterSQL(dr).run(
                     entries=self.dynamic_rules.entries,
 
-                    single_sql=single_sql,
+                    single_sql=copy.copy(single_sql),
                     cmdb_connector=self.cmdb_connector,
                     sql_plan_qs=sql_plan_qs,
                     schema_name=sub_result.schema_name,
@@ -107,8 +109,8 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
             print(error_msg)
 
     def run(self,
-            sqls: [dict],
-            single_sql: dict,
+            sqls: [SingleSQLForTicket],
+            single_sql: SingleSQLForTicket,
             **kwargs) -> OracleSubTicket:
         """
         单条sql的静态动态审核

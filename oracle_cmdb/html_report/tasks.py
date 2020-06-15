@@ -1,4 +1,3 @@
-
 import tarfile
 import os.path
 
@@ -6,6 +5,7 @@ import settings
 import task.const
 from task.task import *
 from .utils import *
+
 
 @register_task(task.const.TASK_TYPE_CMDB_REPORT)
 class CmdbReportExportHtml(BaseTask):
@@ -20,36 +20,36 @@ class CmdbReportExportHtml(BaseTask):
         cmdb = parame_dict["cmdb"]
         cmdb_print_html_body(v_page, cmdb)
         print_html_js(v_page)
-        tablespace_sum=parame_dict["cmdb_overview"]["tablespace_sum"]
-        #cmdb基本信息
-        print_html_cmdb_basic_info(v_page, cmdb ,tablespace_sum)
+        tablespace_sum = parame_dict["cmdb_overview"]["tablespace_sum"]
+        # cmdb基本信息
+        print_html_cmdb_basic_info(v_page, cmdb, tablespace_sum)
 
-        #SQL质量
-        sql_num=parame_dict["cmdb_overview"]["sql_num"]
+        # SQL质量
+        sql_num = parame_dict["cmdb_overview"]["sql_num"]
         time_week = [arrow.get(x['date']).strftime('%Y-%m-%d') for x in sql_num["week"]['active']]
         active_week_data = [x['value'] for x in sql_num["week"]['active']]
         at_risk_week_data = [x['value'] for x in sql_num["week"]['at_risk']]
         time_mouth = [arrow.get(x['date']).strftime('%Y-%m-%d') for x in sql_num["month"]['active']]
         active_mouth_data = [x['value'] for x in sql_num["month"]['active']]
         at_risk_mouth_data = [x['value'] for x in sql_num["month"]['at_risk']]
-        print_html_cmdb_sql_quality(v_page,time_week,
-                                active_week_data,
-                                at_risk_week_data,
-                                time_mouth,
-                                active_mouth_data,
-                                at_risk_mouth_data)
+        print_html_cmdb_sql_quality(v_page, time_week,
+                                    active_week_data,
+                                    at_risk_week_data,
+                                    time_mouth,
+                                    active_mouth_data,
+                                    at_risk_mouth_data)
 
         # print_html_cmdb_radar(v_page, radar_avg, radar_score_avg,
         #                       radar_min, radar_score_min)
-        #表空间使用率排名
-        tabspace_q=parame_dict["tabspace_q"]
+        # 表空间使用率排名
+        tabspace_q = parame_dict["tabspace_q"]
         ts_usage_ratio = [x.usage_ratio for x in tabspace_q][:10]
         ts_name = [x.tablespace_name for x in tabspace_q][:10]
         sort_ts_usage_ration = sorted(ts_usage_ratio, reverse=False)
         print_html_cmdb_tab_space_use_ration(v_page, ts_name, ts_usage_ratio, sort_ts_usage_ration)
 
-        #sql语句总耗时
-        sql_execution_time_total=parame_dict["cmdb_overview"]["sql_execution_cost_rank"]["elapsed_time_total"]
+        # sql语句总耗时
+        sql_execution_time_total = parame_dict["cmdb_overview"]["sql_execution_cost_rank"]["elapsed_time_total"]
         x = [x['time'] for x in sql_execution_time_total][:10]
         x.reverse()
         y = [y['sql_id'] for y in sql_execution_time_total][:10]
@@ -66,12 +66,12 @@ class CmdbReportExportHtml(BaseTask):
 
         # cmdb用户schema分数排名
         rank_schema_score = parame_dict["cmdb_overview"]["rank_schema_score"]
-        x_schema=[x['schema_name']for x in rank_schema_score]
-        y_score=[y['score'] for y in rank_schema_score]
+        x_schema = [x['schema_name'] for x in rank_schema_score]
+        y_score = [y['score'] for y in rank_schema_score]
         print_html_cmdb_user_ranking(v_page, x_schema, y_score)
 
-        #sql详情
-        sqls=parame_dict["sql_detail"]
+        # sql详情
+        sqls = parame_dict["sql_detail"]
         print_html_cmdb_sql_details(v_page, sqls)
 
         print_html_cmdb_js(v_page)
