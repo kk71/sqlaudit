@@ -3,8 +3,7 @@ from os import path
 import settings
 import rule.const
 from utils.datetime_utils import *
-from html_report.cmdb_report_export import CmdbReportExportHtml
-
+from oracle_cmdb.html_report.tasks import CmdbReportExportHtml
 from restful_api import *
 from .sql import SQLHandler
 from .base import OraclePrivilegeReq
