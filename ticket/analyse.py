@@ -159,8 +159,8 @@ class SubTicketAnalyse(
                 ret = RuleAdapterSQL(sr).run(
                     entries=self.static_rules.entries,
 
-                    single_sql=single_sql,
-                    sqls=sqls,
+                    single_sql=copy.copy(single_sql),
+                    sqls=copy.copy(sqls),
                     cmdb=self.cmdb
                 )
                 for minus_score, output_param in ret:

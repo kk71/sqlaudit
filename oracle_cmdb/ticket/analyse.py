@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 import uuid
+import copy
 import base64
 import traceback
 
@@ -57,7 +58,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
 
     def run_dynamic(self,
                     sub_result: OracleSubTicket,
-                    single_sql: dict):
+                    single_sql: SingleSQLForTicket):
         """动态分析"""
         try:
             formatted_sql = self.sql_filter_annotation(single_sql["sql_text"])
@@ -81,7 +82,7 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
                 ret = RuleAdapterSQL(dr).run(
                     entries=self.dynamic_rules.entries,
 
-                    single_sql=single_sql,
+                    single_sql=copy.copy(single_sql),
                     cmdb_connector=self.cmdb_connector,
                     sql_plan_qs=sql_plan_qs,
                     schema_name=sub_result.schema_name,
