@@ -62,7 +62,7 @@ class BaseTask(celery_app.Task):
     # name用于celery标识任务的名称，本质就是task_type
 
     def __str__(self):
-        return f"task({self.task_type}, {self.task_name})"
+        return f"task({self.task_type}, {const.ALL_TASK_TYPE_CHINESE[self.task_type]})"
 
     def run(self, task_record_id: int, **kwargs):
 
