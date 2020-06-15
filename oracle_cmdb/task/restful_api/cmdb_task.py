@@ -98,6 +98,8 @@ class CMDBTaskStatusHandler(OraclePrivilegeReq):
                 session,
                 self.cmdb_ids(session)
             )
+            managed_cmdb_task_capture_by_status['全部任务']=\
+                sum(managed_cmdb_task_capture_by_status.values())
             self.resp(managed_cmdb_task_capture_by_status)
 
     get.argument = {
