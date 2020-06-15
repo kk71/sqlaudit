@@ -86,6 +86,25 @@ class CMDBTaskHandler(OraclePrivilegeReq):
     }
 
 
+@as_view("status", group="task")
+class CMDBTaskStatusHandler(OraclePrivilegeReq):
+
+    def get(self):
+        """Task状态,
+        用户纳管库采集任务状态"""
+        with make_session() as session:
+            managed_cmdb_task_capture_by_status = OracleCMDBTaskCapture. \
+                num_stats_by_execution_status(
+                session,
+                self.cmdb_ids(session)
+            )
+            self.resp(managed_cmdb_task_capture_by_status)
+
+    get.argument = {
+        "querystring": {}
+    }
+
+
 @as_view("record", group="task")
 class CMDBTaskRecordHandler(OraclePrivilegeReq):
 

@@ -67,6 +67,13 @@ class DashboardHandler(OraclePrivilegeReq):
             for a_cmdb in self.cmdbs(session):
                 managed_cmdb_by_group_name[a_cmdb.group_name] += 1
 
+            # 纳管库采集任务的饼图
+            managed_cmdb_task_capture_by_status = OracleCMDBTaskCapture. \
+                num_stats_by_execution_status(
+                session,
+                self.cmdb_ids(session)
+            )
+
             # 工单相关统计
             ticket_stats_dict = OracleTicket.num_stats(self.cmdb_ids(session))
 
@@ -77,30 +84,13 @@ class DashboardHandler(OraclePrivilegeReq):
                 "managed_cmdb_by_group_name":
                     self.dict_to_verbose_dict_in_list(
                         managed_cmdb_by_group_name),
+                "managed_cmdb_task_capture_by_status":self.dict_to_verbose_dict_in_list(
+                managed_cmdb_task_capture_by_status),
                 "cmdb_num": self.cmdbs(session).count(),
                 "ticket_stats_list": self.dict_to_verbose_dict_in_list(
                     ticket_stats_dict)
             }
             self.resp(ret)
-
-    get.argument = {
-        "querystring": {}
-    }
-
-
-@as_view("task", group="dashboard")
-class DashboardTaskHandler(OraclePrivilegeReq):
-
-    def get(self):
-        """仪表盘Task,
-        用户纳管库采集任务状态饼图"""
-        with make_session() as session:
-            managed_cmdb_task_capture_by_status = OracleCMDBTaskCapture. \
-                num_stats_by_execution_status(
-                session,
-                self.cmdb_ids(session)
-            )
-            self.resp(managed_cmdb_task_capture_by_status)
 
     get.argument = {
         "querystring": {}
