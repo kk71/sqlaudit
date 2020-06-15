@@ -6,7 +6,7 @@ __all__ = [
     "BaseCMDBTask"
 ]
 
-from typing import Dict, Union, Optional, Tuple, List
+from typing import Dict, Union, Optional, Tuple, List, NoReturn
 
 from redis import StrictRedis
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, or_, and_
@@ -14,6 +14,7 @@ from sqlalchemy.sql import func
 
 import settings
 import task.const
+from . import const
 from cmdb.cmdb import *
 from task.task import BaseTask
 from utils.datetime_utils import *
@@ -46,6 +47,9 @@ class CMDBTask(BaseModel):
     __mapper_args__ = {
         'polymorphic_on': task_type
     }
+
+    def __str__(self):
+        return f"cmdb-task({self.id}, {self.task_type}, {self.task_name})"
 
     @classmethod
     def get_cmdb_task_by_cmdb(cls, the_cmdb: CMDB, **kwargs) -> sqlalchemy_q:
@@ -310,3 +314,37 @@ class BaseCMDBTask(BaseTask):
             cmdb_task.last_success_time = arrow.now().datetime
             cmdb_task.success_count += 1
             session.add(cmdb_task)
+
+    @classmethod
+    def schedule(
+            cls,
+            now: arrow.Arrow,
+            scheduler_starting_time: arrow.Arrow,
+            **kwargs) -> NoReturn:
+        """纳管库任务"""
+        with make_session() as session:
+            tasks_to_run = []
+            for a_task in session.query(CMDBTask).filter_by(status=True):
+                if not a_task.schedule_time or not a_task.frequency:
+                    print(f"bad configured: task {a_task} has neither schedule date "
+                          f"nor frequency.")
+                    continue
+                scheduled_hour, scheduled_minute = a_task.schedule.split(";")
+                task_begin_time = scheduler_starting_time.replace(
+                    hour=scheduled_hour, minute=scheduled_minute).timestamp
+                task_freq_sec = int(a_task.frequency) * 60
+                time_delta_sec = now.timestamp - task_begin_time.timestamp
+                sec_to_run: int = time_delta_sec % task_freq_sec
+                if time_delta_sec >= 0 and sec_to_run < 1:
+                    print(f'cmdb task {a_task} is going to run for frequency '
+                          f'is {task_freq_sec}s with {sec_to_run}s remained...')
+                    tasks_to_run.append(a_task)
+            if tasks_to_run:
+                print(f"going to run {len(tasks_to_run)} tasks...")
+            for a_task in tasks_to_run:
+                task_record_id: int = cls.shoot(
+                    cmdb_task_id=a_task.id,
+                    operator=const.CMDB_TASK_OPERATOR_SCHEDULE
+                )
+                print(f"started {a_task}"
+                      f" with task_record_id {task_record_id}.")

@@ -61,6 +61,9 @@ class BaseTask(celery_app.Task):
     # name字段是celery预留的，task_type是项目字段
     # name用于celery标识任务的名称，本质就是task_type
 
+    def __str__(self):
+        return f"task({self.task_type}, {self.task_name})"
+
     def run(self, task_record_id: int, **kwargs):
 
         # 用来解决找不到代码根目录的问题
@@ -177,4 +180,3 @@ class BaseTask(celery_app.Task):
         :return:
         """
         raise NotImplementedError
-    schedule.not_implemented = True

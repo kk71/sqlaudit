@@ -26,13 +26,12 @@ def task_scheduler():
 
             for a_task in all_task_instances:
                 the_scheduler = getattr(a_task, "schedule", None)
-                if the_scheduler and\
-                        callable(the_scheduler) and\
-                        not getattr(the_scheduler, "not_implemented", False):
+                if the_scheduler and callable(the_scheduler):
                     try:
-                        print(f"{a_task}... ")
+                        print(f"{a_task}... ", end="")
                         the_scheduler(now, process_start_time)
+                        print("done.")
                     except NotImplementedError:
-                        pass
+                        print("not scheduled.")
         except:
             print(traceback.format_exc())
