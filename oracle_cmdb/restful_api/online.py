@@ -1,9 +1,9 @@
-from collections import defaultdict
 from os import path
 
 import settings
 from utils.datetime_utils import *
 from html_report.cmdb_report_export import CmdbReportExportHtml
+
 from restful_api import *
 from .sql import SQLHandler
 from .base import OraclePrivilegeReq
@@ -25,7 +25,7 @@ class OverviewHandler(OraclePrivilegeReq):
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
 
         params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
+            "cmdb_id": scm_int
         }))
         cmdb_id = params.pop("cmdb_id")
         period_week = OracleStatsCMDBSQLNum.DATE_PERIOD[0]
@@ -33,16 +33,16 @@ class OverviewHandler(OraclePrivilegeReq):
         del params  # shouldn't use params anymore
 
         with make_session() as session:
-            latest_task_record = OracleCMDBTaskCapture.\
-                last_success_task_record_id_dict(
-                    session, cmdb_id)
-            latest_task_record_id = latest_task_record.get(cmdb_id, None)
-            if not latest_task_record:
+            the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+            the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(the_cmdb)
+            ltri = the_cmdb_task.last_success_task_record_id
+            if not ltri:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
+            # 表空间饼图
             tablespace_sum = {}
             stats_phy_size_object = OracleStatsCMDBPhySize.filter(
-                task_record_id=latest_task_record_id,
+                task_record_id=ltri,
                 cmdb_id=cmdb_id
             ).first()
             if stats_phy_size_object:
@@ -50,11 +50,12 @@ class OverviewHandler(OraclePrivilegeReq):
                     iter_if=lambda k, v: k in ("total", "used", "usage_ratio", "free"),
                     iter_by=lambda k, v: round(v, 2) if k in ("usage_ratio",) else v)
 
+            # sql质量柱状图
             sql_num = {"week": {}, "month": {}}
             cmdb_sql_num = OracleStatsCMDBSQLNum.filter(
                 target_login_user=self.current_user,
                 cmdb_id=cmdb_id,
-                task_record_id=latest_task_record_id)
+                task_record_id=ltri)
             cmdb_sql_num_week = cmdb_sql_num.filter(date_period=period_week).first()
             cmdb_sql_num_month = cmdb_sql_num.filter(date_period=period_month).first()
             if cmdb_sql_num_week:
@@ -64,40 +65,31 @@ class OverviewHandler(OraclePrivilegeReq):
                 sql_num["month"] = cmdb_sql_num_month.to_dict(
                     iter_if=lambda k, v: k in ("active", "at_risk"))
 
+            # 慢sql排名
             sql_execution_cost_rank = {'elapsed_time_total': [], 'elapsed_time_delta': []}
             sql_exec_cost_rank_q = OracleStatsCMDBSQLExecutionCostRank.filter(
                 target_login_user=self.current_user,
                 cmdb_id=cmdb_id,
-                task_record_id=latest_task_record_id
+                task_record_id=ltri
             )
-
             if sql_exec_cost_rank_q:
                 sql_execution_cost_rank['elapsed_time_total'].extend(
                     [x.to_dict(iter_if=lambda k, v: k in ("sql_id", "time"),
-                               iter_by=lambda k, v: round(v,2) if k=="time" else v ) for x in
+                               iter_by=lambda k, v: round(v, 2) if k == "time" else v) for x in
                      sql_exec_cost_rank_q.filter(by_what='elapsed_time_total')])
                 sql_execution_cost_rank['elapsed_time_delta'].extend(
                     [y.to_dict(iter_if=lambda k, v: k in ("sql_id", "time"),
-                               iter_by=lambda k, v: round(v,2) if k=="time" else v ) for y in
+                               iter_by=lambda k, v: round(v, 2) if k == "time" else v) for y in
                      sql_exec_cost_rank_q.filter(by_what='elapsed_time_delta')])
 
-            risk_rule_rank = []
-            risk_rule_rank_d = defaultdict(lambda: {'issue_num': 0})
+            # 风险规则排名
             risk_rule_rank_q = OracleStatsSchemaRiskRule.filter(
-                cmdb_id=cmdb_id,
-                task_record_id=latest_task_record_id
+                task_record_id=ltri,
+                issue_num__ne=0
             )
-            for x in risk_rule_rank_q:
-                doc = risk_rule_rank_d[x.rule['desc']]
-                doc['rule'] = x.rule
-                doc['level'] = x.level
-                doc['issue_num'] += x.issue_num
-            for x, y in risk_rule_rank_d.items():
-                if y['issue_num'] == 0:
-                    continue
-                risk_rule_rank.append(y)
-            risk_rule_rank = sorted(risk_rule_rank, key=lambda x: (-x["level"], -x['issue_num']))
+            risk_rule_rank = [i.to_dict() for i in risk_rule_rank_q]
 
+            # schema评分排名
             rank_schema_score = []
             schemas = self.schemas(session, cmdb_id)
             schema_score_q = OracleStatsSchemaScore.filter(cmdb_id=cmdb_id, task_record_id=latest_task_record_id,
@@ -107,14 +99,14 @@ class OverviewHandler(OraclePrivilegeReq):
                     {"schema_name": schema_score.schema_name, "score": schema_score.entry_score['ONLINE']})
             rank_schema_score = sorted(rank_schema_score, key=lambda x: x['score'])[:10]
 
-            cmdb_overview ={"tablespace_sum": tablespace_sum,
-             "sql_num": sql_num,
-             "sql_execution_cost_rank": sql_execution_cost_rank,
-             "risk_rule_rank": risk_rule_rank,
-             "rank_schema_score": rank_schema_score,
+            cmdb_overview = {"tablespace_sum": tablespace_sum,
+                             "sql_num": sql_num,
+                             "sql_execution_cost_rank": sql_execution_cost_rank,
+                             "risk_rule_rank": risk_rule_rank,
+                             "rank_schema_score": rank_schema_score,
 
-             "cmdb_id": cmdb_id,
-             "task_record_id": latest_task_record_id}
+                             "cmdb_id": cmdb_id,
+                             "task_record_id": ltri}
             return cmdb_overview
 
     def get(self):
@@ -132,8 +124,8 @@ class OverviewHandler(OraclePrivilegeReq):
     }
 
 
-@as_view("cmdb_report_export",group="health-center")
-class CmdbReportExport(OverviewHandler,SQLHandler):
+@as_view("cmdb_report_export", group="health-center")
+class CmdbReportExport(OverviewHandler, SQLHandler):
 
     async def get(self):
         """CMDB库的报告导出"""
@@ -143,12 +135,12 @@ class CmdbReportExport(OverviewHandler,SQLHandler):
         latest_task_record_id = cmdb_overview["task_record_id"]
 
         with make_session() as session:
-            cmdb=session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
-            cmdb_score=OracleStatsCMDBScore.filter(cmdb_id=cmdb_id,task_record_id=latest_task_record_id).first()
+            cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+            cmdb_score = OracleStatsCMDBScore.filter(cmdb_id=cmdb_id, task_record_id=latest_task_record_id).first()
             cmdb.score = cmdb_score.entry_score['ONLINE']
             cmdb.sql_score = cmdb_score.entry_score['SQL']
             cmdb.obj_score = cmdb_score.entry_score['OBJECT']
-            cmdb.score_time= cmdb_score.create_time
+            cmdb.score_time = cmdb_score.create_time
             tabspace_q = OracleObjTabSpace.filter(
                 cmdb_id=cmdb_id,
                 task_record_id=latest_task_record_id).order_by("-usage_ratio")
@@ -156,9 +148,9 @@ class CmdbReportExport(OverviewHandler,SQLHandler):
             sql_id = OracleSQLStatToday.filter(
                 task_record_id=latest_task_record_id).order_by('-elapsed_time_total').values_list("sql_id")[:10]
 
-            date_start=arrow.now().shift(weeks=-1).date()
-            date_end=arrow.now().date()
-            sql_detail=self.get_sql_details(cmdb_id,sql_id,date_start,date_end)
+            date_start = arrow.now().shift(weeks=-1).date()
+            date_end = arrow.now().date()
+            sql_detail = self.get_sql_details(cmdb_id, sql_id, date_start, date_end)
 
             parame_dict = {
                 "cmdb": cmdb,
@@ -168,7 +160,7 @@ class CmdbReportExport(OverviewHandler,SQLHandler):
             }
 
             filename = cmdb.connect_name + "_" + str(cmdb.cmdb_id) + "_" + \
-                        dt_to_str(arrow.now()) + ".tar.gz"
+                       dt_to_str(arrow.now()) + ".tar.gz"
             await CmdbReportExportHtml.async_shoot(filename=filename, parame_dict=parame_dict)
             await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
 
@@ -228,8 +220,7 @@ class MetadataListHandler(OraclePrivilegeReq):
             "//search_type": "icontains",
             "page": "1",
             "per_page": "10"
-        },
-        "json": {}
+        }
     }
 
 
@@ -289,6 +280,5 @@ class TableInfoHandler(OraclePrivilegeReq):
             "cmdb_id": 2526,
             "schema_name": "IDBAAS",
             "table_name": "T_CMDB_ORACLE"
-        },
-        "json": {}
+        }
     }

@@ -64,7 +64,7 @@ class OracleStatsDashboardDrillDownSum(OracleBaseTargetLoginUserStatistics):
                         task_record_id=task_record_id,
                         cmdb_id=cmdb_id,
                         target_login_user=the_user.login_user,
-                        entries=entry
+                        entry=entry
                     )
                     for drill_down_stats in drill_down_qs:
                         doc.num += drill_down_stats.num

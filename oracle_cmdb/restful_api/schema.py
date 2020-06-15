@@ -105,7 +105,8 @@ class RatingSchemaHandler(AuthReq):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             "schema_name": scm_unempty_str,
-            "weight": And(scm_float, lambda x: x <= 1)
+            "weight": self.scm_or_with_error_msg(
+                And(scm_float, lambda x: 0 < x <= 1), e="算分权重应当是不能大于1的正数")
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")

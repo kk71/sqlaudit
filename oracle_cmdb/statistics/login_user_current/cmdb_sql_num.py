@@ -4,7 +4,7 @@ __all__ = [
     "OracleStatsCMDBSQLNum"
 ]
 
-from typing import Union, Generator
+from typing import Union, Generator, Dict
 
 from mongoengine import IntField, ListField
 
@@ -20,9 +20,13 @@ from .base import *
 class OracleStatsCMDBSQLNum(OracleStatsMixOfLoginUserAndCurrentCMDB):
     """登录用户与当前库的SQL数量统计"""
 
-    DATE_PERIOD = (7, 30)  # 数据天数可供选项
+    # 数据天数可供选项
+    DATE_PERIOD: Dict[int, str] = {
+        7: "week",
+        30: "month"
+    }
 
-    date_period = IntField(help_text="时间区间", choices=DATE_PERIOD)
+    date_period = IntField(help_text="时间区间", choices=DATE_PERIOD.keys())
     active = ListField(default=list)  # [{date: value}, ...]
     at_risk = ListField(default=list)
 
@@ -48,7 +52,7 @@ class OracleStatsCMDBSQLNum(OracleStatsMixOfLoginUserAndCurrentCMDB):
                 for the_cmdb in cls.cmdbs(session, cmdb_id=cmdb_id):
                     # the_cmdb虽然循环了，但是这里只能拿到当前任务的库
 
-                    for date_period in cls.DATE_PERIOD:
+                    for date_period in cls.DATE_PERIOD.keys():
                         doc = cls(date_period=date_period)
                         the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(
                             the_cmdb)

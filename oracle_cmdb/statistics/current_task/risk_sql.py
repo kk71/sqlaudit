@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 from collections import defaultdict
-from typing import Union, Generator
+from typing import Union, Generator, Dict
 
 from mongoengine import StringField, ListField, IntField, DictField
 
@@ -53,27 +53,30 @@ class OracleStatsSchemaRiskSQL(OracleBaseCurrentTaskSchemaStatistics):
             task_record_id=task_record_id
         )
         rule_jar = RuleJar()
-        sqls = defaultdict(cls)
+        sqls_rule: Dict[(str, str), cls] = defaultdict(cls)
         for an_issue in issue_q:
-            the_rule = rule_jar.get_rule(
-                cmdb_id=an_issue.cmdb_id, name=an_issue.rule_name)
-            doc = sqls[an_issue.output_params.sql_id]
-            doc.schema_name = an_issue.schema_name
-            doc.sql_id = an_issue.output_params.sql_id
-            doc.level = an_issue.level
-            doc.rule_name = the_rule.name
-            doc.rule_desc = the_rule.desc
-            doc.rule_solution = the_rule.solution
+            sql_id = an_issue.output_params.sql_id
+            doc = sqls_rule[(sql_id, an_issue.rule_name)]
+            doc.sql_id = sql_id
+            if not doc.schema_name:
+                # 优化，减少获取规则，填充规则的次数
+                the_rule = rule_jar.get_rule(
+                    cmdb_id=an_issue.cmdb_id, name=an_issue.rule_name)
+                doc.schema_name = an_issue.schema_name
+                doc.level = an_issue.level
+                doc.rule_name = the_rule.name
+                doc.rule_desc = the_rule.desc
+                doc.rule_solution = the_rule.solution
             doc.issue_num += 1
             if not all(doc.sql_stat.values()):
                 the_stat = OracleSQLStatToday.filter(
                     task_record_id=task_record_id,
-                    sql_id=doc.sql_id
+                    sql_id=sql_id
                 ).first()
                 if the_stat:
                     doc.sql_stat = the_stat.to_dict(
                         iter_if=lambda k, v: k in doc.sql_stat.keys())
-        for sql_id, doc in sqls.items():
+        for doc in sqls_rule.values():
             cls.post_generated(
                 doc=doc,
                 task_record_id=task_record_id,

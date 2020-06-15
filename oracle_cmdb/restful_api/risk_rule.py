@@ -1,4 +1,3 @@
-
 from os import path
 from typing import Union
 
@@ -34,11 +33,11 @@ class RiskRuleHandler(OraclePrivilegeReq):
             scm_optional("rule_name", default=None): scm_dot_split_str,
             scm_optional("level", default=None): self.scm_one_of_choices(
                 ALL_RULE_LEVELS, use=scm_int),
+            scm_optional(object): object
         }))
         return params
 
-    def get_risk_rule(self,session,**params):
-
+    def get_risk_rule(self, session, **params):
         cmdb_id = params.pop("cmdb_id")
         entry = params.pop("entry")
         date_start = params.pop("date_start")
@@ -53,7 +52,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
             date_start=date_start,
             date_end=date_end
         )
-        task_record_id_list=list(date_latest_task_record.values())
+        task_record_id_list = list(date_latest_task_record.values())
         risk_rule_q = OracleStatsSchemaRiskRule.filter(
             task_record_id__in=task_record_id_list,
             cmdb_id=cmdb_id,
@@ -68,8 +67,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
             risk_rule_q = risk_rule_q.filter(level=level)
         risk_rule = [x.to_dict() for x in risk_rule_q]
 
-        return risk_rule,cmdb_id,task_record_id_list
-
+        return risk_rule, cmdb_id, task_record_id_list
 
     def get(self):
         """库触犯的风险规则，
@@ -83,7 +81,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
         }))
         p = self.pop_p(page)
         with make_session() as session:
-            risk_rule,_,_= self.get_risk_rule(session,**params)
+            risk_rule, _, _ = self.get_risk_rule(session, **params)
 
             risk_rule, p = self.paginate(risk_rule, **p)
             self.resp(risk_rule, **p)
@@ -137,7 +135,7 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
 @as_view("obj", group="online")
 class RiskRuleOBJHandler(OraclePrivilegeReq):
 
-    def get_risk_obj(self,**params):
+    def get_risk_obj(self, **params):
 
         risk_obj_q = OracleStatsSchemaRiskObject.filter(**params)
         risk_obj_data = []
@@ -159,7 +157,7 @@ class RiskRuleOBJHandler(OraclePrivilegeReq):
             **self.gen_p()
         }))
         p = self.pop_p(params)
-        risk_obj_data= self.get_risk_obj(**params)
+        risk_obj_data = self.get_risk_obj(**params)
         risk_obj_data, p = self.paginate(risk_obj_data, **p)
         self.resp(risk_obj_data, **p)
 
@@ -173,7 +171,7 @@ class RiskRuleOBJHandler(OraclePrivilegeReq):
     }
 
 
-@as_view("sql_export",group="online")
+@as_view("sql_export", group="online")
 class RiskSqlExportHandler(RiskRuleHandler):
 
     async def post(self):
@@ -185,16 +183,17 @@ class RiskSqlExportHandler(RiskRuleHandler):
         4.导出已选cmdb,时间,rule_name,(schema,等级)"""
         params = self.filter_params()
         with make_session() as session:
-            risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session,**params)
+            risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session, **params)
 
-            risk_rule_sql_inner_q = OracleStatsSchemaRiskSQL.filter(cmdb_id=cmdb_id,task_record_id__in=task_record_id_list)
-            for x in risk_rule_sql_inner_q:#TODO应该统计的时候写入sql_text
-                sql_text=OracleSQLText.filter(sql_id=x.sql_id).first()
-                x.sql_text=sql_text['longer_sql_text']
+            risk_rule_sql_inner_q = OracleStatsSchemaRiskSQL.filter(cmdb_id=cmdb_id,
+                                                                    task_record_id__in=task_record_id_list)
+            for x in risk_rule_sql_inner_q:  # TODO应该统计的时候写入sql_text
+                sql_text = OracleSQLText.filter(sql_id=x.sql_id).first()
+                x.sql_text = sql_text['longer_sql_text']
 
-            parame_dict={
-                "risk_rule_outer":risk_rule_outer,
-                "risk_rule_sql_inner":risk_rule_sql_inner_q
+            parame_dict = {
+                "risk_rule_outer": risk_rule_outer,
+                "risk_rule_sql_inner": risk_rule_sql_inner_q
             }
             filename = f"risk_rule_sql_{dt_to_str(arrow.now())}.xlsx"
 
@@ -215,8 +214,8 @@ class RiskSqlExportHandler(RiskRuleHandler):
     }
 
 
-@as_view("obj_export",group="online")
-class RiskObjectExportHandler(RiskRuleHandler,RiskRuleOBJHandler):
+@as_view("obj_export", group="online")
+class RiskObjectExportHandler(RiskRuleHandler, RiskRuleOBJHandler):
 
     async def post(self):
         """风险对象导出
@@ -228,12 +227,12 @@ class RiskObjectExportHandler(RiskRuleHandler,RiskRuleOBJHandler):
         """
         params = self.filter_params()
         with make_session() as session:
-            risk_rule_outer,cmdb_id,task_record_id_list = self.get_risk_rule(session,**params)
-            risk_rule_obj_inner = self.get_risk_obj(cmdb_id=cmdb_id,task_record_id__in=task_record_id_list)
+            risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session, **params)
+            risk_rule_obj_inner = self.get_risk_obj(cmdb_id=cmdb_id, task_record_id__in=task_record_id_list)
 
-            parame_dict={
-                "risk_rule_outer":risk_rule_outer,
-                "risk_rule_obj_inner":risk_rule_obj_inner
+            parame_dict = {
+                "risk_rule_outer": risk_rule_outer,
+                "risk_rule_obj_inner": risk_rule_obj_inner
             }
 
             filename = f"risk_rule_obj_{dt_to_str(arrow.now())}.xlsx"
