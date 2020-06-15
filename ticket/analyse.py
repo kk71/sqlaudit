@@ -148,6 +148,7 @@ class SubTicketAnalyse(
         :param single_sql:
         :param sqls: [{single_sql},...]
         """
+        print(single_sql)
         try:
             for sr in self.static_rules:
                 if single_sql["sql_type"] not in sr.entries:

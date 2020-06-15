@@ -14,6 +14,7 @@ import ticket.const
 import ticket.exceptions
 import cmdb.const
 import ticket.sub_ticket
+from ticket.single_sql import SingleSQLForTicket
 from models.mongoengine import *
 from parsed_sql.parsed_sql import ParsedSQL
 from ticket.analyse import SubTicketAnalyse
@@ -107,8 +108,8 @@ class OracleSubTicketAnalyse(SubTicketAnalyse):
             print(error_msg)
 
     def run(self,
-            sqls: [dict],
-            single_sql: dict,
+            sqls: [SingleSQLForTicket],
+            single_sql: SingleSQLForTicket,
             **kwargs) -> OracleSubTicket:
         """
         单条sql的静态动态审核
