@@ -105,3 +105,14 @@ class OracleCMDB(CMDB):
                 print(f"* fatal: this privilege required: {priv} for {self.username.upper()}")
                 return False
         return True
+
+    @classmethod
+    def drop(cls, cmdb_id: int):
+        from .rate import OracleRatingSchema
+        from .auth.role import RoleOracleCMDBSchema
+        with make_session() as session:
+            session.query(OracleRatingSchema).filter_by(cmdb_id=cmdb_id).delete(
+                synchronize_session=False)
+            session.query(RoleOracleCMDBSchema).filter_by(cmdb_id=cmdb_id).delete(
+                synchronize_session=False)
+        super().drop(cmdb_id)

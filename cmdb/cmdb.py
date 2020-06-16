@@ -54,3 +54,18 @@ class CMDB(BaseModel):
         """检查纳管库是否具有必要的权限"""
         raise NotImplementedError
 
+    @classmethod
+    def drop(cls, cmdb_id: int):
+        """删除纳管库"""
+        with make_session() as session:
+            from .cmdb_task import CMDBTask, CMDBTaskRecord
+            from ticket.ticket import Ticket
+            from ticket.sub_ticket import SubTicket
+            session.query(CMDBTask).filter_by(cmdb_id=cmdb_id).delete(
+                synchronize_session=False)
+            session.query(CMDBTaskRecord).filter_by(cmdb_id=cmdb_id).delete(
+                synchronize_session=False)
+            Ticket.drop_cmdb_related_data(cmdb_id)
+            SubTicket.drop_cmdb_related_data(cmdb_id)
+            the_cmdb = session.query(CMDB).filter_by(cmdb_id=cmdb_id).first()
+            session.delete(the_cmdb)

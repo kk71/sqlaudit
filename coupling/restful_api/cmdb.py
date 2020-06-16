@@ -310,13 +310,8 @@ class CMDBHandler(OraclePrivilegeReq):
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
         }))
-        with make_session() as session:
-            the_cmdb = session.query(CMDB).filter_by(**params).first()
-            session.delete(the_cmdb)
-            session.query(CMDBTask).filter_by(**params).delete(synchronize_session=False)
-            session.query(RoleOracleCMDBSchema).filter_by(**params).delete(synchronize_session=False)
-            Ticket.filter(**params).delete()
-            SubTicket.filter(**params).delete()
+        print(f"starting dropping the cmdb: {params}")
+        CMDB.drop(**params)
         self.resp_created(msg="已删除。")
 
     def options(self):

@@ -153,3 +153,8 @@ class BaseDoc(DynamicDocument):
                 except Exception as e:
                     print(i.to_dict())
                     raise e
+
+    @classmethod
+    def drop_cmdb_related_data(cls, cmdb_id: int):
+        """删除纳管库相关的数据"""
+        return cls.filter(cmdb_id=cmdb_id).delete()
