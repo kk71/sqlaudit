@@ -19,7 +19,7 @@ class RuleCartridgeHandler(BaseRuleHandler):
                 cmdb.const.ALL_DB_TYPE),
             scm_optional("db_model"): self.scm_one_of_choices(
                 cmdb.const.ALL_DB_MODEL),
-            scm_optional("status"): scm_bool,
+            scm_optional("status"): scm_empty_as_optional(scm_bool),
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))

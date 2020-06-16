@@ -15,7 +15,7 @@ class CMDBRuleHandler(BaseRuleHandler):
         """库规则列表"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_gt0_int,
-            scm_optional("status"): scm_bool,
+            scm_optional("status"): scm_empty_as_optional(scm_bool),
 
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
