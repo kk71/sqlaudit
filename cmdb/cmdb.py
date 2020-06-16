@@ -36,6 +36,9 @@ class CMDB(BaseModel):
         'polymorphic_on': db_type
     }
 
+    def __str__(self):
+        return f"CMDB-{self.db_type}-{self.cmdb_id}-{self.connect_name}"
+
     def build_connector(self, **kwargs):
         """产生一个当前纳管库的连接器"""
         raise NotImplementedError
