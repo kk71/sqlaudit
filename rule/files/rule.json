@@ -868,7 +868,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    where_c= re.compile(\"where.*\", re.I + re.M)\n    for token in this_one_sql.tokens:\n        if token.normalized == \"FROM\":\n            has_from = True\n            continue\n        if where_c.match(token.normalized):\n            break\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "from段出现子查询",
         "solution": [
@@ -974,7 +974,7 @@
                 "optional": true
             }
         ],
-        "code": "from parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    for token in this_one_sql.tokens:\n        if token.normalized == \"SELECT\":\n            has_from = True\n            continue\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
+        "code": "import re\nfrom parsed_sql.parsed_sql import ParsedSQL\n\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    ps = ParsedSQL(sql_text)\n    this_one_sql = ps[0]\n    has_from = False\n    from_c=re.compile(\"from.*\",re.I+re.M)\n    for token in this_one_sql.tokens:\n        if token.normalized == \"SELECT\":\n            has_from = True\n            continue\n        if from_c.match(token.normalized):\n            break\n        if has_from:\n            if recursively_find_following_select(token):\n                yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
         "summary": "select段出现子查询",
         "solution": [
