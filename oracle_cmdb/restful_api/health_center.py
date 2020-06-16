@@ -107,8 +107,6 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
             schema_name=schema_name,
             task_record_id=task_record_id,
         )  # ?entries
-        if level:
-            issues_rule_q = issues_rule_q.filter(level=level)
         rule_issues = []
         levels = []
         create_time = ""
@@ -124,6 +122,11 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
             doc['issue_num'] += 1
         for d in dt.values():
             rule_issues.append(d)
+        rule_issues_level=[]
+        if level:
+            for x in rule_issues:
+                if x['level'] == level:
+                    rule_issues_level.append(x)
 
         level_num = {RULE_LEVELS_CHINESE[RULE_LEVEL_INFO]: 0, RULE_LEVELS_CHINESE[RULE_LEVEL_WARNING]: 0,
                      RULE_LEVELS_CHINESE[RULE_LEVEL_SEVERE]: 0}
@@ -142,7 +145,7 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                       "create_time": dt_to_str(create_time),
                                       "schema_score": schema_score.to_dict(),
                                       **level_num,
-                                      "rule_issue": rule_issues}
+                                      "rule_issue": rule_issues_level if level else rule_issues}
             return schema_issue_rule_dict, cmdb_id, task_record_id, schema_name
 
     def get(self):
