@@ -36,7 +36,7 @@ class OracleTicketOnlineOverviewHandler(
         date_start = arrow.now().shift(**{f"{duration}s": -1}).datetime
 
         with make_session() as session:
-            cmdb_ids = self.cmdbs(session)
+            cmdb_ids = self.cmdb_ids(session)
 
             # 成功次数、失败次数, 上线次数(3+4)
             ticket_onlined_q = OracleTicket.filter(
