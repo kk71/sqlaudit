@@ -105,4 +105,3 @@ class OracleCMDB(CMDB):
                 print(f"* fatal: this privilege required: {priv} for {self.username.upper()}")
                 return False
         return True
-

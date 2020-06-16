@@ -57,6 +57,9 @@ class OracleStatsEntryCMDB(OracleStatsMixOfLoginUserAndTargetCMDB):
                             target_cmdb_id=the_cmdb.cmdb_id,
                             entry=issue_model.ENTRIES[0]
                         )
+                        if not entry_schema_q.count():
+                            print(f"no schema score for {the_cmdb}")
+                            continue
                         doc = cls(
                             connect_name=the_cmdb.connect_name,
                             entry=issue_model.ENTRIES[0],
