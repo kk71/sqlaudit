@@ -94,17 +94,21 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "task_record_id": scm_int,
-            "schema_name": scm_unempty_str
+            "schema_name": scm_unempty_str,
+            scm_optional("level",default=None): scm_int
         }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
+        level = params.pop("level")
 
         issues_rule_q = OracleOnlineIssue.filter(
             cmdb_id=cmdb_id,
             schema_name=schema_name,
-            task_record_id=task_record_id
+            task_record_id=task_record_id,
         )  # ?entries
+        if level:
+            issues_rule_q = issues_rule_q.filter(level=level)
         rule_issues = []
         levels = []
         create_time = ""
@@ -148,9 +152,10 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
 
     get.argument = {
         "querystring": {
-            "cmdb_id": "2526",
-            "schema_name": "ISQLAUDIT",
-            "task_record_id": "47",
+            "cmdb_id": "13",
+            "schema_name": "ISQLAUDIT_DEV",
+            "task_record_id": "27",
+            "//level": "2"
         }
     }
 
