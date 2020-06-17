@@ -17,6 +17,10 @@ class TicketManualAudit(DynamicEmbeddedDocument):
     audit_role_id = IntField()
     audit_role_name = StringField()
 
+    meta = {
+        "allow_inheritance": True
+    }
+
 
 class TicketAuditProcessTemplate(BaseDoc):
     """工单审核流程模板"""
