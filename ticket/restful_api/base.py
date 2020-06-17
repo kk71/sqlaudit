@@ -16,9 +16,10 @@ class TicketReq(PrivilegeReq):
 
     def __init__(self, *args, **kwargs):
         super(TicketReq, self).__init__(*args, **kwargs)
-        self.scm_status = self.scm_or_with_error_msg(
-            And(scm_int, scm_one_of_choices(const.ALL_TICKET_STATUS)),
-            e=f"工单规则为：{const.ALL_TICKET_STATUS}"
+        self.scm_status = self.scm_one_of_choices(
+            const.ALL_TICKET_STATUS,
+            use=scm_int,
+            allow_empty=True
         )
 
     def privilege_filter_ticket(self, q: mongoengine_qs) -> mongoengine_qs:
