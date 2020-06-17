@@ -45,9 +45,13 @@ class OracleTicketAnalyse(BaseTask):
         sub_tickets = []
         scripts: {str: TicketScript} = dict()
         static_rules = RuleJar.gen_jar_with_entries(
-            rule.const.RULE_ENTRY_TICKET_STATIC, db_type=DB_ORACLE)
+            rule.const.RULE_ENTRY_TICKET_STATIC,
+            cmdb_id=the_ticket.cmdb_id
+        )
         dynamic_rules = RuleJar.gen_jar_with_entries(
-            rule.const.RULE_ENTRY_TICKET_DYNAMIC, db_type=DB_ORACLE)
+            rule.const.RULE_ENTRY_TICKET_DYNAMIC,
+            cmdb_id=the_ticket.cmdb_id
+        )
         with make_session() as session:
             cmdb = session.query(CMDB).filter_by(cmdb_id=the_ticket.cmdb_id).first()
             for the_script_id in script_ids:
