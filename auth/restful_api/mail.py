@@ -8,11 +8,11 @@ from models.sqlalchemy import *
 from restful_api.modules import *
 
 
-@as_view("send_list", group="mail")
-class SendListHandler(PrivilegeReq):
+@as_view("receive_mail_info_list", group="mail")
+class ReceiveMailInfoListHandler(PrivilegeReq):
 
     def get(self):
-        """报告发送管理页面"""
+        """报告发送收件信息管理"""
 
         self.acquire(PRIVILEGE.PRIVILEGE_MAIL_SEND)
 
@@ -23,89 +23,121 @@ class SendListHandler(PrivilegeReq):
         keyword = params.pop("keyword")
         p = self.pop_p(params)
         del params
+
         with make_session() as session:
-            send_mail_data = session.query(SendMailList)
+            receive_mail_info_q = session.query(ReceiveMailInfoList)
             if keyword:
-                send_mail_data = self.query_keyword(send_mail_data, keyword,
-                                                    SendMailList.title,
-                                                    SendMailList.contents,
-                                                    SendMailList.mail_sender)
-            send_mail_data, p = self.paginate(send_mail_data, **p)
-            send_mail_data = [x.to_dict() for x in send_mail_data]
-            self.resp({'send_mail_data': send_mail_data}, **p)
+                receive_mail_info_q = self.query_keyword(receive_mail_info_q, keyword,
+                                                    ReceiveMailInfoList.report_item_list,
+                                                    ReceiveMailInfoList.recipient_list,
+                                                    ReceiveMailInfoList.send_date,
+                                                    ReceiveMailInfoList.send_time)
+            receive_mail_info_q, p = self.paginate(receive_mail_info_q, **p)
+            receive_mail_info = [x.to_dict() for x in receive_mail_info_q]
+            self.resp({"receive_mail_info": receive_mail_info}, **p)
 
     def post(self):
-        """新增收件人"""
+        """新增收件信息"""
         params = self.get_json_args(Schema({
-            "title": scm_str,
-            "contents": scm_str,
-            "mail_sender": [scm_str],  # 收件人
+            "report_item_list": [scm_str],#TODO
+            "recipient_list" : [scm_str],#TODO
             "send_date": scm_one_of_choices(ALL_SEND_DATE),
-            "send_time": scm_one_of_choices(ALL_SEND_TIME),
+            "send_time": scm_one_of_choices(ALL_SEND_TIME)
         }))
-        mail_sender = params.pop("mail_sender")
-        mail_sender = ";".join(mail_sender)
+        recipient_list = params.pop("recipient_list")
+        recipient_list = ";".join(recipient_list)
+        report_item_list = params.pop("report_item_list")
+        report_item_list = ";".join(report_item_list)
+
         with make_session() as session:
-            s = SendMailList(**params)
-            s.mail_sender = mail_sender
-            session.add(s)
+            rmi= ReceiveMailInfoList(**params)
+            rmi.recipient_list = recipient_list
+            rmi.report_item_list = report_item_list
+            session.add(rmi)
             session.commit()
-            session.refresh(s)
-            self.resp_created(s.to_dict(), msg="添加收件人成功")
+            session.refresh(rmi)
+            self.resp_created(rmi.to_dict(), msg="添加收件人成功")
 
     def patch(self):
-        """编辑收件人"""
+        """编辑收件信息"""
         params = self.get_json_args(Schema({
-            "send_mail_id": scm_int,
+            "receive_mail_id": scm_int,
 
-            "title": scm_str,
-            "contents": scm_str,
-            "mail_sender": [scm_str],  # 收件人
+            "report_item_list": [scm_str],  # TODO
+            "recipient_list": [scm_str],  # TODO
             "send_date": scm_one_of_choices(ALL_SEND_DATE),
-            "send_time": scm_one_of_choices(ALL_SEND_TIME),
+            "send_time": scm_one_of_choices(ALL_SEND_TIME)
         }))
-        mail_sender = params.pop("mail_sender")
-        mail_sender = ";".join(mail_sender)
-        mail_sender = {"mail_sender": mail_sender}
-        send_mail_id = params.pop("send_mail_id")
+
+        receive_mail_id = params.pop("receive_mail_id")
+        recipient_list = params.pop("recipient_list")
+        recipient_list = ";".join(recipient_list)
+        report_item_list = params.pop("report_item_list")
+        report_item_list = ";".join(report_item_list)
+
         with make_session() as session:
-            session.query(SendMailList). \
-                filter_by(send_mail_id=send_mail_id).update(dict(mail_sender, **params))
-        self.resp_created(msg="finished")
+            session.query(ReceiveMailInfoList). \
+                filter_by(receive_mail_id=receive_mail_id).\
+                update(recipient_list=recipient_list,
+                       report_item_list=report_item_list,**params)
+            self.resp_created(msg="finished")
 
     def delete(self):
-        """删除收件人"""
+        """删除收件信息"""
         params = self.get_json_args(Schema({
-            "send_mail_id": scm_int
+            "receive_mail_id": scm_int
         }))
+        receive_mail_id = params.pop("receive_mail_id")
         with make_session() as session:
-            session.query(SendMailList). \
-                filter(SendMailList.send_mail_id == params['send_mail_id']). \
+            session.query(ReceiveMailInfoList). \
+                filter_by(receive_mail_id=receive_mail_id). \
                 delete(synchronize_session=False)
-        self.resp_created("删除列表成功")
+            self.resp_created("删除列表成功")
 
 
-@as_view("config_sender", group="mail")
-class ConfigSenderHandler(AuthReq):
+@as_view("receive_mail_history", group="mail")
+class ReceiveMailHistoryHandler(AuthReq):
 
     def get(self):
-        """发件人邮件服务器配置"""
+        """某个接收邮件历史记录列表"""
+        params = self.get_query_args(Schema({
+            "receive_mail_id": scm_int,
+
+            **self.gen_p()
+        }))
+        p = self.pop_p(params)
+        receive_mail_id = params.pop("receive_mail_id")
+
         with make_session() as session:
-            server_data = session.query(MailServer).first()
-            if server_data:
-                self.resp(server_data.to_dict())
+            receive_mail_history_q = session.query(ReceiveMailHistory). \
+                filter(ReceiveMailHistory.receive_mail_id == receive_mail_id). \
+                order_by("-send_time")
+            receive_mail_history_q, p = self.paginate(receive_mail_history_q, **p)
+            self.resp({"receive_mail_history": [x for x in receive_mail_history_q]}, **p)
+
+
+@as_view("mail_server", group="mail")
+class MailServerHandler(AuthReq):
+
+    def get(self):
+        """邮件服务器配置获取"""
+        with make_session() as session:
+            mail_server = session.query(MailServer).first()
+            if mail_server:
+                self.resp(mail_server.to_dict())
             else:
                 self.resp(content={})
 
     def patch(self):
+        """邮件服务器配置修改"""
         params = self.get_json_args(Schema({
             "mail_server_name": scm_unempty_str,
-            "ip_address": scm_unempty_str,
-            'use_ssl': scm_bool,
+            "user": scm_unempty_str,
+            "host": scm_unempty_str,
             "port": scm_int,
-            "username": scm_unempty_str,
-            "password": scm_unempty_str,
-            "status": scm_bool,
+            "smtp_ssl": scm_bool,
+            "smtp_skip_login": scm_bool,
+            scm_optional("password"): scm_empty_as_optional(scm_str),
             scm_optional("comments", default=None): scm_str
         }))
 
@@ -113,86 +145,26 @@ class ConfigSenderHandler(AuthReq):
             mail_server = session.query(MailServer).first()
             if mail_server:
                 session.query(MailServer). \
-                    filter_by(mail_server_id=mail_server.mail_server_id).update(params)
+                    filter_by(mail_server_id=mail_server.mail_server_id).update(**params)
             else:
                 mail_server = MailServer(**params)
                 session.add(mail_server)
                 session.commit()
+                session.refresh(mail_server)
             self.resp_created(mail_server.to_dict(), msg="修改发件人配置成功")
 
-
-@as_view("send", group="mail")
-class SendMailHandler(AuthReq):
+from ..tasks_mail import SendMialREPORT
+@as_view("send_test_email", group="mail")
+class SendTestEmailHandler(AuthReq):
 
     def post(self):
         """发送测试邮件"""
         params = self.get_json_args(Schema({
-            "send_mail_id": scm_int,
-            "user_type_name_list": [scm_str],
+            "report_item_list": [scm_str],
+            "recipient_list": [scm_str],
         }))
-        send_mail_id = params.pop("send_mail_id")
 
-        with make_session() as session:
-            q = QueryEntity(SendMailList.title, SendMailList.contents, SendMailList.send_mail_id)
-            send_mail = session.query(*q).filter_by(send_mail_id=send_mail_id)
-            send_mail = [q.to_dict(x) for x in send_mail]
-            for x in send_mail:
-                x.update({**params})
-            timing_send_mail.delay(send_mail)
+        SendMialREPORT.task(task_record_id=1,parame_dict=params)
         self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 
-@as_view("history", group="mail")
-class MailHistory(AuthReq):
-
-    def get(self):
-        """某个邮件历史发送记录列表"""
-        params = self.get_query_args(Schema({
-            "send_mail_id": scm_int,
-
-            scm_optional("keyword", default=None): scm_str,
-            **self.gen_p()
-        }))
-        keyword = params.pop("keyword")
-        p = self.pop_p(params)
-        send_mail_id = params["send_mail_id"]
-        del params
-
-        with make_session() as session:
-
-            users_data = session.query(User).with_entities(User.login_user, User.username)
-            users_data = {x[0]: x[1] for x in users_data}
-
-            mail_hist = session.query(SendMailHistory). \
-                filter_by(send_mail_list_id=send_mail_id).order_by(SendMailHistory.id)
-            mail_hist = [x.to_dict() for x in mail_hist]
-
-            mail_list = session.query(SendMailList).filter_by(send_mail_id=send_mail_id)
-
-            if keyword:
-                mail_list = self.query_keyword(mail_list, keyword,
-                                               SendMailList.title,
-                                               SendMailList.contents)
-            mail_list = [x.to_dict() for x in mail_list]
-
-            data = []
-            for x in mail_hist:
-                if x["receiver"] not in users_data.keys():
-                    continue
-                res = "失败"
-                if x['status'] == 1:
-                    res = "成功"
-
-                if mail_list:  # 搜索的兼容性
-                    data.append({
-                        'title': mail_list[0]['title'],
-                        'contents': mail_list[0]['contents'],
-                        'receiver': users_data[x["receiver"]],
-                        'create_time': x['create_time'],
-                        'status': res,
-                        "download_path": x['file_path']
-                    })
-            data = sorted(data, key=lambda time: time['create_time'], reverse=True)
-            data, p = self.paginate(data, **p)
-
-            self.resp(data, **p)
