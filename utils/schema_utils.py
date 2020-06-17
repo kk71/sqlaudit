@@ -9,6 +9,8 @@ from schema import And, Use, Optional as scm_optional, Schema, SchemaError,\
 from utils import const
 from utils.ordered_set import OrderedSet
 
+scm_and = And
+
 __all__ = [
     "Schema",
     "And",
@@ -30,6 +32,7 @@ __all__ = [
     "scm_bool",
     "scm_optional",
     "scm_or",
+    "scm_and",
     "scm_raise_error",
     "scm_empty_as_optional",
     "scm_deduplicated_list",
