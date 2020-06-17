@@ -160,11 +160,17 @@ class SendTestEmailHandler(AuthReq):
     def post(self):
         """发送测试邮件"""
         params = self.get_json_args(Schema({
-            "report_item_list": [scm_str],
+            "receive_mail_id": scm_str,
             "recipient_list": [scm_str],
         }))
+        receive_mail_id = params.pop("receive_mail_id")
+        with make_session() as session:
+            rmil=session.query(ReceiveMailInfoList).filter_by(receive_mail_id=receive_mail_id).first()
+            parame_dict={"report_item_list":rmil.report_item_list,
+                         "receive_mail_id":receive_mail_id,
+                         **params}
 
-        SendMialREPORT.task(task_record_id=1,parame_dict=params)
-        self.resp_created(msg="邮件正在发送, 请注意过一会查收")
+            SendMialREPORT.task(task_record_id=1,parame_dict=parame_dict)
+            self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
 
