@@ -24,8 +24,8 @@ class MailServer(BaseModel):
     password = Column("password", String, comment="授权码")
     host = Column("host", String)
     port = Column("port", Integer)
-    smtp_ssl = Column("protocol", Boolean,comment="是否开启ssl协议:465,25")
-    smtp_skip_login = Column("smtp_skip_login", Boolean,comment="是否跳过登录")
+    smtp_ssl = Column("smtp_ssl", Boolean, comment="是否开启ssl协议:465,25")
+    smtp_skip_login = Column("smtp_skip_login", Boolean, comment="是否跳过登录")
     comments = Column("comments", String)
 
 
@@ -44,7 +44,6 @@ class ReceiveMailInfoList(BaseModel):
     last_error_msg = Column("last_error_msg", String)
 
 
-
 class ReceiveMailHistory(BaseModel):
     """接收邮件历史"""
     __tablename__ = "receive_mail_hist"
@@ -54,7 +53,6 @@ class ReceiveMailHistory(BaseModel):
     report_item_list = Column("report_item_list", String)
     recipient_list = Column("recipient_list", String)
     send_status = Column("send_status", Boolean)
-    send_time = Column("send_date", DateTime, default=datetime.now)
+    send_time = Column("send_time", DateTime, default=datetime.now)
     error_msg = Column("error_msg", String)
     report_path = Column("report_path", String)
-

@@ -14,14 +14,13 @@ class RiskRuleSqlExport(BaseTask):
     """风险规则SQL导出"""
 
     @classmethod
-    def task(cls, task_record_id: int, **kwargs):
-        filename: str = kwargs["filename"]
+    def report(cls,path_prefix,filename,**kwargs):
         parame_dict: dict = kwargs["parame_dict"]
 
-        path = os.path.join(settings.EXPORT_DIR, filename)
+        path = os.path.join(path_prefix, filename)
         wb = xlsxwriter.Workbook(path)
 
-        risk_rule_outer_heads = ["采集时间", "schema名称", "风险分类名称", "风险等级", "扫描得到合计","影响","优化建议","一次采集id"]
+        risk_rule_outer_heads = ["采集时间", "schema名称", "风险分类名称", "风险等级", "扫描得到合计", "影响", "优化建议", "一次采集id"]
         risk_rule_sql_inner_heads = ["SQL ID", 'SQL_TEXT']
 
         title_format = wb.add_format({
@@ -69,4 +68,11 @@ class RiskRuleSqlExport(BaseTask):
                     ws.write(3 + rows_nums, 1, r_r_s_inner['sql_text'], content_format)
                     rows_nums += 1
         wb.close()
+        return path
+
+    @classmethod
+    def task(cls, task_record_id: int, **kwargs):
+        filename: str = kwargs.pop("filename")
+
+        path =cls.report(settings.EXPORT_DIR,filename,**kwargs)
         return path

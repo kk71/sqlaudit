@@ -16,35 +16,16 @@ from rule.const import ALL_RULE_LEVELS
 from models.sqlalchemy import make_session
 from restful_api.modules import as_view
 
-
-@as_view(group="online")
-class RiskRuleHandler(OraclePrivilegeReq):
-
-    def filter_params(self):
-
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-
-            "entry": scm_empty_as_optional(scm_one_of_choices(OracleStatsSchemaRiskRule.issue_entries())),
-            "date_start": scm_date,
-            "date_end": scm_date_end,
-
-            scm_optional("schema_name", default=None): scm_str,
-            scm_optional("rule_name", default=None): scm_dot_split_str,
-            scm_optional("level", default=None): self.scm_one_of_choices(
-                ALL_RULE_LEVELS, use=scm_int),
-            scm_optional(object): object
-        }))
-        return params
+class GetRiskRuleBase:
 
     def get_risk_rule(self, session, **params):
         cmdb_id = params.pop("cmdb_id")
         entry = params.pop("entry")
         date_start = params.pop("date_start")
         date_end = params.pop("date_end")
-        schema_name = params.pop("schema_name")
-        rule_name: Union[list, None] = params.pop("rule_name")
-        level = params.pop("level")
+        schema_name = params.get("schema_name")
+        rule_name: Union[list, None] = params.get("rule_name")
+        level = params.get("level")
 
         cmdb_task = session.query(OracleCMDBTaskCapture).filter(
             OracleCMDBTaskCapture.cmdb_id == cmdb_id).first()
@@ -69,6 +50,28 @@ class RiskRuleHandler(OraclePrivilegeReq):
 
         return risk_rule, cmdb_id, task_record_id_list
 
+
+@as_view(group="online")
+class RiskRuleHandler(OraclePrivilegeReq,GetRiskRuleBase):
+
+
+    def filter_params(self):
+
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+
+            "entry": scm_empty_as_optional(scm_one_of_choices(OracleStatsSchemaRiskRule.issue_entries())),
+            "date_start": scm_date,
+            "date_end": scm_date_end,
+
+            scm_optional("schema_name", default=None): scm_str,
+            scm_optional("rule_name", default=None): scm_dot_split_str,
+            scm_optional("level", default=None): self.scm_one_of_choices(
+                ALL_RULE_LEVELS, use=scm_int),
+            scm_optional(object): object
+        }))
+        return params
+
     def get(self):
         """库触犯的风险规则，
         entry="OBJECT"、"SQL"为触犯的obj规则或sql规则,
@@ -80,6 +83,7 @@ class RiskRuleHandler(OraclePrivilegeReq):
             scm_optional(object): object
         }))
         p = self.pop_p(page)
+
         with make_session() as session:
             risk_rule, _, _ = self.get_risk_rule(session, **params)
 
@@ -131,9 +135,7 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
         }
     }
 
-
-@as_view("obj", group="online")
-class RiskRuleOBJHandler(OraclePrivilegeReq):
+class RiskRuleObj:
 
     def get_risk_obj(self, **params):
 
@@ -146,6 +148,10 @@ class RiskRuleOBJHandler(OraclePrivilegeReq):
                 risk_obj['issue_description_str'] += f"{str(x['desc'])}:{str(x['value'])},"
             risk_obj_data.append(risk_obj)
         return risk_obj_data
+
+
+@as_view("obj", group="online")
+class RiskRuleOBJHandler(OraclePrivilegeReq,RiskRuleObj):
 
     def get(self):
         """触犯风险obj规则的obj"""
@@ -170,9 +176,24 @@ class RiskRuleOBJHandler(OraclePrivilegeReq):
         }
     }
 
+class RiskRuleSql:
+
+    def risk_rule_sql_inner(self,risk_rule_outer,cmdb_id,task_record_id_list):
+        risk_rule_sql_inner_q = OracleStatsSchemaRiskSQL.filter(cmdb_id=cmdb_id,
+                                                                task_record_id__in=task_record_id_list)
+        for x in risk_rule_sql_inner_q:  # TODO应该统计的时候写入sql_text
+            sql_text = OracleSQLText.filter(sql_id=x.sql_id).first()
+            x.sql_text = sql_text['longer_sql_text']
+
+        parame_dict = {
+            "risk_rule_outer": risk_rule_outer,
+            "risk_rule_sql_inner": risk_rule_sql_inner_q
+        }
+        return parame_dict
+
 
 @as_view("sql_export", group="online")
-class RiskSqlExportHandler(RiskRuleHandler):
+class RiskSqlExportHandler(RiskRuleHandler,RiskRuleSql):
 
     async def post(self):
         """风险SQL导出
@@ -184,19 +205,9 @@ class RiskSqlExportHandler(RiskRuleHandler):
         params = self.filter_params()
         with make_session() as session:
             risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session, **params)
+            parame_dict = self.risk_rule_sql_inner(risk_rule_outer,cmdb_id,task_record_id_list)
 
-            risk_rule_sql_inner_q = OracleStatsSchemaRiskSQL.filter(cmdb_id=cmdb_id,
-                                                                    task_record_id__in=task_record_id_list)
-            for x in risk_rule_sql_inner_q:  # TODO应该统计的时候写入sql_text
-                sql_text = OracleSQLText.filter(sql_id=x.sql_id).first()
-                x.sql_text = sql_text['longer_sql_text']
-
-            parame_dict = {
-                "risk_rule_outer": risk_rule_outer,
-                "risk_rule_sql_inner": risk_rule_sql_inner_q
-            }
             filename = f"risk_rule_sql_{dt_to_str(arrow.now())}.xlsx"
-
             await RiskRuleSqlExport.async_shoot(filename=filename, parame_dict=parame_dict)
             await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 

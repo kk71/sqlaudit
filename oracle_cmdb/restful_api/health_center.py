@@ -85,22 +85,14 @@ class HealthCenterSchema(OraclePrivilegeReq):
             "//per_page": "10"
         }}
 
+class SchemaIssueRuleBase:
 
-@as_view("rule_issue", group="health-center")
-class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
+    def schema_issue_rule(self,**params):
 
-    def schema_issue_rule(self):
-
-        params = self.get_query_args(Schema({
-            "cmdb_id": scm_int,
-            "task_record_id": scm_int,
-            "schema_name": scm_unempty_str,
-            scm_optional("level",default=None): scm_int
-        }))
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
         task_record_id = params.pop("task_record_id")
-        level = params.pop("level")
+        level = params.get("level")
 
         issues_rule_q = OracleOnlineIssue.filter(
             cmdb_id=cmdb_id,
@@ -139,7 +131,8 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                                      schema_name=schema_name,
                                                      task_record_id=task_record_id).first()
         with make_session() as session:
-            the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+            from .cmdb import OracleCMDB
+            the_cmdb=session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
             schema_issue_rule_dict = {"connect_name": the_cmdb.connect_name,
                                       "schema_name": schema_name,
                                       "create_time": dt_to_str(create_time),
@@ -148,9 +141,25 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq):
                                       "rule_issue": rule_issues_level if level else rule_issues}
             return schema_issue_rule_dict, cmdb_id, task_record_id, schema_name
 
+
+@as_view("rule_issue", group="health-center")
+class HealthCenterSchemaIssueRule(OraclePrivilegeReq,SchemaIssueRuleBase):
+
+    def filter_params(self):
+
+        params = self.get_query_args(Schema({
+            "cmdb_id": scm_int,
+            "task_record_id": scm_int,
+            "schema_name": scm_unempty_str,
+            scm_optional("level", default=None): scm_int
+        }))
+
+        return params
+
     def get(self):
         """健康中心schema触犯的规则,分数"""
-        scheam_issue_rule, _, _, _ = self.schema_issue_rule()
+        params = self.filter_params()
+        scheam_issue_rule, _, _, _ = self.schema_issue_rule(**params)
         self.resp(scheam_issue_rule)
 
     get.argument = {
@@ -273,14 +282,9 @@ class SQLIssueDetailHandler(OraclePrivilegeReq):
             "//plan_hash_value": "2959612647"
         }}
 
+class OutputDataBase:
 
-@as_view("scheam_report_export", group="health-center")
-class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule):
-
-    async def get(self):
-        """健康中心schema报告导出"""
-
-        schema_issue_rule_dict, cmdb_id, task_record_id, schema_name = self.schema_issue_rule()  # 一个库一个schema一次采集触犯的所有规则
+    def get_output_data(self,cmdb_id,task_record_id,schema_name):
 
         issues_q = OracleOnlineIssue.filter(cmdb_id=cmdb_id,
                                             schema_name=schema_name,
@@ -289,6 +293,19 @@ class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule):
         for issue in issues_q:
             issue.output_params._data.pop("_cls")
             output_data.append({issue.rule_name: issue.output_params._data})
+        return output_data
+
+
+@as_view("scheam_report_export", group="health-center")
+class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule,OutputDataBase):
+
+    async def get(self):
+        """健康中心schema报告导出"""
+
+        params=self.filter_params()
+        schema_issue_rule_dict, cmdb_id, task_record_id, schema_name=self.schema_issue_rule(**params)
+
+        output_data = self.get_output_data(cmdb_id,task_record_id,schema_name)
 
         parame_dict = {
             "schema_issue_rule_dict": schema_issue_rule_dict,

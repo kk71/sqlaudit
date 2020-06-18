@@ -68,6 +68,13 @@ class PRIVILEGE:
         return [i[0] for i in cls.ALL_PRIVILEGE]
 
 
+# 邮件报告选项
+ALL_REPORT_ITEM = (
+    SCHEMA_REPORT := "schema报告",
+    RISK_OBJ_REPORT := "风险obj报告",
+    RISK_SQL_REPORT := "风险sql报告"
+)
+
 # mail发送时间
 ALL_SEND_DATE = ("星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日")
 ALL_SEND_TIME = ("0:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00",
