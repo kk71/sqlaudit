@@ -15,7 +15,7 @@ def main():
     """for debugging only"""
 
     # TODO 给一个测试库验证用
-    cmdb_id = 5
+    cmdb_id = 13
     task_record_id = 0
 
     # 先把规则代码更新到规则墨盒

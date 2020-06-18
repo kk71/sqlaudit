@@ -39,7 +39,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -56,7 +56,7 @@
         "input_params": [],
         "output_params": [],
         "code": "from parsed_sql import const\n\n\ndef code(rule, entries, **kwargs):\n    sqls: [dict] = kwargs.get(\"sqls\")\n\n    sql_types: set = {i[\"sql_type\"] for i in sqls}\n    if const.SQL_DDL in sql_types and const.SQL_DML in sql_types:\n        yield {}\n\n\ncode_hole.append(code)\n",
-        "status": false,
+        "status": true,
         "summary": "DML、DDL语句混写会导致上线失败回滚时，DDL无法回滚",
         "solution": [
             "建议拆分DDL和DML语句"
@@ -98,7 +98,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -127,18 +127,18 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'alter\\s+table\\s+.+\\s+add', sql_text, re.I+re.M):\n        if not re.search(r\".+\\s+default\\s+.+\", sql_text, re.I+re.M):\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "添加字段无默认值",
         "solution": [
             "尽可能在添加字段的时候指定默认值"
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
         "name": "CHECK_BITMAP_INDEX",
-        "desc": "位图索引",
+        "desc": "创建位图索引",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -161,53 +161,18 @@
         ],
         "code": "import re\nfrom cmdb.const import MODEL_OLTP\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n    cmdb = kwargs.get(\"cmdb\")\n    db_model = cmdb.db_model\n\n    if db_model == MODEL_OLTP and\\\n            re.search(r\"create\\s+bitmap\\s+index\", sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建位图索引",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
-        "db_model": "OLTP"
-    },
-    {
-        "name": "CHECK_COLUMN_NUMBER",
-        "desc": "表字段数",
-        "db_type": "oracle",
-        "entries": [
-            "TICKET",
-            "TICKET_STATIC",
-            "DDL",
-            "TICKET_STATIC_CMDB_INDEPENDENT",
-            "ONLINE",
-            "SQL",
-            "SQL_TEXT",
-            "SINGLE"
-        ],
-        "input_params": [],
-        "output_params": [
-            {
-                "name": "sql_id",
-                "desc": "SQL ID",
-                "unit": "",
-                "data_type": "STR",
-                "optional": true
-            }
-        ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    \"\"\"列数\"\"\"\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    left_brackets = 0\n    left_flag = 0\n    right_flag = 0\n    for index, s in enumerate(sql_text):\n        if s == \"(\":\n            left_brackets += 1\n            if left_brackets == 1:\n                left_flag = index\n        elif s == \")\":\n            left_brackets -= 1\n            if left_brackets == 0:\n                right_flag = index\n                break\n\n    sql = sql_text[left_flag + 1: right_flag]\n\n    if len(sql.split(',')) > 255:  # TODO,这不应写死\n        yield single_sql\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "",
-        "solution": [
-            ""
-        ],
-        "weight": 1.0,
-        "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
         "name": "CHECK_CONCURRENCY_LEVEL",
-        "desc": "并行度",
+        "desc": "创建对象使用并行度",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -231,13 +196,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+table\", sql_text, re.I+re.M):\n        return\n\n    if 'parallel' not in sql_text.lower():\n        return\n    parallel = re.search(r\"parallel\\s+(\\d)\", sql_text, re.I+re.M)\n    if parallel and int(parallel.group(1)) > 1:\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建对象使用并行度",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -301,13 +266,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+database\\s+link', sql_text, re.I+re.M):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建数据库链接",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -336,13 +301,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search('@', sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "存在dblink",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -441,13 +406,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index', sql_text, re.I+re.M) and\\\n            'tablespace' not in sql_text.lower():\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "索引未定义表空间",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -476,7 +441,7 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if re.search(r'create\\s+index\\s+', sql_text, re.I+re.M):\n        if not re.search(r\"\\s+online\", sql_text, re.I+re.M):\n            yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "创建索引的时候加上online,否则索引创建期间会锁表",
+        "summary": "创建索引的时候加上online,否则索引创建期间会锁表.",
         "solution": [
             "创建索引的时候加上online"
         ],
@@ -487,7 +452,7 @@
     },
     {
         "name": "CHECK_LOB_USING",
-        "desc": "LOB使用",
+        "desc": "创建对象使用大对象",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -509,15 +474,15 @@
                 "optional": true
             }
         ],
-        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (\n            not re.search(r\"create\\s+table\", sql_text, re.I)\n            and not re.search(r\"alter\\s+table\", sql_text, re.I)\n    ) or any([\n        x in sql_text.lower()\n        for x in ['blob', 'clob', 'bfile', 'xmltype']\n    ]):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
+        "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if (\n            not re.search(r\"create\\s+table\", sql_text, re.I)\n            and not re.search(r\"alter\\s+table\", sql_text, re.I)\n    ) and any([\n        x in sql_text.lower()\n        for x in ['blob', 'clob', 'bfile', 'xmltype']\n    ]):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建对象使用大对象",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -557,7 +522,7 @@
     },
     {
         "name": "CHECK_SEQUENCE",
-        "desc": "序列",
+        "desc": "创建序列缓存过小",
         "db_type": "oracle",
         "entries": [
             "TICKET",
@@ -581,13 +546,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    if not re.search(r\"create\\s+sequence\", sql_text, re.I+re.M):\n        return\n\n    res = re.search(r\"cache\\s+(\\d+)\", sql_text, re.I)\n    if 'order' in sql_text.lower() or\\\n            'cache' not in sql_text.lower() or\\\n            (res and int(res.group(1)) < 2000):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "创建序列缓存过小",
         "solution": [
             ""
         ],
         "weight": 0.0,
-        "max_score": 0,
-        "level": 1,
+        "max_score": 1,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -686,13 +651,13 @@
         ],
         "code": "import re\n\n\ndef code(rule, entries, **kwargs):\n    single_sql: dict = kwargs.get(\"single_sql\")\n    sql_text: str = single_sql[\"sql_text_no_comment\"]\n\n    pat = re.compile(r'(\\s)?((update )|(delete ))', re.M+re.I)\n    pat1 = re.compile(r'\\s+where\\s+', re.S+re.I)\n\n    if pat.search(sql_text) and not pat1.search(sql_text):\n        yield single_sql\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "",
+        "summary": "delete或update中缺少where条件",
         "solution": [
             ""
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -762,7 +727,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -841,7 +806,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -876,7 +841,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -911,7 +876,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -947,7 +912,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -982,7 +947,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1017,7 +982,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1061,7 +1026,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -1104,7 +1069,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1139,7 +1104,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1175,7 +1140,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -1211,7 +1176,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1252,7 +1217,7 @@
             }
         ],
         "code": "from rule import const\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"INDEX\",\n        options=\"FAST FULL SCAN\"\n    )\n\n    if const.RULE_ENTRY_TICKET_DYNAMIC in entries:\n        for d in values_dict(qs, \"object_name\", \"object_type\"):\n            yield d\n\n    elif const.RULE_ENTRY_ONLINE_SQL_PLAN in entries:\n        for d in values_dict(qs,\n                             \"sql_id\",\n                             \"plan_hash_value\",\n                             \"object_name\",\n                             \"object_type\"):\n            yield d\n\n\ncode_hole.append(code)\n",
-        "status": true,
+        "status": false,
         "summary": "大索引快速全扫描",
         "solution": [
             "SQL逻辑能否改写获取更少的数据"
@@ -1435,7 +1400,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1515,7 +1480,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1555,7 +1520,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1604,7 +1569,7 @@
         ],
         "code": "from oracle_cmdb.capture.obj_tab_info import OracleObjTabInfo\nfrom rule.code_utils import *\n\n\ndef code(rule, entries, **kwargs):\n    sql_plan_qs = kwargs[\"sql_plan_qs\"]\n\n    qs = sql_plan_qs.filter(\n        operation=\"TABLE ACCESS\",\n        options=\"FULL\",\n        object_type=\"TABLE\"\n    )\n\n    for d in values_dict(qs,\n                         \"sql_id\",\n                         \"plan_hash_value\",\n                         \"object_name\",\n                         \"object_type\",\n                         \"task_record_id\",\n                         \"schema_name\"):\n        the_table = OracleObjTabInfo.filter(\n            task_record_id=d[\"task_record_id\"],\n            schema_name=d[\"schema_name\"],\n            table_name=d[\"object_name\"]\n        ).first()\n        if not the_table:\n            continue\n        if the_table.num_rows >= rule.gip(\"table_row_num\") or\\\n                the_table.phy_size_mb >= rule.gip(\"table_phy_size\"):\n            yield {\n                k: v\n                for k, v in d.items()\n                if k in (\"sql_id\", \"plan_hash_value\", \"object_name\", \"object_type\")\n            }\n\n\ncode_hole.append(code)\n",
         "status": true,
-        "summary": "全表扫描",
+        "summary": "全表扫描，请注意两个输出条件是“或”的关系",
         "solution": [
             "1.缺索引评估创建索引",
             "2.取max、min值评估创建索引",
@@ -1621,7 +1586,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 2,
         "db_model": "OLTP"
     },
     {
@@ -1702,7 +1667,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1750,7 +1715,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 3,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1805,7 +1770,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -1890,7 +1855,7 @@
         ],
         "weight": 1.0,
         "max_score": 3,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -1942,7 +1907,7 @@
         ],
         "weight": 12.0,
         "max_score": 9,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -1994,7 +1959,7 @@
             }
         ],
         "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = \"\"\"\n    SELECT CASE userenv('language')\n               WHEN 'SIMPLIFIED CHINESE_CHINA.AL32UTF8' THEN 3\n               WHEN 'AMERICAN_AMERICA.AL32UTF8' THEN 3\n               WHEN 'SIMPLIFIED CHINESE_CHINA.ZHS16GBK' THEN 4\n               WHEN 'AMERICAN_AMERICA.ZHS16GBK' THEN 4\n               WHEN 'SIMPLIFIED CHINESE_CHINA.UTF8' THEN 3\n           END\n    FROM dual\n    \"\"\"\n    v_len = cmdb_connector.select(sql)\n    sql = f\"\"\"\n    SELECT t.table_name,\n           a.col_sum,\n           t.avg_row_len\n    FROM dba_tables t,\n\n      (SELECT TABLE_NAME,\n              sum(LENGTH) col_sum\n       FROM\n         (SELECT TABLE_NAME,\n                 data_length,\n                 COLUMN_NAME,\n                 sum(CASE data_type\n                         WHEN 'VARCHAR2' THEN round(data_length / 1, 2)\n                         WHEN 'VARCHAR' THEN round(data_length / 1, 2)\n                         ELSE data_length\n                     END) LENGTH\n          FROM dba_tab_cols\n          WHERE OWNER='{schema_name}'\n          GROUP BY TABLE_NAME,\n                   data_length,\n                   COLUMN_NAME) t\n       GROUP BY TABLE_NAME) a\n    WHERE t.owner='{schema_name}'\n      AND t.table_name = a.table_name\n      AND t.avg_row_len / a.col_sum < {rule.gip('data_len_ratio')}\n    \"\"\"\n    records = cmdb_connector.select_dict(sql)\n\n    # 新增功能，返回超过实际长度的字段名\n    sql = f\"\"\"\n                select table_name, column_name, data_length \n                from dba_tab_cols t\n                where t.owner = '{schema_name}'\n    \"\"\"\n    table_columns = cmdb_connector.select(sql)\n    for record in records:\n        record[\"column_names\"] = set()\n        for the_table_name, the_column_name, the_data_length in table_columns:\n            if record[\"table_name\"] == the_table_name:\n                if the_data_length >= record[\"avg_row_len\"]:\n                    record[\"column_names\"].add(the_column_name)\n        record[\"column_names\"] = list(record[\"column_names\"])\n        yield record\n\n\ncode_hole.append(code)\n",
-        "status": true,
+        "status": false,
         "summary": "记录定义长度与实际存储长度差异过大,请考虑字段类型定义是否合理,个别字段过长是否可分表存储。",
         "solution": [
             "按需定义字段长度"
@@ -2031,7 +1996,7 @@
         ],
         "weight": 1.0,
         "max_score": 10,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2068,7 +2033,7 @@
         ],
         "weight": 1.0,
         "max_score": 9,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2098,7 +2063,7 @@
         ],
         "weight": 3.0,
         "max_score": 3,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2209,7 +2174,7 @@
         ],
         "weight": 0.5,
         "max_score": 3,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2255,51 +2220,7 @@
         ],
         "weight": 0.5,
         "max_score": 3,
-        "level": 2,
-        "db_model": "OLTP"
-    },
-    {
-        "name": "DBLINKS_NUM",
-        "desc": "存在DBLINK",
-        "db_type": "oracle",
-        "entries": [
-            "ONLINE",
-            "OBJECT",
-            "OBJECT_DB_LINK"
-        ],
-        "input_params": [],
-        "output_params": [
-            {
-                "name": "dblink_name",
-                "desc": "dblink名字",
-                "unit": "",
-                "data_type": "STR",
-                "optional": false
-            },
-            {
-                "name": "username",
-                "desc": "访问的用户",
-                "unit": "",
-                "data_type": "STR",
-                "optional": false
-            },
-            {
-                "name": "hostname",
-                "desc": "访问的主机",
-                "unit": "",
-                "data_type": "STR",
-                "optional": false
-            }
-        ],
-        "code": "# Author: kk.Fang(fkfkbill@gmail.com)\n\n\ndef code(rule, entries, **kwargs):\n    schema_name: str = kwargs[\"schema_name\"]\n    cmdb_connector = kwargs[\"cmdb_connector\"]\n\n    sql = f\"\"\"\n    select db_link as dblink_name, username, host as hostname\n        from dba_db_links \n        where owner = '{schema_name}'\n    \"\"\"\n    for i in cmdb_connector.select_dict(sql):\n        yield i\n\n\ncode_hole.append(code)\n",
-        "status": true,
-        "summary": "数据库之间会同步SCN",
-        "solution": [
-            "禁用dblink，在应用程序端连接多个数据库操作"
-        ],
-        "weight": 10.0,
-        "max_score": 10,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2351,7 +2272,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2425,7 +2346,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2566,7 +2487,7 @@
         ],
         "weight": 0.3,
         "max_score": 3,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2639,7 +2560,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -2698,7 +2619,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -2779,7 +2700,7 @@
         ],
         "weight": 0.1,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -2838,7 +2759,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -2934,7 +2855,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3055,7 +2976,7 @@
         ],
         "weight": 1.0,
         "max_score": 5,
-        "level": 2,
+        "level": 1,
         "db_model": "OLTP"
     },
     {
@@ -3147,7 +3068,7 @@
         ],
         "weight": 0.1,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3192,7 +3113,7 @@
         ],
         "weight": 0.1,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3237,7 +3158,7 @@
         ],
         "weight": 0.1,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3288,7 +3209,7 @@
         ],
         "weight": 0.5,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3370,7 +3291,7 @@
         ],
         "weight": 1.0,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     },
     {
@@ -3468,7 +3389,7 @@
         ],
         "weight": 0.1,
         "max_score": 10,
-        "level": 2,
+        "level": 3,
         "db_model": "OLTP"
     }
 ]
