@@ -19,17 +19,20 @@ class RuleCartridgeHandler(BaseRuleHandler):
                 cmdb.const.ALL_DB_TYPE),
             scm_optional("db_model"): self.scm_one_of_choices(
                 cmdb.const.ALL_DB_MODEL),
-            scm_optional("status"): scm_empty_as_optional(scm_bool),
+            scm_optional("status", default=None): scm_empty_as_optional(scm_bool),
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
+        status = params.pop("status")
         p = self.pop_p(params)
 
         rc_q = RuleCartridge.filter(**params)
         if keyword:
             rc_q = self.query_keyword(rc_q, keyword,
                                       "name", "desc", "db_type", "summary")
+        if status is not None:
+            rc_q = rc_q.filter(status=status)
         ret, p = self.paginate(rc_q, **p)
         self.resp([i.to_dict() for i in ret], **p)
 

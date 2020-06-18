@@ -54,7 +54,7 @@ class BaseReq(RequestHandler):
         if use is not None:
             f = scm_or(use, f)
         if allow_empty:
-            f = scm_empty_as_optional(f),
+            f = scm_empty_as_optional(f)
         return self.scm_or_with_error_msg(
             f,
             e=f" should be one of {choices}"
@@ -69,7 +69,7 @@ class BaseReq(RequestHandler):
         if use is not None:
             f = scm_or(use, f)
         if allow_empty:
-            f = scm_empty_as_optional(f),
+            f = scm_empty_as_optional(f)
         return self.scm_or_with_error_msg(
             f,
             e=f" should be subset of {choices}"

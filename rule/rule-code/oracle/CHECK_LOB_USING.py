@@ -8,7 +8,7 @@ def code(rule, entries, **kwargs):
     if (
             not re.search(r"create\s+table", sql_text, re.I)
             and not re.search(r"alter\s+table", sql_text, re.I)
-    ) or any([
+    ) and any([
         x in sql_text.lower()
         for x in ['blob', 'clob', 'bfile', 'xmltype']
     ]):

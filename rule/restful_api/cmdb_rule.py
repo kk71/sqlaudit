@@ -15,18 +15,21 @@ class CMDBRuleHandler(BaseRuleHandler):
         """库规则列表"""
         params = self.get_query_args(Schema({
             "cmdb_id": scm_gt0_int,
-            scm_optional("status"): scm_empty_as_optional(scm_bool),
+            scm_optional("status", default=None): scm_empty_as_optional(scm_bool),
 
             scm_optional("keyword", default=None): scm_str,
             **self.gen_p()
         }))
         keyword = params.pop("keyword")
+        status = params.pop("status")
         p = self.pop_p(params)
 
         cr_q = CMDBRule.filter(**params)
         if keyword:
             cr_q = self.query_keyword(cr_q, keyword,
                                       "name", "desc", "db_type", "summary")
+        if status is not None:
+            cr_q = cr_q.filter(status=status)
         ret, p = self.paginate(cr_q, **p)
         self.resp([i.to_dict() for i in ret], **p)
 
