@@ -39,7 +39,8 @@ class PRIVILEGE:
         PRIVILEGE_ROLE_USER_MANAGE := (20, TYPE_FE, "用户角色管理", ""),
         PRIVILEGE_ROLE_DATA_PRIVILEGE := (21, TYPE_FE, "数据权限配置", "是否允许使用"),
         PRIVILEGE_HEALTH_CENTER := (22, TYPE_FE, "健康中心", ""),
-        PRIVILEGE_TICKET_RULE := (23, TYPE_BOTH, "工单规则", "")
+        # PRIVILEGE_TICKET_RULE := (23, TYPE_BOTH, "工单规则", "")
+        PRIVILEGE_TICKET_AUDIT_PROCESS_EDIT := (24, TYPE_BOTH, "工单审核流程模板编辑", "")
     )
 
     @classmethod

@@ -5,7 +5,7 @@ __all__ = [
     "PrivilegeReq"
 ]
 
-from typing import NoReturn, Optional, Awaitable
+from typing import NoReturn, Optional, Awaitable, List
 
 import jwt
 from schema import SchemaError
@@ -98,7 +98,7 @@ class PrivilegeReq(AuthReq):
             self.resp_forbidden(msg=f"权限不足：{unavailable_privileges_names}")
             raise exceptions.PrivilegeRequired
 
-    def current_roles(self) -> list:
+    def current_roles(self) -> List[int]:
         """returns role_ids to current user"""
         return list(
             utils.role_of_user(self.current_user).get(self.current_user, set([]))

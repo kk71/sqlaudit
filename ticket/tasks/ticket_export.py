@@ -22,7 +22,7 @@ class TicketExport(BaseTask):
         filename: str = kwargs["filename"]
         parame_dict: dict = kwargs["parame_dict"]
 
-        #第一个shell,工单详情、子工单统计
+        # 第一个shell,工单详情、子工单统计
         path = os.path.join(settings.EXPORT_DIR, filename)
         wb = xlsxwriter.Workbook(path)
         ws = wb.add_worksheet('工单详情')
@@ -77,7 +77,7 @@ class TicketExport(BaseTask):
         ws.write(4, 2, sub_ticket_stats[2], format_text)
         ws.write(4, 3, sub_ticket_stats[3], format_text)
 
-        #第二个shell,获得静态问题子工单
+        # 第二个shell,获得静态问题子工单
         static_ws = wb.add_worksheet('静态问题子工单')
         static_ws.set_column(0, 1, 25)
         static_ws.set_column(1, 3, 70)
@@ -93,7 +93,7 @@ class TicketExport(BaseTask):
             static_ws.write(row_num + 1, 4, row[4], format_text)
             static_ws.write(row_num + 1, 5, row[5], format_text)
 
-        #第三个shell,获得动态问题子工单
+        # 第三个shell,获得动态问题子工单
         dynamic_ws = wb.add_worksheet('动态问题子工单')
         dynamic_ws.set_column(0, 1, 25)
         dynamic_ws.set_column(1, 3, 70)

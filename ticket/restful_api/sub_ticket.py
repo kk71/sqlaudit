@@ -20,7 +20,7 @@ class SubTicketHandler(TicketReq):
 
     def filter_sub_ticket(self):
         params = self.get_query_args(Schema({
-            scm_optional("ticket_id"): scm_unempty_str,
+            scm_optional("ticket_id"): scm_object_id,
             scm_optional("cmdb_id"): scm_int,
             scm_optional("script_id", default=None): scm_unempty_str,
             scm_optional("schema_name", default=None): scm_str,

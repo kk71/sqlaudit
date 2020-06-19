@@ -94,7 +94,7 @@ class OracleTicketOnlineExecuteHandler(
         self.acquire(PRIVILEGE.PRIVILEGE_SELF_SERVICE_ONLINE)
 
         params = self.get_json_args(Schema({
-            "ticket_id": scm_unempty_str
+            "ticket_id": scm_object_id
         }))
         ticket_id = params.pop("ticket_id")
 

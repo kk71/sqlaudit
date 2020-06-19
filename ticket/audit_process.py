@@ -31,7 +31,6 @@ class TicketAuditProcessTemplate(BaseDoc):
     meta = {
         "collection": "ticket_audit_process_template",
         "indexes": [
-            {'fields': ("name",), 'unique': True},
-            {'fields': ("process__audit_role_id",), 'unique': True},
+            {'fields': ("name",), 'unique': True}
         ]
     }

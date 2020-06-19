@@ -5,7 +5,7 @@ from os import path
 from collections import defaultdict
 
 from auth.const import PRIVILEGE
-from ticket import const
+from .. import const, exceptions
 from .base import *
 from utils.schema_utils import *
 from utils.datetime_utils import *
@@ -17,7 +17,7 @@ from restful_api.modules import *
 from ..tasks import TicketExport
 
 
-@as_view("archive", group="ticket")
+# @as_view("archive", group="ticket")
 class ArchiveHandler(TicketReq):
 
     def get(self):
@@ -110,7 +110,7 @@ class TicketHandler(TicketReq):
         params = self.get_query_args(Schema({
             scm_optional("status"): self.scm_status,
             scm_optional("keyword", default=None): scm_str,
-            scm_optional("ticket_id", default=None): scm_str,
+            scm_optional("ticket_id", default=None): scm_object_id,
             **self.gen_date(),
             **self.gen_p()
         }))
@@ -174,30 +174,37 @@ class TicketHandler(TicketReq):
         raise NotImplementedError
 
     def patch(self):
-        """编辑工单(通过拒绝，评价)"""
+        """编辑工单(通过拒绝)"""
 
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
 
         params = self.get_json_args(Schema({
-            "ticket_id": scm_str,
+            "ticket_id": scm_object_id,
 
-            scm_optional("audit_comments"): scm_str,
-            "status": self.scm_status
+            "status": self.scm_status,
+            "audit_comments": scm_str,
+            "audit_role_id": scm_int,
+            "audit_role_name": scm_unempty_str
         }))
-        params["audit_date"] = datetime.now()
+        params["audit_time"] = datetime.now()
         params["audit_owner"] = self.current_user
         ticket_id = params.pop("ticket_id")
 
-        Ticket.filter(ticket_id=ticket_id).update(**{
-            "set__" + k: v for k, v in params.items()})
-        # TODO timing_send_work_list_status.delay(ticket.to_dict())
-        return self.resp_created(msg="更新成功")
+        the_ticket = Ticket.filter(ticket_id=ticket_id).first()
+        try:
+            the_ticket.audit(**params)
+            the_ticket.save()
+            self.resp_created(msg="更新成功")
+        except exceptions.TicketManualAuditWithWrongRole:
+            self.resp_bad_req(msg="当前登录用户不拥有该工单的审核角色")
 
     patch.argument = {
         "json": {
             "ticket_id": "5edcc7d1568d8355c5dab195",
-            "//audit_comments": "",
-            "status": "3"
+            "audit_comments": "",
+            "status": "3",
+            "audit_role_id": 1,
+            "audit_role_name": "以什么角色名进行审核。"
         }
     }
 
@@ -205,7 +212,7 @@ class TicketHandler(TicketReq):
         """删除工单"""
 
         params = self.get_json_args(Schema({
-            "ticket_id": scm_str
+            "ticket_id": scm_object_id
         }))
         ticket_id = params.pop("ticket_id")
         del params
@@ -228,7 +235,7 @@ class TicketExportHandler(TicketReq):
     async def get(self):
         """工单导出"""
         params = self.get_query_args(Schema({
-            "ticket_id": scm_unempty_str
+            "ticket_id": scm_object_id
         }))
         ticket_id = params.pop("ticket_id")
 
@@ -245,14 +252,14 @@ class TicketExportHandler(TicketReq):
             if k == "status"
             else v,
         )
-        the_ticket['script_sum']=len(the_ticket.pop("scripts"))
+        the_ticket['script_sum'] = len(the_ticket.pop("scripts"))
 
         params_dict = {
             'ticket_heads': ticket_heads,
             'the_ticket': the_ticket
         }
 
-        #导出工单文件名
+        # 导出工单文件名
         filename = '_'.join([
             '工单信息',
             the_ticket['task_name'],
@@ -274,7 +281,7 @@ class TicketExportHandler(TicketReq):
         issue_static_count = len(issue_static)
         issue_dynamic = [x for x in sub_ticket_list if x['dynamic']]
         issue_dynamic_count = len(issue_dynamic)
-        sub_ticket_stats = [sql_count, issue_sql_count,issue_static_count, issue_dynamic_count]
+        sub_ticket_stats = [sql_count, issue_sql_count, issue_static_count, issue_dynamic_count]
         params_dict.update(
             {
                 'sub_ticket_stats_heads': sub_ticket_stats_heads,
@@ -283,10 +290,10 @@ class TicketExportHandler(TicketReq):
         )
 
         # 获得静态问题子工单
-        issue_static_sub_ticket_heads = ['序号','任务名称','脚本名称','SQL文本','静态检测结果','错误信息']
-        issue_static_sub_ticket = [[a,x['task_name'],x['script']['script_name'],
-                                    x['sql_text'],"\n".join([y['rule_desc'] for y in x['static']]),
-                                    x['error_msg']] for a,x in enumerate(issue_static)]
+        issue_static_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '静态检测结果', '错误信息']
+        issue_static_sub_ticket = [[a, x['task_name'], x['script']['script_name'],
+                                    x['sql_text'], "\n".join([y['rule_desc'] for y in x['static']]),
+                                    x['error_msg']] for a, x in enumerate(issue_static)]
         params_dict.update(
             {
                 'issue_static_sub_ticket_heads': issue_static_sub_ticket_heads,
@@ -296,9 +303,9 @@ class TicketExportHandler(TicketReq):
 
         # 获得动态问题子工单
         issue_dynamic_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '动态检测结果', '错误信息']
-        issue_dynamic_sub_ticket= [[a,x['task_name'],x['script']['script_name'],
-                                    x['sql_text'],"\n".join([y['rule_desc'] for y in x['dynamic']]),
-                                    x['error_msg']] for a,x in enumerate(issue_dynamic)]
+        issue_dynamic_sub_ticket = [[a, x['task_name'], x['script']['script_name'],
+                                     x['sql_text'], "\n".join([y['rule_desc'] for y in x['dynamic']]),
+                                     x['error_msg']] for a, x in enumerate(issue_dynamic)]
 
         params_dict.update(
             {
@@ -308,11 +315,11 @@ class TicketExportHandler(TicketReq):
         )
 
         # 获得所有动静态问题子工单
-        all_issue_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '静态检测结果','动态检测结果', '错误信息']
-        all_issue_sub_ticket =[[a,x['task_name'],x['script']['script_name'],x['sql_text'],
-                               "\n".join([y['rule_desc'] for y in x['static']]),
-                                "\n".join([y['rule_desc'] for y in x['dynamic']]),
-                                x['error_msg']] for a,x in enumerate(sub_ticket_list)]
+        all_issue_sub_ticket_heads = ['序号', '任务名称', '脚本名称', 'SQL文本', '静态检测结果', '动态检测结果', '错误信息']
+        all_issue_sub_ticket = [[a, x['task_name'], x['script']['script_name'], x['sql_text'],
+                                 "\n".join([y['rule_desc'] for y in x['static']]),
+                                 "\n".join([y['rule_desc'] for y in x['dynamic']]),
+                                 x['error_msg']] for a, x in enumerate(sub_ticket_list)]
         params_dict.update(
             {
                 'all_issue_sub_ticket_heads': all_issue_sub_ticket_heads,
@@ -327,3 +334,4 @@ class TicketExportHandler(TicketReq):
             "ticket_id": "5edef7e22a0c111df052f3b7"
         }
     }
+
