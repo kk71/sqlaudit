@@ -1,11 +1,12 @@
 import yagmail
 import traceback
-import os, zipfile,time
+import os,time,zipfile
 
 import settings
 import task.const
 from .mail import *
 from .user import *
+from .const import *
 from task.task import *
 from models.sqlalchemy import make_session
 from oracle_cmdb.auth.user_utils import current_cmdb,current_schema
@@ -16,7 +17,9 @@ from oracle_cmdb.tasks.risk_obj_export import RiskRuleObjExport
 from oracle_cmdb.tasks.capture import OracleCMDBTaskCapture
 from oracle_cmdb.restful_api.health_center import SchemaIssueRuleBase, OutputDataBase
 from oracle_cmdb.tasks.schema_report_export import SchemaReportExport
-from .const import *
+from oracle_cmdb.restful_api.online import GetOverViewBase, CmdbReportOtherData
+from oracle_cmdb.html_report.tasks import CmdbReportExportHtml
+
 
 def get_zip_file(input_path, result):
     files = os.listdir(input_path)
@@ -77,8 +80,22 @@ class SendMialREPORT(BaseTask):
                 print(path_prefix)
 
                 cmdb_ids=current_cmdb(session,user.login_user)
-
                 for cmdb_id in cmdb_ids:
+                    if CMDB_REPORT in report_item_list:
+                        cmdb_last_success_task_record_id: dict = OracleCMDBTaskCapture.last_success_task_record_id_dict(
+                            session, cmdbs=cmdb_id)
+                        task_record_id = cmdb_last_success_task_record_id[cmdb_id]
+                        cmdb_overview = GetOverViewBase().get_overview(session, cmdb_id, task_record_id, user.login_user)
+                        cmdb, tabspace_q, sql_detail = CmdbReportOtherData().cmdb_other_data(session,cmdb_overview)
+                        parame_dict = {
+                            "cmdb": cmdb,
+                            "tabspace_q": tabspace_q,
+                            "cmdb_overview": cmdb_overview,
+                            "sql_detail": sql_detail
+                        }
+                        filename = f"cmdb_report_{cmdb_id}_{dt_to_str(arrow.now())}.tar.gz"
+                        CmdbReportExportHtml.report(path_prefix,filename,parame_dict=parame_dict)
+
                     if RISK_SQL_REPORT in report_item_list:
                         date_start = str(arrow.now().date())
                         date_end = str(arrow.now().shift(days=+1).date())

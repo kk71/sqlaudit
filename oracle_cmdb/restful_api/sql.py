@@ -13,10 +13,10 @@ from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
 from ..capture import OracleSQLStat, OracleSQLStatToday, OracleSQLStatYesterday
 from ..statistics import OracleStatsSQLText, OracleStatsSchemaRiskSQL
 from ..capture.sqlplan import OracleSQLPlanToday
+from ..cmdb import OracleCMDB
 
 
-@as_view(group="online")
-class SQLHandler(OraclePrivilegeReq):
+class SqlDetails:
 
     # 需要取的字段
     ORIGINAL_KEYS = (
@@ -36,15 +36,15 @@ class SQLHandler(OraclePrivilegeReq):
             "value": round(value, 2)
         }
 
-    def get_sql_details(self,cmdb_id,sql_id,date_start, date_end,rule_name=None):
+    def get_sql_details(self, cmdb_id, sql_id, date_start, date_end, rule_name=None):
 
-        if isinstance(sql_id,str):
-            sql_id=[sql_id]
-        data=[]
+        if isinstance(sql_id, str):
+            sql_id = [sql_id]
+        data = []
 
         for sql_id_o in sql_id:
             with make_session() as session:
-                the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+                the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
                 the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(the_cmdb)
                 lstri: int = the_cmdb_task.last_success_task_record_id
                 # 日期区间内当前库成功的task_record_id，以字典形式和列表形式
@@ -104,9 +104,9 @@ class SQLHandler(OraclePrivilegeReq):
                     if not a_stat:
                         # 如果没找到，则去采集当日不完整的一天里寻找
                         a_stat = OracleSQLStatToday.filter(q).order_by("-create_time").first()
-                    a_stat=a_stat.to_dict()
+                    a_stat = a_stat.to_dict()
                     if not len(sql_id) == 1:
-                        a_stat['sql_plan']=OracleSQLPlanToday.sql_plan_table(
+                        a_stat['sql_plan'] = OracleSQLPlanToday.sql_plan_table(
                             task_record_id=lstri, sql_id=sql_id_o,
                             plan_hash_value=plan_hash_value)
                     plans.append(a_stat)
@@ -141,16 +141,16 @@ class SQLHandler(OraclePrivilegeReq):
                                 average_value = original_value / a_stat.executions_delta
                             gocphv[k + self.AVERAGE_POSTFIX].append(
                                 self.prettify_coordinate(d, average_value))
-                if len(sql_id)==1:
+                if len(sql_id) == 1:
                     return {
-                    "sql_stat": latest_sql_stat.to_dict(iter_if=lambda k, v: k in (
-                        "elapsed_time_delta", "executions_total", "io_cost"
-                    )),
-                    "graph": graph,
-                    "risk_rules": risk_rules,
-                    "plans": plans,
-                    **latest_sql_text_stats.to_dict()
-                }
+                        "sql_stat": latest_sql_stat.to_dict(iter_if=lambda k, v: k in (
+                            "elapsed_time_delta", "executions_total", "io_cost"
+                        )),
+                        "graph": graph,
+                        "risk_rules": risk_rules,
+                        "plans": plans,
+                        **latest_sql_text_stats.to_dict()
+                    }
                 data.append({
                     "sql_stat": latest_sql_stat.to_dict(iter_if=lambda k, v: k in (
                         "elapsed_time_delta", "executions_total", "io_cost"
@@ -160,6 +160,10 @@ class SQLHandler(OraclePrivilegeReq):
                     **latest_sql_text_stats.to_dict()
                 })
         return data
+
+
+@as_view(group="online")
+class SQLHandler(OraclePrivilegeReq, SqlDetails):
 
     def get(self):
         """线上审核的SQL详情页面，风险SQL详情"""
@@ -174,8 +178,7 @@ class SQLHandler(OraclePrivilegeReq):
                 date_end=now.date()
             )
         }))
-
-        sql_detail=self.get_sql_details(**params)
+        sql_detail = self.get_sql_details(**params)
         self.resp(sql_detail)
 
     get.argument = {

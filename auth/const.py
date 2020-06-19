@@ -70,6 +70,7 @@ class PRIVILEGE:
 
 # 邮件报告选项
 ALL_REPORT_ITEM = (
+    CMDB_REPORT := "cmdb报告",
     SCHEMA_REPORT := "schema报告",
     RISK_OBJ_REPORT := "风险obj报告",
     RISK_SQL_REPORT := "风险sql报告"

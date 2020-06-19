@@ -2,6 +2,7 @@ from .base import *
 from auth.const import *
 from auth.mail import *
 from ..const import PRIVILEGE
+from ..tasks_mail import SendMialREPORT
 from utils.schema_utils import *
 from models.sqlalchemy import *
 from restful_api.modules import *
@@ -212,7 +213,7 @@ class MailServerHandler(AuthReq):
         }
     }
 
-from ..tasks_mail import SendMialREPORT
+
 @as_view("send_test_email", group="mail")
 class SendTestEmailHandler(AuthReq):
 
