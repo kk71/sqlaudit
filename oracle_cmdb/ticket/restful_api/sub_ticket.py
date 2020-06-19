@@ -76,11 +76,11 @@ class SubTicketIssueHandler(TicketReq):
 
     patch.argument = {
         "json": {
-        "statement_id": "juINDpGfSN2t3ukow7SoSw==",
-        "rule_name": "SELECT_ANY",
-        "analyse_type": "STATIC",
-        "//action":"delete",
-        "//update": {
-            "minus_score": "1"}
+            "statement_id": "juINDpGfSN2t3ukow7SoSw==",
+            "rule_name": "SELECT_ANY",
+            "analyse_type": "STATIC",
+            "//action": "delete",
+            "//update": {
+                "minus_score": "1"}
         }
     }

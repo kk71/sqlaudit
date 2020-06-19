@@ -1,8 +1,10 @@
 # Author: kk.Fang(fkfkbill@gmail.com)
 
 import json
+from typing import List
 
 import arrow
+from bson.objectid import ObjectId
 from schema import And, Use, Optional as scm_optional, Schema, SchemaError,\
     Or as scm_or
 
@@ -36,7 +38,9 @@ __all__ = [
     "scm_raise_error",
     "scm_empty_as_optional",
     "scm_deduplicated_list",
-    "scm_json"
+    "scm_deduplicated_list_of_dict",
+    "scm_json",
+    "scm_object_id"
 ]
 
 
@@ -81,6 +85,7 @@ scm_dot_split_str = scm_something_split_str(",", scm_unempty_str)
 scm_subset_of_choices = lambda choices: lambda subset: set(subset).issubset(set(choices))
 scm_one_of_choices = lambda choices: lambda x: x in choices
 scm_json = lambda x: And(scm_str, Use(lambda v: Schema(x).validate(json.loads(v))))
+scm_object_id = lambda x: ObjectId(x)
 
 # for integer and float
 scm_float = Use(float)
@@ -99,3 +104,15 @@ scm_date_end = Use(lambda x: arrow.get(x, const.COMMON_DATE_FORMAT).shift(days=+
 
 # for list/set
 scm_deduplicated_list = Use(lambda x: list(OrderedSet(x)))
+
+
+def _scm_deduplicated_list_of_dict(list_of_dict: List[dict]):
+    a = []
+    for i in list_of_dict:
+        if i not in a:
+            a.append(i)
+    return a
+
+
+# 元素为dict的list去重
+scm_deduplicated_list_of_dict = Use(_scm_deduplicated_list_of_dict)

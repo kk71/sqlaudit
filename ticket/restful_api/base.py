@@ -32,8 +32,8 @@ class TicketReq(PrivilegeReq):
             # 能看:自己提交的工单+指派给自己所在角色的工单+自己处理了的工单
             q = q.filter(
                 Q(submit_owner=self.current_user) |
-                Q(audit_role_id__in=self.current_roles()) |
-                Q(audit_owner=self.current_user)
+                Q(manual_audit__audit_role_id__in=self.current_roles()) |
+                Q(manual_audit__audit_owner=self.current_user)
             )
 
         else:
@@ -52,8 +52,8 @@ class TicketReq(PrivilegeReq):
             # 能看:自己提交的子工单+指派给自己所在角色的子工单+自己处理过了的工单
             sq = Ticket.filter(
                 Q(submit_owner=self.current_user) |
-                Q(audit_role_id__in=self.current_roles()) |
-                Q(audit_owner=self.current_user)
+                Q(manual_audit__audit_role_id__in=self.current_roles()) |
+                Q(manual_audit__audit_owner=self.current_user)
             ).values_list("ticket_id")
             ticket_ids: list = list(sq)
             q = q.filter(ticket_id__in=ticket_ids)

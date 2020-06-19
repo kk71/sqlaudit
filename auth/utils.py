@@ -5,7 +5,7 @@ __all__ = [
     "privilege_towards_user"
 ]
 
-from typing import Union
+from typing import Union, List, Dict, Tuple, Set
 from collections import defaultdict
 
 from models.sqlalchemy import *
@@ -13,7 +13,7 @@ from auth.user import *
 from .const import PRIVILEGE
 
 
-def role_of_user(login_user: Union[str, list, tuple]) -> dict:
+def role_of_user(login_user: Union[str, List, Tuple]) -> Dict[str, Set[int]]:
     """
     获取某个用户，或者某一批用户所绑定的角色id
     :param login_user:

@@ -3,7 +3,8 @@
 __all__ = [
     "TicketScript",
     "Ticket",
-    "TempScriptStatement"
+    "TempScriptStatement",
+    "TicketManualAuditResult"
 ]
 
 import uuid
@@ -13,22 +14,23 @@ from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField, \
-    ObjectIdField
+    ObjectIdField, BooleanField
 from bson.objectid import ObjectId
 
 import cmdb.const
 import parsed_sql.const
+from .audit_process import *
 from parsed_sql.parsed_sql import ParsedSQL
 from core.ticket import *
 from models.mongoengine import *
 from utils import datetime_utils
-from . import const
+from . import const, exceptions
 
 
 class TicketScript(
-        DynamicEmbeddedDocument,
-        BaseTicketScript,
-        metaclass=ABCDocumentMetaclass):
+    DynamicEmbeddedDocument,
+    BaseTicketScript,
+    metaclass=ABCDocumentMetaclass):
     """工单脚本"""
 
     script_id = StringField(required=True, default=lambda: uuid.uuid4().hex)
@@ -46,10 +48,20 @@ class TicketScript(
             script__script_id=self.script_id).count()
 
 
+class TicketManualAuditResult(TicketManualAudit):
+    """工单人工审核信息"""
+
+    audit_owner = StringField(default=None)
+    audit_time = DateTimeField(default=None)
+    audit_comments = StringField(default="")
+    audit_status = BooleanField(default=None)
+
+
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     """工单"""
 
     ticket_id = ObjectIdField(primary_key=True, default=ObjectId)
+    comments = StringField(default="")
     db_type = StringField()
     task_name = StringField(required=True)
     cmdb_id = IntField()
@@ -58,10 +70,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
     submit_time = DateTimeField(default=lambda: datetime_utils.datetime.now())
     submit_owner = StringField()
     status = IntField(default=const.TICKET_ANALYSING, choices=const.ALL_TICKET_STATUS)
-    audit_role_id = IntField()
-    audit_owner = StringField()
-    audit_time = DateTimeField()
-    audit_comments = StringField(default="")
+    manual_audit = EmbeddedDocumentListField(TicketManualAuditResult)
     online_time = DateTimeField()
     score = FloatField()
 
@@ -75,7 +84,8 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
             "submit_time",
             "submit_owner",
             "status",
-            "audit_role_id"
+            "manual_audit__audit_role_id",
+            "manual_audit__audit_owner"
         ]
     }
 
@@ -136,6 +146,28 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         self.sub_ticket_count = sum([
             a_script.sub_ticket_count for a_script in self.scripts])
 
+    def audit(self, **kwargs):
+        """人工审核 TODO 需要手动保存"""
+        assert set(TicketManualAuditResult._fields.keys()) == set(kwargs.keys())
+        if self.status != const.TICKET_PENDING:
+            raise exceptions.TicketWithWrongStatus
+        for audit_stage in self.manual_audit:
+            if audit_stage.audit_role_id == kwargs["audit_role_id"]:
+                audit_stage.audit_owner = kwargs["audit_owner"]
+                audit_stage.audit_time = kwargs["audit_time"]
+                audit_stage.audit_comments = kwargs["audit_comments"]
+                audit_stage.audit_status = kwargs["audit_status"]
+                # update the status of the ticket
+                all_audit_status = [i.audit_status for i in self.manual_audit]
+                if all(all_audit_status):
+                    self.status = const.TICKET_PASSED
+                elif False in all_audit_status:
+                    self.status = const.TICKET_REJECTED
+                else:
+                    pass
+                return
+        raise exceptions.TicketManualAuditWithWrongRole
+
 
 class TempScriptStatement(BaseDoc):
     """临时脚本语句"""
@@ -178,7 +210,7 @@ class TempScriptStatement(BaseDoc):
             cls(
                 script=script,
                 position=i,
-                ** parsed_sql_statement.serialize()
+                **parsed_sql_statement.serialize()
             )
             for i, parsed_sql_statement in enumerate(ParsedSQL(script_text))
             if filter_sql_type is None or parsed_sql_statement.sql_type != filter_sql_type
