@@ -13,10 +13,11 @@ from ..tasks.capture.cmdb_task_capture import OracleCMDBTaskCapture
 from ..capture import OracleSQLStat, OracleSQLStatToday, OracleSQLStatYesterday
 from ..statistics import OracleStatsSQLText, OracleStatsSchemaRiskSQL
 from ..capture.sqlplan import OracleSQLPlanToday
+from ..cmdb import OracleCMDB
 
 
-@as_view(group="online")
-class SQLHandler(OraclePrivilegeReq):
+class SqlDetails:
+
     # 需要取的字段
     ORIGINAL_KEYS = (
         "buffer_gets_delta",
@@ -43,7 +44,7 @@ class SQLHandler(OraclePrivilegeReq):
 
         for sql_id_o in sql_id:
             with make_session() as session:
-                the_cmdb = self.cmdbs(session).filter_by(cmdb_id=cmdb_id).first()
+                the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
                 the_cmdb_task = OracleCMDBTaskCapture.get_cmdb_task_by_cmdb(the_cmdb)
                 lstri: int = the_cmdb_task.last_success_task_record_id
                 # 日期区间内当前库成功的task_record_id，以字典形式和列表形式
@@ -159,6 +160,10 @@ class SQLHandler(OraclePrivilegeReq):
                     **latest_sql_text_stats.to_dict()
                 })
         return data
+
+
+@as_view(group="online")
+class SQLHandler(OraclePrivilegeReq, SqlDetails):
 
     def get(self):
         """线上审核的SQL详情页面，风险SQL详情"""

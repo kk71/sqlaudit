@@ -12,8 +12,7 @@ class CmdbReportExportHtml(BaseTask):
     """CMDB库的html报告导出"""
 
     @classmethod
-    def task(cls, task_record_id: int, **kwargs):
-        filename: str = kwargs["filename"]
+    def report(cls, path_prefix, filename, **kwargs):
         parame_dict: dict = kwargs["parame_dict"]
 
         v_page = print_html_script('SQL审核管控平台CMDB报告')
@@ -75,15 +74,22 @@ class CmdbReportExportHtml(BaseTask):
         print_html_cmdb_sql_details(v_page, sqls)
 
         print_html_cmdb_js(v_page)
-        v_page.printOut(f"html_report/sqlreviewcmdb.html")
+        v_page.printOut(f"oracle_cmdb/html_report/sqlreviewcmdb.html")
 
-        path = os.path.join(settings.HEALTH_DIR, filename)
+        path = os.path.join(path_prefix, filename)
         tar = tarfile.open(str(path), "w:gz")
-        tar.add("html_report/css")
-        tar.add("html_report/assets")
-        tar.add("html_report/js")
-        tar.add("html_report/sqlreviewcmdb.html")
+        tar.add("oracle_cmdb/html_report/css")
+        tar.add("oracle_cmdb/html_report/assets")
+        tar.add("oracle_cmdb/html_report/js")
+        tar.add("oracle_cmdb/html_report/sqlreviewcmdb.html")
         tar.close()
 
-        path = os.path.join(settings.EXPORT_PREFIX_HEALTH, filename)
+        path = os.path.join(path_prefix, filename)
+        return path
+
+    @classmethod
+    def task(cls, task_record_id: int, **kwargs):
+        filename: str = kwargs.pop("filename")
+
+        path = cls.report(settings.HEALTH_DIR, filename, **kwargs)
         return path
