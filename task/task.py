@@ -11,6 +11,7 @@ import traceback
 import asyncio
 from typing import Any, NoReturn
 
+import chardet
 from kombu import Exchange, Queue
 
 import settings
@@ -116,11 +117,13 @@ class BaseTask(celery_app.Task):
     @classmethod
     def _shoot(cls, **kwargs) -> int:
         with make_session() as session:
+            pickled = pickle.dumps(kwargs, protocol=0)
+            pickled_decoded = pickled.decode(chardet.detect(pickled)["encoding"])
             task_record = TaskRecord(
                 task_type=cls.task_type,
                 task_name=const.ALL_TASK_TYPE_CHINESE[cls.task_type],
                 start_time=arrow.now().datetime,
-                input=pickle.dumps(kwargs, protocol=0).decode()
+                input=pickled_decoded
             )
             session.add(task_record)
             session.commit()
