@@ -174,14 +174,14 @@ class TicketHandler(TicketReq):
         raise NotImplementedError
 
     def patch(self):
-        """编辑工单(通过拒绝)"""
+        """编辑工单(通过,拒绝)"""
 
         self.acquire(PRIVILEGE.PRIVILEGE_OFFLINE_TICKET_APPROVAL)
 
         params = self.get_json_args(Schema({
             "ticket_id": scm_object_id,
 
-            "status": self.scm_status,
+            "status": scm_bool,
             "audit_comments": scm_str,
             "audit_role_id": scm_int,
             "audit_role_name": scm_unempty_str
@@ -196,13 +196,15 @@ class TicketHandler(TicketReq):
             the_ticket.save()
             self.resp_created(msg="更新成功")
         except exceptions.TicketManualAuditWithWrongRole:
-            self.resp_bad_req(msg="当前登录用户不拥有该工单的审核角色")
+            self.resp_bad_req(msg="当前登录用户不拥有该工单的审核角色。")
+        except exceptions.TicketWithWrongStatus:
+            self.resp_bad_req(msg="当前工单已经全部审核结束。")
 
     patch.argument = {
         "json": {
             "ticket_id": "5edcc7d1568d8355c5dab195",
             "audit_comments": "",
-            "status": "3",
+            "audit_status": True,
             "audit_role_id": 1,
             "audit_role_name": "以什么角色名进行审核。"
         }

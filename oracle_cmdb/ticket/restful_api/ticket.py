@@ -113,6 +113,7 @@ class TicketManualAuditChoices(
             i
             for i in the_ticket.to_dict()["manual_audit"]
             if i["audit_role_id"] in self.current_roles()
+            and i.get("audit_status", None) is not None
         ])
 
     get.argument = {

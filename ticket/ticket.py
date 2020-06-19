@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from mongoengine import IntField, StringField, DateTimeField, FloatField, \
     DynamicEmbeddedDocument, EmbeddedDocumentListField, EmbeddedDocumentField, \
-    ObjectIdField
+    ObjectIdField, BooleanField
 from bson.objectid import ObjectId
 
 import cmdb.const
@@ -54,6 +54,7 @@ class TicketManualAuditResult(TicketManualAudit):
     audit_owner = StringField(default=None)
     audit_time = DateTimeField(default=None)
     audit_comments = StringField(default="")
+    audit_status = BooleanField(default=None)
 
 
 class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
@@ -145,19 +146,25 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
         self.sub_ticket_count = sum([
             a_script.sub_ticket_count for a_script in self.scripts])
 
-    def audit(self, status, **kwargs):
+    def audit(self, **kwargs):
         """人工审核 TODO 需要手动保存"""
         assert set(TicketManualAuditResult._fields.keys()) == set(kwargs.keys())
-        assert status in const.ALL_TICKET_STATUS
-        assert status in (
-            const.TICKET_PASSED,
-            const.TICKET_REJECTED
-        )
+        if self.status != const.TICKET_PENDING:
+            raise exceptions.TicketWithWrongStatus
         for audit_stage in self.manual_audit:
             if audit_stage.audit_role_id == kwargs["audit_role_id"]:
                 audit_stage.audit_owner = kwargs["audit_owner"]
                 audit_stage.audit_time = kwargs["audit_time"]
                 audit_stage.audit_comments = kwargs["audit_comments"]
+                audit_stage.audit_status = kwargs["audit_status"]
+                # update the status of the ticket
+                all_audit_status = [i.audit_status for i in self.manual_audit]
+                if all(all_audit_status):
+                    self.status = const.TICKET_PASSED
+                elif False in all_audit_status:
+                    self.status = const.TICKET_REJECTED
+                else:
+                    pass
                 return
         raise exceptions.TicketManualAuditWithWrongRole
 
