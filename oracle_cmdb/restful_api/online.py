@@ -6,7 +6,6 @@ from utils.datetime_utils import *
 from oracle_cmdb.auth.user_utils import current_schema
 from oracle_cmdb.html_report.tasks import CmdbReportExportHtml
 from restful_api import *
-from .sql import SQLHandler
 from .base import OraclePrivilegeReq
 from auth.const import PRIVILEGE
 from utils.schema_utils import *
@@ -152,27 +151,22 @@ class CmdbReportOtherData:
         return cmdb, tabspace_q, sql_detail
 
 @as_view("cmdb_report_export", group="health-center")
-class CmdbReportExport(OverviewHandler, SQLHandler,CmdbReportOtherData):
+class CmdbReportExport(OverviewHandler):
 
     async def get(self):
         """CMDB库的报告导出"""
         cmdb_id,ltri = self.get_params()
 
-        with make_session() as session:
-            cmdb_overview = self.get_overview(session, cmdb_id, ltri, self.current_user)
-            cmdb, tabspace_q, sql_detail = self.cmdb_other_data(session,cmdb_overview)
+        parame_dict = {
+            "cmdb_id": cmdb_id,
+            "ltri": ltri,
+            "current_user": self.current_user,
+        }
 
-            parame_dict = {
-                "cmdb": cmdb,
-                "tabspace_q": tabspace_q,
-                "cmdb_overview": cmdb_overview,
-                "sql_detail": sql_detail
-            }
-
-            filename = cmdb.connect_name + "_" + str(cmdb.cmdb_id) + "_" + \
-                       dt_to_str(arrow.now()) + ".tar.gz"
-            await CmdbReportExportHtml.async_shoot(filename=filename, parame_dict=parame_dict)
-            await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
+        filename = str(cmdb_id) + "_" + \
+                   dt_to_str(arrow.now()) + ".tar.gz"
+        await CmdbReportExportHtml.async_shoot(filename=filename, parame_dict=parame_dict)
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
 
     get.argument = {
         "querystring": {
