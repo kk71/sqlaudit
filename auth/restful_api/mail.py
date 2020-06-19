@@ -192,7 +192,7 @@ class MailServerHandler(AuthReq):
             mail_server = session.query(MailServer).first()
             if mail_server:
                 session.query(MailServer). \
-                    filter_by(mail_server_id=mail_server.mail_server_id).update(**params)
+                    filter_by(mail_server_id=mail_server.mail_server_id).update(params)
             else:
                 mail_server = MailServer(**params)
                 session.add(mail_server)
