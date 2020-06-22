@@ -230,7 +230,7 @@ class SendTestEmailHandler(AuthReq):
                          "receive_mail_id":receive_mail_id,
                          **params}
 
-            await SendMialREPORT.async_shoot(async_task_timeout=60,**parame_dict)
+            await SendMialREPORT.async_shoot(async_task_timeout=600,**parame_dict)
             await self.resp_created(msg="邮件正在发送, 请注意过一会查收")
 
     post.argument = {
