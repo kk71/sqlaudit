@@ -2,7 +2,7 @@ from .base import *
 from auth.const import *
 from auth.mail import *
 from ..const import PRIVILEGE
-from ..tasks_mail import SendMialREPORT
+from ..tasks import SendMialREPORT
 from utils.schema_utils import *
 from models.sqlalchemy import *
 from restful_api.modules import *

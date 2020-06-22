@@ -32,4 +32,5 @@ PACKAGES_TO_SEARCH_FOR_TASKS = (
     "task",
     "oracle_cmdb",
     "ticket"
+    "auth"
 )
