@@ -51,6 +51,8 @@ class AuditProcessTemplateHandler(PrivilegeReq):
                     audit_role_id=the_role.role_id,
                     audit_role_name=the_role.role_name
                 ))
+        if not new_tmpl.process.count():
+            return self.resp_bad_req(msg="没有选中任何角色")
         try:
             new_tmpl.save()
         except NotUniqueError:
@@ -94,6 +96,8 @@ class AuditProcessTemplateHandler(PrivilegeReq):
                         audit_role_id=the_role.role_id,
                         audit_role_name=the_role.role_name
                     ))
+        if not the_tmpl.process.count():
+            return self.resp_bad_req(msg="没有选中任何角色")
         try:
             the_tmpl.save()
         except NotUniqueError:
