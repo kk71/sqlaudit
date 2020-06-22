@@ -92,7 +92,7 @@ class SchemaIssueRuleBase:
 
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
-        task_record_id = params.pop("task_record_id")
+        task_record_id = params.pop("tri")
         level = params.get("level")
 
         issues_rule_q = OracleOnlineIssue.filter(
@@ -303,7 +303,7 @@ class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule):
         """健康中心schema报告导出"""
 
         params = self.filter_params()
-
+        params['tri'] = params.pop("task_record_id")
         filename = f"export_schema_report_{dt_to_str(arrow.now())}.xlsx"
 
         await SchemaReportExport.async_shoot(filename=filename, **params)
