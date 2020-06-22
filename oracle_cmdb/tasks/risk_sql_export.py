@@ -21,8 +21,7 @@ class RiskRuleSqlExport(BaseTask):
         with make_session() as session:
             risk_rule_outer, cmdb_id, task_record_id_list=\
                 GetRiskRuleBase().get_risk_rule(session,**params)
-            parame_dict = RiskRuleSql.risk_rule_sql_inner(
-                risk_rule_outer,cmdb_id,task_record_id_list)
+            parame_dict = RiskRuleSql().risk_rule_sql_inner(risk_rule_outer,cmdb_id,task_record_id_list)
             path = os.path.join(path_prefix, filename)
             wb = xlsxwriter.Workbook(path)
 
