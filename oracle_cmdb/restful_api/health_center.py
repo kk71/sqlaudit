@@ -303,18 +303,18 @@ class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule,OutputDataBase)
         """健康中心schema报告导出"""
 
         params=self.filter_params()
-        schema_issue_rule_dict, cmdb_id, task_record_id, schema_name=self.schema_issue_rule(**params)
-
-        output_data = self.get_output_data(cmdb_id,task_record_id,schema_name)
-
-        parame_dict = {
-            "schema_issue_rule_dict": schema_issue_rule_dict,
-            "output_data": output_data
-        }
+        # schema_issue_rule_dict, cmdb_id, task_record_id, schema_name=self.schema_issue_rule(**params)
+        #
+        # output_data = self.get_output_data(cmdb_id,task_record_id,schema_name)
+        #
+        # parame_dict = {
+        #     "schema_issue_rule_dict": schema_issue_rule_dict,
+        #     "output_data": output_data
+        # }
 
         filename = f"export_schema_report_{dt_to_str(arrow.now())}.xlsx"
 
-        await SchemaReportExport.async_shoot(filename=filename, parame_dict=parame_dict)
+        await SchemaReportExport.async_shoot(filename=filename, parame_dict=params)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
 
     get.argument = {

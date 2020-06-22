@@ -203,13 +203,10 @@ class RiskSqlExportHandler(RiskRuleHandler,RiskRuleSql):
         3.导出已选cmdb,时间,rule_name
         4.导出已选cmdb,时间,rule_name,(schema,等级)"""
         params = self.filter_params()
-        with make_session() as session:
-            risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session, **params)
-            parame_dict = self.risk_rule_sql_inner(risk_rule_outer,cmdb_id,task_record_id_list)
 
-            filename = f"risk_rule_sql_{dt_to_str(arrow.now())}.xlsx"
-            await RiskRuleSqlExport.async_shoot(filename=filename, parame_dict=parame_dict)
-            await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        filename = f"risk_rule_sql_{dt_to_str(arrow.now())}.xlsx"
+        await RiskRuleSqlExport.async_shoot(filename=filename, parame_dict=params)
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     post.argument = {
         "querystring": {
@@ -247,7 +244,7 @@ class RiskObjectExportHandler(RiskRuleHandler, RiskRuleOBJHandler):
             }
 
             filename = f"risk_rule_obj_{dt_to_str(arrow.now())}.xlsx"
-            await RiskRuleObjExport.async_shoot(filename=filename, parame_dict=parame_dict)
+            await RiskRuleObjExport.async_shoot(filename=filename, parame_dict=params)
             await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     post.argument = {

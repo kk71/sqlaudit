@@ -16,6 +16,10 @@ class SchemaReportExport(BaseTask):
     @classmethod
     def report(cls,path_prefix, filename, **kwargs):
         parame_dict: dict = kwargs["parame_dict"]
+        from ..restful_api.health_center import SchemaIssueRuleBase, OutputDataBase
+        schema_issue_rule_dict, cmdb_id, task_record_id, schema_name=\
+            SchemaIssueRuleBase().schema_issue_rule(**parame_dict)
+        output_data=OutputDataBase().get_output_data(cmdb_id,task_record_id,schema_name)
 
         path = os.path.join(path_prefix, filename)
         wb = xlsxwriter.Workbook(path)
@@ -34,16 +38,16 @@ class SchemaReportExport(BaseTask):
         })
         # 上栏
         heads = ["连接名称", "SCHEMA", "创建时间", "schema分数"]
-        connect_name = parame_dict["schema_issue_rule_dict"]["connect_name"]
-        schema_name = parame_dict["schema_issue_rule_dict"]["schema_name"]
-        create_time = parame_dict["schema_issue_rule_dict"]["create_time"]
-        schema_score = parame_dict["schema_issue_rule_dict"]["schema_score"]['entry_score']['ONLINE']
+        connect_name = schema_issue_rule_dict["connect_name"]
+        schema_name = schema_issue_rule_dict["schema_name"]
+        create_time = schema_issue_rule_dict["create_time"]
+        schema_score = schema_issue_rule_dict["schema_score"]['entry_score']['ONLINE']
         heads_data = [connect_name, schema_name, create_time, schema_score]
         # 中栏
         schema_issue_rule_heads = ['规则名称', '规则描述', '风险等级', '违反次数']
-        rule_issues = parame_dict["schema_issue_rule_dict"]["rule_issue"]
+        rule_issues = schema_issue_rule_dict["rule_issue"]
         # 下栏
-        output_data = parame_dict["output_data"]
+        output_data = output_data
 
         a = 0
         for rule_issue in rule_issues:
