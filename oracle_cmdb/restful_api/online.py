@@ -16,6 +16,7 @@ from ..cmdb import OracleCMDB
 from ..statistics import *
 from ..statistics.current_task.cmdb_score import OracleStatsCMDBScore
 
+
 class GetOverViewBase:
 
     def get_overview(self, session, cmdb_id, ltri, current_user):
@@ -65,7 +66,7 @@ class GetOverViewBase:
 
         # schema评分排名
         rank_schema_score = []
-        schemas :list = current_schema(session,login_user=current_user,cmdb_id=cmdb_id)
+        schemas: list = current_schema(session, login_user=current_user, cmdb_id=cmdb_id)
         schema_score_q = OracleStatsSchemaScore.filter(
             task_record_id=ltri,
             schema_name__in=schemas
@@ -87,10 +88,9 @@ class GetOverViewBase:
 
 
 @as_view("overview", group="online")
-class OverviewHandler(OraclePrivilegeReq,GetOverViewBase):
+class OverviewHandler(OraclePrivilegeReq, GetOverViewBase):
 
     def get_params(self):
-
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int
         }))
@@ -104,16 +104,16 @@ class OverviewHandler(OraclePrivilegeReq,GetOverViewBase):
             if not ltri:
                 return self.resp_bad_req(msg=f"当前库未采集或者没有采集成功。")
 
-        return cmdb_id,ltri
+        return cmdb_id, ltri
 
     def get(self):
         """线上数据库健康度概览
         cmdb最近一次采集分析统计成功后的结果
         """
         self.acquire(PRIVILEGE.PRIVILEGE_ONLINE)
-        cmdb_id,ltri = self.get_params()
+        cmdb_id, ltri = self.get_params()
         with make_session() as session:
-            cmdb_overview = self.get_overview(session,cmdb_id, ltri,self.current_user)
+            cmdb_overview = self.get_overview(session, cmdb_id, ltri, self.current_user)
             self.resp(cmdb_overview)
 
     get.argument = {
@@ -123,9 +123,10 @@ class OverviewHandler(OraclePrivilegeReq,GetOverViewBase):
         "json": {}
     }
 
+
 class CmdbReportOtherData:
 
-    def cmdb_other_data(self,session,cmdb_overview):
+    def cmdb_other_data(self, session, cmdb_overview):
         cmdb_id = cmdb_overview["cmdb_id"]
         latest_task_record_id = cmdb_overview["task_record_id"]
 
@@ -150,12 +151,13 @@ class CmdbReportOtherData:
 
         return cmdb, tabspace_q, sql_detail
 
+
 @as_view("cmdb_report_export", group="health-center")
 class CmdbReportExport(OverviewHandler):
 
     async def get(self):
         """CMDB库的报告导出"""
-        cmdb_id,ltri = self.get_params()
+        cmdb_id, ltri = self.get_params()
 
         parame_dict = {
             "cmdb_id": cmdb_id,

@@ -16,6 +16,7 @@ from rule.const import ALL_RULE_LEVELS
 from models.sqlalchemy import make_session
 from restful_api.modules import as_view
 
+
 class GetRiskRuleBase:
 
     def get_risk_rule(self, session, **params):
@@ -52,11 +53,9 @@ class GetRiskRuleBase:
 
 
 @as_view(group="online")
-class RiskRuleHandler(OraclePrivilegeReq,GetRiskRuleBase):
-
+class RiskRuleHandler(OraclePrivilegeReq, GetRiskRuleBase):
 
     def filter_params(self):
-
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
 
@@ -135,6 +134,7 @@ class RiskRuleSQLHandler(OraclePrivilegeReq):
         }
     }
 
+
 class RiskRuleObj:
 
     def get_risk_obj(self, **params):
@@ -151,7 +151,7 @@ class RiskRuleObj:
 
 
 @as_view("obj", group="online")
-class RiskRuleOBJHandler(OraclePrivilegeReq,RiskRuleObj):
+class RiskRuleOBJHandler(OraclePrivilegeReq, RiskRuleObj):
 
     def get(self):
         """触犯风险obj规则的obj"""
@@ -176,9 +176,10 @@ class RiskRuleOBJHandler(OraclePrivilegeReq,RiskRuleObj):
         }
     }
 
+
 class RiskRuleSql:
 
-    def risk_rule_sql_inner(self,risk_rule_outer,cmdb_id,task_record_id_list):
+    def risk_rule_sql_inner(self, risk_rule_outer, cmdb_id, task_record_id_list):
         risk_rule_sql_inner_q = OracleStatsSchemaRiskSQL.filter(cmdb_id=cmdb_id,
                                                                 task_record_id__in=task_record_id_list)
         for x in risk_rule_sql_inner_q:  # TODO应该统计的时候写入sql_text
@@ -193,7 +194,7 @@ class RiskRuleSql:
 
 
 @as_view("sql_export", group="online")
-class RiskSqlExportHandler(RiskRuleHandler,RiskRuleSql):
+class RiskSqlExportHandler(RiskRuleHandler):
 
     async def post(self):
         """风险SQL导出
@@ -205,7 +206,7 @@ class RiskSqlExportHandler(RiskRuleHandler,RiskRuleSql):
         params = self.filter_params()
 
         filename = f"risk_rule_sql_{dt_to_str(arrow.now())}.xlsx"
-        await RiskRuleSqlExport.async_shoot(filename=filename, parame_dict=params)
+        await RiskRuleSqlExport.async_shoot(filename=filename, **params)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     post.argument = {
@@ -223,7 +224,7 @@ class RiskSqlExportHandler(RiskRuleHandler,RiskRuleSql):
 
 
 @as_view("obj_export", group="online")
-class RiskObjectExportHandler(RiskRuleHandler, RiskRuleOBJHandler):
+class RiskObjectExportHandler(RiskRuleHandler):
 
     async def post(self):
         """风险对象导出
@@ -234,18 +235,10 @@ class RiskObjectExportHandler(RiskRuleHandler, RiskRuleOBJHandler):
         4.导出已选cmdb,时间,rule_name,(schema,等级)
         """
         params = self.filter_params()
-        with make_session() as session:
-            risk_rule_outer, cmdb_id, task_record_id_list = self.get_risk_rule(session, **params)
-            risk_rule_obj_inner = self.get_risk_obj(cmdb_id=cmdb_id, task_record_id__in=task_record_id_list)
 
-            parame_dict = {
-                "risk_rule_outer": risk_rule_outer,
-                "risk_rule_obj_inner": risk_rule_obj_inner
-            }
-
-            filename = f"risk_rule_obj_{dt_to_str(arrow.now())}.xlsx"
-            await RiskRuleObjExport.async_shoot(filename=filename, parame_dict=params)
-            await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
+        filename = f"risk_rule_obj_{dt_to_str(arrow.now())}.xlsx"
+        await RiskRuleObjExport.async_shoot(filename=filename, **params)
+        await self.resp({"url": path.join(settings.EXPORT_PREFIX, filename)})
 
     post.argument = {
         "querystring": {

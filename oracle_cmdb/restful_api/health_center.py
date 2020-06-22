@@ -85,9 +85,10 @@ class HealthCenterSchema(OraclePrivilegeReq):
             "//per_page": "10"
         }}
 
+
 class SchemaIssueRuleBase:
 
-    def schema_issue_rule(self,**params):
+    def schema_issue_rule(self, **params):
 
         cmdb_id = params.pop("cmdb_id")
         schema_name = params.pop("schema_name")
@@ -114,7 +115,7 @@ class SchemaIssueRuleBase:
             doc['issue_num'] += 1
         for d in dt.values():
             rule_issues.append(d)
-        rule_issues_level=[]
+        rule_issues_level = []
         if level:
             for x in rule_issues:
                 if x['level'] == level:
@@ -132,7 +133,7 @@ class SchemaIssueRuleBase:
                                                      task_record_id=task_record_id).first()
         with make_session() as session:
             from .cmdb import OracleCMDB
-            the_cmdb=session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
+            the_cmdb = session.query(OracleCMDB).filter_by(cmdb_id=cmdb_id).first()
             schema_issue_rule_dict = {"connect_name": the_cmdb.connect_name,
                                       "schema_name": schema_name,
                                       "create_time": dt_to_str(create_time),
@@ -143,10 +144,9 @@ class SchemaIssueRuleBase:
 
 
 @as_view("rule_issue", group="health-center")
-class HealthCenterSchemaIssueRule(OraclePrivilegeReq,SchemaIssueRuleBase):
+class HealthCenterSchemaIssueRule(OraclePrivilegeReq, SchemaIssueRuleBase):
 
     def filter_params(self):
-
         params = self.get_query_args(Schema({
             "cmdb_id": scm_int,
             "task_record_id": scm_int,
@@ -282,10 +282,10 @@ class SQLIssueDetailHandler(OraclePrivilegeReq):
             "//plan_hash_value": "2959612647"
         }}
 
+
 class OutputDataBase:
 
-    def get_output_data(self,cmdb_id,task_record_id,schema_name):
-
+    def get_output_data(self, cmdb_id, task_record_id, schema_name):
         issues_q = OracleOnlineIssue.filter(cmdb_id=cmdb_id,
                                             schema_name=schema_name,
                                             task_record_id=task_record_id)
@@ -297,16 +297,16 @@ class OutputDataBase:
 
 
 @as_view("scheam_report_export", group="health-center")
-class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule,OutputDataBase):
+class HealthCenterSchemaReportExport(HealthCenterSchemaIssueRule):
 
     async def get(self):
         """健康中心schema报告导出"""
 
-        params=self.filter_params()
+        params = self.filter_params()
 
         filename = f"export_schema_report_{dt_to_str(arrow.now())}.xlsx"
 
-        await SchemaReportExport.async_shoot(filename=filename, parame_dict=params)
+        await SchemaReportExport.async_shoot(filename=filename, **params)
         await self.resp({"url": path.join(settings.EXPORT_PREFIX_HEALTH, filename)})
 
     get.argument = {
