@@ -3,6 +3,8 @@
 from mongoengine import NotUniqueError
 
 import auth.const
+import auth.user
+from models.sqlalchemy import *
 from utils.schema_utils import *
 from restful_api import *
 from auth.restful_api.base import *
@@ -35,20 +37,20 @@ class AuditProcessTemplateHandler(PrivilegeReq):
 
         params = self.get_json_args(Schema({
             "name": scm_unempty_str,
-            "process": scm_and(
-                scm_deduplicated_list_of_dict,
-                [{
-                    "audit_role_id": scm_int,
-                    "audit_role_name": scm_unempty_str
-                }]
-            )
+            "process": scm_deduplicated_list
         }))
         process = params.pop("process")
         new_tmpl = TicketAuditProcessTemplate(**params)
-        for a_process in process:
-            new_tmpl.process.append(TicketManualAudit(
-                **a_process
-            ))
+        with make_session() as session:
+            for a_process in process:
+                the_role = session.query(auth.user.Role).filter_by(
+                    role_id=a_process).first()
+                if not the_role:
+                    continue
+                new_tmpl.process.append(TicketManualAudit(
+                    audit_role_id=the_role.role_id,
+                    audit_role_name=the_role.role_name
+                ))
         try:
             new_tmpl.save()
         except NotUniqueError:
@@ -59,14 +61,7 @@ class AuditProcessTemplateHandler(PrivilegeReq):
         "json": {
             "name": "新审核模板",
             "process": [
-                {
-                    "audit_role_id": 1,
-                    "audit_role_name": "emmm"
-                },
-                {
-                    "audit_role_id": 2,
-                    "audit_role_name": "emmmm"
-                }
+                1
             ]
         }
     }
@@ -79,13 +74,7 @@ class AuditProcessTemplateHandler(PrivilegeReq):
             "id": scm_unempty_str,
 
             scm_optional("name"): scm_unempty_str,
-            scm_optional("process"): scm_and(
-                scm_deduplicated_list_of_dict,
-                [{
-                    "audit_role_id": scm_int,
-                    "audit_role_name": scm_unempty_str
-                }]
-            )
+            scm_optional("process"): scm_deduplicated_list
         }))
         the_id = params.pop("_id")
         process = params.pop("process") if "process" in params.keys() else None
@@ -94,11 +83,17 @@ class AuditProcessTemplateHandler(PrivilegeReq):
             return self.resp_bad_req(msg="模板不存在。")
         the_tmpl.from_dict(params)
         if process is not None:
-            the_tmpl.process.clear()
-            for a_process in process:
-                the_tmpl.process.append(TicketManualAudit(
-                    **a_process
-                ))
+            with make_session() as session:
+                the_tmpl.process.clear()
+                for a_process in process:
+                    the_role = session.query(auth.user.Role).filter_by(
+                        role_id=a_process).first()
+                    if not the_role:
+                        continue
+                    the_tmpl.process.append(TicketManualAudit(
+                        audit_role_id=the_role.role_id,
+                        audit_role_name=the_role.role_name
+                    ))
         try:
             the_tmpl.save()
         except NotUniqueError:
@@ -109,16 +104,7 @@ class AuditProcessTemplateHandler(PrivilegeReq):
         "json": {
             "id": "ewfowngo",
             "name": "新审核模板",
-            "process": [
-                {
-                    "audit_role_id": 1,
-                    "audit_role_name": "emmm"
-                },
-                {
-                    "audit_role_id": 2,
-                    "audit_role_name": "emmmm"
-                }
-            ]
+            "process": [1]
         }
     }
 
