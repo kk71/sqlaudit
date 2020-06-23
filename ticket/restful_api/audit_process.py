@@ -85,7 +85,7 @@ class AuditProcessTemplateHandler(PrivilegeReq):
         }))
         the_id = params.pop("id")
         process = params.pop("process") if "process" in params.keys() else None
-        the_tmpl = TicketAuditProcessTemplate.filter(_id=the_id).first()
+        the_tmpl = TicketAuditProcessTemplate.filter(id=the_id).first()
         if not the_tmpl:
             return self.resp_bad_req(msg="模板不存在。")
         the_tmpl.from_dict(params)
