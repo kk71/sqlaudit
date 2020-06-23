@@ -4,6 +4,7 @@ import settings
 from os import path
 from collections import defaultdict
 
+import auth.user
 from auth.const import PRIVILEGE
 from .. import const, exceptions
 from .base import *
@@ -184,10 +185,13 @@ class TicketHandler(TicketReq):
             "status": scm_bool,
             "audit_comments": scm_str,
             "audit_role_id": scm_int,
-            "audit_role_name": scm_unempty_str
         }))
         params["audit_time"] = datetime.now()
         params["audit_owner"] = self.current_user
+        with make_session() as session:
+            the_role = session.query(
+                auth.user.Role).filter_by(role_id=params["audit_role_id"]).first()
+            params["audit_role_name"] = the_role.role_name
         ticket_id = params.pop("ticket_id")
 
         the_ticket = Ticket.filter(ticket_id=ticket_id).first()
@@ -205,8 +209,7 @@ class TicketHandler(TicketReq):
             "ticket_id": "5edcc7d1568d8355c5dab195",
             "audit_comments": "",
             "audit_status": True,
-            "audit_role_id": 1,
-            "audit_role_name": "以什么角色名进行审核。"
+            "audit_role_id": 1
         }
     }
 
