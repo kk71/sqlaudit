@@ -148,7 +148,7 @@ class Ticket(BaseDoc, BaseTicket, metaclass=ABCTopLevelDocumentMetaclass):
 
     def audit(self, **kwargs):
         """人工审核 TODO 需要手动保存"""
-        assert set(TicketManualAuditResult._fields.keys()) == set(kwargs.keys())
+        assert set(TicketManualAuditResult._fields.keys()).issuperset(kwargs.keys())
         if self.status != const.TICKET_PENDING:
             raise exceptions.TicketWithWrongStatus
         for audit_stage in self.manual_audit:

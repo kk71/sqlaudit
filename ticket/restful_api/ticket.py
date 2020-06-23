@@ -182,7 +182,7 @@ class TicketHandler(TicketReq):
         params = self.get_json_args(Schema({
             "ticket_id": scm_object_id,
 
-            "status": scm_bool,
+            "audit_status": scm_bool,
             "audit_comments": scm_str,
             "audit_role_id": scm_int,
         }))
@@ -191,10 +191,14 @@ class TicketHandler(TicketReq):
         with make_session() as session:
             the_role = session.query(
                 auth.user.Role).filter_by(role_id=params["audit_role_id"]).first()
+            if not the_role:
+                return self.resp_bad_req(msg="无法找到当前角色")
             params["audit_role_name"] = the_role.role_name
         ticket_id = params.pop("ticket_id")
 
         the_ticket = Ticket.filter(ticket_id=ticket_id).first()
+        if not the_ticket:
+            return self.resp_bad_req(msg="工单不存在。")
         try:
             the_ticket.audit(**params)
             the_ticket.save()
