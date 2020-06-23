@@ -83,7 +83,7 @@ class AuditProcessTemplateHandler(PrivilegeReq):
             scm_optional("name"): scm_unempty_str,
             scm_optional("process"): scm_deduplicated_list
         }))
-        the_id = params.pop("_id")
+        the_id = params.pop("id")
         process = params.pop("process") if "process" in params.keys() else None
         the_tmpl = TicketAuditProcessTemplate.filter(_id=the_id).first()
         if not the_tmpl:
