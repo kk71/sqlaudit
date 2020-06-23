@@ -17,17 +17,22 @@ class AuditProcessTemplateHandler(PrivilegeReq):
     def get(self):
         """工单审核流程模板列表"""
         params = self.get_query_args(Schema({
+            scm_optional("keyword", default=None): scm_empty_as_optional(scm_str),
             **self.gen_p()
         }))
         p = self.pop_p(params)
+        keyword = params.pop("keyword")
         tmpl_q = TicketAuditProcessTemplate.filter()
+        if keyword:
+            tmpl_q = self.query_keyword(tmpl_q, keyword, "name")
         content, p = self.paginate(tmpl_q, **p)
         self.resp([i.to_dict() for i in content], **p)
 
     get.argument = {
         "querystring": {
             "//page": 1,
-            "//per_page": 10
+            "//per_page": 10,
+            "//keyword": "emm"
         }
     }
 
