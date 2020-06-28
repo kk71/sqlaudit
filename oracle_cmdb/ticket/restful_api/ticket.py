@@ -24,7 +24,8 @@ class OracleTicketHandler(
 
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            scm_optional("schema_name", default=None): scm_unempty_str,            "manual_audit": {
+            scm_optional("schema_name", default=None): scm_unempty_str,
+            "manual_audit": {
                     "audit_role_id": scm_int,
                     "audit_role_name": scm_unempty_str
                 },
