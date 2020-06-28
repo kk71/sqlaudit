@@ -24,14 +24,10 @@ class OracleTicketHandler(
 
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
-            scm_optional("schema_name", default=None): scm_unempty_str,
-            "manual_audit": scm_and(
-                scm_deduplicated_list_of_dict,
-                [{
+            scm_optional("schema_name", default=None): scm_unempty_str,            "manual_audit": {
                     "audit_role_id": scm_int,
                     "audit_role_name": scm_unempty_str
-                }]
-            ),
+                },
             scm_optional("task_name", default=None): scm_unempty_str,
             "script_ids": [scm_unempty_str],
             scm_optional("online_username", default=None): scm_str,
@@ -65,10 +61,8 @@ class OracleTicketHandler(
                     submit_owner=params["submit_owner"]
                 )
             new_ticket.from_dict(params)
-            for a_manual_audit in manual_audit:
-                new_ticket.manual_audit.append(
-                    TicketManualAuditResult(**a_manual_audit)
-                )
+            new_ticket.manual_audit.append(
+                TicketManualAuditResult(**manual_audit))
             new_ticket.save()
             tasks.OracleTicketAnalyse.shoot(
                 ticket_id=str(new_ticket.ticket_id), script_ids=script_ids)
@@ -79,12 +73,10 @@ class OracleTicketHandler(
         "json": {
             "cmdb_id": "13",
             "//schema_name": "APEX",
-            "manual_audit": [
-                {
+            "manual_audit": {
                     "audit_role_id": "2",
                     "audit_role_name": "administrator"
-                }
-            ],
+                },
             "//task_name": "",
             "script_ids": ['701325c6081c4048b95d62d3e6fc29f1'],
             "//online_username": "",
