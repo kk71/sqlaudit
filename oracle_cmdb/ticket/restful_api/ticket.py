@@ -77,12 +77,12 @@ class OracleTicketHandler(
 
     post.argument = {
         "json": {
-            "cmdb_id": "2526",
+            "cmdb_id": "13",
             "//schema_name": "APEX",
             "manual_audit": [
                 {
-                    "audit_role_id": scm_int,
-                    "audit_role_name": scm_unempty_str
+                    "audit_role_id": "2",
+                    "audit_role_name": "administrator"
                 }
             ],
             "//task_name": "",
