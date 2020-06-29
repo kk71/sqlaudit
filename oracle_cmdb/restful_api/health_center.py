@@ -153,6 +153,7 @@ class HealthCenterSchemaIssueRule(OraclePrivilegeReq, SchemaIssueRuleBase):
             "schema_name": scm_unempty_str,
             scm_optional("level", default=None): scm_int
         }))
+        params['tri']=params.pop('task_record_id')
 
         return params
 
