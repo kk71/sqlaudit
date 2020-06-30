@@ -11,6 +11,7 @@ from ..ticket import OracleTicket
 from ...cmdb import *
 from .. import tasks
 from ticket.task_name_utils import *
+from ticket.audit_process import *
 from cmdb.const import DB_ORACLE
 
 
@@ -25,10 +26,7 @@ class OracleTicketHandler(
         params = self.get_json_args(Schema({
             "cmdb_id": scm_int,
             scm_optional("schema_name", default=None): scm_unempty_str,
-            "manual_audit": {
-                    "audit_role_id": scm_int,
-                    "audit_role_name": scm_unempty_str
-                },
+            "manual_audit": scm_unempty_str,  # 实际传入的是模板名
             scm_optional("task_name", default=None): scm_unempty_str,
             "script_ids": [scm_unempty_str],
             scm_optional("online_username", default=None): scm_str,
@@ -62,8 +60,12 @@ class OracleTicketHandler(
                     submit_owner=params["submit_owner"]
                 )
             new_ticket.from_dict(params)
-            new_ticket.manual_audit.append(
-                TicketManualAuditResult(**manual_audit))
+            audit_tmpl = TicketAuditProcessTemplate.filter(name=manual_audit).first()
+            if not audit_tmpl:
+                return self.resp_bad_req(msg="审核流程模板未找到。")
+            for a_role_info in audit_tmpl.to_dict()["process"]:
+                new_ticket.manual_audit.append(
+                    TicketManualAuditResult(**a_role_info))
             new_ticket.save()
             tasks.OracleTicketAnalyse.shoot(
                 ticket_id=str(new_ticket.ticket_id), script_ids=script_ids)
@@ -74,10 +76,7 @@ class OracleTicketHandler(
         "json": {
             "cmdb_id": "13",
             "//schema_name": "APEX",
-            "manual_audit": {
-                    "audit_role_id": "2",
-                    "audit_role_name": "administrator"
-                },
+            "manual_audit": "新审核模板111111",
             "//task_name": "",
             "script_ids": ['701325c6081c4048b95d62d3e6fc29f1'],
             "//online_username": "",
